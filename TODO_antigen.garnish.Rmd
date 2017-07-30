@@ -1,0 +1,12 @@
+# TODO antigen.garnish
+
+TODO for the `antigen.garnish R package`
+
+## TODO
+
+### Development
+
+* Dockerize
+
+## NOTES
+
