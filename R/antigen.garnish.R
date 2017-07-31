@@ -688,13 +688,14 @@ dtn <- parallel::mclapply(dt[, sample_id %>% unique], function(id){
     return(
         data.table(
         sample_id = id,
-        ag_cdn = dt[Consensus_scores < 50] %>% nrow,
-        ag_adn = dt[Consensus_scores < 5000 & DAI > 10] %>% nrow,
-        ag_adn_top = dt[Consensus_scores < 5000, DAI %>% sum_top_v],
-        ag_cdn_top = dt[Consensus_scores < 5000, (1/Consensus_scores) %>% sum_top_v],
-        ag_binders = dt[Consensus_scores < 5000] %>% nrow,
-        ag_peptides = dt[pep_type == "mut", peptide %>% unique] %>% length,
-        ag_predictions = dt[pep_type == "mut"] %>% nrow
+        priority_neos = dt[Consensus_scores < 50 & DAI > 10] %>% nrow,
+        classic_neos = dt[Consensus_scores < 50] %>% nrow,
+        alt_neos = dt[Consensus_scores < 5000 & DAI > 10] %>% nrow,
+        alt_neos_top = dt[Consensus_scores < 5000, DAI %>% sum_top_v],
+        classic_neos_top = dt[Consensus_scores < 5000, (1/Consensus_scores) %>% sum_top_v],
+        binders = dt[Consensus_scores < 5000] %>% nrow,
+        peptides = dt[pep_type == "mut", peptide %>% unique] %>% length,
+        predictions = dt[pep_type == "mut"] %>% nrow
         ))
 
   }) %>% data.table::rbindlist
