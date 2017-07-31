@@ -64,7 +64,7 @@ devtools::install_github("andrewrech/antigen.garnish")
 
 # Verify test data
 
-  testthat::all.equal(dt,
+  testthat::compare(dt,
       structure(list(
        sample_id = c("test_sample_1", "test_sample_2"),
        priority_neos = c(0L, 0L),

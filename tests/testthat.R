@@ -17,7 +17,7 @@ mhc_dt <- garnish_predictions(mhc_dt)
 
 dt <- garnish_summary(mhc_dt)
 
-testthat::all.equal(dt,
+testthat::compare(dt,
   structure(list(
                  sample_id = c("test_sample_1", "test_sample_2"),
                  priority_neos = c(0L, 0L),
