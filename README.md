@@ -30,6 +30,7 @@ devtools::install_github("andrewrech/antigen.garnish")
 ```r
 library(testthat)
 library(antigen.garnish)
+library(data.table)
 
 mhc_dt <- data.table::data.table(
             transcript_affected = c("ENST00000256078", "ENST00000256078"),
