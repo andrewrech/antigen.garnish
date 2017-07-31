@@ -31,6 +31,4 @@ testthat::all.equal(dt,
                    .Names = c("sample_id", "classic_neos", "alt_neos", "alt_neos_top",
                    "classic_neos_top", "binders", "peptides", "predictions"),
                    row.names = c(NA, -2L), class = c("data.table", "data.frame"))
-          )
-
-})
+          )})

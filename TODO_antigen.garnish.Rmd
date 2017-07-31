@@ -6,7 +6,8 @@ TODO for the `antigen.garnish R package`
 
 ### Development
 
-* Dockerize
+* Improve variant selection criteria for neoepitope generation
+* Provide Docker image if licensing allows
 
 ## NOTES
 

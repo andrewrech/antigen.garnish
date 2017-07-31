@@ -22,6 +22,9 @@ Agree to license for non-commercial use and install [netMHC](http://www.cbs.dtu.
 
 
 ```r
+source("https://bioconductor.org/biocLite.R")
+biocLite("biomaRt")
+
 devtools::install_github("andrewrech/dt.inflix")
 devtools::install_github("andrewrech/antigen.garnish")
 ```
