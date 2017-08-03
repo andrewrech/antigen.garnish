@@ -4,7 +4,7 @@ library(data.table)
 
 test_check("antigen.garnish")
 
-test_that("antigen.garnish pipeline", {
+test_that("antigen.garnish neoepitope prediction", {
 
 mhc_dt <- data.table::data.table(
             transcript_affected = c("ENST00000256078", "ENST00000256078"),
@@ -32,3 +32,4 @@ testthat::compare(dt,
                    "classic_neos_top", "binders", "peptides", "predictions"),
                    row.names = c(NA, -2L), class = c("data.table", "data.frame"))
           )})
+

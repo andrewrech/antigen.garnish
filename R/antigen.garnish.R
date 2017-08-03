@@ -2,12 +2,13 @@
 
 
 ## -------- garnish_variants
-#' Intakes variants from MuTect2/Strelka to SnpEff pipeline and returns a standard data frame for epitope prediction.
+#' Intakes variants and returns an intersected data table for epitope prediction.
 #'
-#' Intakes filtered missense mutations with known Ensembl transcript identifier from a MuTect2/Strelka to SnpEff variant annotation pipeline and returns a standard data frame of intersects.
+#' Intakes variants from a \href{https://github.com/broadinstitute/gatk}{MuTect2}/\href{https://github.com/Illumina/strelka}{Strelka2} - \href{https://github.com/pcingola/SnpEff}{SnpEff} variant annotation pipeline and filters for neoepitope prediction
 #'
-#' @param vcfs Character vector. VFC files to import.
-#' @examples
+#' @param vcfs Character vector. Strelka2 or Mutect2 VFC files to import.
+#'
+#' @return A list of three data tables: 1) all passing variants and 2) intersected variants, 3) intersected missense mutations for neoepitope prediction.
 #'
 #' @export garnish_variants
 
@@ -18,64 +19,162 @@ garnish_variants <- function(vcfs) {
 
   # NGS data loaded in parallel
 
-ivf_df <- parallel::mclapply(vcfs %>% seq_along, function(ivf){
+  ivfdtl <- parallel::mclapply(vcfs %>% seq_along, function(ivf){
 
-# load dt
-    vcf <-  vcfR::read.vcfR(vcfs[ivf], verbose = TRUE)
-    sample_id <- vcfs[ivf] %>% stringr::str_replace("\\.vcf(.gz)?$", "") %>% basename
-    vcf_type <- vcf@meta %>% unlist %>% stringr::str_extract(stringr::regex("strelka|mutect", ignore_case = TRUE)) %>% na.omit %>% unlist %>% unique
+  # load dt
+      vcf <-  vcfR::read.vcfR(vcfs[ivf], verbose = TRUE)
 
-vdt <- cbind(vcf@fix %>% as.data.table, vcf@gt %>% as.data.table)
+  # extract sample names from Mutect2 and Strelka command line for intersection
 
-if(vdt %>% nrow < 1) return(data.table::data.table(sample_id = sample_id))
+      sample_id <- c((vcf@meta %include% "[Cc]ommand" %>% stringr::str_extract_all("[^ ]+\\.bam") %>% unlist) %include% (vcf@meta %include% "[Cc]ommand" %>% stringr::str_extract("(?<=--tumorSampleName )[^ ]*")), vcf@meta %>% stringr::str_extract("(?<=tumorBam )[^ ]*") %>% basename %>% stringr::str_replace("\\.bam", "")) %>%
+                                  na.omit %>%
+                                  basename %>%
+                                  stringr::str_replace("\\.bam", "")
 
-vdt[, sample_id := sample_id]
-vdt[, vcf_type := vcf_type]
+      # extract vcf type
+      vcf_type <- vcf@meta %>% unlist %>% stringr::str_extract(stringr::regex("strelka|mutect", ignore_case = TRUE)) %>% na.omit %>% unlist %>% first
 
-# extract snpeff annotation
+  # return a data table of variants
 
-  vdt[, se_full := INFO %>% stringr::str_extract("ANN.*") %>% stringr::str_replace("ANN=[^\\|]+\\|", "")]
+  vdt <- cbind(vcf@fix %>% as.data.table, vcf@gt %>% as.data.table)
 
-# break snpeff annotation onto multipe lines
+  if(vdt %>% nrow < 1) return(data.table::data.table(sample_id = sample_id))
 
-vs_dt <- parallel::mclapply(1:nrow(vdt), function(x){
-  data.table::data.table(uuid = vdt$uuid[x], se = vdt$se_full[x] %>% data.table::tstrsplit(",[^\\|]+\\|") %>% unlist)
-  }) %>% data.table::rbindlist(fill = TRUE)
+  # filter passing Strelka2 variants
+  if(vcf_type == "strelka") vdt <- vdt[FILTER == "PASS"]
 
-vs_dt <- merge(vs_dt, vdt, by = "uuid", all = TRUE)
+  vdt[, sample_id := sample_id]
+  vdt[, vcf_type := vcf_type]
 
-# extract info from snpeff annotation
-  vs_dt[, effect_type := se %>% stringr::str_extract("^[^\\|]+")]
-  vs_dt[, transcript_affected_v := se %>% stringr::str_extract("(?<=\\|)(ENSMUST|ENST)[0-9.]+(?=\\|)")]
-  vs_dt[, transcript_affected := se %>% stringr::str_extract("(?<=\\|)(ENSMUST|ENST)[0-9]+")]
-  vs_dt[, gene_affected := se %>% stringr::str_extract("(?<=\\|)(ENSMUSG|ENSG)[0-9.]+(?=\\|)")]
-  vs_dt[, aa_mutation := se %>% stringr::str_extract("(?<=p\\.)[A-Z][a-z]{2}[0-9]+[A-Z][a-z]{2}") %>% aa_convert]
-  vs_dt[, protein_coding := se %>% stringr::str_detect("protein_coding")]
+  # extract full snpeff annotation
 
-return(vs_dt)
-}) %>% data.table::rbindlist(fill = TRUE)
+    vdt[, se_full := INFO %>%
+      stringr::str_extract("ANN.*") %>%
+      stringr::str_replace("ANN=[^\\|]+\\|", "")]
 
-# return a data table suitable for neoepitope prediction
+  # add a variant identifier
+      suppressWarnings(vdt[, uuid :=
+                    parallel::mclapply(1:nrow(vdt),
+                    uuid::UUIDgenerate) %>% unlist])
 
+  # take a subset to split apart SnpEff annotations
 
+    vdts <- vdt[, .SD, .SDcols = c("uuid", "se_full")]
 
-var_db <- lapply(split(ivf_df$transcript_affected %>% sort %>% unique, 1:16), function(x){
-     biomaRt::getBM(attributes = c("ensembl_transcript_id",
-              "external_gene_name", "ensembl_gene_id", "description", "chromosome_name",
-              "start_position", "end_position", "transcript_start", "transcript_end",
-              "transcript_length", "refseq_mrna"),
-                   filters = c("ensembl_transcript_id"),
-                   values = list(x),
-                   mart = biomaRt::useMart(biomart = "ENSEMBL_MART_ENSEMBL",
-                                           dataset = "hsapiens_gene_ensembl",
-                                           host = 'ensembl.org'))
-                                           })
+  # spread SnpEff annotation over rows
 
- var_dt <- var_db %>% data.table::rbindlist %>%
-                      data.table::setnames("ensembl_transcript_id", "transcript_affected")
+  vs_dt <- lapply(1:nrow(vdts), function(x){
+    data.table::data.table(uuid = vdts$uuid[x],
+                           se = vdts$se_full[x] %>%
+                            data.table::tstrsplit(",[^\\|]+\\|") %>%
+                            unlist)
 
-ivf_df <- merge(ivf_df, var_dt, by = "transcript_affected", all.x = TRUE)
+    }) %>% data.table::rbindlist(fill = TRUE)
 
+  vs_dt <- merge(vs_dt, vdt, by = "uuid", all.y = TRUE)
+
+  # extract info from snpeff annotation
+    vs_dt[, effect_type := se %>%
+        stringr::str_extract("^[a-z0-9][^\\|]+")]
+    vs_dt[, transcript_affected_v := se %>%
+        stringr::str_extract("(?<=\\|)(ENSMUST|ENST)[0-9.]+(?=\\|)")]
+    vs_dt[, transcript_affected := se %>%
+        stringr::str_extract("(?<=\\|)(ENSMUST|ENST)[0-9]+")]
+    vs_dt[, gene_affected := se %>%
+        stringr::str_extract("(?<=\\|)(ENSMUSG|ENSG)[0-9.]+(?=\\|)")]
+    vs_dt[, protein_change := se %>%
+        stringr::str_extract("c\\.[^\\|]+") %>%
+        aa_convert]
+    vs_dt[, dna_change := se %>%
+        stringr::str_extract("c\\.[^\\|]+") %>%
+        aa_convert]
+    vs_dt[, aa_mutation := se %>%
+        stringr::str_extract("(?<=p\\.)[A-Z][a-z]{2}[0-9]+[A-Z][a-z]{2}") %>%
+        aa_convert]
+    vs_dt[, protein_coding := se %>%
+        stringr::str_detect("protein_coding")]
+
+  return(vs_dt)
+  })
+
+  ivfdt <- ivfdtl %>% data.table::rbindlist
+
+  merge_vcf <- function(dt, dt2){
+
+    # a function to intersect annotated variants across VCFs using SnpEff
+
+      sdt <- merge(dt, dt2[, .SD,
+             .SDcols = c("CHROM",
+              "POS",
+              "REF",
+              "dna_change")],
+               by = c("CHROM",
+              "POS",
+              "REF",
+              "dna_change")) %>% .[, vcf_type := "intersect"]
+      return(sdt)
+
+    }
+
+  # return an intersected data table of variants
+
+  sdt <- parallel::mclapply(ivfdt[, sample_id %>% unique], function(sn){
+
+    # find data tables with matching sample names
+    sdt <- lapply(ivfdtl, function(dt){
+
+     dt[, sample_id %>% .[1]] == sn
+
+    }) %>% unlist
+
+  # merge all data tables with matching sample names
+  sdt <- ivfdtl[sdt] %>% Reduce(merge_vcf, .)
+
+  }) %>% data.table::rbindlist
+
+if (ivfdt$transcript_affected %>%
+    na.omit %>%
+    .[1] %like% "ENSMUST") bmds <- "mmusculus_gene_ensembl"
+
+if (ivfdt$transcript_affected %>%
+    na.omit %>%
+    .[1] %like% "ENST") bmds <- "hsapiens_gene_ensembl"
+
+# add metadata
+
+  mart <- biomaRt::useMart(biomart = "ENSEMBL_MART_ENSEMBL",
+                                             dataset = bmds,
+                                             host = 'ensembl.org')
+
+  var_dt <- parallel::mclapply(split(ivfdt$transcript_affected %>%
+                              sort %>%
+                              unique %>%
+                              na.omit,
+                              1:parallel::detectCores()), function(x){
+       biomaRt::getBM(attributes = c("ensembl_transcript_id",
+                "external_gene_name", "ensembl_gene_id", "description", "chromosome_name",
+                "start_position", "end_position", "transcript_start", "transcript_end",
+                "transcript_length", "refseq_mrna"),
+                     filters = c("ensembl_transcript_id"),
+                     values = list(x),
+                     mart = mart)}) %>%
+        data.table::rbindlist %>%
+        data.table::setnames("ensembl_transcript_id", "transcript_affected")
+
+ivfdt <- merge(ivfdt, var_dt, by = "transcript_affected", all.x = TRUE)
+sdt <- merge(sdt, var_dt, by = "transcript_affected", all.x = TRUE)
+
+agdt <- sdt[!transcript_affected %>% is.na &
+            !aa_mutation %>% is.na &
+            protein_coding == TRUE &
+            effect_type == "missense_variant"]
+
+return(
+       list(
+        all_variants = ivfdt,
+        all_intersected_variants = sdt,
+        antigen.garnish_input = agdt
+            ))
 }
 
 
@@ -90,6 +189,7 @@ ivf_df <- merge(ivf_df, var_dt, by = "transcript_affected", all.x = TRUE)
 #' @param generate Logical. Generate peptides and commands?
 #' @param predict Logical. Predict binding affinities?
 #'
+#' @return A data table of neoepitopes.
 #' @export garnish_predictions
 
 garnish_predictions <- function(mhc_dt,
@@ -114,7 +214,7 @@ if (assemble){
 
     } else {
 
-      if (!file.exists("Homo_sapiens.GRCh38")) download.file(method = "wget", url = "http://get.rech.io/  Homo_sapiens.GRCh38", destfile = "Homo_sapiens.GRCh38")
+      if (!file.exists("Homo_sapiens.GRCh38")) download.file(method = "wget", url = "http://get.rech.io/Homo_sapiens.GRCh38", destfile = "Homo_sapiens.GRCh38")
       if (!file.exists("Homo_sapiens.GRCh38.pep")) download.file(method = "wget", url = "http://get.rech.io/Homo_sapiens.GRCh38.pep", destfile = "Homo_sapiens.GRCh38.pep")
 
       qdt <- readRDS("Homo_sapiens.GRCh38")
@@ -547,6 +647,7 @@ return(mhc_dt)
 #'
 #' @param basepep_dt Data table. Input data frame from garnish_predictions.
 #'
+#' @return A data table summary of neoepitope by sample_id.
 #' @export garnish_predictions_worker
 
 garnish_predictions_worker <- function(basepep_dt) {

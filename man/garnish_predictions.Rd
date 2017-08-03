@@ -16,6 +16,9 @@ garnish_predictions(mhc_dt, assemble = TRUE, generate = TRUE,
 
 \item{predict}{Logical. Predict binding affinities?}
 }
+\value{
+A data table of neoepitopes.
+}
 \description{
 Performs epitope prediction on a data table of missence mutations.
 }

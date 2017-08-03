@@ -9,6 +9,9 @@ garnish_predictions_worker(basepep_dt)
 \arguments{
 \item{basepep_dt}{Data table. Input data frame from garnish_predictions.}
 }
+\value{
+A data table summary of neoepitope by sample_id.
+}
 \description{
 Parallelized worker function for garnish_predictions
 }
