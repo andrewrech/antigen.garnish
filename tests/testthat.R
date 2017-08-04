@@ -6,6 +6,11 @@ test_check("antigen.garnish")
 
 test_that("antigen.garnish neoepitope prediction", {
 
+vcf <- system.file("extdata",
+          "antigen.garnish_example.vcf", package = "antigen.garnish")
+
+dt <- garnish_variants(vcfs)
+
 mhc_dt <- data.table::data.table(
             transcript_affected = c("ENST00000256078", "ENST00000256078"),
             sample_id = c("test_sample_1", "test_sample_2"),

@@ -19,7 +19,7 @@ garnish_variants <- function(vcfs) {
 
   # NGS data loaded in parallel
 
-  ivfdtl <- parallel::mclapply(vcfs %>% seq_along, function(ivf){
+  ivfdtl <- lapply(vcfs %>% seq_along, function(ivf){
 
   # load dt
       vcf <-  vcfR::read.vcfR(vcfs[ivf], verbose = TRUE)
@@ -36,7 +36,9 @@ garnish_variants <- function(vcfs) {
 
   # return a data table of variants
 
-  vdt <- cbind(vcf@fix %>% as.data.table, vcf@gt %>% as.data.table)
+  vdt <- vcf@fix %>% as.data.table
+
+  if (vcf@gt %>% length > 0) vdt <- cbind(vdt, vcf@gt %>% as.data.table)
 
   if(vdt %>% nrow < 1) return(data.table::data.table(sample_id = sample_id))
 
@@ -128,7 +130,9 @@ garnish_variants <- function(vcfs) {
     }) %>% unlist
 
   # merge all data tables with matching sample names
-  sdt <- ivfdtl[sdt] %>% Reduce(merge_vcf, .)
+    if (ivfdtl[sdt] %>% length == 1) return(ivfdtl[[sdt]])
+    if (ivfdtl[sdt] %>% length > 2) return(ivfdtl[sdt] %>% Reduce(merge_vcf, .))
+
 
   }) %>% data.table::rbindlist
 
@@ -140,29 +144,32 @@ if (ivfdt$transcript_affected %>%
     na.omit %>%
     .[1] %like% "ENST") bmds <- "hsapiens_gene_ensembl"
 
-# add metadata
+
+  # add metadata
 
   mart <- biomaRt::useMart(biomart = "ENSEMBL_MART_ENSEMBL",
                                              dataset = bmds,
                                              host = 'ensembl.org')
 
-  var_dt <- parallel::mclapply(split(ivfdt$transcript_affected %>%
+  trneff <- ivfdt$transcript_affected %>%
                               sort %>%
                               unique %>%
-                              na.omit,
-                              1:parallel::detectCores()), function(x){
-       biomaRt::getBM(attributes = c("ensembl_transcript_id",
-                "external_gene_name", "ensembl_gene_id", "description", "chromosome_name",
-                "start_position", "end_position", "transcript_start", "transcript_end",
-                "transcript_length", "refseq_mrna"),
-                     filters = c("ensembl_transcript_id"),
-                     values = list(x),
-                     mart = mart)}) %>%
-        data.table::rbindlist %>%
-        data.table::setnames("ensembl_transcript_id", "transcript_affected")
+                              na.omit
 
-ivfdt <- merge(ivfdt, var_dt, by = "transcript_affected", all.x = TRUE)
-sdt <- merge(sdt, var_dt, by = "transcript_affected", all.x = TRUE)
+  if (trneff %>% length > 1){
+    var_dt <- biomaRt::getBM(attributes = c("ensembl_transcript_id",
+                  "external_gene_name", "ensembl_gene_id", "description", "chromosome_name",
+                  "start_position", "end_position", "transcript_start", "transcript_end",
+                  "transcript_length", "refseq_mrna"),
+                       filters = c("ensembl_transcript_id"),
+                       values = list(trneff),
+                       mart = mart) %>%
+          data.table::as.data.table %>%
+          data.table::setnames("ensembl_transcript_id", "transcript_affected")
+
+  ivfdt <- merge(ivfdt, var_dt, by = "transcript_affected", all.x = TRUE)
+  sdt <- merge(sdt, var_dt, by = "transcript_affected", all.x = TRUE)
+ }
 
 agdt <- sdt[!transcript_affected %>% is.na &
             !aa_mutation %>% is.na &

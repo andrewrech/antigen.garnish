@@ -2,23 +2,16 @@
 % Please edit documentation in R/antigen.garnish.R
 \name{garnish_variants}
 \alias{garnish_variants}
-\title{Intakes variants from MuTect2/Strelka to SnpEff pipeline and returns a data table for epitope prediction.}
+\title{Intakes variants and returns an intersected data table for epitope prediction.}
 \usage{
-garnish_variants(vcfs, expr_dt = NULL, expr_cutoff = 1)
+garnish_variants(vcfs)
 }
 \arguments{
-\item{vcfs}{Character vector. Pre-filtered Strelka or Mutect2 VFC files to import.}
-
-\item{expr_dt}{Data table. Data table of RNA expression to filter variants with; sample_id (columns) by Ensembl transcript ID (rows).}
-
-\item{expr_cutoff}{Numeric. Expression cutoff for inclusion.}
+\item{vcfs}{Character vector. Strelka2 or Mutect2 VFC files to import.}
 }
 \value{
-A list of two data tables: 1) all variants and 2) intersected missense variants by sample_id for neoepitope prediction.
+A list of three data tables: 1) all passing variants and 2) intersected variants, 3) intersected missense mutations for neoepitope prediction.
 }
 \description{
-Intakes filtered missense mutations with known Ensembl transcript identifier from a \href{https://github.com/broadinstitute/gatk}{MuTect2}/\href{https://github.com/Illumina/strelka}{Strelka} to \href{https://github.com/pcingola/SnpEff}{SnpEff} variant annotation pipeline.
-}
-\examples{
-
+Intakes variants from a \href{https://github.com/broadinstitute/gatk}{MuTect2}/\href{https://github.com/Illumina/strelka}{Strelka2} - \href{https://github.com/pcingola/SnpEff}{SnpEff} variant annotation pipeline and filters for neoepitope prediction
 }

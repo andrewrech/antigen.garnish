@@ -1,0 +1,70 @@
+##fileformat=VCFv4.2
+##FORMAT=<ID=AD,Number=R,Type=Integer,Description="Allelic depths for the ref and alt alleles in the order listed">
+##FORMAT=<ID=AF,Number=A,Type=Float,Description="Allele fractions of alternate alleles in the tumor">
+##FORMAT=<ID=ALT_F1R2,Number=1,Type=Integer,Description="Count of reads in F1R2 pair orientation supporting the alternate allele">
+##FORMAT=<ID=ALT_F2R1,Number=1,Type=Integer,Description="Count of reads in F2R1 pair orientation supporting the alternate allele">
+##FORMAT=<ID=DP,Number=1,Type=Integer,Description="Approximate read depth (reads with MQ=255 or with bad mates are filtered)">
+##FORMAT=<ID=FOXOG,Number=1,Type=Float,Description="Fraction of alt reads indicating OxoG error">
+##FORMAT=<ID=GQ,Number=1,Type=Integer,Description="Genotype Quality">
+##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">
+##FORMAT=<ID=MBQ,Number=A,Type=Float,Description="median base quality">
+##FORMAT=<ID=MCL,Number=A,Type=Float,Description="number of soft- and hard- clipped bases">
+##FORMAT=<ID=MFRL,Number=A,Type=Float,Description="median fragment length">
+##FORMAT=<ID=MMQ,Number=A,Type=Float,Description="median mapping quality">
+##FORMAT=<ID=MPOS,Number=A,Type=Float,Description="median distance from end of read">
+##FORMAT=<ID=PGT,Number=1,Type=String,Description="Physical phasing haplotype information, describing how the alternate alleles are phased in relation to one another">
+##FORMAT=<ID=PID,Number=1,Type=String,Description="Physical phasing ID information, where each unique ID within a given sample (but not across samples) connects records within a phasing group">
+##FORMAT=<ID=PL,Number=G,Type=Integer,Description="Normalized, Phred-scaled likelihoods for genotypes as defined in the VCF specification">
+##FORMAT=<ID=REF_F1R2,Number=1,Type=Integer,Description="Count of reads in F1R2 pair orientation supporting the reference allele">
+##FORMAT=<ID=REF_F2R1,Number=1,Type=Integer,Description="Count of reads in F2R1 pair orientation supporting the reference allele">
+##FORMAT=<ID=SA_MAP_AF,Number=3,Type=Float,Description="MAP estimates of allele fraction given z">
+##FORMAT=<ID=SA_POST_PROB,Number=3,Type=Float,Description="posterior probabilities of the presence of strand artifact">
+##GATKCommandLine=<ID=Mutect2,CommandLine="Mutect2 tumor.bam --tumorSampleName tumor ...",Version=4.beta.3,Date="">
+##INFO=<ID=DB,Number=0,Type=Flag,Description="dbSNP Membership">
+##INFO=<ID=DP,Number=1,Type=Integer,Description="Approximate read depth; some reads may have been filtered">
+##INFO=<ID=ECNT,Number=1,Type=String,Description="Number of events in this haplotype">
+##INFO=<ID=IN_PON,Number=0,Type=Flag,Description="site found in panel of normals">
+##INFO=<ID=NLOD,Number=A,Type=String,Description="Normal LOD score">
+##INFO=<ID=N_ART_LOD,Number=A,Type=Float,Description="log odds of artifact in normal with same allele fraction as tumor">
+##INFO=<ID=POP_AF,Number=A,Type=Float,Description="population allele frequencies of alt alleles">
+##INFO=<ID=P_GERMLINE,Number=A,Type=Float,Description="Posterior probability for alt allele to be germline variants">
+##INFO=<ID=RPA,Number=.,Type=Integer,Description="Number of times tandem repeat unit is repeated, for each allele (including reference)">
+##INFO=<ID=RU,Number=1,Type=String,Description="Tandem repeat unit (bases)">
+##INFO=<ID=STR,Number=0,Type=Flag,Description="Variant is a short tandem repeat">
+##INFO=<ID=TLOD,Number=A,Type=String,Description="Tumor LOD score">
+##Mutect Version=2.1-beta
+##contig=<ID=1,length=208915005>
+##contig=<ID=2,length=194112394>
+##contig=<ID=3,length=169455138>
+##contig=<ID=4,length=166343607>
+##contig=<ID=5,length=163434104>
+##contig=<ID=6,length=158845279>
+##contig=<ID=7,length=156179283>
+##contig=<ID=8,length=137481341>
+##contig=<ID=9,length=131107661>
+##contig=<ID=10,length=139118349>
+##contig=<ID=11,length=130373768>
+##contig=<ID=12,length=126876931>
+##contig=<ID=13,length=126461454>
+##contig=<ID=14,length=127425899>
+##contig=<ID=15,length=110139955>
+##contig=<ID=16,length=102670746>
+##contig=<ID=17,length=102153147>
+##contig=<ID=18,length=94359951>
+##contig=<ID=19,length=63436288>
+##contig=<ID=X,length=173080199>
+##normal_sample=normal
+##source=Mutect2
+##tumor_sample=tumor
+##SnpEffCmd="SnpEff GRCm38.86 ..."
+##INFO=<ID=ANN,Number=.,Type=String,Description="Functional annotations: 'Allele | Annotation | Annotation_Impact | Gene_Name | Gene_ID | Feature_Type | Feature_ID | Transcript_BioType | Rank | HGVS.c | HGVS.p | cDNA.pos / cDNA.length | CDS.pos / CDS.length | AA.pos / AA.length | Distance | ERRORS / WARNINGS / INFO' ">
+##INFO=<ID=LOF,Number=.,Type=String,Description="Predicted loss of function effects for this variant. Format: 'Gene_Name | Gene_ID | Number_of_transcripts_in_gene | Percent_of_transcripts_affected'">
+##INFO=<ID=NMD,Number=.,Type=String,Description="Predicted nonsense mediated decay effects for this variant. Format: 'Gene_Name | Gene_ID | Number_of_transcripts_in_gene | Percent_of_transcripts_affected'">
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	tumor	normal
+1	53618173	.	G	A	.	.	DP=1357;ECNT=10;NLOD=202.72;N_ART_LOD=5.12;POP_AF=1.000e-03;P_GERMLINE=-1.994e+02;TLOD=107.76;ANN=A|missense_variant|MODERATE|Dnah7a|ENSMUSG00000096141|transcript|ENSMUST00000094964.6|protein_coding|19/66|c.2443C>T|p.His815Tyr|2512/12245|2443/12075|815/4024||	GT:AD:AF:ALT_F1R2:ALT_F2R1:FOXOG:MBQ:MCL:MFRL:MMQ:MPOS:REF_F1R2:REF_F2R1:SA_MAP_AF:SA_POST_PROB	0/1:515,41:0.078:19:22:0.463:24,23:0,0:207,169:60,60:36,35:249:266:0.071,0.061,0.074:1.998e-03,0.016,0.982	0/0:773,12:0.022:4:8:0.333:24,23:0,0:214,190:60,60:26,10:352:421
+1	53618281	.	T	C	.	.	DP=1061;ECNT=10;NLOD=163.81;N_ART_LOD=-2.745e+00;POP_AF=1.000e-03;P_GERMLINE=-1.605e+02;TLOD=111.86;ANN=C|missense_variant|MODERATE|Dnah7a|ENSMUSG00000096141|transcript|ENSMUST00000094964.6|protein_coding|19/66|c.2335A>G|p.Lys779Glu|2404/12245|2335/12075|779/4024||	GT:AD:AF:ALT_F1R2:ALT_F2R1:FOXOG:MBQ:MCL:MFRL:MMQ:MPOS:REF_F1R2:REF_F2R1:SA_MAP_AF:SA_POST_PROB	0/1:412,64:0.149:31:33:0.484:24,24:0,0:218,164:60,60:44,12:204:208:0.111,0.131,0.134:0.075,2.025e-03,0.923	0/0:545,0:0.021:0:0:NaN:25,0:0,0:227,0:60,0:25,0:261:284
+1	53618307	.	T	C	.	.	DP=976;ECNT=10;NLOD=123.48;N_ART_LOD=10.89;POP_AF=1.000e-03;P_GERMLINE=-1.202e+02;TLOD=23.28;ANN=C|missense_variant|MODERATE|Dnah7a|ENSMUSG00000096141|transcript|ENSMUST00000094964.6|protein_coding|19/66|c.2309A>G|p.Tyr770Cys|2378/12245|2309/12075|770/4024||	GT:AD:AF:ALT_F1R2:ALT_F2R1:FOXOG:MBQ:MCL:MFRL:MMQ:MPOS:REF_F1R2:REF_F2R1:SA_MAP_AF:SA_POST_PROB	0/1:403,24:0.072:11:13:0.458:24,24:0,0:214,0:60,60:39,43:203:200:0.030,0.051,0.056:0.300,8.074e-04,0.699	0/0:497,7:0.043:3:4:0.429:25,42:0,0:230,0:60,60:25,1:235:262
+1	106712618	.	G	A	.	.	DP=81;ECNT=2;NLOD=7.79;N_ART_LOD=1.25;POP_AF=1.000e-03;P_GERMLINE=-4.489e+00;TLOD=35.03;ANN=A|missense_variant|MODERATE|Bcl2|ENSMUSG00000057329|transcript|ENSMUST00000112751.1|protein_coding|1/2|c.263C>T|p.Pro88Leu|1657/7191|263/711|88/236||,A|missense_variant|MODERATE|Bcl2|ENSMUSG00000057329|transcript|ENSMUST00000189999.1|protein_coding|1/1|c.263C>T|p.Pro88Leu|562/2841|263/600|88/199||	GT:AD:AF:ALT_F1R2:ALT_F2R1:FOXOG:MBQ:MCL:MFRL:MMQ:MPOS:PGT:PID:REF_F1R2:REF_F2R1:SA_MAP_AF:SA_POST_PROB	0/1:26,10:0.278:7:3:0.700:24,24:0,0:222,159:60,60:20,20:0|1:106712618_G_A:17:9:0.253,0.242,0.278:0.014,0.027,0.959	0/0:41,1:0.070:1:0:1.00:25,24:0,0:199,153:60,60:20,20:0|1:106712618_G_A:28:13
+7	23320526	.	A	C	.	.	DP=22;ECNT=4;NLOD=2.41;N_ART_LOD=-9.542e-01;POP_AF=1.000e-03;P_GERMLINE=-5.225e-02;TLOD=18.02;ANN=C|missense_variant|MODERATE|Nlrp4e|ENSMUSG00000045693|transcript|ENSMUST00000076470.4|protein_coding|2/9|c.437A>C|p.Lys146Thr|527/3382|437/2937|146/978||	GT:AD:AF:ALT_F1R2:ALT_F2R1:FOXOG:MBQ:MCL:MFRL:MMQ:MPOS:PGT:PID:REF_F1R2:REF_F2R1:SA_MAP_AF:SA_POST_PROB	0/1:9,5:0.357:2:3:0.600:24,24:0,0:0,0:60,60:23,5:0|1:23320523_C_A:3:6:0.323,0.323,0.357:0.035,0.017,0.948	0/0:8,0:7.926e-06:0:0:NaN:26,0:0,0:210,0:60,0:24,0:0|1:23320523_C_A:4:4
+7	26200803	.	A	C	.	.	DP=502;ECNT=11;NLOD=69.53;N_ART_LOD=-2.365e+00;POP_AF=1.000e-03;P_GERMLINE=-6.623e+01;TLOD=18.76;ANN=C|missense_variant|MODERATE|Cyp2b9|ENSMUSG00000040660|transcript|ENSMUST00000082214.4|protein_coding|7/9|c.1035A>C|p.Lys345Asn|1058/1876|1035/1476|345/491||	GT:AD:AF:ALT_F1R2:ALT_F2R1:FOXOG:MBQ:MCL:MFRL:MMQ:MPOS:PGT:PID:REF_F1R2:REF_F2R1:SA_MAP_AF:SA_POST_PROB	0/1:263,8:0.030:3:5:0.625:23,24:0,0:213,0:60,24:32,71:0|1:26200789_C_A:125:138:0.030,0.020,0.030:2.920e-03,6.200e-03,0.991	0/0:231,0:3.162e-05:0:0:NaN:23,0:0,0:222,0:60,0:23,0:0|1:26200789_C_A:112:119
+7	27408287	.	C	A	.	.	DP=156;ECNT=11;NLOD=10.30;N_ART_LOD=9.54;POP_AF=1.000e-03;P_GERMLINE=-9.074e+00;TLOD=3.92;ANN=A|missense_variant|MODERATE|Sptbn4|ENSMUSG00000011751|transcript|ENSMUST00000011895.13|protein_coding|14/36|c.2709G>T|p.Met903Ile|2861/8747|2709/7686|903/2561||,A|missense_variant|MODERATE|Sptbn4|ENSMUSG00000011751|transcript|ENSMUST00000172269.1|protein_coding|14/36|c.2694G>T|p.Met898Ile|2858/8737|2694/7668|898/2555||	GT:AD:AF:ALT_F1R2:ALT_F2R1:FOXOG:MBQ:MCL:MFRL:MMQ:MPOS:PGT:PID:REF_F1R2:REF_F2R1:SA_MAP_AF:SA_POST_PROB	0/1:60,2:0.032:1:1:0.500:24,24:0,0:234,0:60,46:33,36:0|1:27408271_T_C:25:35:0.030,0.020,0.032:4.671e-03,0.019,0.976	0/0:90,4:0.043:2:2:0.500:24,25:0,0:249,0:60,60:23,35:0|1:27408271_T_C:42:48

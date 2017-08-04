@@ -34,8 +34,8 @@ devtools::install_github("andrewrech/antigen.garnish")
 ## Manifest
 
 * `garnish_variants`: Intake variants from SnpEff.
-* `garnish_predictions`: Performs ensemble epitope prediction.
-* `garnish_summary`: Summarize epitope prediction.
+* `garnish_predictions`: Performs ensemble neoepitope prediction.
+* `garnish_summary`: Summarize neoepitope prediction.
 
 ### Example
 
