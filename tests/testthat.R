@@ -6,10 +6,14 @@ test_check("antigen.garnish")
 
 test_that("antigen.garnish neoepitope prediction", {
 
-vcf <- system.file("extdata",
+vcfs <- system.file("extdata",
           "antigen.garnish_example.vcf", package = "antigen.garnish")
 
-dt <- garnish_variants(vcfs)
+
+vcfs <- "~/Dropbox/antigen.garnish/inst/extdata/antigen.garnish_example.vcf"
+vcfs <- list.files(pattern = "vcf$") %exclude% "indel"
+
+ garnish_variants(vcfs)
 
 mhc_dt <- data.table::data.table(
             transcript_affected = c("ENST00000256078", "ENST00000256078"),
@@ -38,3 +42,42 @@ testthat::compare(dt,
                    row.names = c(NA, -2L), class = c("data.table", "data.frame"))
           )})
 
+#############
+
+savr("^dt$", "20170801_LPR_chemo_4662_garnish_variants_output", compress = TRUE,
+    storage_dir = paste0(DROPBOX,
+    "Rech_spatiotemporal/data/Rech_mus_musculus"))
+
+
+ivfdtl %>% str
+
+trneff %>% str
+
+ivfdt$protein_change %>% unique %>% head(100)
+
+sn = ivfdt[, sample_id %>% unique] %>% .[1]
+sn
+dt <<-   list(
+        all_variants = ivfdt,
+        all_intersected_variants = sdt,
+        antigen.garnish_input = agdt
+            )
+
+agdt
+
+  ivfdt[
+    effect_type == "missense_variant" &
+    INFO %>%
+     stringr::str_extract("(?<=TLOD=)[0-9\\.]") %>%
+     as.numeric < 6.0] %>% nrow
+
+
+ivfdt$vcf_type %>% unique
+
+
+ivfdt[, se_full[x] data.table::tstrsplit(",[^\\|]+\\|")]
+
+
+dt[[3]][, .(aa_mutation, external_gene_name) %>% as.data.table %>% unique %>% nrow, by = sample_id] %>% setnames("V1", "missense_mutations") %>% print
+
+#############

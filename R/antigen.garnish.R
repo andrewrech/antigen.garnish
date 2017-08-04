@@ -4,7 +4,7 @@
 ## -------- garnish_variants
 #' Intakes variants and returns an intersected data table for epitope prediction.
 #'
-#' Intakes variants from a \href{https://github.com/broadinstitute/gatk}{MuTect2}/\href{https://github.com/Illumina/strelka}{Strelka2} - \href{https://github.com/pcingola/SnpEff}{SnpEff} variant annotation pipeline and filters for neoepitope prediction
+#' Intakes variants from a \href{https://github.com/broadinstitute/gatk}{MuTect2}/\href{https://github.com/Illumina/strelka}{Strelka2} - \href{https://github.com/pcingola/SnpEff}{SnpEff} variant annotation pipeline and filters for neoepitope prediction. Hg38 (human) and GRCm38 (murine) variant calls are required. Mutect2 and Strelka variant threshold prior to intersection were empirically established to limit false positives.
 #'
 #' @param vcfs Character vector. Strelka2 or Mutect2 VFC files to import.
 #'
@@ -14,8 +14,9 @@
 
 garnish_variants <- function(vcfs) {
 
-  # allow roxygen to find dt.inflix inflix operators
+  ### allow roxygen to find dt.inflix inflix operators for the antigen.garnish package
     invisible(dt.inflix::allduplicated(data.table(a="a")))
+  ###
 
   # NGS data loaded in parallel
 
@@ -32,7 +33,7 @@ garnish_variants <- function(vcfs) {
                                   stringr::str_replace("\\.bam", "")
 
       # extract vcf type
-      vcf_type <- vcf@meta %>% unlist %>% stringr::str_extract(stringr::regex("strelka|mutect", ignore_case = TRUE)) %>% na.omit %>% unlist %>% first
+      vcf_type <- vcf@meta %>% unlist %>% stringr::str_extract(stringr::regex("Strelka|Mutect", ignore_case = TRUE)) %>% na.omit %>% unlist %>% first
 
   # return a data table of variants
 
@@ -43,60 +44,51 @@ garnish_variants <- function(vcfs) {
   if(vdt %>% nrow < 1) return(data.table::data.table(sample_id = sample_id))
 
   # filter passing Strelka2 variants
-  if(vcf_type == "strelka") vdt <- vdt[FILTER == "PASS"]
-
+  if(vcf_type == "Strelka") vdt <- vdt[FILTER == "PASS"]
+  if(vcf_type == "Mutect") vdt <- vdt[INFO %>%
+                                      stringr::str_extract("(?<=TLOD=)[0-9\\.]") %>%
+                                      as.numeric > 6.0]
   vdt[, sample_id := sample_id]
   vdt[, vcf_type := vcf_type]
 
   # extract full snpeff annotation
 
-    vdt[, se_full := INFO %>%
-      stringr::str_extract("ANN.*") %>%
-      stringr::str_replace("ANN=[^\\|]+\\|", "")]
+  vdt[, se := INFO %>%
+    stringr::str_extract("ANN.*") %>%
+    stringr::str_replace("ANN=[^\\|]+\\|", "")]
 
   # add a variant identifier
-      suppressWarnings(vdt[, uuid :=
-                    parallel::mclapply(1:nrow(vdt),
-                    uuid::UUIDgenerate) %>% unlist])
+  suppressWarnings(vdt[, uuid :=
+                lapply(1:nrow(vdt),
+                uuid::UUIDgenerate) %>% unlist])
 
-  # take a subset to split apart SnpEff annotations
-
-    vdts <- vdt[, .SD, .SDcols = c("uuid", "se_full")]
+  # abort if no variants passed filtering
+  if (vdt %>% nrow < 1) return(NULL)
 
   # spread SnpEff annotation over rows
-
-  vs_dt <- lapply(1:nrow(vdts), function(x){
-    data.table::data.table(uuid = vdts$uuid[x],
-                           se = vdts$se_full[x] %>%
-                            data.table::tstrsplit(",[^\\|]+\\|") %>%
-                            unlist)
-
-    }) %>% data.table::rbindlist(fill = TRUE)
-
-  vs_dt <- merge(vs_dt, vdt, by = "uuid", all.y = TRUE)
+  vdt %>% tidyr::separate_rows("se", sep = ",")
+  vdt %<>% tidyr::separate_rows("se", sep = ",")
 
   # extract info from snpeff annotation
-    vs_dt[, effect_type := se %>%
+    vdt[, effect_type := se %>%
         stringr::str_extract("^[a-z0-9][^\\|]+")]
-    vs_dt[, transcript_affected_v := se %>%
+    vdt[, transcript_affected_v := se %>%
         stringr::str_extract("(?<=\\|)(ENSMUST|ENST)[0-9.]+(?=\\|)")]
-    vs_dt[, transcript_affected := se %>%
+    vdt[, transcript_affected := se %>%
         stringr::str_extract("(?<=\\|)(ENSMUST|ENST)[0-9]+")]
-    vs_dt[, gene_affected := se %>%
+    vdt[, gene_affected := se %>%
         stringr::str_extract("(?<=\\|)(ENSMUSG|ENSG)[0-9.]+(?=\\|)")]
-    vs_dt[, protein_change := se %>%
-        stringr::str_extract("c\\.[^\\|]+") %>%
-        aa_convert]
-    vs_dt[, dna_change := se %>%
-        stringr::str_extract("c\\.[^\\|]+") %>%
-        aa_convert]
-    vs_dt[, aa_mutation := se %>%
+    vdt[, protein_change := se %>%
+        stringr::str_extract("c\\.[^\\|]+")]
+    vdt[, dna_change := se %>%
+        stringr::str_extract("c\\.[^\\|]+")]
+    vdt[, aa_mutation := se %>%
         stringr::str_extract("(?<=p\\.)[A-Z][a-z]{2}[0-9]+[A-Z][a-z]{2}") %>%
         aa_convert]
-    vs_dt[, protein_coding := se %>%
+    vdt[, protein_coding := se %>%
         stringr::str_detect("protein_coding")]
 
-  return(vs_dt)
+  return(vdt)
   })
 
   ivfdt <- ivfdtl %>% data.table::rbindlist
@@ -131,7 +123,7 @@ garnish_variants <- function(vcfs) {
 
   # merge all data tables with matching sample names
     if (ivfdtl[sdt] %>% length == 1) return(ivfdtl[[sdt]])
-    if (ivfdtl[sdt] %>% length > 2) return(ivfdtl[sdt] %>% Reduce(merge_vcf, .))
+    if (ivfdtl[sdt] %>% length > 1) return(ivfdtl[sdt] %>% Reduce(merge_vcf, .))
 
 
   }) %>% data.table::rbindlist
