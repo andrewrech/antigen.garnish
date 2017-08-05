@@ -20,6 +20,7 @@ nosetests .
 
 Agree to license for non-commercial use and install [netMHC](http://www.cbs.dtu.dk/services/NetMHC/), [netMHCII](http://www.cbs.dtu.dk/services/NetMHCII/), [netMHCpan](http://www.cbs.dtu.dk/services/NetMHCpan/), and [netMHCIIpan](http://www.cbs.dtu.dk/services/NetMHCIIpan/). These tools need to be available in `$PATH`.
 
+Install R dependencies and `antigen.garnish`:
 
 ```r
 source("https://bioconductor.org/biocLite.R")
@@ -31,57 +32,49 @@ devtools::install_github("andrewrech/dt.inflix")
 devtools::install_github("andrewrech/antigen.garnish")
 ```
 
-## Manifest
+## [Package documentation](http://get.rech.io/antigen.garnish.pdf)
 
 * `garnish_variants`: Intake variants from SnpEff.
 * `garnish_predictions`: Performs ensemble neoepitope prediction.
 * `garnish_summary`: Summarize neoepitope prediction.
+
+```r
+# Generate package documentation
+
+system(paste(shQuote(file.path(R.home("bin"), "R")),
+    "CMD", "Rd2pdf", shQuote(find.package("antigen.garnish"))))
+
+```
 
 ### Example
 
 ```r
 library(magrittr)
 
-dt <-
-    # load an example VCF
-    system.file("extdata",
-          "antigen.garnish_example.vcf",
-          package = "antigen.garnish") %>%
+    # download an example VCF
+    "antigen.garnish_example.vcf" %T>%
+    utils::download.file("http://get.rech.io/antigen.garnish_example.vcf", .) %>%
 
     # extract variants
-    antigen.garnish::garnish_variants(.)
-
+    antigen.garnish::garnish_variants %>%
 
     # add MHC types
-    package_test <- dt$antigen.garnish_input %>%
+    .$antigen.garnish_input %>%
         .[, MHC := c("HLA-A*02:01 HLA-A*03:01 HLA-DRB10301 HLA-DRB1*14:67",
                     "HLA-A*02:01 HLA-A*03:01 HLA-DRB1*03:01 HLA-DRB1*14:67",
                     "HLA-A*02:01 HLA-A*03:01 HLA-DRB1*03:01 HLA-DRB1*14:67")] %>%
 
     # predict
-    antigen.garnish::garnish_predictions(.) %>%
+    antigen.garnish::garnish_predictions %>%
 
-    # sumarize
-    antigen.garnish::garnish_summary(.)
+    # summarize
+    antigen.garnish::garnish_summary %T>%
 
+    print %>%
 
     # does antigen.garnish work?
-    testthat::compare(package_test,
-    structure(list(sample_id = "tumor",
-                    priority_neos = 0L,
-                    classic_neos = 0L,
-                    alt_neos = 2L,
-                    alt_neos_top = 32.5590961308976,
-                    classic_neos_top = 0.0086649901329808,
-                    binders = 7L,
-                    peptides = 231L,
-                    predictions = 462L),
-                    .Names = c("sample_id",
-                    "priority_neos", "classic_neos", "alt_neos", "alt_neos_top",
-                    "classic_neos_top", "binders", "peptides", "predictions"),
-                    row.names = c(NA, -1L),
-                    class = c("data.table", "data.frame"))
-    )
+    testthat::compare(
+            data.table::fread("http://get.rech.io/ag_test.csv"))
 ```
 
 ## Bugs

@@ -4,11 +4,10 @@
 \alias{garnish_predictions}
 \title{Performs epitope prediction.}
 \usage{
-garnish_predictions(mhc_dt, assemble = TRUE, generate = TRUE,
-  predict = TRUE)
+garnish_predictions(dt, assemble = TRUE, generate = TRUE, predict = TRUE)
 }
 \arguments{
-\item{mhc_dt}{Data table. Input data frame from garnish_variants. Must contain three columns: sample_id, transcript_affected (ensembl_transcript_id), aa_mutation (single letter abbreviations), and space-seperated MHC (MHC type, e.g. 'HLA-A*02:01 HLA-A*03:01', 'H-2-Kb H-2-Kb' or HLA-DRB1*11:07 [second type]')}
+\item{dt}{Data frame. Input data frame from garnish_variants. Must contain four columns: sample_id, transcript_affected (ensembl_transcript_id), aa_mutation (single letter abbreviations), and space-seperated MHC (MHC type, e.g. 'HLA-A*02:01 HLA-A*03:01', 'H-2-Kb H-2-Kb' or HLA-DRB1*11:07 [second type]')}
 
 \item{assemble}{Logical. Assemble data table?}
 

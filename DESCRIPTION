@@ -8,4 +8,4 @@ License: GPL-3
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 6.0.1.9000
-Imports: biomaRt,data.table,dt.inflix,seqinr,stringi,stringr,testthat,tidyr,uuid,vcfR,zoo,parallel,stats,utils
+Imports: biomaRt,data.table,seqinr,stringi,stringr,testthat,tidyr,uuid,vcfR,zoo,parallel,stats,utils

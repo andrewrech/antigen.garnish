@@ -4,10 +4,10 @@
 \alias{garnish_predictions_worker}
 \title{Parallelized worker function for garnish_predictions}
 \usage{
-garnish_predictions_worker(basepep_dt)
+garnish_predictions_worker(dt)
 }
 \arguments{
-\item{basepep_dt}{Data table. Input data frame from garnish_predictions.}
+\item{dt}{Data table. Input data table from garnish_predictions.}
 }
 \value{
 A data table summary of neoepitope by sample_id.
