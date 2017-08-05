@@ -2,8 +2,6 @@ library(testthat)
 library(antigen.garnish)
 library(data.table)
 
-test_check("antigen.garnish")
-
 test_that("antigen.garnish neoepitope prediction", {
 
 dt <-

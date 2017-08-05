@@ -1,6 +1,3 @@
-
-
-
 ## -------- garnish_variants
 #' Intakes variants and returns an intersected data table for epitope prediction.
 #'
@@ -14,11 +11,10 @@
 
 garnish_variants <- function(vcfs) {
 
-  ### allow roxygen to find dt.inflix inflix operators and testthat for the antigen.garnish package
-    invisible(dt.inflix::allduplicated(data.table(a="a")))
+  ### package building
+    invisible(dt.inflix::allduplicated(data.table::data.table(a="a")))
     invisible(testthat::compare(1, 1))
   ###
-
 
   # NGS data loaded in parallel
 
@@ -30,18 +26,18 @@ garnish_variants <- function(vcfs) {
   # extract sample names from Mutect2 and Strelka command line for intersection
 
       sample_id <- c((vcf@meta %include% "[Cc]ommand" %>% stringr::str_extract_all("[^ ]+\\.bam") %>% unlist) %include% (vcf@meta %include% "[Cc]ommand" %>% stringr::str_extract("(?<=--tumorSampleName )[^ ]*")), vcf@meta %>% stringr::str_extract("(?<=tumorBam )[^ ]*") %>% basename %>% stringr::str_replace("\\.bam", "")) %>%
-                                  na.omit %>%
+                                  stats::na.omit %>%
                                   basename %>%
                                   stringr::str_replace("\\.bam", "")
 
       # extract vcf type
-      vcf_type <- vcf@meta %>% unlist %>% stringr::str_extract(stringr::regex("Strelka|Mutect", ignore_case = TRUE)) %>% na.omit %>% unlist %>% first
+      vcf_type <- vcf@meta %>% unlist %>% stringr::str_extract(stringr::regex("Strelka|Mutect", ignore_case = TRUE)) %>% stats::na.omit %>% unlist %>% data.table::first
 
   # return a data table of variants
 
-  vdt <- vcf@fix %>% as.data.table
+  vdt <- vcf@fix %>%data.table::as.data.table
 
-  if (vcf@gt %>% length > 0) vdt <- cbind(vdt, vcf@gt %>% as.data.table)
+  if (vcf@gt %>% length > 0) vdt <- cbind(vdt, vcf@gt %>%data.table::as.data.table)
 
   if(vdt %>% nrow < 1) return(data.table::data.table(sample_id = sample_id))
 
@@ -131,11 +127,11 @@ garnish_variants <- function(vcfs) {
   }) %>% data.table::rbindlist
 
 if (ivfdt$transcript_affected %>%
-    na.omit %>%
+    stats::na.omit %>%
     .[1] %like% "ENSMUST") bmds <- "mmusculus_gene_ensembl"
 
 if (ivfdt$transcript_affected %>%
-    na.omit %>%
+    stats::na.omit %>%
     .[1] %like% "ENST") bmds <- "hsapiens_gene_ensembl"
 
 
@@ -148,7 +144,7 @@ if (ivfdt$transcript_affected %>%
   trneff <- ivfdt$transcript_affected %>%
                               sort %>%
                               unique %>%
-                              na.omit
+                              stats::na.omit
 
   if (trneff %>% length > 1){
     var_dt <- biomaRt::getBM(attributes = c("ensembl_transcript_id",
@@ -206,17 +202,17 @@ if (assemble){
 
   if (mhc_dt[, transcript_affected %>% unique %>% stringr::str_detect("ENSMUST") %>% any]){
 
-      if (!file.exists("Mus_musculus.GRCm38")) download.file(method = "wget", url = "http://get.rech.io/Mus_musculus.GRCm38", destfile = "Mus_musculus.GRCm38")
+      if (!file.exists("Mus_musculus.GRCm38"))utils::download.file(method = "wget", url = "http://get.rech.io/Mus_musculus.GRCm38", destfile = "Mus_musculus.GRCm38")
 
-      if (!file.exists("Mus_musculus.GRCm38.pep")) download.file(method = "wget", url = "http://get.rech.io/Mus_musculus.GRCm38.pep", destfile = "Mus_musculus.GRCm38.pep")
+      if (!file.exists("Mus_musculus.GRCm38.pep"))utils::download.file(method = "wget", url = "http://get.rech.io/Mus_musculus.GRCm38.pep", destfile = "Mus_musculus.GRCm38.pep")
 
         qdt <- readRDS("Mus_musculus.GRCm38")
         db_pep <- readRDS("Mus_musculus.GRCm38.pep")
 
     } else {
 
-      if (!file.exists("Homo_sapiens.GRCh38")) download.file(method = "wget", url = "http://get.rech.io/Homo_sapiens.GRCh38", destfile = "Homo_sapiens.GRCh38")
-      if (!file.exists("Homo_sapiens.GRCh38.pep")) download.file(method = "wget", url = "http://get.rech.io/Homo_sapiens.GRCh38.pep", destfile = "Homo_sapiens.GRCh38.pep")
+      if (!file.exists("Homo_sapiens.GRCh38"))utils::download.file(method = "wget", url = "http://get.rech.io/Homo_sapiens.GRCh38", destfile = "Homo_sapiens.GRCh38")
+      if (!file.exists("Homo_sapiens.GRCh38.pep"))utils::download.file(method = "wget", url = "http://get.rech.io/Homo_sapiens.GRCh38.pep", destfile = "Homo_sapiens.GRCh38.pep")
 
       qdt <- readRDS("Homo_sapiens.GRCh38")
       db_pep <- readRDS("Homo_sapiens.GRCh38.pep")
@@ -417,7 +413,7 @@ if (predict) {
 
       if (allele %>% length == 0) allele <- NA
 
-      x %<>% stringr::str_replace_all(fixed(hla), allele)
+      x %<>% stringr::str_replace_all(stringr::fixed(hla), allele)
       }
 
     return(x)
@@ -639,11 +635,12 @@ if (predict) {
                                   `affinity(nM)_netMHCII`,
                                   `affinity(nM)_netMHCpan`,
                                   `affinity(nM)_netMHCIIpan`) %>%
-            na.omit, NA) %>% first, by = 1:nrow(mhc_dt)]
+            stats::na.omit, NA) %>% data.table::first, by = 1:nrow(mhc_dt)]
 
     mhc_dt[, Consensus_scores := c(Consensus_scores,
                                    mhcflurry_prediction) %>%
-            mean(na.omit = TRUE), by = 1:nrow(mhc_dt)]
+                                  mean(na.omit = TRUE),
+                                  by = 1:nrow(mhc_dt)]
 
   # remove unpredicted peptides
     mhc_dt <- mhc_dt[!Consensus_scores %>% is.na]
@@ -782,7 +779,7 @@ return(peptide_dt)
 #'
 #' Calculate neoepitope summary statistics over samples.
 #'
-#' @param mhc_dt Data table. Prediction output from garnish_predictions.
+#' @param dt Data table. Prediction output from garnish_predictions.
 #'
 #' @export garnish_summary
 
@@ -806,7 +803,7 @@ dtn <- parallel::mclapply(dt[, sample_id %>% unique], function(id){
   dt <- dt[sample_id == id]
 
     return(
-        data.table(
+        data.table::data.table(
         sample_id = id,
         priority_neos = dt[Consensus_scores < 50 & DAI > 10] %>% nrow,
         classic_neos = dt[Consensus_scores < 50] %>% nrow,
@@ -824,5 +821,6 @@ return(dtn)
 }
 
 
+# global variables
 
-
+ utils::globalVariables(c(":=", ".", "%<>%", "%>%", "aa_convert", "aa_mutation", "affinity(nM)_netMHC", "affinity(nM)_netMHCII", "affinity(nM)_netMHCIIpan", "affinity(nM)_netMHCpan", "allele", "%chin%", "command", "Consensus_scores", "DAI", "dna_change", "effect_type", "%exclude%", "filename", "FILTER", "frag_begin", "frag_end", "gene_affected", "%include%", "INFO", "%like%", "MHC", "mhcflurry_prediction", "mutant_loc", "mutate_from", "mutate_to", "mut_pep_loc", "netMHC", "netMHCII", "netMHCIIpan", "netMHCpan", "pep_base", "pep_db_aa_from", "pep_db_aa_length", "pep_length", "pep_mut", "peptide", "peptide_index", "pep_type", "pep_uuid", "pep_wt", "protein_change", "protein_coding", "protein_index", "sample_id", ".SD", "se", "set", "transcript_affected", "transcript_affected_v", "type", "uuid", "variant_uuid", "vcf_type"))

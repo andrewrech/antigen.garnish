@@ -7,7 +7,7 @@
 garnish_summary(dt)
 }
 \arguments{
-\item{mhc_dt}{Data table. Prediction output from garnish_predictions.}
+\item{dt}{Data table. Prediction output from garnish_predictions.}
 }
 \description{
 Calculate neoepitope summary statistics over samples.
