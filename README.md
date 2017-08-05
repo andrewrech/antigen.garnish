@@ -40,48 +40,48 @@ devtools::install_github("andrewrech/antigen.garnish")
 ### Example
 
 ```r
+library(magrittr)
 
-# Load required libraries
+dt <-
+    # load an example VCF
+    system.file("extdata",
+          "antigen.garnish_example.vcf",
+          package = "antigen.garnish") %>%
 
-  library(testthat)
-  library(antigen.garnish)
-  library(data.table)
+    # extract variants
+    antigen.garnish::garnish_variants(.)
 
-# Generate an example input data table
 
-  mhc_dt <- data.table::data.table(
-              transcript_affected = c("ENST00000256078", "ENST00000256078"),
-              sample_id = c("test_sample_1", "test_sample_2"),
-              aa_mutation = c("G12D", "G13D"),
-              MHC = c("HLA-A*02:01 HLA-A*03:01 HLA-DRB10301 HLA-DRB1*14:67",
-                      "HLA-A*02:01 HLA-A*03:01 HLA-DRB1*03:01 HLA-DRB1*14:67"))
+    # add MHC types
+    package_test <- dt$antigen.garnish_input %>%
+        .[, MHC := c("HLA-A*02:01 HLA-A*03:01 HLA-DRB10301 HLA-DRB1*14:67",
+                    "HLA-A*02:01 HLA-A*03:01 HLA-DRB1*03:01 HLA-DRB1*14:67",
+                    "HLA-A*02:01 HLA-A*03:01 HLA-DRB1*03:01 HLA-DRB1*14:67")] %>%
 
-# Predict
+    # predict
+    antigen.garnish::garnish_predictions(.) %>%
 
-  mhc_dt <- garnish_predictions(mhc_dt)
+    # sumarize
+    antigen.garnish::garnish_summary(.)
 
-# Summarize
 
-  dt <- garnish_summary(mhc_dt)
-
-# Verify test data
-
-  testthat::compare(dt,
-      structure(list(
-       sample_id = c("test_sample_1", "test_sample_2"),
-       priority_neos = c(0L, 0L),
-       classic_neos = c(0L, 0L),
-       alt_neos = c(0L, 0L),
-       alt_neos_top = c(5.20144265891428, 1.56599284273263),
-       classic_neos_top = c(0.00954700205453025, 0.00954700205453025),
-       binders = c(11L, 9L),
-       peptides = c(74L, 76L),
-       predictions = c(148L, 152L)),
-         .Names = c("sample_id", "classic_neos", "alt_neos", "alt_neos_top",
-         "classic_neos_top", "binders", "peptides", "predictions"),
-         row.names = c(NA, -2L),
-         class = c("data.table", "data.frame"))
-            )
+    # does antigen.garnish work?
+    testthat::compare(package_test,
+    structure(list(sample_id = "tumor",
+                    priority_neos = 0L,
+                    classic_neos = 0L,
+                    alt_neos = 2L,
+                    alt_neos_top = 32.5590961308976,
+                    classic_neos_top = 0.0086649901329808,
+                    binders = 7L,
+                    peptides = 231L,
+                    predictions = 462L),
+                    .Names = c("sample_id",
+                    "priority_neos", "classic_neos", "alt_neos", "alt_neos_top",
+                    "classic_neos_top", "binders", "peptides", "predictions"),
+                    row.names = c(NA, -1L),
+                    class = c("data.table", "data.frame"))
+    )
 ```
 
 ## Bugs

@@ -14,9 +14,11 @@
 
 garnish_variants <- function(vcfs) {
 
-  ### allow roxygen to find dt.inflix inflix operators for the antigen.garnish package
+  ### allow roxygen to find dt.inflix inflix operators and testthat for the antigen.garnish package
     invisible(dt.inflix::allduplicated(data.table(a="a")))
+    invisible(testthat::compare(1, 1))
   ###
+
 
   # NGS data loaded in parallel
 
@@ -319,8 +321,14 @@ if (generate) {
                   uuid::UUIDgenerate) %>% unlist])
 
   # generate a datatable of unique variants for peptide generation
-  basepep_dt <- mhc_dt[pep_db_aa_from == mutate_from & mhc_dt %>%
-                   stats::complete.cases, .(pep_mut, pep_wt, mut_pep_loc, variant_uuid)] %>% unique
+  basepep_dt <- mhc_dt[pep_db_aa_from == mutate_from &
+                !pep_mut %>% is.na &
+                !pep_wt %>% is.na &
+                !mut_pep_loc %>% is.na,
+                .(pep_mut, pep_wt, mut_pep_loc, variant_uuid)] %>%
+                unique
+
+if (basepep_dt %>% nrow == 0) stop("No unique missense variants for peptide generation")
 
   peptide_dt <- garnish_predictions_worker(basepep_dt = basepep_dt)
 
@@ -338,6 +346,19 @@ if (generate) {
 }
 
 if (predict) {
+
+
+# test that prediction tools are in PATH
+  if (suppressWarnings(system('which mhcflurry-predict', intern = TRUE)) %>%
+        length == 0) stop("mhcflurry-predict is not in PATH")
+  if (suppressWarnings(system('which netMHC', intern = TRUE)) %>%
+        length == 0) stop("netMHC is not in PATH")
+  if (suppressWarnings(system('which netMHCpan', intern = TRUE)) %>%
+        length == 0) stop("netMHCpan is not in PATH")
+  if (suppressWarnings(system('which netMHCII', intern = TRUE)) %>%
+        length == 0) stop("netMHCII is not in PATH")
+  if (suppressWarnings(system('which netMHCIIpan', intern = TRUE)) %>%
+        length == 0) stop("netMHCIIpan is not in PATH")
 
   if (mhc_dt[, MHC %>% unique] %>% stringr::str_detect(" ") %>% any) mhc_dt %<>% tidyr::separate_rows("MHC", sep = " ")
 
@@ -587,8 +608,7 @@ if (predict) {
             return(dt)
                      })
 
-  # backup raw output to disk
-  savr("ag_out_raw", compress = TRUE)
+  saveRDS(ag_out_raw, "ag_out_raw.RDS")
 
   # merge netMHC by program type
     progl <- lapply(ag_out_raw %>% seq_along, function(dti) {
