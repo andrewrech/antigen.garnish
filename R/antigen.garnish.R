@@ -67,15 +67,15 @@ get_DAI_uuid <- function(dt){
 
 check_netMHC_PATH <- function(){
  if (suppressWarnings(system('which mhcflurry-predict', intern = TRUE)) %>%
-        length == 0) stop("mhcflurry-predict is not in PATH\n       Download: https://github.com/hammerlab/mhcflurry")
+        length == 0) warning("mhcflurry-predict is not in PATH\n       Download: https://github.com/hammerlab/mhcflurry")
   if (suppressWarnings(system('which netMHC', intern = TRUE)) %>%
-        length == 0) stop("netMHC is not in PATH\n       Download: http://www.cbs.dtu.dk/services/NetMHC/")
+        length == 0) warning("netMHC is not in PATH\n       Download: http://www.cbs.dtu.dk/services/NetMHC/")
   if (suppressWarnings(system('which netMHCpan', intern = TRUE)) %>%
-        length == 0) stop("netMHCpan is not in PATH\n       Download: http://www.cbs.dtu.dk/services/NetMHCpan/")
+        length == 0) warning("netMHCpan is not in PATH\n       Download: http://www.cbs.dtu.dk/services/NetMHCpan/")
   if (suppressWarnings(system('which netMHCII', intern = TRUE)) %>%
-        length == 0) stop("netMHCII is not in PATH\n       Download: http://www.cbs.dtu.dk/services/NetMHCII/")
+        length == 0) warning("netMHCII is not in PATH\n       Download: http://www.cbs.dtu.dk/services/NetMHCII/")
   if (suppressWarnings(system('which netMHCIIpan', intern = TRUE)) %>%
-        length == 0) stop("netMHCIIpan is not in PATH\n       Download: http://www.cbs.dtu.dk/services/NetMHCIIpan/")
+        length == 0) warning("netMHCIIpan is not in PATH\n       Download: http://www.cbs.dtu.dk/services/NetMHCIIpan/")
 }
 
 ## -------- run_netMHC
@@ -175,7 +175,6 @@ run_netMHC <- function(dt){
 
 
   write_nmers <- function(dt, type){
-
     if (dt %>% nrow == 0) return(NULL)
     if (!c("nmer", "nmer_l") %chin% (dt %>% names) %>% any)
           stop("dt must contain nmer and nmer_l columns")
@@ -361,6 +360,11 @@ get_metadata <- function(dt){
       (dt %>% names))
   stop("ensembl_transcript_id column missing")
 
+    # remove version suffix
+    dt[, ensembl_transcript_id :=
+      ensembl_transcript_id %>%
+      stringr::str_replace("\\.[0-9]$", "")]
+
     bmds <- vector()
 
     if (dt[, ensembl_transcript_id %>%
@@ -376,7 +380,7 @@ get_metadata <- function(dt){
           any) bmds <- c(bmds, "hsapiens_gene_ensembl")
 
     message("Obtaining cDNA and peptide sequences using biomaRt")
-    var_dt <- parallel::mclapply(bmds, function(i){
+    var_dt <- lapply(bmds, function(i){
 
       mart <- biomaRt::useMart(biomart = "ENSEMBL_MART_ENSEMBL",
                                                  dataset = i,
@@ -436,12 +440,13 @@ get_metadata <- function(dt){
 #' @param dt Data table with INFO column.
 
 get_cDNA <- function(dt){
-t
+
   if (!c("cDNA_type",
          "coding",
          "cDNA_locs",
          "cDNA_locl",
-         "cDNA_seq"
+         "cDNA_seq",
+         "cDNA_change"
          ) %chin%
       (dt %>% names) %>% all)
   stop("dt is missing columns")

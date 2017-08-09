@@ -6,11 +6,27 @@ library(magrittr)
 test_that("get_metadata", {
 
   # load test data
-  dt <-
-
+  dto <- data.table::data.table(
+           ensembl_transcript_id = c("ENSMUST00000128119",
+                                      "ENSMUST00000044250",
+                                      "ENST00000256078")) %>%
+  # run tets
   get_metadata
 
-   testthat::expect_equal(dt %>% class %>% .[1], "data.table")
-   testthat::expect_equal(dt$cDNA_change, c("c.4988C>T", "c.1114T>G", "c.718T>A"))
+ testthat::expect_equal(dto %>% names,
+        c("ensembl_transcript_id",
+        "external_gene_name",
+        "ensembl_gene_id",
+        "description",
+        "chromosome_name",
+        "start_position",
+        "end_position",
+        "transcript_start",
+        "transcript_end",
+        "transcript_length",
+        "refseq_mrna",
+        "coding",
+        "peptide")
+)
 
     })

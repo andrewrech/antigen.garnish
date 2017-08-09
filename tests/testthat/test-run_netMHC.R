@@ -7,8 +7,6 @@ test_that("run_netMHC", {
 
   # load test data
   # download test files
-
-
   dt <- structure(
       list(
       type = c("netMHC", "netMHCpan", "netMHCIIpan"),
@@ -33,7 +31,7 @@ test_that("run_netMHC", {
                        "netMHCpan_af9b5685-733a-49c9-8f46-2ea18eab32f5.csv")
   utils::download.file("http://get.rech.io/netMHCIIpan_5cf162b8-577c-44ae-9c72-f90a89f28a94.csv",
                        "netMHCIIpan_5cf162b8-577c-44ae-9c72-f90a89f28a94.csv")
-
+  # run test
   dto <- run_netMHC(dt) %>% data.table::rbindlist(fill = TRUE)
 
    testthat::expect_gt(dto %>% nrow, 100)
