@@ -13,7 +13,7 @@ garnish_variants(vcfs)
 A data table of intersected protein coding variants for neoepitope prediction.
 }
 \description{
-Intakes raw variants from a \href{https://github.com/broadinstitute/gatk}{MuTect2}/\href{https://github.com/Illumina/strelka}{Strelka2} - \href{https://github.com/pcingola/SnpEff}{SnpEff} variant annotation pipeline and filters for neoepitope prediction. Hg38 (human) and GRCm38 (murine) variant calls are required. Mutect2 and Strelka variant threshold prior to intersection were empirically established to limit false positives.
+Process raw variants from a \href{https://github.com/broadinstitute/gatk}{MuTect2}/\href{https://github.com/Illumina/strelka}{Strelka2} - \href{https://github.com/pcingola/SnpEff}{SnpEff} variant annotation pipeline and filters for neoepitope prediction. Hg38 (human) and GRCm38 (murine) variant calls are required. Mutect2 and Strelka variant threshold prior to intersection were empirically established to limit false positives.
 }
 \examples{
 library(magrittr)

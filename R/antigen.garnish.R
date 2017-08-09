@@ -568,7 +568,7 @@ ex_cDNA <- function(dt){
 ## -------- garnish_variants
 #' Intakes variants and returns an intersected data table for epitope prediction.
 #'
-#' Intakes raw variants from a \href{https://github.com/broadinstitute/gatk}{MuTect2}/\href{https://github.com/Illumina/strelka}{Strelka2} - \href{https://github.com/pcingola/SnpEff}{SnpEff} variant annotation pipeline and filters for neoepitope prediction. Hg38 (human) and GRCm38 (murine) variant calls are required. Mutect2 and Strelka variant threshold prior to intersection were empirically established to limit false positives.
+#' Process raw variants from a \href{https://github.com/broadinstitute/gatk}{MuTect2}/\href{https://github.com/Illumina/strelka}{Strelka2} - \href{https://github.com/pcingola/SnpEff}{SnpEff} variant annotation pipeline and filters for neoepitope prediction. Hg38 (human) and GRCm38 (murine) variant calls are required. Mutect2 and Strelka variant threshold prior to intersection were empirically established to limit false positives.
 #'
 #' @param vcfs Character vector. VFC files to import.
 #'
@@ -602,13 +602,11 @@ garnish_variants <- function(vcfs) {
 
   # extract sample names from Mutect2 and Strelka command line for intersection
 
-      sample_id <- c((vcf@meta %include% "[Cc]ommand" %>% stringr::str_extract_all("[^ ]+\\.bam") %>% unlist) %include% (vcf@meta %include% "[Cc]ommand" %>% stringr::str_extract("(?<=--tumorSampleName )[^ ]*")), vcf@meta %>% stringr::str_extract("(?<=tumorBam )[^ ]*") %>% basename %>% stringr::str_replace("\\.bam", "")) %>%
-                                  stats::na.omit %>%
-                                  basename %>%
-                                  stringr::str_replace("\\.bam", "")
+      sample_id <- vcf@meta %>% stringr::str_extract_all("[^ ]+\\.bam") %>% unlist %>% basename %>% paste(collapse = "_") %>% stringr::str_replace("\\.bam", "")
       # extract vcf type
-      vcf_type <- vcf@meta %>% unlist %>% stringr::str_extract(stringr::regex("Strelka|Mutect", ignore_case = TRUE)) %>% stats::na.omit %>%
+      vcf_type <- vcf@meta %>% unlist %>% stringr::str_extract(stringr::regex("Sdtrelka|Mudtect", ignore_case = TRUE)) %>% stats::na.omit %>%
                   unlist %>% data.table::first
+      if (vcf_type %>% length == 0) vcf_type <- "other"
 
   # return a data table of variants
 

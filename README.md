@@ -1,12 +1,24 @@
-[![CRAN_Status_Badge](http://www.r-pkg.org/badges/version/antigen.garnish)](http://cran.r-project.org/package=antigen.garnish) ![](https://img.shields.io/badge/build-passing-brightgreen.svg)
+[![CRAN_Status_Badge](http://www.r-pkg.org/badges/version/antigen.garnish)](http://cran.r-project.org/package=antigen.garnish)
 
 # antigen.garnish
 
-Ensemble neoepitope prediction in R.
+Ensemble neoepitope prediction from DNA variants in R.
+
+![](http://get.rech.io/antigen.garnish_flowchart.svg)
 
 ## Description
 
-An R package for neoepitope analysis that takes human or murine DNA point mutations, insertions, and deletions and performs neoepitope prediction using [mhcflurry](https://github.com/hammerlab/mhcflurry), [netMHC](http://www.cbs.dtu.dk/services/NetMHC/), [netMHCII](http://www.cbs.dtu.dk/services/NetMHCII/), [netMHCpan](http://www.cbs.dtu.dk/services/NetMHCpan/) and [netMHCIIpan](http://www.cbs.dtu.dk/services/NetMHCIIpan/). Output is individual peptides and a summary of neoepitope metrics.
+An R package for [neoepitope](http://science.sciencemag.org/content/348/6230/69) analysis that takes human or murine DNA point mutations, insertions, and deletions in VCF format and performs neoepitope prediction. Output is individual peptides and a summary by sample.
+
+### Advantages
+
+1. **Simplicity**: summarized neoepitopes for each sample
+1. **Thoroughness**:
+    - missense mutations and frameshifts
+    - ensemble MHC class I/II binding prediction using [mhcflurry](https://github.com/hammerlab/mhcflurry), [netMHC](http://www.cbs.dtu.dk/services/NetMHC/), [netMHCII](http://www.cbs.dtu.dk/services/NetMHCII/), [netMHCpan](http://www.cbs.dtu.dk/services/NetMHCpan/) and [netMHCIIpan](http://www.cbs.dtu.dk/services/NetMHCIIpan/).
+1. **Speed**:
+    - produce all possible 8-15-mer peptides from 10,000 variants in under 1 minute on a normal laptop
+    - parallelized prediction
 
 ## Installation
 
@@ -21,11 +33,11 @@ mhcflurry-downloads fetch
 nosetests .
 ```
 
-Agree to license for non-commercial use and install [netMHC](http://www.cbs.dtu.dk/services/NetMHC/), [netMHCII](http://www.cbs.dtu.dk/services/NetMHCII/), [netMHCpan](http://www.cbs.dtu.dk/services/NetMHCpan/), and [netMHCIIpan](http://www.cbs.dtu.dk/services/NetMHCIIpan/). These tools need to be available in `$PATH`.
+Install [netMHC](http://www.cbs.dtu.dk/services/NetMHC/), [netMHCII](http://www.cbs.dtu.dk/services/NetMHCII/), [netMHCpan](http://www.cbs.dtu.dk/services/NetMHCpan/), and [netMHCIIpan](http://www.cbs.dtu.dk/services/NetMHCIIpan/). These tools need to be available in `$PATH`.
 
 ### R dependencies
 
-Install R dependencies and `antigen.garnish`:
+Install R dependencies:
 
 ```r
 source("https://bioconductor.org/biocLite.R")
@@ -43,8 +55,8 @@ devtools::install_github("andrewrech/antigen.garnish")
 
 ## [Package documentation](http://get.rech.io/antigen.garnish.pdf)
 
-* `garnish_variants`: Intake variants from SnpEff.
-* `garnish_predictions`: Performs ensemble neoepitope prediction.
+* `garnish_variants`: Process variants from [SnpEff](http://snpeff.sourceforge.net/).
+* `garnish_predictions`: Perform ensemble neoepitope prediction.
 * `garnish_summary`: Summarize neoepitope prediction.
 
 ### Example and test
@@ -81,7 +93,8 @@ library(magrittr)
 
 ## Authors
 
-[Andrew J. Rech](mailto:andrewrech@gmail.com)
+* [Andrew J. Rech](http://info.rech.io)
+* [Robert H. Vonderheide](http://www.med.upenn.edu/apps/faculty/index.php/g275/p1073)
 
 ## License
 
