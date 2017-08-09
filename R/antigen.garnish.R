@@ -5,6 +5,8 @@
 #' Pair peptides from missense sites by a common UUID for DAi calculations
 #'
 #' @param dt Data table of nmers.
+#'
+#' @export get_DAI_uuid
 
 get_DAI_uuid <- function(dt){
 
@@ -61,11 +63,24 @@ get_DAI_uuid <- function(dt){
 }
 
 
-## ---- check_netMHC_PATH
-#' Check for netMHC tools in PATH
+## ---- check_pred_tools
+#' Check for netMHC tools and mhcflurry in PATH
+#'
+#' @export check_pred_tools
 #'
 
-check_netMHC_PATH <- function(){
+check_pred_tools <- function(){
+
+default_path <- paste0(system('echo $HOME', intern = TRUE),
+                c(
+                "/netMHC/netMHC-4.0",
+                "/netMHC/netMHCII-2.2",
+                "/netMHC/netMHCIIpan-3.1",
+                "/netMHC/netMHCpan-3.0")) %>%
+                paste(collapse = ":")
+
+Sys.setenv(PATH = paste0(default_path, ":", Sys.getenv("PATH")))
+
  if (suppressWarnings(system('which mhcflurry-predict', intern = TRUE)) %>%
         length == 0) warning("mhcflurry-predict is not in PATH\n       Download: https://github.com/hammerlab/mhcflurry")
   if (suppressWarnings(system('which netMHC', intern = TRUE)) %>%
@@ -82,13 +97,15 @@ check_netMHC_PATH <- function(){
 #' Run netMHC commands.
 #'
 #' @param dt Data table of commands to run.
+#'
+#' @export run_netMHC
 
 run_netMHC <- function(dt){
 
   if (!"command" %chin% (dt %>% names))
     stop("dt must contain command column")
 
-  check_netMHC_PATH()
+  check_pred_tools()
 
   dtl <- parallel::mclapply(
          dt[, command],
@@ -172,6 +189,8 @@ run_netMHC <- function(dt){
 #'
 #' @param dt Data table of nmers.
 #' @param type Character vector. Name of program to format for.
+#'
+#' @export write_nmers
 
 
   write_nmers <- function(dt, type){
@@ -222,6 +241,8 @@ run_netMHC <- function(dt){
 #'
 #' @param x Vector of HLA types named for program to convert to.
 #' @param alleles Table of alleles to choose from.
+#'
+#' @export detect_hla
 
  detect_hla <- function(x, alleles){
 
@@ -246,6 +267,7 @@ run_netMHC <- function(dt){
 #' Extract snpeff annotation information to a data table.
 #'
 #' @param dt Data table with INFO column.
+#' @export get_snpeff_annot
 
 get_snpeff_annot <- function(dt){
 
@@ -290,6 +312,8 @@ get_snpeff_annot <- function(dt){
 #' Convert amino acid codes quickly
 #'
 #' @param x Character vector to convert.
+#'
+#' @export aa_convert
 
 aa_convert <- function(x){
 
@@ -353,6 +377,8 @@ return(x)
 #' Add metadata using ensembl_transcript_ID
 #'
 #' @param dt Data table with INFO column.
+#'
+#' @export get_metadata
 
 get_metadata <- function(dt){
 
@@ -438,6 +464,8 @@ get_metadata <- function(dt){
 #' Create cDNA from hgvs nomenclature (http://varnomen.hgvs.org/)
 #'
 #' @param dt Data table with INFO column.
+#'
+#' @export get_cDNA
 
 get_cDNA <- function(dt){
 
@@ -520,6 +548,8 @@ get_cDNA <- function(dt){
 #' Extract cDNA changes from hgvs nomenclature (http://varnomen.hgvs.org/)
 #'
 #' @param dt Data table with INFO column.
+#'
+#' @export ex_cDNA
 
 ex_cDNA <- function(dt){
 
@@ -529,15 +559,6 @@ ex_cDNA <- function(dt){
         (dt %>% names) %>% all)
     stop("cDNA_change missing")
 
-
-    # SnpEff should not output delins
-    # Remove if present
-
-    if (dt[, cDNA_change] %>% unique %>%
-        stringr::str_detect("delins") %>% any){
-           warning("Not translating 'delins' cDNA notation: convert to del or ins")
-           dt <- dt[!cDNA_change %likef% "delins"]
-    }
 
   # extract hgvs DNA nomenclature
       # dups are just ins
@@ -554,7 +575,7 @@ ex_cDNA <- function(dt){
              dt[cDNA_locl %>% is.na, cDNA_locl := cDNA_locs]
 
       dt[, cDNA_type := cDNA_change %>%
-            stringr::str_extract("[a-z]{3}|>")]
+            stringr::str_extract("[a-z]{3-6}|>")]
       dt[, cDNA_seq := cDNA_change %>%
             stringr::str_extract("[A-Z]+$")]
 
@@ -571,6 +592,8 @@ ex_cDNA <- function(dt){
 #' Translate cDNA to peptide fast
 #'
 #' @param v cDNA character vector without ambiguous bases.
+#'
+#' @export ftrans
 
   ftrans <- function(v){
 
@@ -708,7 +731,7 @@ garnish_variants <- function(vcfs) {
 #'
 #' Performs epitope prediction on a data table of missense mutations.
 #'
-#' @param dt Data frame. Input data frame from garnish_variants. \href{http://get.rech.io/antigen.garnish_example_input.txt}{Example.}
+#' @param dt Data table. Input data table from garnish_variants. \href{http://get.rech.io/antigen.garnish_example_input.txt}{Example.}
 #' @param assemble Logical. Assemble data table?
 #' @param generate Logical. Generate peptides?
 #' @param predict Logical. Predict binding affinities?
@@ -907,7 +930,7 @@ if (generate) {
 
 if (predict) {
 
-  check_netMHC_PATH()
+  check_pred_tools()
 
   if (dt[, MHC %>% unique] %>%
       stringr::str_detect(" ") %>% any) dt %<>%
@@ -1091,7 +1114,7 @@ if (predict) {
 }
 }
 
-
+    1`
 ## -------- garnish_predictions_worker
 #' Parallelized worker function for garnish_predictions
 #'

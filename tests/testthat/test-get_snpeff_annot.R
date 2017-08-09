@@ -2,6 +2,7 @@ library(testthat)
 library(antigen.garnish)
 library(data.table)
 library(magrittr)
+library(dt.inflix)
 
 testthat::test_that("get_snpeff_annot", {
 
@@ -19,14 +20,21 @@ testthat::test_that("get_snpeff_annot", {
 
     testthat::expect_equal(.,
       structure(list(effect_type = c("missense_variant", "missense_variant"),
-                     ensembl_transcript_id = c("ENSMUST00000055688", "ENSMUST00000074241"),
-                     ensembl_gene_id = c("ENSMUSG00000047777", "ENSMUSG00000054474"),
-                     protein_change = c("p.Tyr144Cys", "p.Ala111Val"),
-                     cDNA_change = c("c.431A>G","c.332C>T"),
+                     ensembl_transcript_id = c("ENSMUST00000055688",
+                                               "ENSMUST00000074241"),
+                     ensembl_gene_id = c("ENSMUSG00000047777",
+                                         "ENSMUSG00000054474"),
+                     protein_change = c("p.Tyr144Cys",
+                                        "p.Ala111Val"),
+                     cDNA_change = c("c.431A>G",
+                                     "c.332C>T"),
                      protein_coding = c(TRUE, TRUE)),
                      .Names = c("effect_type",
-                     "ensembl_transcript_id", "ensembl_gene_id", "protein_change",
-                     "cDNA_change", "protein_coding"),
+                                "ensembl_transcript_id",
+                                "ensembl_gene_id",
+                                "protein_change",
+                                "cDNA_change",
+                                "protein_coding"),
                      class = c("data.table", "data.frame"),
                      row.names = c(NA, -2L))
               )

@@ -2,6 +2,7 @@ library(testthat)
 library(antigen.garnish)
 library(data.table)
 library(magrittr)
+library(dt.inflix)
 
 testthat::test_that("garnish_predictions_worker", {
   # load test data
@@ -24,7 +25,7 @@ testthat::test_that("garnish_predictions_worker", {
 
   # run test
   dto <- garnish_predictions_worker(dt) %>% data.table::setkey(nmer)
-  dto$nmer %>% sort %>% lapply(nchar) %>% unlist %>% count %>%
+  dto$nmer %>% sort %>% lapply(nchar) %>% unlist %>% plyr::count %>%
 
   testthat::expect_equal(.,
   structure(list(x = 8:15,

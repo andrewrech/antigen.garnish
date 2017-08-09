@@ -18,10 +18,11 @@ An R package for [neoepitope](http://science.sciencemag.org/content/348/6230/69)
     - ensemble MHC class I/II binding prediction using [mhcflurry](https://github.com/hammerlab/mhcflurry), [netMHC](http://www.cbs.dtu.dk/services/NetMHC/), [netMHCII](http://www.cbs.dtu.dk/services/NetMHCII/), [netMHCpan](http://www.cbs.dtu.dk/services/NetMHCpan/) and [netMHCIIpan](http://www.cbs.dtu.dk/services/NetMHCIIpan/).
 1. **Speed**:
     - produce all possible 8-15-mer peptides from 10,000 variants in under 1 minute on a normal laptop
-    - parallelized prediction
+    - parallelized affinity prediction
 
 ## Installation
 
+Linux and macOS.
 
 ### Required prediction tools
 
@@ -33,11 +34,15 @@ mhcflurry-downloads fetch
 nosetests .
 ```
 
-Install [netMHC](http://www.cbs.dtu.dk/services/NetMHC/), [netMHCII](http://www.cbs.dtu.dk/services/NetMHCII/), [netMHCpan](http://www.cbs.dtu.dk/services/NetMHCpan/), and [netMHCIIpan](http://www.cbs.dtu.dk/services/NetMHCIIpan/). These tools need to be available in `$PATH`.
+Install [netMHC](http://www.cbs.dtu.dk/services/NetMHC/), [netMHCII](http://www.cbs.dtu.dk/services/NetMHCII/), [netMHCpan](http://www.cbs.dtu.dk/services/NetMHCpan/), and [netMHCIIpan](http://www.cbs.dtu.dk/services/NetMHCIIpan/):
+
+```sh
+  cd "$HOME"
+  wget "http://get.rech.io/netMHC_$(uname)/netMHC.tar.gz"
+  tar -xvzf netMHC.tar.gz
+```
 
 ### R dependencies
-
-Install R dependencies:
 
 ```r
 source("https://bioconductor.org/biocLite.R")
