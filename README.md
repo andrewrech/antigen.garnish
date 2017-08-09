@@ -59,7 +59,9 @@ devtools::install_github("andrewrech/antigen.garnish")
 * `garnish_predictions`: Perform ensemble neoepitope prediction.
 * `garnish_summary`: Summarize neoepitope prediction.
 
-### Example and test
+### Examples
+
+#### Predict neoepitopes
 
 ```r
 library(magrittr)
@@ -87,6 +89,24 @@ library(magrittr)
     # does antigen.garnish work?
     testthat::compare(
        data.table::fread("http://get.rech.io/antigen.garnish_example_summary.txt"))
+```
+
+#### Test the sliding window
+
+```r
+library(magrittr)
+
+    # generate a fake peptide
+    dt <- data.table::data.table(
+       pep_base = "Y___*___THIS_IS_________*___A_CODE_TEST!______*__X",
+       mutant_loc = c(5, 25, 47, 50),
+       pep_type = "test",
+       var_uuid = c("middle",
+                    "back_truncate",
+                    "front_truncate",
+                    "end")) %>%
+    # create nmers
+    antigen.garnish::garnish_predictions_worker %T>% print
 ```
 
 ## Bugs

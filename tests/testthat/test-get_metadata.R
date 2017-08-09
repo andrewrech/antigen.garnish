@@ -3,7 +3,7 @@ library(antigen.garnish)
 library(data.table)
 library(magrittr)
 
-test_that("get_metadata", {
+testthat::test_that("get_metadata", {
 
   # load test data
   dto <- data.table::data.table(

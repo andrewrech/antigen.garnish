@@ -3,7 +3,7 @@ library(antigen.garnish)
 library(data.table)
 library(magrittr)
 
-test_that("garnish_predictions_worker", {
+testthat::test_that("garnish_predictions_worker", {
   # load test data
   dt <- structure(list(var_uuid = c("723c3b52-7c95-11e7-a700-12577141430a",
   "f02510f8-fc34-4309-978a-b059640bb367", "a39bf028-dfef-41b5-9198-1192a1a74825",

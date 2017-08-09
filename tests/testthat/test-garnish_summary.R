@@ -3,7 +3,7 @@ library(antigen.garnish)
 library(data.table)
 library(magrittr)
 
-test_that("garnish_summary", {
+testthat::test_that("garnish_summary", {
 
   # load test data
     dt <- data.table::fread("http://get.rech.io/antigen.garnish_example_output.txt")

@@ -399,7 +399,7 @@ get_metadata <- function(dt){
               }
 
    if (trn %>% length < 1) return(NULL)
-   if (trn %>% length > 1) {
+   if (trn %>% length >= 1) {
 
     # obtain transcript metadata
       var_dt <- biomaRt::getBM(attributes = c("ensembl_transcript_id",
@@ -445,29 +445,35 @@ get_cDNA <- function(dt){
          "coding",
          "cDNA_locs",
          "cDNA_locl",
-         "cDNA_seq",
-         "cDNA_change"
+         "cDNA_seq"
          ) %chin%
       (dt %>% names) %>% all)
   stop("dt is missing columns")
 
-  # initialize
+  # initialize and set types
 
     dt[, coding_mut := coding]
+
+    for (i in c("cDNA_locs", "cDNA_locl")) {
+      set(dt, j = i, value = dt[, get(i) %>%
+          as.integer])
+    }
+
+  # remove if nonsensical loc
+    dt %<>% .[, coding_nchar := coding %>% nchar]
+
+    dt %<>%
+     .[!cDNA_locs > coding_nchar &
+       !cDNA_locl > coding_nchar]
+
+    dt[, coding_nchar := NULL]
+
+
 
   # paste substr around changed bases
   # substr is vectorized C, fast
   # mut sub nmers that are really wt
     # will be filtered after subpep generation
-
-    # SnpEff should not output delins
-    # Remove if present
-
-    if (dt[, cDNA_change] %>% unique %>%
-        stringr::str_detect("delins") %>% any){
-           warning("Not translating 'delins' cDNA notation: convert to del or ins")
-           dt <- dt[!cDNA_change %likef% "delins"]
-    }
 
 
     # handle single base changes
@@ -523,24 +529,40 @@ ex_cDNA <- function(dt){
         (dt %>% names) %>% all)
     stop("cDNA_change missing")
 
-# extract hgvs DNA nomenclature
-    # dups are just ins
-    dt[, cDNA_change := cDNA_change %>%
-          stringr::str_replace_all("dup", "ins")]
 
-    dt[, cDNA_locs := cDNA_change %>%
-          stringr::str_extract("[0-9]+") %>%
-          as.integer]
-    dt[, cDNA_locl := cDNA_change %>%
-          stringr::str_extract("(?<=_)[0-9]+") %>%
-          as.integer]
-      # make cDNA_locl cDNA_locs for single bases
-           dt[cDNA_locl %>% is.na, cDNA_locl := cDNA_locs]
+    # SnpEff should not output delins
+    # Remove if present
 
-    dt[, cDNA_type := cDNA_change %>%
-          stringr::str_extract("[a-z]{3}|>")]
-    dt[, cDNA_seq := cDNA_change %>%
-          stringr::str_extract("[A-Z]+$")]
+    if (dt[, cDNA_change] %>% unique %>%
+        stringr::str_detect("delins") %>% any){
+           warning("Not translating 'delins' cDNA notation: convert to del or ins")
+           dt <- dt[!cDNA_change %likef% "delins"]
+    }
+
+  # extract hgvs DNA nomenclature
+      # dups are just ins
+      dt[, cDNA_change := cDNA_change %>%
+            stringr::str_replace_all("dup", "ins")]
+
+      dt[, cDNA_locs := cDNA_change %>%
+            stringr::str_extract("[0-9]+") %>%
+            as.integer]
+      dt[, cDNA_locl := cDNA_change %>%
+            stringr::str_extract("(?<=_)[0-9]+") %>%
+            as.integer]
+        # make cDNA_locl cDNA_locs for single bases
+             dt[cDNA_locl %>% is.na, cDNA_locl := cDNA_locs]
+
+      dt[, cDNA_type := cDNA_change %>%
+            stringr::str_extract("[a-z]{3}|>")]
+      dt[, cDNA_seq := cDNA_change %>%
+            stringr::str_extract("[A-Z]+$")]
+
+  # filter out extraction errors
+  # https://github.com/andrewrech/antigen.garnish/issues/3
+    dt %<>% .[!cDNA_locs %>% is.na &
+       !cDNA_locl %>% is.na &
+       !cDNA_type %>% is.na]
 
   }
 
@@ -693,7 +715,19 @@ garnish_variants <- function(vcfs) {
 #'
 #' @return A data table of neoepitopes.
 #'
-#' @examples See \href{https://github.com/andrewrech/antigen.garnish#example}{andrewrech/antigen.garnish}
+#' @examples
+#'library(magrittr)
+#'
+#'  # download an example VCF
+#'    dt <- "antigen.garnish_example.vcf" %T>%
+#'    utils::download.file("http://get.rech.io/antigen.garnish_example.vcf", .) %>%
+#'
+#'  # extract variants
+#'    antigen.garnish::garnish_variants %>%
+#'
+#'  # predict neoepitopes
+#'    antigen.garnish::garnish_predictions %T>%
+#'    str
 #'
 #' @export garnish_predictions
 
@@ -1084,8 +1118,8 @@ if (!c("var_uuid",
   # window n-mers over an index of interest
 
   message("Generating nmers")
-  nmer_dt <- parallel::mclapply(1:nrow(dt), function(n){
-
+  nmer_dt <- parallel::mclapply(1:nrow(dt),
+                                function(n){
 
     tryCatch({
 
@@ -1165,7 +1199,22 @@ if (!c("var_uuid",
 #'
 #' @param dt Data table. Prediction output from garnish_predictions.
 #'
-#' @examples See \href{https://github.com/andrewrech/antigen.garnish#example}{andrewrech/antigen.garnish}
+#' @examples
+#'library(magrittr)
+#'
+#'  # download an example VCF
+#'    dt <- "antigen.garnish_example.vcf" %T>%
+#'    utils::download.file("http://get.rech.io/antigen.garnish_example.vcf", .) %>%
+#'
+#'  # extract variants
+#'    antigen.garnish::garnish_variants %>%
+#'
+#'  # predict neoepitopes
+#'    antigen.garnish::garnish_predictions %>%
+#'
+#'  # summarize predictions
+#'    antigen.garnish::garnish_summary %T>%
+#'    print
 #'
 #' @export garnish_summary
 
@@ -1178,7 +1227,6 @@ garnish_summary <- function(dt){
     unique(by = c("pep_type",
                   "MHC",
                   "nmer"))
-
 
   dt <- dt[DAI != Inf & DAI != -Inf & Consensus_scores != Inf & Consensus_scores != -Inf]
 
@@ -1213,9 +1261,3 @@ garnish_summary <- function(dt){
 
   return(dtn)
 }
-
-
-##### TODO rewrite global variables
-# global variables
-
- utils::globalVariables(c(":=", ".", "%<>%", "%>%"))

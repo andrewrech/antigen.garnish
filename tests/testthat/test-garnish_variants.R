@@ -3,7 +3,7 @@ library(antigen.garnish)
 library(data.table)
 library(magrittr)
 
-test_that("run_netMHC", {
+testthat::test_that("run_netMHC", {
 
   # load test data
   dt <- "antigen.garnish_example.vcf" %T>%

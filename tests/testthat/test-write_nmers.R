@@ -3,9 +3,9 @@ library(antigen.garnish)
 library(data.table)
 library(magrittr)
 
-test_that("write_nmers", {
+testthat::test_that("write_nmers", {
 
-  on.extit({
+  on.exit({
     list.files(pattern = "netMHC_.*csv") %>%
     file.remove})
 

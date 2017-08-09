@@ -3,7 +3,7 @@ library(antigen.garnish)
 library(data.table)
 library(magrittr)
 
-test_that("get_snpeff_annot", {
+testthat::test_that("get_snpeff_annot", {
 
   # load test data
 
