@@ -7,11 +7,23 @@
 garnish_variants(vcfs)
 }
 \arguments{
-\item{vcfs}{Character vector. Strelka2 or Mutect2 VFC files to import.}
+\item{vcfs}{Character vector. VFC files to import.}
 }
 \value{
-A list of three data tables: 1) all passing variants and 2) intersected variants, 3) intersected missense mutations for neoepitope prediction.
+A data table of intersected protein coding variants for neoepitope prediction.
 }
 \description{
-Intakes variants from a \href{https://github.com/broadinstitute/gatk}{MuTect2}/\href{https://github.com/Illumina/strelka}{Strelka2} - \href{https://github.com/pcingola/SnpEff}{SnpEff} variant annotation pipeline and filters for neoepitope prediction. Hg38 (human) and GRCm38 (murine) variant calls are required. Mutect2 and Strelka variant threshold prior to intersection were empirically established to limit false positives.
+Intakes raw variants from a \href{https://github.com/broadinstitute/gatk}{MuTect2}/\href{https://github.com/Illumina/strelka}{Strelka2} - \href{https://github.com/pcingola/SnpEff}{SnpEff} variant annotation pipeline and filters for neoepitope prediction. Hg38 (human) and GRCm38 (murine) variant calls are required. Mutect2 and Strelka variant threshold prior to intersection were empirically established to limit false positives.
+}
+\examples{
+library(magrittr)
+
+ # download an example VCF
+   dt <- "antigen.garnish_example.vcf" \%T>\%
+   utils::download.file("http://get.rech.io/antigen.garnish_example.vcf", .) \%>\%
+
+ # extract variants
+   antigen.garnish::garnish_variants \%T>\%
+   str
+
 }

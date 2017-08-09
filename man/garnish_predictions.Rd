@@ -7,11 +7,11 @@
 garnish_predictions(dt, assemble = TRUE, generate = TRUE, predict = TRUE)
 }
 \arguments{
-\item{dt}{Data frame. Input data frame from garnish_variants. Must contain four columns: sample_id, transcript_affected (ensembl_transcript_id), aa_mutation (single letter abbreviations), and space-seperated MHC (MHC type, e.g. 'HLA-A*02:01 HLA-A*03:01', 'H-2-Kb H-2-Kb' or HLA-DRB1*11:07 [second type]')}
+\item{dt}{Data frame. Input data frame from garnish_variants. \href{http://get.rech.io/antigen.garnish_example_input.txt}{Example.}}
 
 \item{assemble}{Logical. Assemble data table?}
 
-\item{generate}{Logical. Generate peptides and commands?}
+\item{generate}{Logical. Generate peptides?}
 
 \item{predict}{Logical. Predict binding affinities?}
 }
@@ -19,5 +19,9 @@ garnish_predictions(dt, assemble = TRUE, generate = TRUE, predict = TRUE)
 A data table of neoepitopes.
 }
 \description{
-Performs epitope prediction on a data table of missence mutations.
+Performs epitope prediction on a data table of missense mutations.
+}
+\examples{
+See \\href{https://github.com/andrewrech/antigen.garnish#example}{andrewrech/antigen.garnish}
+
 }

@@ -2,10 +2,10 @@ Package: antigen.garnish
 Title: Ensemble neoepitope prediction in R
 Version: 0.0.0.9000
 Authors@R: "Andrew J. Rech <andrewrech@gmail.com> [aut,cre]"
-Description: An R package for neoepitope analysis that takes human or murine missense variants and returns a summary of ensemble neoepitope prediction using mhcflurry, netMHC, netMHCII, netMHCpan and netMHCIIpan.
+Description: An R package for neoepitope analysis that takes human or murine DNA point mutations, insertions, and deletions and returns a summary of ensemble neoepitope prediction using mhcflurry, netMHC, netMHCII, netMHCpan and netMHCIIpan. Output is individual peptides and a summary of neoepitope metrics.
 Depends: R (>= 3.4.1)
 License: GPL-3
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 6.0.1.9000
-Imports: biomaRt,data.table,seqinr,stringi,stringr,testthat,tidyr,uuid,vcfR,zoo,parallel,stats,utils
+Imports: biomaRt,data.table,dt.inflix,stringi,stringr,testthat,tidyr,uuid,vcfR,zoo,parallel,stats,utils

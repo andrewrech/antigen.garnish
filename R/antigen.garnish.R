@@ -1,383 +1,193 @@
-## -------- garnish_variants
-#' Intakes variants and returns an intersected data table for epitope prediction.
+
+
+
+## ---- get_DAI_uuid
+#' Pair peptides from missense sites by a common UUID for DAi calculations
 #'
-#' Intakes variants from a \href{https://github.com/broadinstitute/gatk}{MuTect2}/\href{https://github.com/Illumina/strelka}{Strelka2} - \href{https://github.com/pcingola/SnpEff}{SnpEff} variant annotation pipeline and filters for neoepitope prediction. Hg38 (human) and GRCm38 (murine) variant calls are required. Mutect2 and Strelka variant threshold prior to intersection were empirically established to limit false positives.
-#'
-#' @param vcfs Character vector. Strelka2 or Mutect2 VFC files to import.
-#'
-#' @return A list of three data tables: 1) all passing variants and 2) intersected variants, 3) intersected missense mutations for neoepitope prediction.
-#'
-#' @example See \href{https://github.com/andrewrech/antigen.garnish#example}{andrewrech/antigen.garnish}
-#'
-#' @export garnish_variants
-
-garnish_variants <- function(vcfs) {
-
-  ### package building
-    invisible(dt.inflix::allduplicated(data.table::data.table(a="a")))
-    invisible(testthat::compare(1, 1))
-  ###
-
-  # NGS data loaded in parallel
-
-  ivfdtl <- lapply(vcfs %>% seq_along, function(ivf){
-
-  # load dt
-      vcf <-  vcfR::read.vcfR(vcfs[ivf], verbose = TRUE)
-
-  # extract sample names from Mutect2 and Strelka command line for intersection
-
-      sample_id <- c((vcf@meta %include% "[Cc]ommand" %>% stringr::str_extract_all("[^ ]+\\.bam") %>% unlist) %include% (vcf@meta %include% "[Cc]ommand" %>% stringr::str_extract("(?<=--tumorSampleName )[^ ]*")), vcf@meta %>% stringr::str_extract("(?<=tumorBam )[^ ]*") %>% basename %>% stringr::str_replace("\\.bam", "")) %>%
-                                  stats::na.omit %>%
-                                  basename %>%
-                                  stringr::str_replace("\\.bam", "")
-
-      # extract vcf type
-      vcf_type <- vcf@meta %>% unlist %>% stringr::str_extract(stringr::regex("Strelka|Mutect", ignore_case = TRUE)) %>% stats::na.omit %>% unlist %>% data.table::first
-
-  # return a data table of variants
-
-  vdt <- vcf@fix %>%data.table::as.data.table
-
-  if (vcf@gt %>% length > 0) vdt <- cbind(vdt, vcf@gt %>%data.table::as.data.table)
-
-  if(vdt %>% nrow < 1) return(data.table::data.table(sample_id = sample_id))
-
-  # filter passing Strelka2 variants
-  if(vcf_type == "Strelka") vdt <- vdt[FILTER == "PASS"]
-  if(vcf_type == "Mutect") vdt <- vdt[INFO %>%
-                                      stringr::str_extract("(?<=TLOD=)[0-9\\.]") %>%
-                                      as.numeric > 6.0]
-  vdt[, sample_id := sample_id]
-  vdt[, vcf_type := vcf_type]
-
-  # extract full snpeff annotation
-
-  vdt[, se := INFO %>%
-    stringr::str_extract("ANN.*") %>%
-    stringr::str_replace("ANN=[^\\|]+\\|", "")]
-
-  # add a variant identifier
-  suppressWarnings(vdt[, uuid :=
-                lapply(1:nrow(vdt),
-                uuid::UUIDgenerate) %>% unlist])
-
-  # abort if no variants passed filtering
-  if (vdt %>% nrow < 1) return(NULL)
-
-  # spread SnpEff annotation over rows
-  vdt %>% tidyr::separate_rows("se", sep = ",")
-  vdt %<>% tidyr::separate_rows("se", sep = ",")
-
-  # extract info from snpeff annotation
-    vdt[, effect_type := se %>%
-        stringr::str_extract("^[a-z0-9][^\\|]+")]
-    vdt[, transcript_affected_v := se %>%
-        stringr::str_extract("(?<=\\|)(ENSMUST|ENST)[0-9.]+(?=\\|)")]
-    vdt[, transcript_affected := se %>%
-        stringr::str_extract("(?<=\\|)(ENSMUST|ENST)[0-9]+")]
-    vdt[, gene_affected := se %>%
-        stringr::str_extract("(?<=\\|)(ENSMUSG|ENSG)[0-9.]+(?=\\|)")]
-    vdt[, protein_change := se %>%
-        stringr::str_extract("c\\.[^\\|]+")]
-    vdt[, dna_change := se %>%
-        stringr::str_extract("c\\.[^\\|]+")]
-    vdt[, aa_mutation := se %>%
-        stringr::str_extract("(?<=p\\.)[A-Z][a-z]{2}[0-9]+[A-Z][a-z]{2}") %>%
-        aa_convert]
-    vdt[, protein_coding := se %>%
-        stringr::str_detect("protein_coding")]
-
-  return(vdt)
-  })
-
-  ivfdt <- ivfdtl %>% data.table::rbindlist
-
-  merge_vcf <- function(dt, dt2){
-
-    # a function to intersect annotated variants across VCFs using SnpEff
-
-      sdt <- merge(dt, dt2[, .SD,
-             .SDcols = c("CHROM",
-              "POS",
-              "REF",
-              "dna_change")],
-               by = c("CHROM",
-              "POS",
-              "REF",
-              "dna_change")) %>% .[, vcf_type := "intersect"]
-      return(sdt)
-
-    }
-
-  # return an intersected data table of variants
-
-  sdt <- parallel::mclapply(ivfdt[, sample_id %>% unique], function(sn){
-
-    # find data tables with matching sample names
-    sdt <- lapply(ivfdtl, function(dt){
-
-     dt[, sample_id %>% .[1]] == sn
-
-    }) %>% unlist
-
-  # merge all data tables with matching sample names
-    if (ivfdtl[sdt] %>% length == 1) return(ivfdtl[[sdt]])
-    if (ivfdtl[sdt] %>% length > 1) return(ivfdtl[sdt] %>% Reduce(merge_vcf, .))
-
-
-  }) %>% data.table::rbindlist
-
-if (ivfdt$transcript_affected %>%
-    stats::na.omit %>%
-    .[1] %like% "ENSMUST") bmds <- "mmusculus_gene_ensembl"
-
-if (ivfdt$transcript_affected %>%
-    stats::na.omit %>%
-    .[1] %like% "ENST") bmds <- "hsapiens_gene_ensembl"
-
-
-  # add metadata
-
-  mart <- biomaRt::useMart(biomart = "ENSEMBL_MART_ENSEMBL",
-                                             dataset = bmds,
-                                             host = 'ensembl.org')
-
-  trneff <- ivfdt$transcript_affected %>%
-                              sort %>%
-                              unique %>%
-                              stats::na.omit
-
-  if (trneff %>% length > 1){
-    var_dt <- biomaRt::getBM(attributes = c("ensembl_transcript_id",
-                  "external_gene_name", "ensembl_gene_id", "description", "chromosome_name",
-                  "start_position", "end_position", "transcript_start", "transcript_end",
-                  "transcript_length", "refseq_mrna"),
-                       filters = c("ensembl_transcript_id"),
-                       values = list(trneff),
-                       mart = mart) %>%
-          data.table::as.data.table %>%
-          data.table::setnames("ensembl_transcript_id", "transcript_affected")
-
-  ivfdt <- merge(ivfdt, var_dt, by = "transcript_affected", all.x = TRUE)
-  sdt <- merge(sdt, var_dt, by = "transcript_affected", all.x = TRUE)
- }
-
-agdt <- sdt[!transcript_affected %>% is.na &
-            !aa_mutation %>% is.na &
-            protein_coding == TRUE &
-            effect_type == "missense_variant"]
-
-return(
-       list(
-        all_variants = ivfdt,
-        all_intersected_variants = sdt,
-        antigen.garnish_input = agdt
-            ))
-}
-
-
-
-## -------- garnish_predictions
-#' Performs epitope prediction.
-#'
-#' Performs epitope prediction on a data table of missence mutations.
-#'
-#' @param dt Data frame. Input data frame from garnish_variants. Must contain four columns: sample_id, transcript_affected (ensembl_transcript_id), aa_mutation (single letter abbreviations), and space-seperated MHC (MHC type, e.g. 'HLA-A*02:01 HLA-A*03:01', 'H-2-Kb H-2-Kb' or HLA-DRB1*11:07 [second type]')
-#' @param assemble Logical. Assemble data table?
-#' @param generate Logical. Generate peptides and commands?
-#' @param predict Logical. Predict binding affinities?
-#'
-#' @return A data table of neoepitopes.
-#'
-#' @example See \href{https://github.com/andrewrech/antigen.garnish#example}{andrewrech/antigen.garnish}
-#'
-#' @export garnish_predictions
-
-garnish_predictions <- function(dt,
-                               assemble = TRUE,
-                               generate = TRUE,
-                               predict = TRUE) {
-
-      if (!c("sample_id", "transcript_affected", "MHC", "aa_mutation") %chin% (dt %>% names) %>% all) stop("dt must contain these four columns: sample_id, transcript_affected (ensembl_transcript_id), aa_mutation (single letter abbreviations), and space-seperated MHC (MHC type, e.g. 'HLA-A*02:01 HLA-A*03:01', 'H-2-Kb H-2-Kb' or HLA-DRB1*11:07 [second type]')")
-
-dt %<>% data.table::as.data.table
-
-if (assemble){
-
-  ## --------  load peptide databse
-
-  if (dt[, transcript_affected %>% unique %>% stringr::str_detect("ENSMUST") %>% any]){
-
-      if (!file.exists("Mus_musculus.GRCm38")) utils::download.file(method = "wget", url = "http://get.rech.io/Mus_musculus.GRCm38", destfile = "Mus_musculus.GRCm38")
-
-      if (!file.exists("Mus_musculus.GRCm38.pep")) utils::download.file(method = "wget", url = "http://get.rech.io/Mus_musculus.GRCm38.pep", destfile = "Mus_musculus.GRCm38.pep")
-
-        qdt <- readRDS("Mus_musculus.GRCm38")
-        db_pep <- readRDS("Mus_musculus.GRCm38.pep")
-
-    } else {
-
-      if (!file.exists("Homo_sapiens.GRCh38")) utils::download.file(method = "wget", url = "http://get.rech.io/Homo_sapiens.GRCh38", destfile = "Homo_sapiens.GRCh38")
-      if (!file.exists("Homo_sapiens.GRCh38.pep")) utils::download.file(method = "wget", url = "http://get.rech.io/Homo_sapiens.GRCh38.pep", destfile = "Homo_sapiens.GRCh38.pep")
-
-      qdt <- readRDS("Homo_sapiens.GRCh38")
-      db_pep <- readRDS("Homo_sapiens.GRCh38.pep")
-
-       }
-
-
-
-  ## -------- peptide generation for epitope prediction
-
-  dt[, mutant_loc := aa_mutation %>% stringr::str_extract("[0-9]+") %>% as.integer]
-  dt[, mutate_from := aa_mutation %>% stringr::str_extract("^[A-Z]")]
-
-  # create peptide lengths
-  dt[, frag_begin := mutant_loc - 14]
-  dt[, frag_end := mutant_loc + 14]
-  dt[frag_begin >= 1, mut_pep_loc := 15 %>% as.integer]
-  dt[frag_begin < 1, `:=` (frag_begin = 1 %>% as.integer, mut_pep_loc = mutant_loc)]
-
-  # directly replace mutant amino acid
-
-  dt[, mutate_to := aa_mutation %>% stringr::str_extract("[A-Z]$")]
-
-  if ("protein_index" %chin% (dt %>% names)) dt[, "protein_index" := NULL]
-
-  dt <- merge(dt, qdt, by = "transcript_affected", all.x = TRUE)
-
-  # function to report mutant amino acid from peptide database
-
-    get_prediction_aa <- function(db_pep, protein_index, begin, end){
-
-    parallel::mclapply(1:length(protein_index), function(x){
-    vec <- try(seqinr::getFrag(db_pep[protein_index[x]], begin = begin[x], end = end[x]) %>% unlist %>% toupper)
-
-    if ("try-error" %chin% (vec %>% class)) vec <- NA
-    return(vec)
-    }) %>% unlist
-    }
-
-  # function to report total length of mutant protein for peptide length adjustment
-
-    get_protein_length <- function(db_pep, protein_index){
-
-    parallel::mclapply(1:length(protein_index), function(x){
-      vec <- try(db_pep[[protein_index[x]]] %>% length)
-      if ("try-error" %chin% (vec %>% class)) vec <- NA
-      return(vec)
-    }) %>% unlist
-    }
-
-  # function to return a peptide fragment
-
-    get_pred_frag <- function(db_pep, protein_index, begin, end){
-
-    parallel::mclapply(1:length(protein_index), function(x){
-      vec <- try(seqinr::getFrag(db_pep[protein_index[x]],
-                                 begin = begin[x],
-                                end = end[x]) %>%
-                                 unlist %>%
-                                 paste(collapse = "") %>%
-                                 toupper)
-
-      if ("try-error" %chin% (vec %>% class)) vec <- NA
-      return(vec)
-
-    }) %>% unlist
-    }
-
-  # function to produce the mutant peptide fragment
-
-    get_mut_frag <- function(pep_wt, mut_pep_loc, mutate_to){
-
-    parallel::mclapply(1:length(pep_wt), function(x){
-
-      if(pep_wt[x] %>% is.na) return(NA)
-
-      y <- (pep_wt[x] %>% strsplit("") %>% unlist)
-      y[mut_pep_loc[x]] <- mutate_to[x]
-    return(y %>% paste(collapse = ""))
-    }) %>% unlist
-    }
-
-  dt[!protein_index %>% is.na, pep_db_aa_from := get_prediction_aa(db_pep, protein_index, mutant_loc, mutant_loc)]
-  dt[, pep_db_aa_length := get_protein_length(db_pep, protein_index)]
-
-
-  dt[, frag_begin := frag_begin %>% as.integer]
-  dt[, frag_end := frag_end %>% as.integer]
-  dt[frag_end > pep_db_aa_length, frag_end := pep_db_aa_length]
-
-  dt[, pep_wt := get_pred_frag(db_pep, protein_index, frag_begin, frag_end)]
-  dt[, pep_mut := get_mut_frag(pep_wt, mut_pep_loc, mutate_to)]
-
-}
-
-if (generate) {
-
-
-  # generation a uuid for each unique variant
-  suppressWarnings(dt[, variant_uuid :=
-                  parallel::mclapply(1:nrow(dt),
-                  uuid::UUIDgenerate) %>% unlist])
-
-  # generate a datatable of unique variants for peptide generation
-  basepep_dt <- dt[pep_db_aa_from == mutate_from &
-                !pep_mut %>% is.na &
-                !pep_wt %>% is.na &
-                !mut_pep_loc %>% is.na,
-                .(pep_mut, pep_wt, mut_pep_loc, variant_uuid)] %>%
-                unique
-
-if (basepep_dt %>% nrow == 0) stop("No unique missense variants for peptide generation")
-
-  peptide_dt <- garnish_predictions_worker(basepep_dt)
-
-  # generation a uuid for each unique peptide
-  suppressWarnings(peptide_dt[, pep_uuid :=
-                  parallel::mclapply(1:nrow(peptide_dt),
-                  uuid::UUIDgenerate) %>% unlist])
-
-  dt <- merge(dt,
-                  peptide_dt,
-                    by = "variant_uuid",
+#' @param dt Data table of nmers.
+
+get_DAI_uuid <- function(dt){
+
+  if (!c("pep_type", "nmer", "nmer_i",
+          "nmer_l", "var_uuid", "frameshift",
+          "pep_mut", "pep_wt") %chin%
+     (dt %>% names) %>% any)
+     stop("dt is missing columns")
+
+    daidt <- dt %>%
+        # explicitly select missense
+        .[frameshift == FALSE &
+        (pep_mut %>% nchar) == (pep_wt %>% nchar)] %>%
+     # recombine table, creating pairs
+     # merge vs. sort and bind so edges cases
+        # result in lost peptides vs. total mis-
+        # alignment
+      {
+     merge(
+       .[pep_type == "wt", .SD,
+       .SDcols = c("nmer", "nmer_i",
+                   "nmer_l", "var_uuid")] %>%
+       data.table::setnames("nmer", "wt_nmer"),
+
+       .[pep_type == "mutnfs", .SD,
+       .SDcols = c("nmer", "nmer_i",
+                   "nmer_l", "var_uuid")] %>%
+       data.table::setnames("nmer", "mtnfs_nmer"),
+     by = c("var_uuid", "nmer_i", "nmer_l"))
+      } %>%
+      # create a DAI uuid
+     .[, dai_uuid := parallel::mclapply(1:nrow(.),
+                     uuid::UUIDgenerate) %>% unlist] %>%
+
+      # bind back into one table
+      {
+        rbindlist(list(
+              .[, .SD, .SDcols = c("wt_nmer", "nmer_i",
+                 "nmer_l", "var_uuid", "dai_uuid")] %>%
+              data.table::setnames("wt_nmer", "nmer"),
+              .[, .SD, .SDcols = c("mtnfs_nmer", "nmer_i",
+                 "nmer_l", "var_uuid", "dai_uuid")] %>%
+              data.table::setnames("mtnfs_nmer", "nmer")
+                     ))
+      }
+      # merge back together
+      dt %<>% merge(daidt,
+                    by = c("nmer",
+                           "nmer_i",
+                           "nmer_l",
+                           "var_uuid"),
                     all.x = TRUE)
-
-
+      return(dt)
 }
 
-if (predict) {
 
+## ---- check_netMHC_PATH
+#' Check for netMHC tools in PATH
+#'
 
-# test that prediction tools are in PATH
-  if (suppressWarnings(system('which mhcflurry-predict', intern = TRUE)) %>%
-        length == 0) stop("mhcflurry-predict is not in PATH")
+check_netMHC_PATH <- function(){
+ if (suppressWarnings(system('which mhcflurry-predict', intern = TRUE)) %>%
+        length == 0) stop("mhcflurry-predict is not in PATH\n       Download: https://github.com/hammerlab/mhcflurry")
   if (suppressWarnings(system('which netMHC', intern = TRUE)) %>%
-        length == 0) stop("netMHC is not in PATH")
+        length == 0) stop("netMHC is not in PATH\n       Download: http://www.cbs.dtu.dk/services/NetMHC/")
   if (suppressWarnings(system('which netMHCpan', intern = TRUE)) %>%
-        length == 0) stop("netMHCpan is not in PATH")
+        length == 0) stop("netMHCpan is not in PATH\n       Download: http://www.cbs.dtu.dk/services/NetMHCpan/")
   if (suppressWarnings(system('which netMHCII', intern = TRUE)) %>%
-        length == 0) stop("netMHCII is not in PATH")
+        length == 0) stop("netMHCII is not in PATH\n       Download: http://www.cbs.dtu.dk/services/NetMHCII/")
   if (suppressWarnings(system('which netMHCIIpan', intern = TRUE)) %>%
-        length == 0) stop("netMHCIIpan is not in PATH")
+        length == 0) stop("netMHCIIpan is not in PATH\n       Download: http://www.cbs.dtu.dk/services/NetMHCIIpan/")
+}
 
-  if (dt[, MHC %>% unique] %>% stringr::str_detect(" ") %>% any) dt %<>% tidyr::separate_rows("MHC", sep = " ")
+## -------- run_netMHC
+#' Run netMHC commands.
+#'
+#' @param dt Data table of commands to run.
 
-# function for writing input peptides for prediction to disk in segments
+run_netMHC <- function(dt){
 
-  write_peps <- function(dt, type){
+  if (!"command" %chin% (dt %>% names))
+    stop("dt must contain command column")
+
+  check_netMHC_PATH()
+
+  dtl <- parallel::mclapply(
+         dt[, command],
+          function(command){
+          # run command
+           es <- try(system(command, intern = TRUE))
+
+          # if error, return empty dt
+            if (es %>% class %>% .[1] == "try-error") {
+              return(data.table::data.table(status = 1, command = command))
+            }
+
+          # parse results
+            # isolate table and header
+
+              dtl <- es %exclude%
+                "^\\#|----|Number|Distance|threshold|version|^$"
+              dtn <- dtl %include%
+                "[Pp]eptide" %>%
+                strsplit("[ ]+") %>%
+                unlist %exclude% "^$|^Bind|^Level"
+
+           # fix table formatting
+              dt <- dtl[2:length(dtl)] %>%
+                stringr::str_replace_all(">", " ") %>%
+                stringr::str_replace_all("=", " ") %>%
+                stringr::str_replace_all("<", " ") %>%
+                stringr::str_replace_all("(SB|WB)", "  ") %>%
+                data.table::tstrsplit("[ ]+") %>%
+                data.table::as.data.table
+
+          # some output has a null first column
+             if (dt$V1 %>% paste(collapse = "") == "") dt$V1 <- NULL
+
+          # apply names to data table
+            dt %>% data.table::setnames(dt %>% names, dtn)
+
+          # append command
+            dt$command <- command
+
+          # set the program type from command
+            ptype <- command %>% stringr::str_extract("net[A-Za-z]+")
+
+          # make netMHC names consistent
+            if ("Peptide" %chin% (dt %>% names)) dt %>% data.table::setnames("Peptide", "peptide")
+            if ("peptide" %chin% (dt %>% names)) dt %>% data.table::setnames("peptide", "nmer")
+            if ("Affinity(nM)" %chin% (dt %>% names)) dt %>% data.table::setnames("Affinity(nM)", "affinity(nM)")
+            if ("Aff(nM)" %chin% (dt %>% names)) dt %>% data.table::setnames("Aff(nM)", "affinity(nM)")
+            if ("HLA" %chin% (dt %>% names)) dt %>%
+              data.table::setnames("HLA", "allele")
+            if ("Allele" %chin% (dt %>% names)) dt %>% data.table::setnames("Allele", "allele")
+            if ("Pos" %chin% (dt %>% names)) dt %>%
+              data.table::setnames("Pos", "pos")
+            if ("Icore" %chin% (dt %>% names)) dt %>% data.table::setnames("Icore", "icore")
+            if ("iCore" %chin% (dt %>% names)) dt %>% data.table::setnames("iCore", "icore")
+            if ("Core" %chin% (dt %>% names)) dt %>% data.table::setnames("Core", "core")
+
+          # fix netMHCpan allele output to match input
+            if (command %like% "netMHCpan"){
+              dt[, allele := allele %>%
+                stringr::str_replace(fixed("*"), "")]
+            }
+
+          # set unique column names based on program
+            data.table::setnames(dt, dt %>% names %exclude% "allele|nmer",
+                                 paste0((dt %>% names %exclude% "allele|nmer"), "_", ptype))
+
+          # name allele column for merge
+            dt %>%
+              data.table::setnames("allele", ptype)
+
+            return(dt)
+                     })
+      return(dtl)
+}
+
+
+
+## -------- write_nmers
+#' Write MHC prediction nmers to disk
+#'
+#' @param dt Data table of nmers.
+#' @param type Character vector. Name of program to format for.
+
+
+  write_nmers <- function(dt, type){
 
     if (dt %>% nrow == 0) return(NULL)
+    if (!c("nmer", "nmer_l") %chin% (dt %>% names) %>% any)
+          stop("dt must contain nmer and nmer_l columns")
 
     combs <- data.table::CJ(dt[, get(type)] %>% unique,
-                            dt[, pep_length] %>% unique)
+                            dt[, nmer_l] %>% unique)
 
     dto <- parallel::mclapply(1:nrow(combs), function(i) {
 
-      dts <- dt[get(type) == combs$V1[i] & pep_length == combs$V2[i]]
+      dts <- dt[get(type) == combs$V1[i] & nmer_l == combs$V2[i]]
 
+      # parallelize over 100 peptide chunks
       chunks <- ((dts %>% nrow)/100) %>% ceiling
 
       dto <- parallel::mclapply(dts %>% split(1:chunks), function(dtw){
@@ -387,14 +197,14 @@ if (predict) {
 
 
         # write out unique peptides for MHC type, length
-        data.table::fwrite(dtw[, .(peptide)] %>% unique,
+        data.table::fwrite(dtw[, .(nmer)] %>% unique,
                           filename,
                           col.names = FALSE)
 
         return(data.table::data.table(
                type = type,
                allele = combs$V1[i],
-               pep_length = combs$V2[i],
+               nmer_l = combs$V2[i],
                filename = filename))
 
 
@@ -407,9 +217,14 @@ if (predict) {
   }
 
 
-  # function to replacement HLA with matching type for netMHC
 
- detect_hla <- function(x){
+## -------- detect_hla
+#' Replace HLA with matching type in netMHC format
+#'
+#' @param x Vector of HLA types named for program to convert to.
+#' @param alleles Table of alleles to choose from.
+
+ detect_hla <- function(x, alleles){
 
   prog <- deparse(substitute(x))
 
@@ -426,44 +241,679 @@ if (predict) {
     return(x)
   }
 
+
+
+## -------- get_snpeff_annot
+#' Extract snpeff annotation information to a data table.
+#'
+#' @param dt Data table with INFO column.
+
+get_snpeff_annot <- function(dt){
+
+    if (!"INFO" %chin% (dt %>% names)) stop("dt must contain INFO column")
+
+    dt[, se := INFO %>%
+      stringr::str_extract("ANN.*") %>%
+      stringr::str_replace("ANN=[^\\|]+\\|", "")]
+
+    # add a variant identifier
+    suppressWarnings(dt[, snpeff_uuid :=
+                  lapply(1:nrow(dt),
+                  uuid::UUIDgenerate) %>% unlist])
+
+    # abort if no variants passed filtering
+    if (dt %>% nrow < 1) return(NULL)
+
+    # spread SnpEff annotation over rows
+    dt %>% tidyr::separate_rows("se", sep = ",")
+
+    # extract info from snpeff annotation
+      dt[, effect_type := se %>%
+          stringr::str_extract("^[a-z0-9][^\\|]+")]
+      dt[, ensembl_transcript_id := se %>%
+          stringr::str_extract("(?<=\\|)(ENSMUST|ENST)[0-9]+")]
+      dt[, ensembl_gene_id := se %>%
+          stringr::str_extract("(?<=\\|)(ENSMUSG|ENSG)[0-9.]+(?=\\|)")]
+      dt[, protein_change := se %>%
+          stringr::str_extract("p\\.[^\\|]+")]
+      dt[, cDNA_change := se %>%
+          stringr::str_extract("c\\.[^\\|]+")]
+      dt[, protein_coding := se %>%
+          stringr::str_detect("protein_coding")]
+
+      return(dt)
+
+        }
+
+
+
+## -------- aa_convert
+#' Convert amino acid codes quickly
+#'
+#' @param x Character vector to convert.
+
+aa_convert <- function(x){
+
+if (x %>% stats::na.omit %>%
+    is.null) return(x)
+if (x %>% stats::na.omit %>%
+    length == 0) return(x)
+
+if (x %>% stats::na.omit %>%
+    stringr::str_detect("[A-Z][a-z]{2}") %>% any){
+     x %<>% stringr::str_replace(stringr::fixed("Ala"), "A") %>%
+            stringr::str_replace(stringr::fixed("Arg"), "R") %>%
+            stringr::str_replace(stringr::fixed("Asn"), "N") %>%
+            stringr::str_replace(stringr::fixed("Asp"), "D") %>%
+            stringr::str_replace(stringr::fixed("Cys"), "C") %>%
+            stringr::str_replace(stringr::fixed("Glu"), "E") %>%
+            stringr::str_replace(stringr::fixed("Gln"), "Q") %>%
+            stringr::str_replace(stringr::fixed("Gly"), "G") %>%
+            stringr::str_replace(stringr::fixed("His"), "H") %>%
+            stringr::str_replace(stringr::fixed("Ile"), "I") %>%
+            stringr::str_replace(stringr::fixed("Leu"), "L") %>%
+            stringr::str_replace(stringr::fixed("Lys"), "K") %>%
+            stringr::str_replace(stringr::fixed("Met"), "M") %>%
+            stringr::str_replace(stringr::fixed("Phe"), "F") %>%
+            stringr::str_replace(stringr::fixed("Pro"), "P") %>%
+            stringr::str_replace(stringr::fixed("Ser"), "S") %>%
+            stringr::str_replace(stringr::fixed("Thr"), "T") %>%
+            stringr::str_replace(stringr::fixed("Trp"), "W") %>%
+            stringr::str_replace(stringr::fixed("Tyr"), "Y") %>%
+            stringr::str_replace(stringr::fixed("Val"), "V")
+
+} else {
+     x %<>% stringr::str_replace(stringr::fixed("A"), "Ala") %>%
+            stringr::str_replace(stringr::fixed("R"), "Arg") %>%
+            stringr::str_replace(stringr::fixed("N"), "Asn") %>%
+            stringr::str_replace(stringr::fixed("D"), "Asp") %>%
+            stringr::str_replace(stringr::fixed("C"), "Cys") %>%
+            stringr::str_replace(stringr::fixed("E"), "Glu") %>%
+            stringr::str_replace(stringr::fixed("Q"), "Gln") %>%
+            stringr::str_replace(stringr::fixed("G"), "Gly") %>%
+            stringr::str_replace(stringr::fixed("H"), "His") %>%
+            stringr::str_replace(stringr::fixed("I"), "Ile") %>%
+            stringr::str_replace(stringr::fixed("L"), "Leu") %>%
+            stringr::str_replace(stringr::fixed("K"), "Lys") %>%
+            stringr::str_replace(stringr::fixed("M"), "Met") %>%
+            stringr::str_replace(stringr::fixed("F"), "Phe") %>%
+            stringr::str_replace(stringr::fixed("P"), "Pro") %>%
+            stringr::str_replace(stringr::fixed("S"), "Ser") %>%
+            stringr::str_replace(stringr::fixed("T"), "Thr") %>%
+            stringr::str_replace(stringr::fixed("W"), "Trp") %>%
+            stringr::str_replace(stringr::fixed("Y"), "Tyr") %>%
+            stringr::str_replace(stringr::fixed("V"), "Val")
+}
+return(x)
+
+}
+
+
+
+## -------- get_metadata
+#' Add metadata using ensembl_transcript_ID
+#'
+#' @param dt Data table with INFO column.
+
+get_metadata <- function(dt){
+
+  if (!"ensembl_transcript_id" %chin%
+      (dt %>% names))
+  stop("ensembl_transcript_id column missing")
+
+    bmds <- vector()
+
+    if (dt[, ensembl_transcript_id %>%
+        stringr::str_detect("ENSMUST")] %>%
+          stats::na.omit %>%
+          unique %>%
+          any) bmds <- c(bmds, "mmusculus_gene_ensembl")
+
+    if (dt[, ensembl_transcript_id %>%
+        stringr::str_detect("ENST")] %>%
+          stats::na.omit %>%
+          unique %>%
+          any) bmds <- c(bmds, "hsapiens_gene_ensembl")
+
+    message("Obtaining cDNA and peptide sequences using biomaRt")
+    var_dt <- parallel::mclapply(bmds, function(i){
+
+      mart <- biomaRt::useMart(biomart = "ENSEMBL_MART_ENSEMBL",
+                                                 dataset = i,
+                                                 host = 'ensembl.org')
+
+    if (i == "mmusculus_gene_ensembl") {
+        trn <- dt[, ensembl_transcript_id %include% "ENSMUST" %>%
+                  stats::na.omit %>%
+                  unique]
+              }
+
+    if (i == "hsapiens_gene_ensembl") {
+        trn <- dt[, ensembl_transcript_id %include% "ENST" %>%
+                  stats::na.omit %>%
+                  unique]
+              }
+
+   if (trn %>% length < 1) return(NULL)
+   if (trn %>% length > 1) {
+
+    # obtain transcript metadata
+      var_dt <- biomaRt::getBM(attributes = c("ensembl_transcript_id",
+                    "external_gene_name", "ensembl_gene_id", "description", "chromosome_name",
+                    "start_position", "end_position", "transcript_start", "transcript_end",
+                    "transcript_length", "refseq_mrna"),
+                         filters = c("ensembl_transcript_id"),
+                         values = list(trn),
+                         mart = mart) %>%
+            data.table::as.data.table
+
+      # obtain transcript cDNA and peptide sequences
+      seqdtl <- parallel::mclapply(c("coding", "peptide"), function(j) {
+
+         biomaRt::getSequence(type = "ensembl_transcript_id",
+                     id = trn,
+                     seqType = j,
+                     mart = mart) %>% data.table::as.data.table
+      })
+
+      seqdt <- merge(seqdtl[[1]], seqdtl[[2]], by = "ensembl_transcript_id")
+      var_dt <- merge(var_dt, seqdt, by = "ensembl_transcript_id")
+      }
+
+    return(var_dt)
+
+    }) %>% data.table::rbindlist
+    dt <- merge(dt, var_dt, by = "ensembl_transcript_id")
+
+    return(dt)
+}
+
+
+
+## -------- get_cDNA
+#' Create cDNA from hgvs nomenclature (http://varnomen.hgvs.org/)
+#'
+#' @param dt Data table with INFO column.
+
+get_cDNA <- function(dt){
+t
+  if (!c("cDNA_type",
+         "coding",
+         "cDNA_locs",
+         "cDNA_locl",
+         "cDNA_seq"
+         ) %chin%
+      (dt %>% names) %>% all)
+  stop("dt is missing columns")
+
+  # initialize
+
+    dt[, coding_mut := coding]
+
+  # paste substr around changed bases
+  # substr is vectorized C, fast
+  # mut sub nmers that are really wt
+    # will be filtered after subpep generation
+
+    # SnpEff should not output delins
+    # Remove if present
+
+    if (dt[, cDNA_change] %>% unique %>%
+        stringr::str_detect("delins") %>% any){
+           warning("Not translating 'delins' cDNA notation: convert to del or ins")
+           dt <- dt[!cDNA_change %likef% "delins"]
+    }
+
+
+    # handle single base changes
+
+      dt[cDNA_type == ">",
+      coding_mut := coding_mut %>%
+      # { controls . placement in paste
+        { paste0(
+           substr(., 1, cDNA_locs-1),
+           cDNA_seq,
+           substr(.,
+                  cDNA_locs + 1,
+                  nchar(.))) } ]
+
+    # handle deletions
+      # indices are inclusive
+      # regexpr match for del
+
+      dt[cDNA_type %like% "del",
+      coding_mut := coding_mut %>%
+      # { controls . placement in paste
+        { paste0(
+           substr(., 1, cDNA_locs-1),
+           substr(.,
+                  cDNA_locl + 1,
+                  nchar(.))) } ]
+
+    # handle insertions
+      # regexpr match for del
+
+      dt[cDNA_type %like% "ins",
+      coding_mut := coding_mut %>%
+      # { controls . placement in paste
+        { paste0(
+           substr(., 1, cDNA_locs),
+           cDNA_seq,
+           substr(.,
+                  cDNA_locs + 1,
+                  nchar(.))) } ]
+
+      }
+
+## -------- ex_cDNA
+#' Extract cDNA changes from hgvs nomenclature (http://varnomen.hgvs.org/)
+#'
+#' @param dt Data table with INFO column.
+
+ex_cDNA <- function(dt){
+
+  # check required cols
+
+  if (!c("cDNA_change") %chin%
+        (dt %>% names) %>% all)
+    stop("cDNA_change missing")
+
+# extract hgvs DNA nomenclature
+    # dups are just ins
+    dt[, cDNA_change := cDNA_change %>%
+          stringr::str_replace_all("dup", "ins")]
+
+    dt[, cDNA_locs := cDNA_change %>%
+          stringr::str_extract("[0-9]+") %>%
+          as.integer]
+    dt[, cDNA_locl := cDNA_change %>%
+          stringr::str_extract("(?<=_)[0-9]+") %>%
+          as.integer]
+      # make cDNA_locl cDNA_locs for single bases
+           dt[cDNA_locl %>% is.na, cDNA_locl := cDNA_locs]
+
+    dt[, cDNA_type := cDNA_change %>%
+          stringr::str_extract("[a-z]{3}|>")]
+    dt[, cDNA_seq := cDNA_change %>%
+          stringr::str_extract("[A-Z]+$")]
+
+  }
+
+
+## -------- ftrans
+#' Translate cDNA to peptide fast
+#'
+#' @param v cDNA character vector without ambiguous bases.
+
+  ftrans <- function(v){
+
+    parallel::mclapply(v, function(p){
+
+     # protect vector length
+       tryCatch({
+
+          p %>% Biostrings::DNAString %>%
+                Biostrings::translate %>%
+                as.vector %>%
+                as.character %>%
+                paste(collapse = "")
+
+        }, error = function(e) {
+              return(NA)
+              })
+
+        }) %>% unlist
+  }
+
+## -------- garnish_variants
+#' Intakes variants and returns an intersected data table for epitope prediction.
+#'
+#' Intakes raw variants from a \href{https://github.com/broadinstitute/gatk}{MuTect2}/\href{https://github.com/Illumina/strelka}{Strelka2} - \href{https://github.com/pcingola/SnpEff}{SnpEff} variant annotation pipeline and filters for neoepitope prediction. Hg38 (human) and GRCm38 (murine) variant calls are required. Mutect2 and Strelka variant threshold prior to intersection were empirically established to limit false positives.
+#'
+#' @param vcfs Character vector. VFC files to import.
+#'
+#' @return A data table of intersected protein coding variants for neoepitope prediction.
+#'
+#' @examples
+#'library(magrittr)
+#'
+#'  # download an example VCF
+#'    dt <- "antigen.garnish_example.vcf" %T>%
+#'    utils::download.file("http://get.rech.io/antigen.garnish_example.vcf", .) %>%
+#'
+#'  # extract variants
+#'    antigen.garnish::garnish_variants %T>%
+#'    str
+#'
+#' @export garnish_variants
+
+garnish_variants <- function(vcfs) {
+
+  ### package building
+    invisible(dt.inflix::allduplicated(data.table::data.table(a="a")))
+    invisible(testthat::compare(1, 1))
+  ###
+
+  message("Loading VCFs")
+  ivfdtl <- lapply(vcfs %>% seq_along, function(ivf){
+
+  # load dt
+      vcf <-  vcfR::read.vcfR(vcfs[ivf], verbose = TRUE)
+
+  # extract sample names from Mutect2 and Strelka command line for intersection
+
+      sample_id <- c((vcf@meta %include% "[Cc]ommand" %>% stringr::str_extract_all("[^ ]+\\.bam") %>% unlist) %include% (vcf@meta %include% "[Cc]ommand" %>% stringr::str_extract("(?<=--tumorSampleName )[^ ]*")), vcf@meta %>% stringr::str_extract("(?<=tumorBam )[^ ]*") %>% basename %>% stringr::str_replace("\\.bam", "")) %>%
+                                  stats::na.omit %>%
+                                  basename %>%
+                                  stringr::str_replace("\\.bam", "")
+      # extract vcf type
+      vcf_type <- vcf@meta %>% unlist %>% stringr::str_extract(stringr::regex("Strelka|Mutect", ignore_case = TRUE)) %>% stats::na.omit %>%
+                  unlist %>% data.table::first
+
+  # return a data table of variants
+
+    vdt <- vcf@fix %>% data.table::as.data.table
+
+    if (vcf@gt %>% length > 0) vdt <- cbind(vdt, vcf@gt %>% data.table::as.data.table)
+
+    if(vdt %>% nrow < 1) return(data.table::data.table(sample_id = sample_id))
+
+    # filter passing Strelka2 and muTect variants
+    if(vcf_type == "Strelka") vdt <- vdt[FILTER == "PASS"]
+    if(vcf_type == "Mutect") vdt <- vdt[INFO %>%
+                                        stringr::str_extract("(?<=TLOD=)[0-9\\.]") %>%
+                                        as.numeric > 6.0]
+    vdt[, sample_id := sample_id]
+    vdt[, vcf_type := vcf_type]
+
+    vdt %<>% get_snpeff_annot
+
+    return(vdt)
+    })
+
+    ivfdt <- ivfdtl %>% data.table::rbindlist
+
+    merge_vcf <- function(dt, dt2){
+
+    # a function to intersect annotated variants across VCFs using SnpEff
+
+      sdt <- merge(dt, dt2[, .SD,
+             .SDcols = c("CHROM",
+              "POS",
+              "REF",
+              "cDNA_change")],
+               by = c("CHROM",
+              "POS",
+              "REF",
+              "cDNA_change")) %>% .[, vcf_type := "intersect"]
+      return(sdt)
+
+    }
+  # return an intersected data table of variants
+  sdt <- parallel::mclapply(ivfdt[, sample_id %>% unique], function(sn){
+
+    # find data tables with matching sample names
+    sdt <- lapply(ivfdtl, function(dt){
+
+     dt[, sample_id %>% .[1]] == sn
+
+    }) %>% unlist
+
+  # merge all data tables with matching sample names
+    if (ivfdtl[sdt] %>% length == 1) return(ivfdtl[[sdt %>% which]])
+    if (ivfdtl[sdt] %>% length > 1) return(ivfdtl[sdt] %>% Reduce(merge_vcf, .))
+
+
+  }) %>% data.table::rbindlist
+
+  # select protein coding variants without NA
+  sdt %<>% .[protein_coding == TRUE &
+            !protein_change %>% is.na &
+            !effect_type %>% is.na &
+            effect_type %like% "insertion|deletion|missense|frameshift"]
+
+  return(sdt)
+
+}
+
+
+
+## -------- garnish_predictions
+#' Performs epitope prediction.
+#'
+#' Performs epitope prediction on a data table of missense mutations.
+#'
+#' @param dt Data frame. Input data frame from garnish_variants. \href{http://get.rech.io/antigen.garnish_example_input.txt}{Example.}
+#' @param assemble Logical. Assemble data table?
+#' @param generate Logical. Generate peptides?
+#' @param predict Logical. Predict binding affinities?
+#'
+#' @return A data table of neoepitopes.
+#'
+#' @examples See \href{https://github.com/andrewrech/antigen.garnish#example}{andrewrech/antigen.garnish}
+#'
+#' @export garnish_predictions
+
+garnish_predictions <- function(dt,
+                               assemble = TRUE,
+                               generate = TRUE,
+                               predict = TRUE) {
+
+  if (!"data.frame" %chin% (dt %>% class)) stop("dt must be a data frame or data table")
+
+  if (!c("sample_id", "ensembl_transcript_id", "cDNA_change", "MHC") %chin% (dt %>% names) %>% all) stop("Input dt must contain four columns:\n\nsample_id\nensembl_transcript_id\ncDNA_change HGVS notation)\nMHC\n    e.g. 'HLA-A*02:01 HLA-A*03:01' or\n    'H-2-Kb H-2-Kb' or HLA-DRB1*11:07 [second type]'\n\n See: http://get.rech.io/antigen.garnish_example_input.txt")
+
+  dt %<>% data.table::as.data.table
+
+if (assemble){
+
+    dt %<>% get_metadata
+
+    dt %<>% ex_cDNA
+
+    dt[, frameshift := FALSE]
+    dt[protein_change %like% "fs$", frameshift := TRUE]
+
+    dt %<>% get_cDNA
+
+    dt[, pep_mut := coding_mut %>% ftrans]
+    dt[, pep_wt := coding %>% ftrans]
+
+    # remove variants with translated sequence-ensembl mismatch
+    dt %<>% .[peptide == pep_wt]
+
+    # remove stop codons
+
+    for (i in dt %>% names %include% "^pep"){
+      set(dt, j = i, value = dt[, get(i) %>%
+                                stringr::str_extract_all("^[^\\*]+") %>%
+                                unlist])
+
+    }
+
+
+  ## -------- create mutant peptide index
+
+    # index first mismatch
+    dt[, mismatch_f :=
+        {
+          (pep_wt %>%
+               strsplit(split = "", fixed = TRUE) %>%
+               unlist) !=
+             (pep_mut %>%
+               strsplit(split = "", fixed = TRUE) %>%
+               unlist)
+           } %>%
+          which %>% .[1], by = 1:nrow(dt)]
+
+    # initialize mismatch length
+        dt[, mismatch_l := mismatch_f]
+
+    # frameshifts are mutants until STOP
+        dt[frameshift == TRUE,
+        mismatch_l := pep_mut %>% nchar]
+
+    # create mutant register for
+    # non-frameshift insertions
+        dt[mismatch_l > mismatch_f &
+           frameshift == FALSE,
+        mismatch_l := mismatch_f + (pep_mut %>% nchar) -
+                      (pep_wt %>% nchar)]
+
+    # deletions are mutants over site only
+        dt[, mismatch_l := mismatch_f]
+
+    # parallelized function to create a
+    # space-separated character string
+    # between two integers
+      get_ss_str <- function(x, y) {
+        mcMap(function(x, y) (x %>% as.integer):(y %>% as.integer) %>%
+              paste(collapse = " "), x, y) %>%
+              unlist
+        }
+
+    # create a space-separated vector of mutant locations
+        dt[, mutant_loc := mismatch_f %>% as.character]
+        dt[mismatch_l > mismatch_f, mutant_loc :=
+            get_ss_str(mismatch_f, mismatch_l)]
+
+  }
+
+if (generate) {
+  message("Generating variants")
+  # generation a uuid for each unique variant
+  suppressWarnings(dt[, var_uuid :=
+                  parallel::mclapply(1:nrow(dt),
+                  uuid::UUIDgenerate) %>% unlist])
+
+  # separate over mutant locations
+    if (dt[, mutant_loc %>% unique] %>%
+        stringr::str_detect(" ") %>% any) {
+      dts <- dt %>% tidyr::separate_rows("mutant_loc", sep = " ")
+    } else {
+      dts <- dt
+    }
+
+  # convert back to numeric
+  dts[, mutant_loc := mutant_loc %>% as.numeric]
+
+  # generate a data table of unique variants for peptide generation
+
+    dtnfs <- dts[frameshift == FALSE]
+    dtfs <- dts[frameshift == TRUE]
+
+    basepep_dt <- data.table::rbindlist(list(
+         # take pep_wt for non-fs for DAI calculation
+           data.table::rbindlist(list(
+                dtnfs %>%
+                data.table::copy %>%
+                .[, pep_base := pep_wt] %>%
+                .[, pep_type := "wt"],
+                dtnfs %>%
+                data.table::copy %>%
+                .[, pep_base := pep_mut] %>%
+                .[, pep_type := "mutnfs"]
+                 )),
+         # take only pep_mut for fs
+            dtfs %>%
+            data.table::copy %>%
+            .[, pep_base := pep_mut] %>%
+            .[, pep_type := "mutfs"])) %>%
+
+         # take unique peptides
+            .[, .SD, .SDcols = c("var_uuid",
+                                 "pep_type",
+                                 "pep_base",
+                                 "mutant_loc")] %>%
+            unique
+
+    if (basepep_dt %>% nrow == 0)
+      return("no variants for peptide generation")
+
+    sink(file = "/dev/null")
+    nmer_dt <- garnish_predictions_worker(basepep_dt) %>% .[, nmer_l := nmer %>% nchar]
+    sink()
+
+     dt <- merge(dt, nmer_dt,
+        by = "var_uuid",
+        all.x = TRUE)
+
+    # generation a uuid for each unique nmer
+    suppressWarnings(dt[, nmer_uuid :=
+                    parallel::mclapply(1:nrow(dt),
+                    uuid::UUIDgenerate) %>% unlist])
+
+     dt %<>% get_DAI_uuid
+
+    # remove mut == wt by sample_id
+    # remove wt missing mut counterpart
+
+    for (id in dt[, sample_id %>% unique]) {
+
+     # get wt nmers for fast !chmatch
+     id_wt_nmers <- dt[sample_id == id &
+                        pep_type == "wt",
+                        nmer %>% unique]
+
+     dt %<>% .[pep_type == "wt" |
+               sample_id != id |
+               (sample_id == id &
+                pep_type != "wt" &
+                !nmer %chin% id_wt_nmers)]
+         }
+
+    # remove wt without a matched mut
+     unmatched_dai <- dt[, .N, by = dai_uuid] %>% . [N == 1, dai_uuid]
+     if (unmatched_dai %>% length > 0) dt[!dai_uuid %chin% unmatched_dai]
+
+}
+
+if (predict) {
+
+  check_netMHC_PATH()
+
+  if (dt[, MHC %>% unique] %>%
+      stringr::str_detect(" ") %>% any) dt %<>%
+      tidyr::separate_rows("MHC", sep = " ")
+
   # get available MHC alleles for predictions
 
   alleles <- data.table::rbindlist(
                          list(
-      system.file("extdata",
-          "netMHC_alleles.txt", package = "antigen.garnish") %>%
-                          data.table::fread(header = FALSE) %>%
-                          data.table::setnames("V1", "allele") %>%
-                          .[, type := "netMHC"],
-      system.file("extdata",
-          "netMHCpan_alleles.txt", package = "antigen.garnish") %>%
-                          data.table::fread(header = FALSE) %>%
-                          data.table::setnames("V1", "allele") %>%
-                          .[, type := "netMHCpan"],
-      system.file("extdata",
-          "mhcflurry_alleles.txt", package = "antigen.garnish") %>%
-                          data.table::fread(header = FALSE) %>%
-                          data.table::setnames("V1", "allele") %>%
-                          .[, type := "mhcflurry"],
-      system.file("extdata",
-          "netMHCII_alleles.txt", package = "antigen.garnish") %>%
-                          data.table::fread(header = FALSE) %>%
-                          data.table::setnames("V1", "allele") %>%
-                          .[, type := "netMHCII"],
-      system.file("extdata",
-          "netMHCIIpan_alleles.txt", package = "antigen.garnish") %>%
-                          data.table::fread(header = FALSE) %>%
-                          data.table::setnames("V1", "allele") %>%
-                          .[, type := "netMHCIIpan"]
-                          ))
+  system.file("extdata",
+      "netMHC_alleles.txt", package = "antigen.garnish") %>%
+                      data.table::fread(header = FALSE) %>%
+                      data.table::setnames("V1", "allele") %>%
+                      .[, type := "netMHC"],
+  system.file("extdata",
+      "netMHCpan_alleles.txt", package = "antigen.garnish") %>%
+                      data.table::fread(header = FALSE) %>%
+                      data.table::setnames("V1", "allele") %>%
+                      .[, type := "netMHCpan"],
+  system.file("extdata",
+      "mhcflurry_alleles.txt", package = "antigen.garnish") %>%
+                      data.table::fread(header = FALSE) %>%
+                      data.table::setnames("V1", "allele") %>%
+                      .[, type := "mhcflurry"],
+  system.file("extdata",
+      "netMHCII_alleles.txt", package = "antigen.garnish") %>%
+                      data.table::fread(header = FALSE) %>%
+                      data.table::setnames("V1", "allele") %>%
+                      .[, type := "netMHCII"],
+  system.file("extdata",
+      "netMHCIIpan_alleles.txt", package = "antigen.garnish") %>%
+                      data.table::fread(header = FALSE) %>%
+                      data.table::setnames("V1", "allele") %>%
+                      .[, type := "netMHCIIpan"]
+                      ))
 
   # generate csv for mhcflurry predictions
 
-      dt[MHC %chin% alleles[type == "mhcflurry", allele] &
-      pep_length < 15,
-            .SD, .SDcols = c("MHC", "peptide")] %>%
-      data.table::copy %>%
-      data.table::setnames("MHC", "allele") %>%
+    dt[MHC %chin% alleles[type == "mhcflurry", allele] &
+    nmer_l < 15,
+          .SD, .SDcols = c("MHC", "nmer")] %>%
+    data.table::copy %>%
+      data.table::setnames(c("MHC", "nmer"), c("allele", "peptide")) %>%
       unique %>%
       data.table::fwrite("mhcflurry_input.csv")
 
@@ -475,48 +925,46 @@ if (predict) {
                                        stringr::str_replace(fixed("HLA-"), "")]
     dt[, netMHCIIpan := netMHCII %>% stringr::str_replace("DRB1", "DRB1_")]
 
-
   # replace substring with netMHC allele type
 
-    dt[, netMHCpan := detect_hla(netMHCpan)]
-    dt[, netMHC := detect_hla(netMHC)]
-    dt[, netMHCII := detect_hla(netMHCII)]
-    dt[, netMHCIIpan := detect_hla(netMHCIIpan)]
+    dt[, netMHCpan := detect_hla(netMHCpan, alleles)]
+    dt[, netMHC := detect_hla(netMHC, alleles)]
+    dt[, netMHCII := detect_hla(netMHCII, alleles)]
+    dt[, netMHCIIpan := detect_hla(netMHCIIpan, alleles)]
 
+    dtfn <-
+      {
+        data.table::rbindlist(
+          list(
+            dt[!netMHC %>% is.na &
+            nmer_l < 15,
+              .SD, .SDcols = c("netMHC", "nmer", "nmer_l")] %>%
+            data.table::copy %>%
+            data.table::setkey(netMHC, nmer_l) %>%
+            write_nmers("netMHC"),
 
-      dtfn <-
-        {
-          data.table::rbindlist(
-            list(
-              dt[!netMHC %>% is.na &
-              pep_length < 15,
-                .SD, .SDcols = c("netMHC", "peptide", "pep_length")] %>%
-              data.table::copy %>%
-              data.table::setkey(netMHC, pep_length) %>%
-              write_peps("netMHC"),
+            dt[!netMHCpan %>% is.na &
+            nmer_l < 15,
+              .SD, .SDcols = c("netMHCpan", "nmer", "nmer_l")] %>%
+            data.table::copy %>%
+            data.table::setkey(netMHCpan, nmer_l) %>%
+            write_nmers("netMHCpan"),
 
-              dt[!netMHCpan %>% is.na &
-              pep_length < 15,
-                .SD, .SDcols = c("netMHCpan", "peptide", "pep_length")] %>%
-              data.table::copy %>%
-              data.table::setkey(netMHCpan, pep_length) %>%
-              write_peps("netMHCpan"),
+            dt[!netMHCII %>% is.na &
+            nmer_l == 15,
+              .SD, .SDcols = c("netMHCII", "nmer", "nmer_l")] %>%
+            data.table::copy %>%
+            data.table::setkey(netMHCII, nmer_l) %>%
+            write_nmers("netMHCII"),
 
-              dt[!netMHCII %>% is.na &
-              pep_length == 15,
-                .SD, .SDcols = c("netMHCII", "peptide", "pep_length")] %>%
-              data.table::copy %>%
-              data.table::setkey(netMHCII, pep_length) %>%
-              write_peps("netMHCII"),
-
-              dt[!netMHCIIpan %>% is.na &
-              pep_length == 15,
-                .SD, .SDcols = c("netMHCIIpan", "peptide", "pep_length")] %>%
-              data.table::copy %>%
-              data.table::setkey(netMHCIIpan, pep_length) %>%
-              write_peps("netMHCIIpan")
-                                     ))
-        }
+            dt[!netMHCIIpan %>% is.na &
+            nmer_l == 15,
+              .SD, .SDcols = c("netMHCIIpan", "nmer", "nmer_l")] %>%
+            data.table::copy %>%
+            data.table::setkey(netMHCIIpan, nmer_l) %>%
+            write_nmers("netMHCIIpan")
+                                   ))
+      }
 
   # generate commands
 
@@ -524,7 +972,7 @@ if (predict) {
       paste(
             type,
             "-p",
-            "-l", pep_length,
+            "-l", nmer_l,
             "-a", allele,
             "-f", filename)
         ]
@@ -532,113 +980,49 @@ if (predict) {
       paste(
             type,
             "-inptype 1",
-            "-length", pep_length,
+            "-length", nmer_l,
             "-a", allele,
             "-f", filename)
         ]
 
   # run commands
 
-      # mhcflurry
-      system("mhcflurry-predict mhcflurry_input.csv > mhcflurry_output.csv")
+    # netMHC
+    message("Running netMHC")
+    ag_out_raw <- run_netMHC(dtfn)
+    saveRDS(ag_out_raw, "ag_out_raw.RDS")
 
-      # netMHC
-      ag_out_raw <- parallel::mclapply(
-         dtfn[, command],
-          function(command){
-          # run command
-           es <- try(system(command, intern = TRUE))
+    # mhcflurry
+    message("Running mhcflurry")
+    system("mhcflurry-predict mhcflurry_input.csv > mhcflurry_output.csv")
 
-          # if error, return empty dt
-            if (es %>% class %>% .[1] == "try-error") {
-              return(data.table::data.table(status = 1, command = command))
-            }
-
-          # parse results
-            # isolate table and header
-
-              dtl <- es %exclude% "^\\#|----|Number|Distance|threshold|version|^$"
-              dtn <- dtl %include%
-                "[Pp]eptide" %>%
-                strsplit("[ ]+") %>%
-                unlist %exclude% "^$|^Bind|^Level"
-
-              dt <- dtl[2:length(dtl)] %>%
-                stringr::str_replace_all(">", " ") %>%
-                stringr::str_replace_all("=", " ") %>%
-                stringr::str_replace_all("<", " ") %>%
-                stringr::str_replace_all("(SB|WB)", "  ") %>%
-                data.table::tstrsplit("[ ]+") %>%
-                data.table::as.data.table
-
-          # some output has a null first column
-             if (dt$V1 %>% paste(collapse = "") == "") dt$V1 <- NULL
-
-          # apply names to data table
-            dt %>% data.table::setnames(dt %>% names, dtn)
-
-          # append command and exit status
-            dt$command <- command
-            dt$status <- 0
-
-          # set the program type from the command that was run
-            ptype <- command %>% stringr::str_extract("net[A-Za-z]+")
-
-          # make netMHC names consistent
-            if ("Peptide" %chin% (dt %>% names)) dt %>% data.table::setnames("Peptide", "peptide")
-            if ("Affinity(nM)" %chin% (dt %>% names)) dt %>% data.table::setnames("Affinity(nM)", "affinity(nM)")
-            if ("Aff(nM)" %chin% (dt %>% names)) dt %>% data.table::setnames("Aff(nM)", "affinity(nM)")
-            if ("HLA" %chin% (dt %>% names)) dt %>% data.table::setnames("HLA", "allele")
-            if ("Allele" %chin% (dt %>% names)) dt %>% data.table::setnames("Allele", "allele")
-            if ("Pos" %chin% (dt %>% names)) dt %>% data.table::setnames("Pos", "pos")
-            if ("Icore" %chin% (dt %>% names)) dt %>% data.table::setnames("Icore", "icore")
-            if ("iCore" %chin% (dt %>% names)) dt %>% data.table::setnames("iCore", "icore")
-            if ("Core" %chin% (dt %>% names)) dt %>% data.table::setnames("Core", "core")
-
-          # fix netMHCpan allele output to match input
-            if (command %like% "netMHCpan"){
-              dt[, allele := allele %>% stringr::str_replace(fixed("*"), "")]
-            }
-
-          # set unique column names based on program
-            data.table::setnames(dt, dt %>% names %exclude% "allele|peptide",
-                                 paste0((dt %>% names %exclude% "allele|peptide"), "_", ptype))
-
-          # name allele column for merge
-          dt %>%
-              data.table::setnames("allele", ptype)
-
-            return(dt)
-                     })
-
-  saveRDS(ag_out_raw, "ag_out_raw.RDS")
-
+    message("Merging output")
   # merge netMHC by program type
     progl <- lapply(ag_out_raw %>% seq_along, function(dti) {
      ag_out_raw[[dti]]$command[1] %>% stringr::str_extract("net[A-Za-z]+")
      })
 
+  # merge netMHC output
     netmprogs <- progl %>% unique %>% unlist
 
     for (ptype in netmprogs) {
 
       dt <- merge(dt, ag_out_raw[(progl == ptype) %>% which] %>%
-            data.table::rbindlist, by = c("peptide", ptype), all.x = TRUE)
-
+            data.table::rbindlist, by = c("nmer", ptype), all.x = TRUE)
     }
 
-  # merge additional rows for mhcflurry
+  # read and merge mhcflurry output
    fdt <- data.table::fread("mhcflurry_output.csv") %>%
-      data.table::setnames("allele", "MHC")
+      data.table::setnames(c("allele", "peptide"), c("MHC", "nmer"))
 
-   dt <- merge(dt, fdt, by = c("peptide", "MHC"), all.x = TRUE)
+   dt <- merge(dt, fdt, by = c("nmer", "MHC"), all.x = TRUE)
 
-  # calculatte netMHC consensus score, preferring non-*net tools
+  # calculate netMHC consensus score, preferring non-*net tools
       for (col in (dt %>% names %include% "aff|[Rr]ank|Consensus_scores")) {
         suppressWarnings(set(dt, j = col, value = dt[, get(col) %>% as.numeric]))
       }
 
-    # get vector of netMHC tools used
+    # get vector of netMHC scores
       cols <- dt %>% names %includef% c("affinity(nM)")
 
       dt[, Consensus_scores := c(.(get(cols)) %>%
@@ -649,20 +1033,25 @@ if (predict) {
                                    mhcflurry_prediction) %>%
                                   mean(na.omit = TRUE),
                                   by = 1:nrow(dt)]
+  # remove nmers without predictions
 
-  # remove unpredicted peptides
     dt <- dt[!Consensus_scores %>% is.na]
 
   # calculate DAI
-    data.table::setkey(dt, pep_type, variant_uuid, MHC, pep_length, peptide_index)
 
-    dt %<>% .[, DAI := .[pep_type == "wt", Consensus_scores] /
-                    .[pep_type == "mut", Consensus_scores]]
+    dt[, DAI := NA %>% as.numeric]
 
+    data.table::setkey(dt, pep_type, dai_uuid)
+
+    # dai_uuid is always length 2
+    # calculate DAI by dividing
+
+    dt[!dai_uuid %>% is.na,
+    DAI := Consensus_scores[2] /
+      Consensus_scores[1], by = dai_uuid]
+
+    return(dt)
 }
-
-return(dt)
-
 }
 
 
@@ -673,116 +1062,95 @@ return(dt)
 #'
 #' @return A data table summary of neoepitope by sample_id.
 #'
-#' @example See \href{https://github.com/andrewrech/antigen.garnish#example}{andrewrech/antigen.garnish}
-#'
 #' @export garnish_predictions_worker
 
 garnish_predictions_worker <- function(dt) {
 
 
-dt %<>% data.table::as.data.table
+if (!c("var_uuid",
+       "pep_type",
+       "pep_base",
+       "mutant_loc") %chin% (dt %>% names) %>% all)
+  stop("dt is missing columns")
 
-# get unique wt and mut prediction frames (base peptide, mut location)
+  dt %<>% data.table::as.data.table
 
-  dt <- data.table::rbindlist(list(
-                          dt %>%
-                          data.table::copy %>%
-                          .[, pep_base := pep_wt] %>%
-                          .[, pep_type := "wt"],
-                          dt %>%
-                          data.table::copy %>%
-                          .[, pep_base := pep_mut] %>%
-                          .[, pep_type := "mut"]
-                           ))
-  dt[, c("pep_mut", "pep_wt") := NULL]
-  dt %<>% unique
+  lines <- nrow(dt)
 
-## --- Write IEDB commands and make peptides for each sample
+  # a function to generate sliding
+  # window n-mers over an index of interest
 
-peptide_dt <- parallel::mclapply(1:nrow(dt), function(x){
+  message("Generating nmers")
+  nmer_dt <- parallel::mclapply(1:nrow(dt), function(n){
 
-  tryCatch({
 
-  ## --- Write peptide fragments
+    tryCatch({
 
-    peptide_dt <- lapply(1:nrow(dt), function(n) {
-      back_trun <- FALSE
+      ## --- Write peptide fragments
+
         # for every peptide length
-            peptide_dt <- lapply((15:8), function(pl) {
+        nmer_dt <- lapply((15:8), function(pl) {
 
-            mut_frag_t <- dt$pep_base[n] %>% strsplit("") %>% unlist
-            mut_frag_loc <- dt$mut_pep_loc[n]
+          mut_frag_t <- dt$pep_base[n] %>% strsplit("",
+                              fixed = TRUE) %>% unlist
+          mut_frag_loc <- dt$mutant_loc[n]
 
-      # if the peptide is long enough
-      if ((mut_frag_t %>% length) >= pl) {
+          # if the peptide is not long enough, return
+          if (!(mut_frag_t %>% length) >= pl) return(NULL)
 
-          # re-register peptide i the mutant location is not centered due to back truncation
-            while (mut_frag_loc > pl){
-            mut_frag_t <- mut_frag_t[-1]
-            mut_frag_loc <- mut_frag_loc -1
-            back_trun <- TRUE
-            }
+            # re-register peptide if the mutant location
+            # is not centered due to back truncation
 
-          # re-register peptide if the mutant location is not centered due to front truncation
-            while (mut_frag_loc+pl-1 < mut_frag_t %>% length){
-            mut_frag_t <- mut_frag_t[-length(mut_frag_t)]
-            }
-
-          # reduce the peptide size until it matches the peptide length
-            while (length(mut_frag_t) > ((2 * pl) - 1)) {
-
-          # remove extra peptide from front or back depending on whether peptide was back-truncated
-          if (!back_trun){
-            if (mut_frag_loc != 1) {
-                mut_frag_t <- mut_frag_t[-1]
-                mut_frag_loc <- mut_frag_loc-1
+            # trim peptide front to mutant site
+            if (mut_frag_loc > pl){
+              rml <- mut_frag_loc - pl + 1
+              mut_frag_t <- mut_frag_t[rml:(length(mut_frag_t))]
+              mut_frag_loc <- pl
               }
-                if (length(mut_frag_t) == ((2 * pl) - 1)) next
-                mut_frag_t <- mut_frag_t[-length(mut_frag_t)]
-          }
-          if (back_trun){
-                  mut_frag_t <- mut_frag_t[-length(mut_frag_t)]
-                  if (length(mut_frag_t) == ((2 * pl) - 1)) next
-              if (mut_frag_loc != 1) {
-                  mut_frag_t <- mut_frag_t[-1]
-                  mut_frag_loc <- mut_frag_loc-1
-          }
-          }
-          }
 
-      # create n_mers wrapped in sync to prevent zoo::rollapply stdout
-      sink(file = "/dev/null")
-      peps <- zoo::rollapply(mut_frag_t, pl, print, partial = FALSE, align = "left") %>%
-                            apply(., 1, function(pmr){
-                            paste(pmr, sep = "", collapse = "")
-                            })
-      sink()
+            # trim peptide back to mutant site
+            fpl <- mut_frag_loc + pl - 1
+            if (fpl < length(mut_frag_t))
+                mut_frag_t <- mut_frag_t[1:(fpl)]
 
-  # return a data table of peptides containing
-  return(
-         data.table::data.table(peptide = peps,
-                                peptide_index = 1:length(peps),
-                                pep_base = dt$pep_base[n],
-                                pep_type = dt$pep_type[n],
-                                variant_uuid = dt$variant_uuid[n]
-                                ) %>%
-         .[, pep_length := peps %>% nchar]
-         )
+          # slide across the peptide window
+          # create (n = pl )-mers wrapped in
+          # sync to prevent zoo::rollapply stdout
 
-  }}) %>% data.table::rbindlist
+          nmers <- zoo::rollapply(mut_frag_t, pl,
+                        print,
+                        partial = FALSE,
+                        align = "left") %>%
+          apply(1, function(pmr){
+          paste(pmr, sep = "", collapse = "")
+          })
 
-  return(peptide_dt %>% unique)
 
-  }) %>% data.table::rbindlist %>% unique
+      # return a data table of peptides
 
-      return(peptide_dt)
-  }, error = function(e) {
-        print(cat("ERROR :", conditionMessage(e), "\n"))
-        return(NULL)
-        })
+      return(
+             data.table::data.table(
+                nmer = nmers,
+                nmer_i = 1:length(nmers),
+                pep_base = dt$pep_base[n],
+                pep_type = dt$pep_type[n],
+                var_uuid = dt$var_uuid[n]
+                )
+             )
 
-  }) %>% data.table::rbindlist %>% unique
-return(peptide_dt)
+
+    }) %>% data.table::rbindlist %>% unique
+
+      return(nmer_dt)
+
+    }, error = function(e) {
+          print(cat("ERROR :", conditionMessage(e), "\n"))
+          return(NULL)
+          })
+
+    }) %>% data.table::rbindlist %>% unique
+
+  return(nmer_dt)
 }
 
 
@@ -794,51 +1162,57 @@ return(peptide_dt)
 #'
 #' @param dt Data table. Prediction output from garnish_predictions.
 #'
-#' @example See \href{https://github.com/andrewrech/antigen.garnish#example}{andrewrech/antigen.garnish}
+#' @examples See \href{https://github.com/andrewrech/antigen.garnish#example}{andrewrech/antigen.garnish}
 #'
 #' @export garnish_summary
 
 garnish_summary <- function(dt){
 
-dt %<>% data.table::as.data.table
+# summarize over unique nmers
 
-dt <- dt[DAI != Inf & DAI != -Inf & Consensus_scores != Inf & Consensus_scores != -Inf]
-
-
-  # function to sum top values of a numeric vector
-    sum_top_v <- function(x, value = 3){
-
-      x %<>% sort %>% rev
-      return(sum(x[1:value]))
-    }
-
-dt %>% data.table::setkey(sample_id)
+  dt %<>% data.table::as.data.table %>%
+    data.table::copy %>%
+    unique(by = c("pep_type",
+                  "MHC",
+                  "nmer"))
 
 
-dtn <- parallel::mclapply(dt[, sample_id %>% unique], function(id){
+  dt <- dt[DAI != Inf & DAI != -Inf & Consensus_scores != Inf & Consensus_scores != -Inf]
 
-  dt <- dt[sample_id == id]
+    # function to sum top values of a numeric vector
+      sum_top_v <- function(x, value = 3){
 
-    return(
-        data.table::data.table(
-        sample_id = id,
-        variants = dt[, variant_uuid %>% unique] %>% length,
-        priority_neos = dt[Consensus_scores < 50 & DAI > 10] %>% nrow,
-        classic_neos = dt[Consensus_scores < 50] %>% nrow,
-        alt_neos = dt[Consensus_scores < 5000 & DAI > 10] %>% nrow,
-        alt_neos_top = dt[Consensus_scores < 5000, DAI %>% sum_top_v],
-        classic_neos_top = dt[Consensus_scores < 5000, (1/Consensus_scores) %>% sum_top_v],
-        binders = dt[Consensus_scores < 5000] %>% nrow,
-        peptides = dt[pep_type == "mut", peptide %>% unique] %>% length,
-        predictions = dt[pep_type == "mut"] %>% nrow
-        ))
+        x %<>% sort %>% rev
+        return(sum(x[1:value]))
+      }
 
-  }) %>% data.table::rbindlist
+  dt %>% data.table::setkey(sample_id)
 
-return(dtn)
+  dtn <- parallel::mclapply(dt[, sample_id %>% unique], function(id){
+
+    dt <- dt[sample_id == id]
+
+      return(
+          data.table::data.table(
+          sample_id = id,
+          variants = dt[, var_uuid %>% unique] %>% length,
+          priority_neos = dt[Consensus_scores < 50 & DAI > 10] %>% nrow,
+          classic_neos = dt[Consensus_scores < 50] %>% nrow,
+          alt_neos = dt[Consensus_scores < 5000 & DAI > 10] %>% nrow,
+          alt_neos_top = dt[Consensus_scores < 5000, DAI %>% sum_top_v],
+          classic_neos_top = dt[Consensus_scores < 5000, (1/Consensus_scores) %>% sum_top_v],
+          binders = dt[Consensus_scores < 5000] %>% nrow,
+          nmers = dt[pep_type %like% "mut", nmer %>% unique] %>% length,
+          predictions = dt[pep_type %like% "mut"] %>% nrow
+          ))
+
+    }) %>% data.table::rbindlist
+
+  return(dtn)
 }
 
 
+##### TODO rewrite global variables
 # global variables
 
- utils::globalVariables(c(":=", ".", "%<>%", "%>%", "aa_convert", "aa_mutation", "affinity(nM)_netMHC", "affinity(nM)_netMHCII", "affinity(nM)_netMHCIIpan", "affinity(nM)_netMHCpan", "allele", "%chin%", "command", "Consensus_scores", "DAI", "dna_change", "effect_type", "%exclude%", "filename", "FILTER", "frag_begin", "frag_end", "gene_affected", "%include%", "INFO", "%like%", "MHC", "mhcflurry_prediction", "mutant_loc", "mutate_from", "mutate_to", "mut_pep_loc", "netMHC", "netMHCII", "netMHCIIpan", "netMHCpan", "pep_base", "pep_db_aa_from", "pep_db_aa_length", "pep_length", "pep_mut", "peptide", "peptide_index", "pep_type", "pep_uuid", "pep_wt", "protein_change", "protein_coding", "protein_index", "sample_id", ".SD", "se", "set", "transcript_affected", "transcript_affected_v", "type", "uuid", "variant_uuid", "vcf_type"))
+ utils::globalVariables(c(":=", ".", "%<>%", "%>%"))

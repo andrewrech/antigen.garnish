@@ -12,3 +12,7 @@ garnish_summary(dt)
 \description{
 Calculate neoepitope summary statistics over samples.
 }
+\examples{
+See \\href{https://github.com/andrewrech/antigen.garnish#example}{andrewrech/antigen.garnish}
+
+}

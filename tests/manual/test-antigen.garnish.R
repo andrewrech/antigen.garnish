@@ -11,7 +11,7 @@ test_that("antigen.garnish neoepitope prediction", {
     antigen.garnish::garnish_variants %>%
 
     # add MHC types
-    .$antigen.garnish_input %>%
+    .$antigen.garnish_variants %>%
         .[, MHC := c("HLA-A*02:01 HLA-A*03:01 HLA-DRB10301 HLA-DRB1*14:67",
                     "HLA-A*02:01 HLA-A*03:01 HLA-DRB1*03:01 HLA-DRB1*14:67",
                     "HLA-A*02:01 HLA-A*03:01 HLA-DRB1*03:01 HLA-DRB1*14:67")] %>%
