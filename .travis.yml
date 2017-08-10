@@ -6,6 +6,10 @@ r:
   - bioc-release
   - release
   - devel
+r_packages:
+  - covr
+after_success:
+  - Rscript -e 'library(covr); codecov()'
 sudo: true
 cache: packages
 notifications:

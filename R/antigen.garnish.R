@@ -7,16 +7,16 @@
 #'
 #' @export get_DAI_uuid
 
+#' @import BiocInstaller
 #' @import colorspace
 #' @import data.table
 #' @import dt.inflix
+#' @import parallel
 #' @import stringr
 #' @import testthat
-#' @import BiocInstaller
 #' @importFrom Biostrings DNAString translate
 #' @importFrom biomaRt useMart getBM getSequence
-#' @importFrom magrittr %>% %T>% %$%
-#' @importFrom parallel mclapply
+#' @importFrom magrittr %>% %T>% %$% %<>%
 #' @importFrom stats na.omit
 #' @importFrom stringi stri_detect_fixed
 #' @importFrom tidyr separate_rows
