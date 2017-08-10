@@ -15,7 +15,7 @@ library(magrittr)
     utils::download.file("http://get.rech.io/antigen.garnish_example.vcf", .) %>%
 
     # extract variants
-    antigen.garnish::garnish_variants %>%
+    garnish_variants %>%
 
     # add MHC types
         .[, MHC := c("HLA-A*02:01 HLA-DRB1*14:67",
@@ -23,10 +23,10 @@ library(magrittr)
                     "HLA-A*03:01 HLA-DRB1*03:01")] %>%
 
     # predict neoepitopes
-    antigen.garnish::garnish_predictions %>%
+    garnish_predictions %>%
 
     # summarize predictions
-    antigen.garnish::garnish_summary %T>%
+    garnish_summary %T>%
 
     print %>%
 

@@ -64,7 +64,8 @@ testthat::test_that("get_DAI_uuid", {
 
   dto <- get_DAI_uuid(dt) %>% .[order(nmer)]
 
- testthat::expect_equal(dto[, nmer], c("AYESSEDC",
+ testthat::expect_equal(dto[, nmer],
+                      c("AYESSEDC",
                         "ENYWRKAY",
                         "ENYWRKSY",
                         "KAYESSED",

@@ -460,14 +460,14 @@ get_metadata <- function(dt){
 
 
 
-## -------- get_cDNA
+## -------- make_cDNA
 #' Create cDNA from hgvs nomenclature (http://varnomen.hgvs.org/)
 #'
 #' @param dt Data table with INFO column.
 #'
-#' @export get_cDNA
+#' @export make_cDNA
 
-get_cDNA <- function(dt){
+make_cDNA <- function(dt){
 
   if (!c("cDNA_type",
          "coding",
@@ -544,14 +544,14 @@ get_cDNA <- function(dt){
 
       }
 
-## -------- ex_cDNA
+## -------- extract_cDNA
 #' Extract cDNA changes from hgvs nomenclature (http://varnomen.hgvs.org/)
 #'
 #' @param dt Data table with INFO column.
 #'
-#' @export ex_cDNA
+#' @export extract_cDNA
 
-ex_cDNA <- function(dt){
+extract_cDNA <- function(dt){
 
   # check required cols
 
@@ -769,12 +769,12 @@ if (assemble){
 
     dt %<>% get_metadata
 
-    dt %<>% ex_cDNA
+    dt %<>% extract_cDNA
 
     dt[, frameshift := FALSE]
     dt[protein_change %like% "fs$", frameshift := TRUE]
 
-    dt %<>% get_cDNA
+    dt %<>% make_cDNA
 
     dt[, pep_mut := coding_mut %>% ftrans]
     dt[, pep_wt := coding %>% ftrans]
@@ -1114,7 +1114,7 @@ if (predict) {
 }
 }
 
-    1`
+
 ## -------- garnish_predictions_worker
 #' Parallelized worker function for garnish_predictions
 #'

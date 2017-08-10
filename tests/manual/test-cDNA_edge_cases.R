@@ -4,7 +4,7 @@ library(data.table)
 library(magrittr)
 library(dt.inflix)
 
-testthat::test_that("get_cDNA", {
+testthat::test_that("make_cDNA", {
 
   # load test data
 
@@ -16,7 +16,7 @@ testthat::test_that("get_cDNA", {
       cDNA_seq = c("*", "*", "$$$$$", "", "*", "", "**"))
 
   # run test
-  dto <- get_cDNA(dt)
+  dto <- make_cDNA(dt)
 
   # visually inspect
   dto[, `:=`(coding_l = coding %>% nchar,

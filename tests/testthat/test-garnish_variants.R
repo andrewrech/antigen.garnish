@@ -11,7 +11,7 @@ testthat::test_that("run_netMHC", {
       utils::download.file("http://get.rech.io/antigen.garnish_example.vcf", .) %>%
 
   # run test
-  antigen.garnish::garnish_variants
+  garnish_variants
 
    testthat::expect_equal(dt %>% class %>% .[1], "data.table")
    testthat::expect_equal(dt$cDNA_change, c("c.4988C>T", "c.1114T>G", "c.718T>A"))
