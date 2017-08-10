@@ -24,7 +24,7 @@ testthat::test_that("garnish_predictions_worker", {
   "pep_type", "pep_base", "mutant_loc"))
 
   # run test
-  dto <- garnish_predictions_worker(dt) %>% data.table::setkey(nmer)
+  dto <- garnish_predictions_worker(dt)
 
   testthat::expect_equal(dto %>% nrow, 552)
 

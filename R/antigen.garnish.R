@@ -1,6 +1,5 @@
 
 
-
 ## ---- get_DAI_uuid
 #' Pair peptides from missense sites by a common UUID for DAi calculations
 #'
@@ -8,20 +7,25 @@
 #'
 #' @export get_DAI_uuid
 
+#' @import colorspace
+#' @import data.table
+#' @import dt.inflix
+#' @import stringr
+#' @import testthat
+#' @importFrom Biostrings DNAString translate
+#' @importFrom biomaRt useMart getBM getSequence
+#' @importFrom magrittr %>% %T>% %$%
+#' @importFrom parallel mclapply
+#' @importFrom stats na.omit
+#' @importFrom stringi stri_detect_fixed
+#' @importFrom tidyr separate_rows
+#' @importFrom utils download.file
+#' @importFrom uuid UUIDgenerate
+#' @importFrom vcfR read.vcfR
+#' @importFrom zoo rollapply
+
+
 get_DAI_uuid <- function(dt){
-
-  ### package building
-  .sinew <- function(){
-
-
-      invisible({
-        testthat::compare()
-        dt.inflix::allduplicated()
-        colorspace::RGB()
-                })
-       ###
-  }
-
 
   if (!c("pep_type", "nmer", "nmer_i",
           "nmer_l", "var_uuid", "frameshift",
