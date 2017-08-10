@@ -12,6 +12,7 @@
 #' @import dt.inflix
 #' @import stringr
 #' @import testthat
+#' @import BiocInstaller
 #' @importFrom Biostrings DNAString translate
 #' @importFrom biomaRt useMart getBM getSequence
 #' @importFrom magrittr %>% %T>% %$%
