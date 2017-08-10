@@ -13,25 +13,26 @@ garnish_summary(dt)
 Calculate neoepitope summary statistics over samples.
 }
 \examples{
+\dontrun{
 library(magrittr)
-
  # download an example VCF
    dt <- "antigen.garnish_example.vcf" \%T>\%
    utils::download.file("http://get.rech.io/antigen.garnish_example.vcf", .) \%>\%
 
  # extract variants
-   antigen.garnish::garnish_variants \%>\%
+   garnish_variants \%>\%
 
  # predict neoepitopes
-   antigen.garnish::garnish_predictions \%>\%
+   garnish_predictions \%>\%
 
  # summarize predictions
-   antigen.garnish::garnish_summary \%T>\%
+   garnish_summary \%T>\%
    print
 
  # example output
    dt <- data.table::fread(
     "http://get.rech.io/antigen.garnish_example_summary.txt") \%T>\%
     str
+}
 
 }

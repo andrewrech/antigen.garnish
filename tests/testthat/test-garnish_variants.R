@@ -20,4 +20,6 @@ testthat::test_that("run_netMHC", {
    testthat::expect_equal(dt %>% class %>% .[1], "data.table")
    testthat::expect_equal(dt$cDNA_change, c("c.4988C>T", "c.1114T>G", "c.718T>A"))
 
+   if (file.exists("antigen.garnish_example.vcf"))
+   file.remove("antigen.garnish_example.vcf")
     })

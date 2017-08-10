@@ -22,6 +22,7 @@ A data table of neoepitopes.
 Performs epitope prediction on a data table of missense mutations.
 }
 \examples{
+\dontrun{
 library(magrittr)
 
  # download an example VCF
@@ -29,10 +30,11 @@ library(magrittr)
    utils::download.file("http://get.rech.io/antigen.garnish_example.vcf", .) \%>\%
 
  # extract variants
-   antigen.garnish::garnish_variants \%>\%
+   garnish_variants \%>\%
 
  # predict neoepitopes
-   antigen.garnish::garnish_predictions \%T>\%
+   garnish_predictions \%T>\%
    str
+}
 
 }

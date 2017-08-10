@@ -6,6 +6,10 @@ library(dt.inflix)
 
 testthat::test_that("antigen.garnish neoepitope prediction", {
 
+   if (!check_pred_tools() %>% unlist %>% all) {
+    testthat::skip("Skipping run_netMHC because prediction tools are not in PATH")
+    }
+
 # copy of README
 
 library(magrittr)
@@ -33,4 +37,7 @@ library(magrittr)
     # does antigen.garnish work?
     testthat::expect_equal(
        data.table::fread("http://get.rech.io/antigen.garnish_example_summary.txt"))
+
+    if (file.exists("antigen.garnish_example.vcf"))
+    file.remove("antigen.garnish_example.vcf")
     })

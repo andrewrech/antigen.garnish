@@ -1,4 +1,13 @@
 
+.sinew <- function(){
+
+    ### package building
+    invisible({
+      testthat::compare()
+      dt.inflix::allduplicated()
+              })
+     ###
+}
 
 
 ## ---- get_DAI_uuid
@@ -88,29 +97,29 @@ PATH_status <- list(
 
 Sys.setenv(PATH = paste0(default_path, ":", Sys.getenv("PATH")))
 
- if (suppressWarnings(system('which mhcflurry-predict', intern = TRUE)) %>%
+ if (suppressWarnings(system('which mhcflurry-predict 2> /dev/null', intern = TRUE)) %>%
         length == 0) {
-        warning("mhcflurry-predict is not in PATH\n       Download: https://github.com/hammerlab/mhcflurry")
+        message("mhcflurry-predict is not in PATH\n       Download: https://github.com/hammerlab/mhcflurry")
       PATH_status$mhcflurry <- FALSE
       }
-  if (suppressWarnings(system('which netMHC', intern = TRUE)) %>%
+  if (suppressWarnings(system('which netMHC 2> /dev/null', intern = TRUE)) %>%
         length == 0) {
-          warning("netMHC is not in PATH\n       Download: http://www.cbs.dtu.dk/services/NetMHC/")
+          message("netMHC is not in PATH\n       Download: http://www.cbs.dtu.dk/services/NetMHC/")
         PATH_status$netMHC <- FALSE
         }
-  if (suppressWarnings(system('which netMHCpan', intern = TRUE)) %>%
+  if (suppressWarnings(system('which netMHCpan 2> /dev/null', intern = TRUE)) %>%
         length == 0) {
-          warning("netMHCpan is not in PATH\n       Download: http://www.cbs.dtu.dk/services/NetMHCpan/")
+          message("netMHCpan is not in PATH\n       Download: http://www.cbs.dtu.dk/services/NetMHCpan/")
         PATH_status$netMHCpan <- FALSE
         }
-  if (suppressWarnings(system('which netMHCII', intern = TRUE)) %>%
+  if (suppressWarnings(system('which netMHCII 2> /dev/null', intern = TRUE)) %>%
         length == 0) {
-          warning("netMHCII is not in PATH\n       Download: http://www.cbs.dtu.dk/services/NetMHCII/")
+          message("netMHCII is not in PATH\n       Download: http://www.cbs.dtu.dk/services/NetMHCII/")
         PATH_status$netMHCII <- FALSE
         }
-  if (suppressWarnings(system('which netMHCIIpan', intern = TRUE)) %>%
+  if (suppressWarnings(system('which netMHCIIpan 2> /dev/null', intern = TRUE)) %>%
         length == 0) {
-          warning("netMHCIIpan is not in PATH\n       Download: http://www.cbs.dtu.dk/services/NetMHCIIpan/")
+          message("netMHCIIpan is not in PATH\n       Download: http://www.cbs.dtu.dk/services/NetMHCIIpan/")
         PATH_status$netMHCIIpan <- FALSE
         }
         return(PATH_status)
@@ -613,7 +622,6 @@ extract_cDNA <- function(dt){
 
   }
 
-
 ## ---- ftrans
 #' Translate cDNA to peptide fast
 #'
@@ -628,8 +636,9 @@ extract_cDNA <- function(dt){
      # protect vector length
        tryCatch({
 
-          p %>% Biostrings::DNAString %>%
-                Biostrings::translate %>%
+          p %>%
+            Biostrings::DNAString() %>%
+            Biostrings::translate() %>%
                 as.vector %>%
                 as.character %>%
                 paste(collapse = "")
@@ -651,28 +660,26 @@ extract_cDNA <- function(dt){
 #' @return A data table of intersected protein coding variants for neoepitope prediction.
 #'
 #' @examples
+#'\dontrun{
 #'library(magrittr)
+#'library(antigen.garnish)
 #'
 #'  # download an example VCF
 #'    dt <- "antigen.garnish_example.vcf" %T>%
 #'    utils::download.file("http://get.rech.io/antigen.garnish_example.vcf", .) %>%
 #'
 #'  # extract variants
-#'    antigen.garnish::garnish_variants %T>%
+#'    garnish_variants %T>%
 #'    str
 #'
 #'  # example output
 #'    dt <- data.table::fread(
 #'     "http://get.rech.io/antigen.garnish_example_output.txt") %T>%
 #'     str
+#'}
 #' @export garnish_variants
 
 garnish_variants <- function(vcfs) {
-
-  ### package building
-    invisible(dt.inflix::allduplicated(data.table::data.table(a="a")))
-    invisible(testthat::compare(1, 1))
-  ###
 
   message("Loading VCFs")
   ivfdtl <- lapply(vcfs %>% seq_along, function(ivf){
@@ -769,18 +776,21 @@ garnish_variants <- function(vcfs) {
 #' @return A data table of neoepitopes.
 #'
 #' @examples
+#'\dontrun{
 #'library(magrittr)
+#'library(antigen.garnish)
 #'
 #'  # download an example VCF
 #'    dt <- "antigen.garnish_example.vcf" %T>%
 #'    utils::download.file("http://get.rech.io/antigen.garnish_example.vcf", .) %>%
 #'
 #'  # extract variants
-#'    antigen.garnish::garnish_variants %>%
+#'    garnish_variants %>%
 #'
 #'  # predict neoepitopes
-#'    antigen.garnish::garnish_predictions %T>%
+#'    garnish_predictions %T>%
 #'    str
+#'}
 #'
 #' @export garnish_predictions
 
@@ -960,10 +970,6 @@ if (generate) {
 }
 
 if (predict) {
-
-  if (!check_pred_tools() %>% unlist %>% all) {
-    stop("Missing prediction tools in PATH")
-  }
 
   if (dt[, MHC %>% unique] %>%
       stringr::str_detect(" ") %>% any) dt %<>%
@@ -1256,26 +1262,29 @@ if (!c("var_uuid",
 #' @param dt Data table. Prediction output from garnish_predictions.
 #'
 #' @examples
+#'\dontrun{
 #'library(magrittr)
+#'library(antigen.garnish)
 #'
 #'  # download an example VCF
 #'    dt <- "antigen.garnish_example.vcf" %T>%
 #'    utils::download.file("http://get.rech.io/antigen.garnish_example.vcf", .) %>%
 #'
 #'  # extract variants
-#'    antigen.garnish::garnish_variants %>%
+#'    garnish_variants %>%
 #'
 #'  # predict neoepitopes
-#'    antigen.garnish::garnish_predictions %>%
+#'    garnish_predictions %>%
 #'
 #'  # summarize predictions
-#'    antigen.garnish::garnish_summary %T>%
+#'    garnish_summary %T>%
 #'    print
 #'
 #'  # example output
 #'    dt <- data.table::fread(
 #'     "http://get.rech.io/antigen.garnish_example_summary.txt") %T>%
 #'     str
+#'}
 #'
 #' @export garnish_summary
 

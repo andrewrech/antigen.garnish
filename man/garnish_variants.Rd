@@ -16,6 +16,7 @@ A data table of intersected protein coding variants for neoepitope prediction.
 Process raw variants from a \href{https://github.com/broadinstitute/gatk}{MuTect2}/\href{https://github.com/Illumina/strelka}{Strelka2} - \href{https://github.com/pcingola/SnpEff}{SnpEff} variant annotation pipeline and filters for neoepitope prediction. Hg38 (human) and GRCm38 (murine) variant calls are required. Mutect2 and Strelka variant threshold prior to intersection were empirically established to limit false positives.
 }
 \examples{
+\dontrun{
 library(magrittr)
 
  # download an example VCF
@@ -23,11 +24,12 @@ library(magrittr)
    utils::download.file("http://get.rech.io/antigen.garnish_example.vcf", .) \%>\%
 
  # extract variants
-   antigen.garnish::garnish_variants \%T>\%
+   garnish_variants \%T>\%
    str
 
  # example output
    dt <- data.table::fread(
     "http://get.rech.io/antigen.garnish_example_output.txt") \%T>\%
     str
+}
 }
