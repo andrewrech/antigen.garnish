@@ -1,4 +1,6 @@
-[![Build Status](https://travis-ci.org/andrewrech/antigen.garnish.svg?branch=master)](https://travis-ci.org/andrewrech/antigen.garnish) ![CRAN_Status_Badge](http://www.r-pkg.org/badges/version/antigen.garnish)
+[![Build Status](https://travis-ci.org/andrewrech/antigen.garnish.svg?branch=master)](https://travis-ci.org/andrewrech/antigen.garnish) [![codecov.io](https://codecov.io/github/andrewrech/antigen.garnish/coverage.svg?branch=master)](https://codecov.io/github/andrewrech/antigen.garnish?branch=master) ![CRAN_Status_Badge](http://www.r-pkg.org/badges/version/antigen.garnish) ![](https://img.shields.io/badge/version-0.0.1-blue.svg)
+
+
 
 # antigen.garnish
 
