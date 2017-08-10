@@ -112,7 +112,6 @@ run_netMHC <- function(dt){
           function(command){
           # run command
            es <- try(system(command, intern = TRUE))
-
           # if error, return empty dt
             if (es %>% class %>% .[1] == "try-error") {
               return(data.table::data.table(status = 1, command = command))
@@ -122,11 +121,14 @@ run_netMHC <- function(dt){
             # isolate table and header
 
               dtl <- es %exclude%
-                "^\\#|----|Number|Distance|threshold|version|^$"
+                "^\\#|----|Number|Distance|threshold|version|^$" %>%
+                stringr::str_replace("^[ ]+", "")
               dtn <- dtl %include%
                 "[Pp]eptide" %>%
                 strsplit("[ ]+") %>%
                 unlist %exclude% "^$|^Bind|^Level"
+
+                if (!dtn %>% is.character) browser()
 
            # fix table formatting
               dt <- dtl[2:length(dtl)] %>%
@@ -136,10 +138,6 @@ run_netMHC <- function(dt){
                 stringr::str_replace_all("(SB|WB)", "  ") %>%
                 data.table::tstrsplit("[ ]+") %>%
                 data.table::as.data.table
-
-          # some output has a null first column
-             if (dt$V1 %>% paste(collapse = "") == "") dt$V1 <- NULL
-
           # apply names to data table
             dt %>% data.table::setnames(dt %>% names, dtn)
 
@@ -575,7 +573,10 @@ extract_cDNA <- function(dt){
              dt[cDNA_locl %>% is.na, cDNA_locl := cDNA_locs]
 
       dt[, cDNA_type := cDNA_change %>%
-            stringr::str_extract("[a-z]{3-6}|>")]
+            stringr::str_extract_all("[a-z]{3}|>") %>%
+            unlist %>%
+            paste(collapse = ""),
+            by = 1:nrow(dt)]
       dt[, cDNA_seq := cDNA_change %>%
             stringr::str_extract("[A-Z]+$")]
 
@@ -847,6 +848,7 @@ if (generate) {
                   uuid::UUIDgenerate) %>% unlist])
 
   # separate over mutant locations
+
     if (dt[, mutant_loc %>% unique] %>%
         stringr::str_detect(" ") %>% any) {
       dts <- dt %>% tidyr::separate_rows("mutant_loc", sep = " ")

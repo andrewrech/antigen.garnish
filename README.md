@@ -22,7 +22,7 @@ An R package for [neoepitope](http://science.sciencemag.org/content/348/6230/69)
 
 ## Installation
 
-Linux and macOS.
+Linux only.
 
 ### Required prediction tools
 
@@ -38,7 +38,7 @@ Install [netMHC](http://www.cbs.dtu.dk/services/NetMHC/), [netMHCII](http://www.
 
 ```sh
   cd "$HOME"
-  wget "http://get.rech.io/netMHC_$(uname)/netMHC.tar.gz"
+  wget "http://get.rech.io/netMHC.tar.gz"
   tar -xvzf netMHC.tar.gz
 ```
 

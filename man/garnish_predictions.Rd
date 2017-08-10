@@ -7,7 +7,7 @@
 garnish_predictions(dt, assemble = TRUE, generate = TRUE, predict = TRUE)
 }
 \arguments{
-\item{dt}{Data frame. Input data frame from garnish_variants. \href{http://get.rech.io/antigen.garnish_example_input.txt}{Example.}}
+\item{dt}{Data table. Input data table from garnish_variants. \href{http://get.rech.io/antigen.garnish_example_input.txt}{Example.}}
 
 \item{assemble}{Logical. Assemble data table?}
 
