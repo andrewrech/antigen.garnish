@@ -6,6 +6,10 @@ library(dt.inflix)
 
 testthat::test_that("run_netMHC", {
 
+   if (!check_pred_tools() %>% unlist %>% all) {
+    testthat::skip("Skipping run_netMHC because prediction tools are not in PATH")
+  }
+
   # load test data
   dt <- "antigen.garnish_example.vcf" %T>%
       utils::download.file("http://get.rech.io/antigen.garnish_example.vcf", .) %>%

@@ -1,4 +1,4 @@
-[![CRAN_Status_Badge](http://www.r-pkg.org/badges/version/antigen.garnish)](http://cran.r-project.org/package=antigen.garnish)
+![Travis CI](https://travis-ci.org/andrewrech/antigen.garnish.svg?branch=master) ![CRAN_Status_Badge](http://www.r-pkg.org/badges/version/antigen.garnish)
 
 # antigen.garnish
 
@@ -42,17 +42,7 @@ Install [netMHC](http://www.cbs.dtu.dk/services/NetMHC/), [netMHCII](http://www.
   tar -xvzf netMHC.tar.gz
 ```
 
-### R dependencies
-
-```r
-source("https://bioconductor.org/biocLite.R")
-biocLite("biomaRt")
-
-devtools::install_github("tidyverse/magrittr")  ## Github version is required
-devtools::install_github("andrewrech/dt.inflix")
-```
-
-### antigen.garnish
+### Install antigen.garnish
 
 ```r
 devtools::install_github("andrewrech/antigen.garnish")

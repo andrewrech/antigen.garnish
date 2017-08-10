@@ -79,21 +79,44 @@ default_path <- paste0(system('echo $HOME', intern = TRUE),
                 "/netMHC/netMHCpan-3.0")) %>%
                 paste(collapse = ":")
 
+PATH_status <- list(
+              mhcflurry = TRUE,
+              netMHC = TRUE,
+              netMHCpan = TRUE,
+              netMHCII = TRUE,
+              netMHCIIpan = TRUE)
+
 Sys.setenv(PATH = paste0(default_path, ":", Sys.getenv("PATH")))
 
  if (suppressWarnings(system('which mhcflurry-predict', intern = TRUE)) %>%
-        length == 0) warning("mhcflurry-predict is not in PATH\n       Download: https://github.com/hammerlab/mhcflurry")
+        length == 0) {
+        warning("mhcflurry-predict is not in PATH\n       Download: https://github.com/hammerlab/mhcflurry")
+      PATH_status$mhcflurry <- FALSE
+      }
   if (suppressWarnings(system('which netMHC', intern = TRUE)) %>%
-        length == 0) warning("netMHC is not in PATH\n       Download: http://www.cbs.dtu.dk/services/NetMHC/")
+        length == 0) {
+          warning("netMHC is not in PATH\n       Download: http://www.cbs.dtu.dk/services/NetMHC/")
+        PATH_status$netMHC <- FALSE
+        }
   if (suppressWarnings(system('which netMHCpan', intern = TRUE)) %>%
-        length == 0) warning("netMHCpan is not in PATH\n       Download: http://www.cbs.dtu.dk/services/NetMHCpan/")
+        length == 0) {
+          warning("netMHCpan is not in PATH\n       Download: http://www.cbs.dtu.dk/services/NetMHCpan/")
+        PATH_status$netMHCpan <- FALSE
+        }
   if (suppressWarnings(system('which netMHCII', intern = TRUE)) %>%
-        length == 0) warning("netMHCII is not in PATH\n       Download: http://www.cbs.dtu.dk/services/NetMHCII/")
+        length == 0) {
+          warning("netMHCII is not in PATH\n       Download: http://www.cbs.dtu.dk/services/NetMHCII/")
+        PATH_status$netMHCII <- FALSE
+        }
   if (suppressWarnings(system('which netMHCIIpan', intern = TRUE)) %>%
-        length == 0) warning("netMHCIIpan is not in PATH\n       Download: http://www.cbs.dtu.dk/services/NetMHCIIpan/")
+        length == 0) {
+          warning("netMHCIIpan is not in PATH\n       Download: http://www.cbs.dtu.dk/services/NetMHCIIpan/")
+        PATH_status$netMHCIIpan <- FALSE
+        }
+        return(PATH_status)
 }
 
-## -------- run_netMHC
+## ---- run_netMHC
 #' Run netMHC commands.
 #'
 #' @param dt Data table of commands to run.
@@ -105,7 +128,9 @@ run_netMHC <- function(dt){
   if (!"command" %chin% (dt %>% names))
     stop("dt must contain command column")
 
-  check_pred_tools()
+   if (!check_pred_tools() %>% unlist %>% all) {
+    stop("Missing prediction tools in PATH")
+  }
 
   dtl <- parallel::mclapply(
          dt[, command],
@@ -182,7 +207,7 @@ run_netMHC <- function(dt){
 
 
 
-## -------- write_nmers
+## ---- write_nmers
 #' Write MHC prediction nmers to disk
 #'
 #' @param dt Data table of nmers.
@@ -234,7 +259,7 @@ run_netMHC <- function(dt){
 
 
 
-## -------- detect_hla
+## ---- detect_hla
 #' Replace HLA with matching type in netMHC format
 #'
 #' @param x Vector of HLA types named for program to convert to.
@@ -261,7 +286,7 @@ run_netMHC <- function(dt){
 
 
 
-## -------- get_snpeff_annot
+## ---- get_snpeff_annot
 #' Extract snpeff annotation information to a data table.
 #'
 #' @param dt Data table with INFO column.
@@ -306,7 +331,7 @@ get_snpeff_annot <- function(dt){
 
 
 
-## -------- aa_convert
+## ---- aa_convert
 #' Convert amino acid codes quickly
 #'
 #' @param x Character vector to convert.
@@ -371,7 +396,7 @@ return(x)
 
 
 
-## -------- get_metadata
+## ---- get_metadata
 #' Add metadata using ensembl_transcript_ID
 #'
 #' @param dt Data table with INFO column.
@@ -458,7 +483,7 @@ get_metadata <- function(dt){
 
 
 
-## -------- make_cDNA
+## ---- make_cDNA
 #' Create cDNA from hgvs nomenclature (http://varnomen.hgvs.org/)
 #'
 #' @param dt Data table with INFO column.
@@ -542,7 +567,7 @@ make_cDNA <- function(dt){
 
       }
 
-## -------- extract_cDNA
+## ---- extract_cDNA
 #' Extract cDNA changes from hgvs nomenclature (http://varnomen.hgvs.org/)
 #'
 #' @param dt Data table with INFO column.
@@ -589,7 +614,7 @@ extract_cDNA <- function(dt){
   }
 
 
-## -------- ftrans
+## ---- ftrans
 #' Translate cDNA to peptide fast
 #'
 #' @param v cDNA character vector without ambiguous bases.
@@ -616,7 +641,7 @@ extract_cDNA <- function(dt){
         }) %>% unlist
   }
 
-## -------- garnish_variants
+## ---- garnish_variants
 #' Intakes variants and returns an intersected data table for epitope prediction.
 #'
 #' Process raw variants from a \href{https://github.com/broadinstitute/gatk}{MuTect2}/\href{https://github.com/Illumina/strelka}{Strelka2} - \href{https://github.com/pcingola/SnpEff}{SnpEff} variant annotation pipeline and filters for neoepitope prediction. Hg38 (human) and GRCm38 (murine) variant calls are required. Mutect2 and Strelka variant threshold prior to intersection were empirically established to limit false positives.
@@ -731,7 +756,7 @@ garnish_variants <- function(vcfs) {
 
 
 
-## -------- garnish_predictions
+## ---- garnish_predictions
 #' Performs epitope prediction.
 #'
 #' Performs epitope prediction on a data table of missense mutations.
@@ -797,7 +822,7 @@ if (assemble){
     }
 
 
-  ## -------- create mutant peptide index
+  ## ---- create mutant peptide index
 
     # index first mismatch
     dt[, mismatch_f :=
@@ -936,7 +961,9 @@ if (generate) {
 
 if (predict) {
 
-  check_pred_tools()
+  if (!check_pred_tools() %>% unlist %>% all) {
+    stop("Missing prediction tools in PATH")
+  }
 
   if (dt[, MHC %>% unique] %>%
       stringr::str_detect(" ") %>% any) dt %<>%
@@ -1121,7 +1148,7 @@ if (predict) {
 }
 
 
-## -------- garnish_predictions_worker
+## ---- garnish_predictions_worker
 #' Parallelized worker function for garnish_predictions
 #'
 #' @param dt Data table. Input data table from garnish_predictions.
@@ -1221,7 +1248,7 @@ if (!c("var_uuid",
 
 
 
-## -------- garnish_summary
+## ---- garnish_summary
 #' Summarize epitope prediction.
 #'
 #' Calculate neoepitope summary statistics over samples.
