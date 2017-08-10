@@ -1,13 +1,4 @@
 
-.sinew <- function(){
-
-    ### package building
-    invisible({
-      testthat::compare()
-      dt.inflix::allduplicated()
-              })
-     ###
-}
 
 
 ## ---- get_DAI_uuid
@@ -18,6 +9,19 @@
 #' @export get_DAI_uuid
 
 get_DAI_uuid <- function(dt){
+
+  ### package building
+  .sinew <- function(){
+
+
+      invisible({
+        testthat::compare()
+        dt.inflix::allduplicated()
+        colorspace::RGB()
+                })
+       ###
+  }
+
 
   if (!c("pep_type", "nmer", "nmer_i",
           "nmer_l", "var_uuid", "frameshift",

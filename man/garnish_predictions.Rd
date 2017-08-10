@@ -24,6 +24,7 @@ Performs epitope prediction on a data table of missense mutations.
 \examples{
 \dontrun{
 library(magrittr)
+library(antigen.garnish)
 
  # download an example VCF
    dt <- "antigen.garnish_example.vcf" \%T>\%

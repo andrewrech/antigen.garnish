@@ -10,5 +10,6 @@ LazyData: true
 RemoteUrl: http://neoepitopes.io
 Remotes: tidyverse/magrittr, andrewrech/dt.inflix, Rdatatable/data.table,
       bioc::release/Biostrings, bioc::release/biomaRt
+LazyLoad: yes
 RoxygenNote: 6.0.1.9000
-Imports: biomaRt,Biostrings,data.table,dt.inflix,stringi,stringr,testthat,tidyr,uuid,vcfR,zoo,parallel,stats,utils
+Imports: biomaRt,Biostrings,colorspace,data.table,dt.inflix,stringi,stringr,testthat,tidyr,uuid,vcfR,zoo,parallel,stats,utils

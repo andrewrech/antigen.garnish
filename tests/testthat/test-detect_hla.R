@@ -4,7 +4,7 @@ library(data.table)
 library(magrittr)
 library(dt.inflix)
 
-testthat::test_that("write_nmers", {
+testthat::test_that("detect_hla", {
 
   # load test data
   alleles <- data.table::rbindlist(

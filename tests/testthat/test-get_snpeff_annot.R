@@ -13,7 +13,6 @@ testthat::test_that("get_snpeff_annot", {
   get_snpeff_annot
 
 
-
     dt[, .SD, .SDcols = c("effect_type", "ensembl_transcript_id",
     "ensembl_gene_id", "protein_change", "cDNA_change",
     "protein_coding")] %>%

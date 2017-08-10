@@ -15,6 +15,8 @@ Calculate neoepitope summary statistics over samples.
 \examples{
 \dontrun{
 library(magrittr)
+library(antigen.garnish)
+
  # download an example VCF
    dt <- "antigen.garnish_example.vcf" \%T>\%
    utils::download.file("http://get.rech.io/antigen.garnish_example.vcf", .) \%>\%

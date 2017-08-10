@@ -18,6 +18,7 @@ Process raw variants from a \href{https://github.com/broadinstitute/gatk}{MuTect
 \examples{
 \dontrun{
 library(magrittr)
+library(antigen.garnish)
 
  # download an example VCF
    dt <- "antigen.garnish_example.vcf" \%T>\%

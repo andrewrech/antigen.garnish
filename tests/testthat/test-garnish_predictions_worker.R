@@ -25,15 +25,7 @@ testthat::test_that("garnish_predictions_worker", {
 
   # run test
   dto <- garnish_predictions_worker(dt) %>% data.table::setkey(nmer)
-  dto$nmer %>% sort %>% lapply(nchar) %>% unlist %>% plyr::count %>%
 
-  testthat::expect_equal(.,
-  structure(list(x = 8:15,
-                 freq = c(48L, 54L, 60L,
-                          66L, 72L, 78L, 84L, 90L)),
-                  .Names = c("x", "freq"),
-                  row.names = c(NA, -8L),
-                  class = "data.frame")
-  )
+  testthat::expect_equal(dto %>% nrow, 552)
 
     })
