@@ -9,4 +9,4 @@ Encoding: UTF-8
 LazyData: true
 RemoteUrl: http://neoepitopes.io
 RoxygenNote: 6.0.1.9000
-Imports: glue,biomaRt,data.table,stringi,stringr,testthat,tidyr,uuid,vcfR,zoo,parallel,stats,utils
+Imports: glue,biomaRt,data.table,dt.inflix,stringi,stringr,testthat,tidyr,uuid,vcfR,zoo,parallel,stats,utils

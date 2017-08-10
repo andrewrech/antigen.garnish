@@ -636,6 +636,10 @@ extract_cDNA <- function(dt){
 #'    antigen.garnish::garnish_variants %T>%
 #'    str
 #'
+#'  # example output
+#'    dt <- data.table::fread(
+#'     "http://get.rech.io/antigen.garnish_example_output.txt") %T>%
+#'     str
 #' @export garnish_variants
 
 garnish_variants <- function(vcfs) {
@@ -1240,6 +1244,11 @@ if (!c("var_uuid",
 #'  # summarize predictions
 #'    antigen.garnish::garnish_summary %T>%
 #'    print
+#'
+#'  # example output
+#'    dt <- data.table::fread(
+#'     "http://get.rech.io/antigen.garnish_example_summary.txt") %T>%
+#'     str
 #'
 #' @export garnish_summary
 

@@ -31,6 +31,6 @@ library(magrittr)
     print %>%
 
     # does antigen.garnish work?
-    testthat::compare(
+    testthat::expect_equal(
        data.table::fread("http://get.rech.io/antigen.garnish_example_summary.txt"))
     })

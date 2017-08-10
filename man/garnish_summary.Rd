@@ -29,4 +29,9 @@ library(magrittr)
    antigen.garnish::garnish_summary \%T>\%
    print
 
+ # example output
+   dt <- data.table::fread(
+    "http://get.rech.io/antigen.garnish_example_summary.txt") \%T>\%
+    str
+
 }

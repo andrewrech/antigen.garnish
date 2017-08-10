@@ -96,6 +96,14 @@ library(magrittr)
        data.table::fread("http://get.rech.io/antigen.garnish_example_summary.txt"))
 ```
 
+#### Automated tests
+
+```r
+library(testthat)
+
+testthat::test_package("antigen.garnish")
+```
+
 #### Test the sliding window
 
 ```r
