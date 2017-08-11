@@ -1,3 +1,131 @@
+## ---- get_pred_commands
+#' Collate results from netMHC prediction
+#'
+#' @param dt Data.table of predictions to run.
+#' @export get_pred_commands
+#'
+get_pred_commands <- function(dt){
+
+  # if (!c("nmer", "MHC", "nmer_l") %chin%
+  #    (dt %>% names) %>% any)
+  #    stop("dt is missing columns")
+
+  if (dt[, MHC %>% unique] %>%
+      stringr::str_detect(" ") %>% any) dt %<>%
+      tidyr::separate_rows("MHC", sep = " ")
+
+  # get available MHC alleles for predictions
+
+  alleles <- data.table::rbindlist(
+                         list(
+  system.file("extdata",
+      "netMHC_alleles.txt", package = "antigen.garnish") %>%
+                      data.table::fread(header = FALSE) %>%
+                      data.table::setnames("V1", "allele") %>%
+                      .[, type := "netMHC"],
+  system.file("extdata",
+      "netMHCpan_alleles.txt", package = "antigen.garnish") %>%
+                      data.table::fread(header = FALSE) %>%
+                      data.table::setnames("V1", "allele") %>%
+                      .[, type := "netMHCpan"],
+  system.file("extdata",
+      "mhcflurry_alleles.txt", package = "antigen.garnish") %>%
+                      data.table::fread(header = FALSE) %>%
+                      data.table::setnames("V1", "allele") %>%
+                      .[, type := "mhcflurry"],
+  system.file("extdata",
+      "netMHCII_alleles.txt", package = "antigen.garnish") %>%
+                      data.table::fread(header = FALSE) %>%
+                      data.table::setnames("V1", "allele") %>%
+                      .[, type := "netMHCII"],
+  system.file("extdata",
+      "netMHCIIpan_alleles.txt", package = "antigen.garnish") %>%
+                      data.table::fread(header = FALSE) %>%
+                      data.table::setnames("V1", "allele") %>%
+                      .[, type := "netMHCIIpan"]
+                      ))
+
+  # generate csv for mhcflurry predictions
+
+    dt[MHC %chin% alleles[type == "mhcflurry", allele] &
+    nmer_l < 15,
+          .SD, .SDcols = c("MHC", "nmer")] %>%
+    data.table::copy %>%
+      data.table::setnames(c("MHC", "nmer"), c("allele", "peptide")) %>%
+      unique %>%
+      data.table::fwrite("mhcflurry_input.csv")
+
+  # generate matchable MHC substring for netMHC tools
+
+    dt[, netMHCpan := MHC %>% stringr::str_replace_all(stringr::fixed("*"), "")]
+    dt[, netMHC := netMHCpan %>% stringr::str_replace(stringr::fixed(":"), "")]
+    dt[, netMHCII := netMHCpan %>% stringr::str_replace(stringr::fixed(":"), "") %>%
+                                       stringr::str_replace(fixed("HLA-"), "")]
+    dt[, netMHCIIpan := netMHCII %>% stringr::str_replace("DRB1", "DRB1_")]
+
+  # replace substring with netMHC allele type
+
+    dt[, netMHCpan := detect_hla(netMHCpan, alleles)]
+    dt[, netMHC := detect_hla(netMHC, alleles)]
+    dt[, netMHCII := detect_hla(netMHCII, alleles)]
+    dt[, netMHCIIpan := detect_hla(netMHCIIpan, alleles)]
+
+    dtfn <-
+      {
+        data.table::rbindlist(
+          list(
+            dt[!netMHC %>% is.na &
+            nmer_l < 15,
+              .SD, .SDcols = c("netMHC", "nmer", "nmer_l")] %>%
+            data.table::copy %>%
+            data.table::setkey(netMHC, nmer_l) %>%
+            write_nmers("netMHC"),
+
+            dt[!netMHCpan %>% is.na &
+            nmer_l < 15,
+              .SD, .SDcols = c("netMHCpan", "nmer", "nmer_l")] %>%
+            data.table::copy %>%
+            data.table::setkey(netMHCpan, nmer_l) %>%
+            write_nmers("netMHCpan"),
+
+            dt[!netMHCII %>% is.na &
+            nmer_l == 15,
+              .SD, .SDcols = c("netMHCII", "nmer", "nmer_l")] %>%
+            data.table::copy %>%
+            data.table::setkey(netMHCII, nmer_l) %>%
+            write_nmers("netMHCII"),
+
+            dt[!netMHCIIpan %>% is.na &
+            nmer_l == 15,
+              .SD, .SDcols = c("netMHCIIpan", "nmer", "nmer_l")] %>%
+            data.table::copy %>%
+            data.table::setkey(netMHCIIpan, nmer_l) %>%
+            write_nmers("netMHCIIpan")
+                                   ))
+      }
+
+  # generate commands
+
+    dtfn[, command :=
+      paste(
+            type,
+            "-p",
+            "-l", nmer_l,
+            "-a", allele,
+            "-f", filename)
+        ]
+    dtfn[type == "netMHCIIpan", command :=
+      paste(
+            type,
+            "-inptype 1",
+            "-length", nmer_l,
+            "-a", allele,
+            "-f", filename)
+        ]
+    return(dtfn)
+  }
+
+
 ## ---- collate_netMHC
 #' Collate results from netMHC prediction
 #'
@@ -938,118 +1066,7 @@ if (generate) {
 
 if (predict) {
 
-  if (dt[, MHC %>% unique] %>%
-      stringr::str_detect(" ") %>% any) dt %<>%
-      tidyr::separate_rows("MHC", sep = " ")
-
-  # get available MHC alleles for predictions
-
-  alleles <- data.table::rbindlist(
-                         list(
-  system.file("extdata",
-      "netMHC_alleles.txt", package = "antigen.garnish") %>%
-                      data.table::fread(header = FALSE) %>%
-                      data.table::setnames("V1", "allele") %>%
-                      .[, type := "netMHC"],
-  system.file("extdata",
-      "netMHCpan_alleles.txt", package = "antigen.garnish") %>%
-                      data.table::fread(header = FALSE) %>%
-                      data.table::setnames("V1", "allele") %>%
-                      .[, type := "netMHCpan"],
-  system.file("extdata",
-      "mhcflurry_alleles.txt", package = "antigen.garnish") %>%
-                      data.table::fread(header = FALSE) %>%
-                      data.table::setnames("V1", "allele") %>%
-                      .[, type := "mhcflurry"],
-  system.file("extdata",
-      "netMHCII_alleles.txt", package = "antigen.garnish") %>%
-                      data.table::fread(header = FALSE) %>%
-                      data.table::setnames("V1", "allele") %>%
-                      .[, type := "netMHCII"],
-  system.file("extdata",
-      "netMHCIIpan_alleles.txt", package = "antigen.garnish") %>%
-                      data.table::fread(header = FALSE) %>%
-                      data.table::setnames("V1", "allele") %>%
-                      .[, type := "netMHCIIpan"]
-                      ))
-
-  # generate csv for mhcflurry predictions
-
-    dt[MHC %chin% alleles[type == "mhcflurry", allele] &
-    nmer_l < 15,
-          .SD, .SDcols = c("MHC", "nmer")] %>%
-    data.table::copy %>%
-      data.table::setnames(c("MHC", "nmer"), c("allele", "peptide")) %>%
-      unique %>%
-      data.table::fwrite("mhcflurry_input.csv")
-
-  # generate matchable MHC substring for netMHC tools
-
-    dt[, netMHCpan := MHC %>% stringr::str_replace_all(stringr::fixed("*"), "")]
-    dt[, netMHC := netMHCpan %>% stringr::str_replace(stringr::fixed(":"), "")]
-    dt[, netMHCII := netMHCpan %>% stringr::str_replace(stringr::fixed(":"), "") %>%
-                                       stringr::str_replace(fixed("HLA-"), "")]
-    dt[, netMHCIIpan := netMHCII %>% stringr::str_replace("DRB1", "DRB1_")]
-
-  # replace substring with netMHC allele type
-
-    dt[, netMHCpan := detect_hla(netMHCpan, alleles)]
-    dt[, netMHC := detect_hla(netMHC, alleles)]
-    dt[, netMHCII := detect_hla(netMHCII, alleles)]
-    dt[, netMHCIIpan := detect_hla(netMHCIIpan, alleles)]
-
-    dtfn <-
-      {
-        data.table::rbindlist(
-          list(
-            dt[!netMHC %>% is.na &
-            nmer_l < 15,
-              .SD, .SDcols = c("netMHC", "nmer", "nmer_l")] %>%
-            data.table::copy %>%
-            data.table::setkey(netMHC, nmer_l) %>%
-            write_nmers("netMHC"),
-
-            dt[!netMHCpan %>% is.na &
-            nmer_l < 15,
-              .SD, .SDcols = c("netMHCpan", "nmer", "nmer_l")] %>%
-            data.table::copy %>%
-            data.table::setkey(netMHCpan, nmer_l) %>%
-            write_nmers("netMHCpan"),
-
-            dt[!netMHCII %>% is.na &
-            nmer_l == 15,
-              .SD, .SDcols = c("netMHCII", "nmer", "nmer_l")] %>%
-            data.table::copy %>%
-            data.table::setkey(netMHCII, nmer_l) %>%
-            write_nmers("netMHCII"),
-
-            dt[!netMHCIIpan %>% is.na &
-            nmer_l == 15,
-              .SD, .SDcols = c("netMHCIIpan", "nmer", "nmer_l")] %>%
-            data.table::copy %>%
-            data.table::setkey(netMHCIIpan, nmer_l) %>%
-            write_nmers("netMHCIIpan")
-                                   ))
-      }
-
-  # generate commands
-
-    dtfn[, command :=
-      paste(
-            type,
-            "-p",
-            "-l", nmer_l,
-            "-a", allele,
-            "-f", filename)
-        ]
-    dtfn[type == "netMHCIIpan", command :=
-      paste(
-            type,
-            "-inptype 1",
-            "-length", nmer_l,
-            "-a", allele,
-            "-f", filename)
-        ]
+  dt %<>% get_pred_commands
 
   # run commands
 
