@@ -24,9 +24,12 @@ An R package for [neoepitope](http://science.sciencemag.org/content/348/6230/69)
 
 ## Installation
 
-Linux only.
+### Requirements
 
-### Required prediction tools
+* Linux
+* R &ge; 3.4
+
+### Install required prediction tools
 
 Install [mhcflurry](https://github.com/hammerlab/mhcflurry):
 
