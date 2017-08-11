@@ -3,7 +3,7 @@ Title: Ensemble neoepitope prediction from DNA variants in R
 Version: 0.0.0.9000
 Authors@R: "Andrew J. Rech <andrewrech@gmail.com> [aut, cre]"
 Description: An R package for neoepitope analysis that takes human or murine DNA point mutations, insertions, and deletions in VCF format and performs neoepitope prediction. Output is individual peptides and a summary by sample.
-Depends: R (>= 3.4.1)
+Depends: R (>= 3.2.5)
 License: GPL-3
 Encoding: UTF-8
 LazyData: true
