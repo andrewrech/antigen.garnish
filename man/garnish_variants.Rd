@@ -13,24 +13,5 @@ garnish_variants(vcfs)
 A data table of intersected protein coding variants for neoepitope prediction.
 }
 \description{
-Process raw variants from a \href{https://github.com/broadinstitute/gatk}{MuTect2}/\href{https://github.com/Illumina/strelka}{Strelka2} - \href{https://github.com/pcingola/SnpEff}{SnpEff} variant annotation pipeline and filters for neoepitope prediction. Hg38 (human) and GRCm38 (murine) variant calls are required. Mutect2 and Strelka variant threshold prior to intersection were empirically established to limit false positives.
-}
-\examples{
-\dontrun{
-library(magrittr)
-library(antigen.garnish)
-
- # download an example VCF
-   dt <- "antigen.garnish_example.vcf" \%T>\%
-   utils::download.file("http://get.rech.io/antigen.garnish_example.vcf", .) \%>\%
-
- # extract variants
-   garnish_variants \%T>\%
-   str
-
- # example output
-   dt <- data.table::fread(
-    "http://get.rech.io/antigen.garnish_example_output.txt") \%T>\%
-    str
-}
+Process raw variants annotated with \href{https://github.com/pcingola/SnpEff}{SnpEff}. VCFs from matched samples are optionally intersected. Variant must be called against Hg38 (human) and/or GRCm38 (murine). \href{https://github.com/broadinstitute/gatk}{MuTect2}/\href{https://github.com/Illumina/strelka}{Strelka2}-derived VCFs are filtered for high confidence variants prior to intersection.
 }

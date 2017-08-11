@@ -4,11 +4,7 @@ library(data.table)
 library(magrittr)
 library(dt.inflix)
 
-testthat::test_that("run_netMHC", {
-
-   if (!check_pred_tools() %>% unlist %>% all) {
-    testthat::skip("Skipping run_netMHC because prediction tools are not in PATH")
-  }
+testthat::test_that("garnish_variants", {
 
   # load test data
   dt <- "antigen.garnish_example.vcf" %T>%

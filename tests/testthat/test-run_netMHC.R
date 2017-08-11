@@ -4,51 +4,102 @@ library(data.table)
 library(magrittr)
 library(dt.inflix)
 
-testthat::test_that("run_netMHC", {
+testthat::test_that("collate_netMHC", {
 
-   if (!check_pred_tools() %>% unlist %>% all) {
-    testthat::skip("Skipping run_netMHC because prediction tools are not in PATH")
-  }
+esl <- list(
+       list("netMHC -p -l 8 -a HLA-A0201 -f netMHC_906b84c7-7442-4371-a94b-f0f1b1c80107.csv",
+    c("# /root/netMHC/netMHC-4.0/Linux_x86_64/bin/netMHC -p -l 8 -a HLA-A0201 -f netMHC_906b84c7-7442-4371-a94b-f0f1b1c80107.csv",
+    "# Fri Aug 11 07:26:12 2017", "# User: root", "# PWD : /mnt/raid/Scratch",
+    "# Host: Linux master 4.4.0-1030-aws x86_64", "# -p       1                    Switch on if input is a list of peptides (Peptide format)",
+    "# -l       8                    Peptide length (multiple lengths separated by comma e.g. 8,9,10)",
+    "# -a       HLA-A0201            HLA allele name", "# -f       netMHC_906b84c7-7442-4371-a94b-f0f1b1c80107.csv Input file (by default in FASTA format)",
+    "# Command line parameters set to:", "#\t[-a line]            HLA-A0201            HLA allele name",
+    "#\t[-f filename]        netMHC_906b84c7-7442-4371-a94b-f0f1b1c80107.csv Input file (by default in FASTA format)",
+    "#\t[-p]                 1                    Switch on if input is a list of peptides (Peptide format)",
+    "#\t[-l string]          8                    Peptide length (multiple lengths separated by comma e.g. 8,9,10)",
+    "#\t[-s]                 0                    Sort output on decreasing affinity",
+    "#\t[-rth float]         0.500000             Threshold for high binding peptides (%Rank)",
+    "#\t[-rlt float]         2.000000             Threshold for low binding peptides (%Rank)",
+    "#\t[-listMHC]           0                    Print list of alleles included in netMHC",
+    "#\t[-xls]               0                    Save output to xls file",
+    "#\t[-xlsfile filename]  NetMHC_out.xls       File name for xls output",
+    "#\t[-t float]           -99.900002           Threshold for output",
+    "#\t[-thrfmt filename]   /root/netMHC/netMHC-4.0/Linux_x86_64/data/threshold/%s.thr Format for threshold filenames",
+    "#\t[-hlalist filename]  /root/netMHC/netMHC-4.0/Linux_x86_64/data/allelelist File with covered HLA names",
+    "#\t[-rdir filename]     /root/netMHC/netMHC-4.0/Linux_x86_64 Home directory for NetMHC",
+    "#\t[-tdir filename]     /tmp/root            Temporary directory (Default $$)",
+    "#\t[-syn filename]      /root/netMHC/netMHC-4.0/Linux_x86_64/data/synlists/%s.synlist Format of synlist file",
+    "#\t[-v]                 0                    Verbose mode",
+    "#\t[-dirty]             0                    Dirty mode, leave tmp dir+files",
+    "#\t[-inptype int]       0                    Input type [0] FASTA [1] Peptide",
+    "#\t[-version filename]  /root/netMHC/netMHC-4.0/Linux_x86_64/data/version File with version information",
+    "#\t[-w]                 0                    w option for webface",
+    "", "# NetMHC version 4.0", "", "# Input is in PEPTIDE format",
+    "# Rank Threshold for Strong binding peptides   0.500", "# Rank Threshold for Weak binding peptides   2.000",
+    "-----------------------------------------------------------------------------------",
+    "  pos          HLA      peptide         Core Offset  I_pos  I_len  D_pos  D_len        iCore        Identity 1-log50k(aff) Affinity(nM)    %Rank  BindLevel",
+    "-----------------------------------------------------------------------------------",
+    "    0    HLA-A0201     AQSGTPPT    AQ-SGTPPT      0      2      1      0      0     AQSGTPPT         PEPLIST         0.055     27687.22    41.00",
+    "    0    HLA-A0201     AYESSEDC    -AYESSEDC      0      0      1      0      0     AYESSEDC         PEPLIST         0.016     42131.23    90.00",
+    "    0    HLA-A0201     CSPRDRFL    CS-PRDRFL      0      2      1      0      0     CSPRDRFL         PEPLIST         0.024     38447.22    80.00",
+    "    0    HLA-A0201     CSPWDRFL    CS-PWDRFL      0      2      1      0      0     CSPWDRFL         PEPLIST         0.040     32358.74    55.00",
+    "    0    HLA-A0201     ENYWRKAY    ENYWRKAY-      0      8      1      0      0     ENYWRKAY         PEPLIST         0.016     42119.39    90.00",
+    "    0    HLA-A0201     ENYWRKSY    ENYWR-KSY      0      5      1      0      0     ENYWRKSY         PEPLIST         0.014     42779.36    95.00",
+    "    0    HLA-A0201     GAQSGTPP    GAQSGTPP-      0      8      1      0      0     GAQSGTPP         PEPLIST         0.015     42638.41    95.00",
+    "    0    HLA-A0201     GCSPRDRF    GCSPR-DRF      0      5      1      0      0     GCSPRDRF         PEPLIST         0.015     42291.55    95.00",
+    "    0    HLA-A0201     GCSPWDRF    GCSPWD-RF      0      6      1      0      0     GCSPWDRF         PEPLIST         0.024     38612.71    80.00",
+    "    0    HLA-A0201     GTWVSGAQ    GTWVSGAQ-      0      8      1      0      0     GTWVSGAQ         PEPLIST         0.029     36723.66    70.00",
+    "    0    HLA-A0201     GTWVSGVQ    GTWVSGVQ-      0      8      1      0      0     GTWVSGVQ         PEPLIST         0.036     33926.22    60.00",
+    "    0    HLA-A0201     GVQSGTPP    GVQSGTPP-      0      8      1      0      0     GVQSGTPP         PEPLIST         0.020     40334.49    85.00",
+    "    0    HLA-A0201     HPRGCSPR    HPRGCS-PR      0      6      1      0      0     HPRGCSPR         PEPLIST         0.019     40885.04    90.00",
+    "    0    HLA-A0201     HPRGCSPW    HPRGCS-PW      0      6      1      0      0     HPRGCSPW         PEPLIST         0.025     38020.73    75.00",
+    "    0    HLA-A0201     KAYESSED    KAYESSED-      0      8      1      0      0     KAYESSED         PEPLIST         0.015     42289.25    95.00",
+    "    0    HLA-A0201     KSYESSED    KSYESSED-      0      8      1      0      0     KSYESSED         PEPLIST         0.015     42714.16    95.00",
+    "    0    HLA-A0201     NYWRKAYE    NYWRKAYE-      0      8      1      0      0     NYWRKAYE         PEPLIST         0.016     41971.53    90.00",
+    "    0    HLA-A0201     NYWRKSYE    NYWRKSYE-      0      8      1      0      0     NYWRKSYE         PEPLIST         0.013     43258.31    95.00",
+    "    0    HLA-A0201     PRDRFLVG    PRDRFLVG-      0      8      1      0      0     PRDRFLVG         PEPLIST         0.021     39722.54    85.00",
+    "    0    HLA-A0201     PRGCSPRD    -PRGCSPRD      0      0      1      0      0     PRGCSPRD         PEPLIST         0.008     45887.85    99.00",
+    "    0    HLA-A0201     PRGCSPWD    PRGCSPWD-      0      8      1      0      0     PRGCSPWD         PEPLIST         0.011     44358.40    99.00",
+    "    0    HLA-A0201     PWDRFLVG    -PWDRFLVG      0      0      1      0      0     PWDRFLVG         PEPLIST         0.028     36858.21    70.00",
+    "    0    HLA-A0201     RDRFLVGG    R-DRFLVGG      0      1      1      0      0     RDRFLVGG         PEPLIST         0.030     36067.24    70.00",
+    "    0    HLA-A0201     RGCSPRDR    R-GCSPRDR      0      1      1      0      0     RGCSPRDR         PEPLIST         0.011     44557.06    99.00",
+    "    0    HLA-A0201     RGCSPWDR    R-GCSPWDR      0      1      1      0      0     RGCSPWDR         PEPLIST         0.019     40732.71    85.00",
+    "    0    HLA-A0201     RKAYESSE    RKAYESSE-      0      8      1      0      0     RKAYESSE         PEPLIST         0.008     45865.01    99.00",
+    "    0    HLA-A0201     RKSYESSE    RKSYESSE-      0      8      1      0      0     RKSYESSE         PEPLIST         0.008     45946.48    99.00",
+    "    0    HLA-A0201     SENYWRKA    S-ENYWRKA      0      1      1      0      0     SENYWRKA         PEPLIST         0.015     42673.05    95.00",
+    "    0    HLA-A0201     SENYWRKS    S-ENYWRKS      0      1      1      0      0     SENYWRKS         PEPLIST         0.010     44634.74    99.00",
+    "    0    HLA-A0201     SGAQSGTP    SGAQSGTP-      0      8      1      0      0     SGAQSGTP         PEPLIST         0.010     44894.86    99.00",
+    "    0    HLA-A0201     SGVQSGTP    SGVQSGTP-      0      8      1      0      0     SGVQSGTP         PEPLIST         0.010     44688.38    99.00",
+    "    0    HLA-A0201     SPRDRFLV    SPRDRFL-V      0      7      1      0      0     SPRDRFLV         PEPLIST         0.034     34546.66    60.00",
+    "    0    HLA-A0201     SPWDRFLV    SPWDR-FLV      0      5      1      0      0     SPWDRFLV         PEPLIST         0.091     18708.97    26.00",
+    "    0    HLA-A0201     SYESSEDC    S-YESSEDC      0      1      1      0      0     SYESSEDC         PEPLIST         0.016     42249.46    95.00",
+    "    0    HLA-A0201     TGTWVSGA    -TGTWVSGA      0      0      1      0      0     TGTWVSGA         PEPLIST         0.037     33341.43    60.00",
+    "    0    HLA-A0201     TGTWVSGV    -TGTWVSGV      0      0      1      0      0     TGTWVSGV         PEPLIST         0.072     22916.38    32.00",
+    "    0    HLA-A0201     TWVSGAQS    -TWVSGAQS      0      0      1      0      0     TWVSGAQS         PEPLIST         0.022     39368.25    80.00",
+    "    0    HLA-A0201     TWVSGVQS    -TWVSGVQS      0      0      1      0      0     TWVSGVQS         PEPLIST         0.030     36267.97    70.00",
+    "    0    HLA-A0201     VQSGTPPT    VQ-SGTPPT      0      2      1      0      0     VQSGTPPT         PEPLIST         0.051     28664.18    43.00",
+    "    0    HLA-A0201     VSGAQSGT    -VSGAQSGT      0      0      1      0      0     VSGAQSGT         PEPLIST         0.016     41931.13    90.00",
+    "    0    HLA-A0201     VSGVQSGT    -VSGVQSGT      0      0      1      0      0     VSGVQSGT         PEPLIST         0.021     39909.06    85.00",
+    "    0    HLA-A0201     WDRFLVGG    W-DRFLVGG      0      1      1      0      0     WDRFLVGG         PEPLIST         0.033     34970.50    65.00",
+    "    0    HLA-A0201     WRKAYESS    W-RKAYESS      0      1      1      0      0     WRKAYESS         PEPLIST         0.012     43948.02    99.00",
+    "    0    HLA-A0201     WRKSYESS    W-RKSYESS      0      1      1      0      0     WRKSYESS         PEPLIST         0.010     44662.76    99.00",
+    "    0    HLA-A0201     WVSGAQSG    WVSG-AQSG      0      4      1      0      0     WVSGAQSG         PEPLIST         0.013     43251.31    95.00",
+    "    0    HLA-A0201     WVSGVQSG    WVSGVQ-SG      0      6      1      0      0     WVSGVQSG         PEPLIST         0.020     40317.48    85.00",
+    "    0    HLA-A0201     YWRKAYES    Y-WRKAYES      0      1      1      0      0     YWRKAYES         PEPLIST         0.030     36204.46    70.00",
+    "    0    HLA-A0201     YWRKSYES    Y-WRKSYES      0      1      1      0      0     YWRKSYES         PEPLIST         0.028     36980.04    70.00",
+    "-----------------------------------------------------------------------------------",
+    "", "Protein PEPLIST. Allele HLA-A0201. Number of high binders 0. Number of weak binders 0. Number of peptides 48",
+    "", "-----------------------------------------------------------------------------------"
+    )))
 
-  # load test data
-  # download test files
-  dt <- structure(
-      list(
-      type = c("netMHC", "netMHCpan", "netMHCIIpan"),
-      allele = c("HLA-A0201", "HLA-A02:01", "DRB1_0301"),
-      nmer_l = c(8L, 9L, 15L),
-      filename = c("netMHC_906b84c7-7442-4371-a94b-f0f1b1c80107.csv",
-                   "netMHCpan_af9b5685-733a-49c9-8f46-2ea18eab32f5.csv",
-                   "netMHCIIpan_5cf162b8-577c-44ae-9c72-f90a89f28a94.csv"
-      ),
-      command = c("netMHC -p -l 8 -a HLA-A0201 -f netMHC_906b84c7-7442-4371-a94b-f0f1b1c80107.csv",
-      "netMHCpan -p -l 9 -a HLA-A02:01 -f netMHCpan_af9b5685-733a-49c9-8f46-2ea18eab32f5.csv",
-      "netMHCIIpan -inptype 1 -length 15 -a DRB1_0301 -f netMHCIIpan_5cf162b8-577c-44ae-9c72-f90a89f28a94.csv"
-      )),
-      .Names = c("type", "allele",
-                 "nmer_l", "filename", "command"),
-      class = c("data.table", "data.frame"),
-      row.names = c(NA, -3L
-  ))
-  utils::download.file("http://get.rech.io/netMHC_906b84c7-7442-4371-a94b-f0f1b1c80107.csv",
-                       "netMHC_906b84c7-7442-4371-a94b-f0f1b1c80107.csv")
-  utils::download.file("http://get.rech.io/netMHCpan_af9b5685-733a-49c9-8f46-2ea18eab32f5.csv",
-                       "netMHCpan_af9b5685-733a-49c9-8f46-2ea18eab32f5.csv")
-  utils::download.file("http://get.rech.io/netMHCIIpan_5cf162b8-577c-44ae-9c72-f90a89f28a94.csv",
-                       "netMHCIIpan_5cf162b8-577c-44ae-9c72-f90a89f28a94.csv")
-  # run test
-  dto <- run_netMHC(dt) %>% data.table::rbindlist(fill = TRUE)
+   dt <- esl %>% collate_netMHC
 
-   testthat::expect_gt(dto %>% nrow, 100)
-   testthat::expect_gt(dto %>% length, 35)
-   testthat::expect_gt(dto$`affinity(nM)_netMHC` %>%
-                        stats::na.omit %>%
-                        as.numeric %>%
-                        sum, 1000000)
+   testthat::expect_equal(dt[[1]] %>% nrow, 48)
+   testthat::expect_equal(dt[[1]] %>% length, 15)
    testthat::expect_true(c("AQSGTPPT",
                            "AYESSEDC",
                            "CSPRDRFL",
                            "CSPWDRFL",
-                           "ENYWRKAY") %chin% dto$icore_netMHC %>% all)
+                           "ENYWRKAY") %chin% dt[[1]]$icore_netMHC %>% all)
 
     })

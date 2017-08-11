@@ -1,4 +1,77 @@
+## ---- collate_netMHC
+#' Collate results from netMHC prediction
+#'
+#' @param esl List of outputs from netMHC.
+#' @export collate_netMHC
 
+collate_netMHC <- function(esl){
+
+   dtl <- lapply(
+         esl, function(es){
+
+          command <- es[[1]]
+          es <- es[[2]]
+
+          # parse results
+            # isolate table and header
+
+              dtl <- es %exclude%
+                "^\\#|----|Number|Distance|threshold|version|^$" %>%
+                stringr::str_replace("^[ ]+", "")
+
+              dtn <- dtl[1] %>%
+                strsplit("[ ]+") %>%
+                unlist %exclude% "^$|^Bind|^Level"
+
+           # fix table formatting
+              dt <- dtl[2:length(dtl)] %>%
+                stringr::str_replace_all(">", " ") %>%
+                stringr::str_replace_all("=", " ") %>%
+                stringr::str_replace_all("<", " ") %>%
+                stringr::str_replace_all("(SB|WB)", "  ") %>%
+                data.table::tstrsplit("[ ]+") %>%
+                data.table::as.data.table
+          # apply names to data table
+            dt %>% data.table::setnames(dt %>% names, dtn)
+
+          # append command
+            dt$command <- command
+
+          # set the program type from command
+            ptype <- command %>% stringr::str_extract("net[A-Za-z]+")
+
+          # make netMHC names consistent
+            if ("Peptide" %chin% (dt %>% names)) dt %>% data.table::setnames("Peptide", "peptide")
+            if ("peptide" %chin% (dt %>% names)) dt %>% data.table::setnames("peptide", "nmer")
+            if ("Affinity(nM)" %chin% (dt %>% names)) dt %>% data.table::setnames("Affinity(nM)", "affinity(nM)")
+            if ("Aff(nM)" %chin% (dt %>% names)) dt %>% data.table::setnames("Aff(nM)", "affinity(nM)")
+            if ("HLA" %chin% (dt %>% names)) dt %>%
+              data.table::setnames("HLA", "allele")
+            if ("Allele" %chin% (dt %>% names)) dt %>% data.table::setnames("Allele", "allele")
+            if ("Pos" %chin% (dt %>% names)) dt %>%
+              data.table::setnames("Pos", "pos")
+            if ("Icore" %chin% (dt %>% names)) dt %>% data.table::setnames("Icore", "icore")
+            if ("iCore" %chin% (dt %>% names)) dt %>% data.table::setnames("iCore", "icore")
+            if ("Core" %chin% (dt %>% names)) dt %>% data.table::setnames("Core", "core")
+
+          # fix netMHCpan allele output to match input
+            if (command %like% "netMHCpan"){
+              dt[, allele := allele %>%
+                stringr::str_replace(fixed("*"), "")]
+            }
+
+          # set unique column names based on program
+            data.table::setnames(dt, dt %>% names %exclude% "allele|nmer",
+                                 paste0((dt %>% names %exclude% "allele|nmer"), "_", ptype))
+
+          # name allele column for merge
+            dt %>%
+              data.table::setnames("allele", ptype)
+
+            return(dt)
+                     })
+   return(dtl)
+ }
 
 ## ---- get_DAI_uuid
 #' Pair peptides from missense sites by a common UUID for DAi calculations
@@ -6,7 +79,6 @@
 #' @param dt Data table of nmers.
 #'
 #' @export get_DAI_uuid
-
 #' @import BiocInstaller
 #' @import colorspace
 #' @import data.table
@@ -150,76 +222,24 @@ run_netMHC <- function(dt){
     stop("Missing prediction tools in PATH")
   }
 
-  dtl <- parallel::mclapply(
+  # run commands
+  esl <- parallel::mclapply(
          dt[, command],
           function(command){
           # run command
            es <- try(system(command, intern = TRUE))
           # if error, return empty dt
-            if (es %>% class %>% .[1] == "try-error") {
-              return(data.table::data.table(status = 1, command = command))
-            }
+            if (es %>% class %>% .[1] == "try-error")
+                return(data.table::data.table(status = 1, command = command))
+            return(
+                   list(
+                        command,
+                        es)
+                   )
+            })
 
-          # parse results
-            # isolate table and header
+dtl <- esl %>% collate_netMHC
 
-              dtl <- es %exclude%
-                "^\\#|----|Number|Distance|threshold|version|^$" %>%
-                stringr::str_replace("^[ ]+", "")
-              dtn <- dtl %include%
-                "[Pp]eptide" %>%
-                strsplit("[ ]+") %>%
-                unlist %exclude% "^$|^Bind|^Level"
-
-                if (!dtn %>% is.character) browser()
-
-           # fix table formatting
-              dt <- dtl[2:length(dtl)] %>%
-                stringr::str_replace_all(">", " ") %>%
-                stringr::str_replace_all("=", " ") %>%
-                stringr::str_replace_all("<", " ") %>%
-                stringr::str_replace_all("(SB|WB)", "  ") %>%
-                data.table::tstrsplit("[ ]+") %>%
-                data.table::as.data.table
-          # apply names to data table
-            dt %>% data.table::setnames(dt %>% names, dtn)
-
-          # append command
-            dt$command <- command
-
-          # set the program type from command
-            ptype <- command %>% stringr::str_extract("net[A-Za-z]+")
-
-          # make netMHC names consistent
-            if ("Peptide" %chin% (dt %>% names)) dt %>% data.table::setnames("Peptide", "peptide")
-            if ("peptide" %chin% (dt %>% names)) dt %>% data.table::setnames("peptide", "nmer")
-            if ("Affinity(nM)" %chin% (dt %>% names)) dt %>% data.table::setnames("Affinity(nM)", "affinity(nM)")
-            if ("Aff(nM)" %chin% (dt %>% names)) dt %>% data.table::setnames("Aff(nM)", "affinity(nM)")
-            if ("HLA" %chin% (dt %>% names)) dt %>%
-              data.table::setnames("HLA", "allele")
-            if ("Allele" %chin% (dt %>% names)) dt %>% data.table::setnames("Allele", "allele")
-            if ("Pos" %chin% (dt %>% names)) dt %>%
-              data.table::setnames("Pos", "pos")
-            if ("Icore" %chin% (dt %>% names)) dt %>% data.table::setnames("Icore", "icore")
-            if ("iCore" %chin% (dt %>% names)) dt %>% data.table::setnames("iCore", "icore")
-            if ("Core" %chin% (dt %>% names)) dt %>% data.table::setnames("Core", "core")
-
-          # fix netMHCpan allele output to match input
-            if (command %like% "netMHCpan"){
-              dt[, allele := allele %>%
-                stringr::str_replace(fixed("*"), "")]
-            }
-
-          # set unique column names based on program
-            data.table::setnames(dt, dt %>% names %exclude% "allele|nmer",
-                                 paste0((dt %>% names %exclude% "allele|nmer"), "_", ptype))
-
-          # name allele column for merge
-            dt %>%
-              data.table::setnames("allele", ptype)
-
-            return(dt)
-                     })
       return(dtl)
 }
 
@@ -347,70 +367,6 @@ get_snpeff_annot <- function(dt){
 
         }
 
-
-
-## ---- aa_convert
-#' Convert amino acid codes quickly
-#'
-#' @param x Character vector to convert.
-#'
-#' @export aa_convert
-
-aa_convert <- function(x){
-
-if (x %>% stats::na.omit %>%
-    is.null) return(x)
-if (x %>% stats::na.omit %>%
-    length == 0) return(x)
-
-if (x %>% stats::na.omit %>%
-    stringr::str_detect("[A-Z][a-z]{2}") %>% any){
-     x %<>% stringr::str_replace(stringr::fixed("Ala"), "A") %>%
-            stringr::str_replace(stringr::fixed("Arg"), "R") %>%
-            stringr::str_replace(stringr::fixed("Asn"), "N") %>%
-            stringr::str_replace(stringr::fixed("Asp"), "D") %>%
-            stringr::str_replace(stringr::fixed("Cys"), "C") %>%
-            stringr::str_replace(stringr::fixed("Glu"), "E") %>%
-            stringr::str_replace(stringr::fixed("Gln"), "Q") %>%
-            stringr::str_replace(stringr::fixed("Gly"), "G") %>%
-            stringr::str_replace(stringr::fixed("His"), "H") %>%
-            stringr::str_replace(stringr::fixed("Ile"), "I") %>%
-            stringr::str_replace(stringr::fixed("Leu"), "L") %>%
-            stringr::str_replace(stringr::fixed("Lys"), "K") %>%
-            stringr::str_replace(stringr::fixed("Met"), "M") %>%
-            stringr::str_replace(stringr::fixed("Phe"), "F") %>%
-            stringr::str_replace(stringr::fixed("Pro"), "P") %>%
-            stringr::str_replace(stringr::fixed("Ser"), "S") %>%
-            stringr::str_replace(stringr::fixed("Thr"), "T") %>%
-            stringr::str_replace(stringr::fixed("Trp"), "W") %>%
-            stringr::str_replace(stringr::fixed("Tyr"), "Y") %>%
-            stringr::str_replace(stringr::fixed("Val"), "V")
-
-} else {
-     x %<>% stringr::str_replace(stringr::fixed("A"), "Ala") %>%
-            stringr::str_replace(stringr::fixed("R"), "Arg") %>%
-            stringr::str_replace(stringr::fixed("N"), "Asn") %>%
-            stringr::str_replace(stringr::fixed("D"), "Asp") %>%
-            stringr::str_replace(stringr::fixed("C"), "Cys") %>%
-            stringr::str_replace(stringr::fixed("E"), "Glu") %>%
-            stringr::str_replace(stringr::fixed("Q"), "Gln") %>%
-            stringr::str_replace(stringr::fixed("G"), "Gly") %>%
-            stringr::str_replace(stringr::fixed("H"), "His") %>%
-            stringr::str_replace(stringr::fixed("I"), "Ile") %>%
-            stringr::str_replace(stringr::fixed("L"), "Leu") %>%
-            stringr::str_replace(stringr::fixed("K"), "Lys") %>%
-            stringr::str_replace(stringr::fixed("M"), "Met") %>%
-            stringr::str_replace(stringr::fixed("F"), "Phe") %>%
-            stringr::str_replace(stringr::fixed("P"), "Pro") %>%
-            stringr::str_replace(stringr::fixed("S"), "Ser") %>%
-            stringr::str_replace(stringr::fixed("T"), "Thr") %>%
-            stringr::str_replace(stringr::fixed("W"), "Trp") %>%
-            stringr::str_replace(stringr::fixed("Y"), "Tyr") %>%
-            stringr::str_replace(stringr::fixed("V"), "Val")
-}
-return(x)
-
-}
 
 
 
@@ -662,13 +618,13 @@ extract_cDNA <- function(dt){
 ## ---- garnish_variants
 #' Intakes variants and returns an intersected data table for epitope prediction.
 #'
-#' Process raw variants from a \href{https://github.com/broadinstitute/gatk}{MuTect2}/\href{https://github.com/Illumina/strelka}{Strelka2} - \href{https://github.com/pcingola/SnpEff}{SnpEff} variant annotation pipeline and filters for neoepitope prediction. Hg38 (human) and GRCm38 (murine) variant calls are required. Mutect2 and Strelka variant threshold prior to intersection were empirically established to limit false positives.
+#' Process raw variants annotated with \href{https://github.com/pcingola/SnpEff}{SnpEff}. VCFs from matched samples are optionally intersected. Variant must be called against Hg38 (human) and/or GRCm38 (murine). \href{https://github.com/broadinstitute/gatk}{MuTect2}/\href{https://github.com/Illumina/strelka}{Strelka2}-derived VCFs are filtered for high confidence variants prior to intersection.
 #'
 #' @param vcfs Character vector. VFC files to import.
 #'
 #' @return A data table of intersected protein coding variants for neoepitope prediction.
 #'
-#' @examples
+#' @example
 #'\dontrun{
 #'library(magrittr)
 #'library(antigen.garnish)
@@ -707,6 +663,8 @@ garnish_variants <- function(vcfs) {
   # return a data table of variants
 
     vdt <- vcf@fix %>% data.table::as.data.table
+
+
 
     if (vcf@gt %>% length > 0) vdt <- cbind(vdt, vcf@gt %>% data.table::as.data.table)
 
@@ -784,7 +742,7 @@ garnish_variants <- function(vcfs) {
 #'
 #' @return A data table of neoepitopes.
 #'
-#' @examples
+#' @example
 #'\dontrun{
 #'library(magrittr)
 #'library(antigen.garnish)
@@ -1270,7 +1228,7 @@ if (!c("var_uuid",
 #'
 #' @param dt Data table. Prediction output from garnish_predictions.
 #'
-#' @examples
+#' @example
 #'\dontrun{
 #'library(magrittr)
 #'library(antigen.garnish)
