@@ -1116,8 +1116,8 @@ if (predict) {
     DAI := Consensus_scores[2] /
       Consensus_scores[1], by = dai_uuid]
 
-    return(dt)
 }
+   return(dt)
 }
 
 

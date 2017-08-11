@@ -4,7 +4,7 @@ library(data.table)
 library(magrittr)
 library(dt.inflix)
 
-testthat::test_that("antigen.garnish neoepitope prediction", {
+testthat::test_that("garnish_predictions", {
 
    if (!check_pred_tools() %>% unlist %>% all) {
     testthat::skip("Skipping run_netMHC because prediction tools are not in PATH")
