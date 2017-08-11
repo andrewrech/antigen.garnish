@@ -656,7 +656,7 @@ garnish_variants <- function(vcfs) {
 
       sample_id <- vcf@meta %>% stringr::str_extract_all("[^ ]+\\.bam") %>% unlist %>% basename %>% paste(collapse = "_") %>% stringr::str_replace("\\.bam", "")
       # extract vcf type
-      vcf_type <- vcf@meta %>% unlist %>% stringr::str_extract(stringr::regex("Sdtrelka|Mudtect", ignore_case = TRUE)) %>% stats::na.omit %>%
+      vcf_type <- vcf@meta %>% unlist %>% stringr::str_extract(stringr::regex("Strelka|Mutect", ignore_case = TRUE)) %>% stats::na.omit %>%
                   unlist %>% data.table::first
       if (vcf_type %>% length == 0) vcf_type <- "other"
 
