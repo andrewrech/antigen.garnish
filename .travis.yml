@@ -6,6 +6,7 @@ r:
   - bioc-release
   - release
   - devel
+  - oldrel
 r_packages:
   - covr
 after_success:
