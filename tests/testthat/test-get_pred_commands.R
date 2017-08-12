@@ -20,7 +20,7 @@ testthat::test_that("get_pred_commands", {
 
     # run test
 
-    dto <- dt %>% get_pred_commands
+    dto <- dt %>% get_pred_commands %>% .[[2]]
 
     testthat::expect_equal(dto %>% nrow, 12)
     testthat::expect_equal(dto %>% names,

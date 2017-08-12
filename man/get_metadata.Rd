@@ -4,10 +4,14 @@
 \alias{get_metadata}
 \title{Add metadata using ensembl_transcript_ID}
 \usage{
-get_metadata(dt)
+get_metadata(dt, humandb = "GRCh38", mousedb = "GRCm38")
 }
 \arguments{
 \item{dt}{Data table with INFO column.}
+
+\item{humandb}{Character vector. One of "GRCh37" or "GRCh38".}
+
+\item{mousedb}{Character vector. One of "GRCm37" or "GRCm38".}
 }
 \description{
 Add metadata using ensembl_transcript_ID

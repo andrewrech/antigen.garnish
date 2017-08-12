@@ -13,5 +13,5 @@ garnish_variants(vcfs)
 A data table of intersected protein coding variants for neoepitope prediction.
 }
 \description{
-Process raw variants annotated with \href{https://github.com/pcingola/SnpEff}{SnpEff}. VCFs from matched samples are optionally intersected. Variant must be called against Hg38 (human) and/or GRCm38 (murine). \href{https://github.com/broadinstitute/gatk}{MuTect2}/\href{https://github.com/Illumina/strelka}{Strelka2}-derived VCFs are filtered for high confidence variants prior to intersection.
+Process raw variants annotated with \href{https://github.com/pcingola/SnpEff}{SnpEff}. VCFs from matched samples are optionally intersected. \href{https://github.com/broadinstitute/gatk}{MuTect2}/\href{https://github.com/Illumina/strelka}{Strelka2}-derived VCFs are filtered for high confidence variants prior to intersection.
 }

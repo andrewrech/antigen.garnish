@@ -4,7 +4,8 @@
 \alias{garnish_predictions}
 \title{Performs epitope prediction.}
 \usage{
-garnish_predictions(dt, assemble = TRUE, generate = TRUE, predict = TRUE)
+garnish_predictions(dt, assemble = TRUE, generate = TRUE, predict = TRUE,
+  humandb = "GRCh38", mousedb = "GRCm38")
 }
 \arguments{
 \item{dt}{Data table. Input data table from garnish_variants. \href{http://get.rech.io/antigen.garnish_example_input.txt}{Example.}}
@@ -14,6 +15,10 @@ garnish_predictions(dt, assemble = TRUE, generate = TRUE, predict = TRUE)
 \item{generate}{Logical. Generate peptides?}
 
 \item{predict}{Logical. Predict binding affinities?}
+
+\item{humandb}{Character vector. One of "GRCh37" or "GRCh38".}
+
+\item{mousedb}{Character vector. One of "GRCm37" or "GRCm38".}
 }
 \value{
 A data table of neoepitopes.

@@ -122,7 +122,7 @@ get_pred_commands <- function(dt){
             "-a", allele,
             "-f", filename)
         ]
-    return(dtfn)
+    return(list(dt, dtfn))
   }
 
 
@@ -207,7 +207,6 @@ collate_netMHC <- function(esl){
 #' @param dt Data table of nmers.
 #'
 #' @export get_DAI_uuid
-#' @import BiocInstaller
 #' @import colorspace
 #' @import data.table
 #' @import dt.inflix
@@ -502,14 +501,28 @@ get_snpeff_annot <- function(dt){
 #' Add metadata using ensembl_transcript_ID
 #'
 #' @param dt Data table with INFO column.
+#' @param humandb Character vector. One of "GRCh37" or "GRCh38".
+#' @param mousedb Character vector. One of "GRCm37" or "GRCm38".
 #'
 #' @export get_metadata
 
-get_metadata <- function(dt){
+get_metadata <- function(dt,
+                         humandb = "GRCh38",
+                         mousedb = "GRCm38"){
 
   if (!"ensembl_transcript_id" %chin%
       (dt %>% names))
   stop("ensembl_transcript_id column missing")
+
+
+  # set genome host
+  if (humandb == "GRCh38") hhost <- "ensembl.org"
+  if (humandb == "GRCh37") hhost <- "grch37.ensembl.org"
+  if (mousedb == "GRCm38") mhost <- "ensembl.org"
+  if (mousedb == "GRCm37") mhost <- "may2012.archive.ensembl.org"
+
+  if (!exists("hhost")) stop("humandb set incorrectly")
+  if (!exists("mhost")) stop("mousedb set incorrectly")
 
     # remove version suffix
     dt[, ensembl_transcript_id :=
@@ -533,9 +546,12 @@ get_metadata <- function(dt){
     message("Obtaining cDNA and peptide sequences using biomaRt")
     var_dt <- lapply(bmds, function(i){
 
+      if (i == "hsapiens_gene_ensembl") host <- hhost
+      if (i == "mmusculus_gene_ensembl") host <- mhost
+
       mart <- biomaRt::useMart(biomart = "ENSEMBL_MART_ENSEMBL",
                                                  dataset = i,
-                                                 host = 'ensembl.org')
+                                                 host = host)
 
     if (i == "mmusculus_gene_ensembl") {
         trn <- dt[, ensembl_transcript_id %include% "ENSMUST" %>%
@@ -746,7 +762,7 @@ extract_cDNA <- function(dt){
 ## ---- garnish_variants
 #' Intakes variants and returns an intersected data table for epitope prediction.
 #'
-#' Process raw variants annotated with \href{https://github.com/pcingola/SnpEff}{SnpEff}. VCFs from matched samples are optionally intersected. Variant must be called against Hg38 (human) and/or GRCm38 (murine). \href{https://github.com/broadinstitute/gatk}{MuTect2}/\href{https://github.com/Illumina/strelka}{Strelka2}-derived VCFs are filtered for high confidence variants prior to intersection.
+#' Process raw variants annotated with \href{https://github.com/pcingola/SnpEff}{SnpEff}. VCFs from matched samples are optionally intersected. \href{https://github.com/broadinstitute/gatk}{MuTect2}/\href{https://github.com/Illumina/strelka}{Strelka2}-derived VCFs are filtered for high confidence variants prior to intersection.
 #'
 #' @param vcfs Character vector. VFC files to import.
 #'
@@ -775,14 +791,21 @@ extract_cDNA <- function(dt){
 garnish_variants <- function(vcfs) {
 
   message("Loading VCFs")
-  ivfdtl <- lapply(vcfs %>% seq_along, function(ivf){
+  ivfdtl <- parallel::mclapply(vcfs %>% seq_along, function(ivf){
 
   # load dt
       vcf <-  vcfR::read.vcfR(vcfs[ivf], verbose = TRUE)
 
   # extract sample names from Mutect2 and Strelka command line for intersection
 
-      sample_id <- vcf@meta %>% stringr::str_extract_all("[^ ]+\\.bam") %>% unlist %>% basename %>% paste(collapse = "_") %>% stringr::str_replace("\\.bam", "")
+      sample_id <- vcf@meta %>%
+                      stringr::str_extract_all("[^ ]+\\.bam") %>%
+                      unlist %>%
+                      unique %>%
+                      basename %>%
+                      sort %>%
+                      paste(collapse = "_") %>%
+                      stringr::str_replace("\\.bam", "")
       # extract vcf type
       vcf_type <- vcf@meta %>% unlist %>% stringr::str_extract(stringr::regex("Strelka|Mutect", ignore_case = TRUE)) %>% stats::na.omit %>%
                   unlist %>% data.table::first
@@ -791,8 +814,6 @@ garnish_variants <- function(vcfs) {
   # return a data table of variants
 
     vdt <- vcf@fix %>% data.table::as.data.table
-
-
 
     if (vcf@gt %>% length > 0) vdt <- cbind(vdt, vcf@gt %>% data.table::as.data.table)
 
@@ -806,7 +827,15 @@ garnish_variants <- function(vcfs) {
     vdt[, sample_id := sample_id]
     vdt[, vcf_type := vcf_type]
 
+    # filter SnpEff warnings
+
     vdt %<>% get_snpeff_annot
+
+    vdt %<>% .[!se %like% "ERROR_.*CHROMOSOME"]
+    vdt %<>% .[!se %likef% "WARNING_SEQUENCE_NOT_AVAILABLE"]
+    vdt %<>% .[!se %likef% "WARNING_TRANSCRIPT_INCOMPLETE"]
+    vdt %<>% .[!se %likef% "WARNING_TRANSCRIPT_MULTIPLE_STOP_CODONS"]
+    vdt %<>% .[!se %likef% "WARNING_TRANSCRIPT_NO_START_CODON"]
 
     return(vdt)
     })
@@ -867,6 +896,8 @@ garnish_variants <- function(vcfs) {
 #' @param assemble Logical. Assemble data table?
 #' @param generate Logical. Generate peptides?
 #' @param predict Logical. Predict binding affinities?
+#' @param humandb Character vector. One of "GRCh37" or "GRCh38".
+#' @param mousedb Character vector. One of "GRCm37" or "GRCm38".
 #'
 #' @return A data table of neoepitopes.
 #'
@@ -892,7 +923,9 @@ garnish_variants <- function(vcfs) {
 garnish_predictions <- function(dt,
                                assemble = TRUE,
                                generate = TRUE,
-                               predict = TRUE) {
+                               predict = TRUE,
+                               humandb = "GRCh38",
+                               mousedb = "GRCm38") {
 
   if (!"data.frame" %chin% (dt %>% class)) stop("dt must be a data frame or data table")
 
@@ -902,17 +935,26 @@ garnish_predictions <- function(dt,
 
 if (assemble){
 
-    dt %<>% get_metadata
+    dt %<>% get_metadata(humandb = humandb, mousedb = mousedb)
 
+    # extract cDNA changes and make cDNA
     dt %<>% extract_cDNA
-
-    dt[, frameshift := FALSE]
-    dt[protein_change %like% "fs$", frameshift := TRUE]
-
     dt %<>% make_cDNA
 
+    # translate protein sequences
     dt[, pep_mut := coding_mut %>% ftrans]
     dt[, pep_wt := coding %>% ftrans]
+
+    dt[, cDNA_delta := ((coding_mut %>% nchar) - (coding %>% nchar)) / 3 ]
+
+    dt[, frameshift := FALSE]
+
+    # frameshifts have cDNA delta
+    # not divisible by 3
+      # does not handle stop codon loss
+      # (this is acceptable because
+      # no cDNA exists to know the readthrough)
+    dt[cDNA_delta %% 3L != 0L, frameshift := TRUE]
 
     # remove variants with translated sequence-ensembl mismatch
     dt %<>% .[peptide == pep_wt]
@@ -930,6 +972,7 @@ if (assemble){
   ## ---- create mutant peptide index
 
     # index first mismatch
+    suppressWarnings({
     dt[, mismatch_f :=
         {
           (pep_wt %>%
@@ -940,6 +983,10 @@ if (assemble){
                unlist)
            } %>%
           which %>% .[1], by = 1:nrow(dt)]
+          })
+
+    # remove rows with matching transcripts
+    dt %<>% .[!pep_wt == pep_mut]
 
     # initialize mismatch length
         dt[, mismatch_l := mismatch_f]
@@ -972,6 +1019,12 @@ if (assemble){
         dt[mismatch_l > mismatch_f, mutant_loc :=
             get_ss_str(mismatch_f, mismatch_l)]
 
+    # warning if mutant_loc == NA
+      if (dt[mutant_loc %>% is.na] %>%
+            nrow > 1) {
+        failn <- dt[mutant_loc %>% is.na] %>% nrow
+        warning(paste0("Could not determine mutant location for ", failn, " records."))
+      }
   }
 
 if (generate) {
@@ -1066,7 +1119,9 @@ if (generate) {
 
 if (predict) {
 
-  dt %<>% get_pred_commands
+    dtl <- dt %>% get_pred_commands
+    dt <- dtl[[1]]
+    dtfn <- dtl[[2]]
 
   # run commands
 
@@ -1085,10 +1140,9 @@ if (predict) {
      ag_out_raw[[dti]]$command[1] %>% stringr::str_extract("net[A-Za-z]+")
      })
 
-  # merge netMHC output
-    netmprogs <- progl %>% unique %>% unlist
+   # merge netMHC output
 
-    for (ptype in netmprogs) {
+    for (ptype in (progl %>% unique %>% unlist)) {
 
       dt <- merge(dt, ag_out_raw[(progl == ptype) %>% which] %>%
             data.table::rbindlist, by = c("nmer", ptype), all.x = TRUE)

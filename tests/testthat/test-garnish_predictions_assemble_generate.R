@@ -39,7 +39,7 @@ testthat::test_that("garnish_predictions_assemble_generate", {
     dto <- garnish_predictions(dt, predict = FALSE)
 
     testthat::expect_equal(dto %>% nrow, 552)
-    testthat::expect_equal(dto %>% length, 53)
+    testthat::expect_equal(dto %>% length, 54)
     testthat::expect_equal(dto$cDNA_locs %>% unique, c(4988L, 1114L, 718L))
 
 })
