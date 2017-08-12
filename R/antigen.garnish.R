@@ -1175,7 +1175,8 @@ if (predict) {
     for (ptype in (progl %>% unique %>% unlist)) {
 
       dt <- merge(dt, ag_out_raw[(progl == ptype) %>% which] %>%
-            data.table::rbindlist, by = c("nmer", ptype), all.x = TRUE)
+            data.table::rbindlist, by = c("nmer", ptype), all.x = TRUE,
+            allow.cartesian = TRUE)
     }
 
   # read and merge mhcflurry output
