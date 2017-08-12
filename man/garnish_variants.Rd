@@ -15,3 +15,22 @@ A data table of intersected protein coding variants for neoepitope prediction.
 \description{
 Process raw variants annotated with \href{https://github.com/pcingola/SnpEff}{SnpEff}. VCFs from matched samples are optionally intersected. \href{https://github.com/broadinstitute/gatk}{MuTect2}/\href{https://github.com/Illumina/strelka}{Strelka2}-derived VCFs are filtered for high confidence variants prior to intersection.
 }
+\examples{
+\dontrun{
+library(magrittr)
+library(antigen.garnish)
+
+ # download an example VCF
+   dt <- "antigen.garnish_example.vcf" \%T>\%
+   utils::download.file("http://get.rech.io/antigen.garnish_example.vcf", .) \%>\%
+
+ # extract variants
+   garnish_variants \%T>\%
+   str
+
+ # example output
+   dt <- data.table::fread(
+    "http://get.rech.io/antigen.garnish_example_output.txt") \%T>\%
+    str
+}
+}

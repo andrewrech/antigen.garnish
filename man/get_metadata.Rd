@@ -2,7 +2,7 @@
 % Please edit documentation in R/antigen.garnish.R
 \name{get_metadata}
 \alias{get_metadata}
-\title{Add metadata using ensembl_transcript_ID}
+\title{Add metadata using ensembl_transcript_id}
 \usage{
 get_metadata(dt, humandb = "GRCh38", mousedb = "GRCm38")
 }
@@ -14,5 +14,5 @@ get_metadata(dt, humandb = "GRCh38", mousedb = "GRCm38")
 \item{mousedb}{Character vector. One of "GRCm37" or "GRCm38".}
 }
 \description{
-Add metadata using ensembl_transcript_ID
+Add metadata using ensembl_transcript_id
 }

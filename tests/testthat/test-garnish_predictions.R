@@ -15,7 +15,7 @@ testthat::test_that("garnish_predictions", {
 library(magrittr)
 
     # download an example VCF
-    "antigen.garnish_example.vcf" %T>%
+    dt <- "antigen.garnish_example.vcf" %T>%
     utils::download.file("http://get.rech.io/antigen.garnish_example.vcf", .) %>%
 
     # extract variants
@@ -30,13 +30,12 @@ library(magrittr)
     garnish_predictions %>%
 
     # summarize predictions
-    garnish_summary %T>%
-
-    print %>%
+    garnish_summary
 
     # does antigen.garnish work?
-    testthat::expect_equal(
-       data.table::fread("http://get.rech.io/antigen.garnish_example_summary.txt"))
+    testthat::expect_equal(dt$variants, 3)
+    testthat::expect_equal(dt$alt_neos, 2)
+    testthat::expect_gt(dt$predictions, 230)
 
     if (file.exists("antigen.garnish_example.vcf"))
     file.remove("antigen.garnish_example.vcf")

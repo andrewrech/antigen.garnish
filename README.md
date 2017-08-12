@@ -6,7 +6,7 @@
 
 Ensemble neoepitope prediction from DNA variants in R.
 
-![](http://get.rech.io/antigen.garnish_flowchart.svg)
+![](./inst/antigen.garnish_flowchart.svg)
 
 ## Description
 
@@ -20,7 +20,7 @@ An R package for [neoepitope](http://science.sciencemag.org/content/348/6230/69)
     - ensemble MHC class I/II binding prediction using [mhcflurry](https://github.com/hammerlab/mhcflurry), [netMHC](http://www.cbs.dtu.dk/services/NetMHC/), [netMHCII](http://www.cbs.dtu.dk/services/NetMHCII/), [netMHCpan](http://www.cbs.dtu.dk/services/NetMHCpan/) and [netMHCIIpan](http://www.cbs.dtu.dk/services/NetMHCIIpan/).
 1. **Speed**:
     - produce all possible 8-15-mer peptides from 10,000 variants in under 1 minute on a normal laptop
-    - parallelized affinity prediction
+    - on an Amazon Web Services `m4.16xlarge` EC2 instance, 20,000 consensus predictions using 100+ MHC types in under 5 minutes
 
 ## Installation
 
@@ -67,7 +67,7 @@ devtools::install_github("andrewrech/antigen.garnish")
 library(magrittr)
 
     # download an example VCF
-    "antigen.garnish_example.vcf" %T>%
+    dt <- "antigen.garnish_example.vcf" %T>%
     utils::download.file("http://get.rech.io/antigen.garnish_example.vcf", .) %>%
 
     # extract variants
@@ -84,14 +84,12 @@ library(magrittr)
     # summarize predictions
     antigen.garnish::garnish_summary %T>%
 
-    print %>%
-
-    # does antigen.garnish work?
-    testthat::compare(
-       data.table::fread("http://get.rech.io/antigen.garnish_example_summary.txt"))
+    print
 ```
 
-#### Automated tests
+### Tests
+
+#### Automated testing
 
 ```r
 library(testthat)
@@ -99,7 +97,7 @@ library(testthat)
 testthat::test_package("antigen.garnish")
 ```
 
-#### Test the sliding window
+#### How are peptides generated?
 
 ```r
 library(magrittr)
