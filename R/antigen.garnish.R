@@ -1,3 +1,75 @@
+## ---- merge_pred_results
+#' Merge input data table and prediction results from netMHC tools, mhcflurry
+#'
+#' @param l Output list from run_netMHC
+#' @param dt Input data table.
+#' @export merge_pred_results
+#'
+
+ merge_pred_results <- function(l, dt){
+
+      message("Merging output")
+      # merge netMHC by program type
+        progl <- lapply(l %>% seq_along, function(dti) {
+         l[[dti]]$command[1] %>% stringr::str_extract("net[A-Za-z]+")
+         })
+
+       # merge netMHC output
+
+        for (ptype in (progl %>% unique %>% unlist)) {
+
+          dt <- merge(dt, l[(progl == ptype) %>% which] %>%
+                data.table::rbindlist, by = c("nmer", ptype), all.x = TRUE,
+                allow.cartesian = TRUE)
+        }
+
+      # read and merge mhcflurry output
+      fdt <- list.files(pattern = "mhcflurry_output.*csv") %>%
+        lapply(., function(x){
+          data.table::fread(x)
+        }) %>% data.table::rbindlist %>%
+            data.table::setnames(c("allele", "peptide"), c("MHC", "nmer"))
+
+       dt <- merge(dt, fdt, by = c("nmer", "MHC"), all.x = TRUE)
+
+      # calculate netMHC consensus score, preferring non-*net tools
+          for (col in (dt %>% names %include% "aff|[Rr]ank|Consensus_scores")) {
+            suppressWarnings(set(dt, j = col, value = dt[, get(col) %>% as.numeric]))
+          }
+
+        # get vector of netMHC scores
+          cols <- dt %>% names %includef% c("affinity(nM)")
+
+          dt[, Consensus_scores := c(.(get(cols)) %>%
+          stats::na.omit, NA) %>% data.table::first, by = 1:nrow(dt)]
+
+      # take average of mhcflurry and best available netMHC tool
+        dt[, Consensus_scores := c(Consensus_scores,
+                                       mhcflurry_prediction) %>%
+                                      mean(na.omit = TRUE),
+                                      by = 1:nrow(dt)]
+      # remove nmers without predictions
+
+        dt <- dt[!Consensus_scores %>% is.na]
+
+      # calculate DAI
+
+        dt[, DAI := NA %>% as.numeric]
+
+        data.table::setkey(dt, pep_type, dai_uuid)
+
+        # dai_uuid is always length 2
+        # calculate DAI by dividing
+
+        dt[!dai_uuid %>% is.na,
+        DAI := Consensus_scores[2] /
+          Consensus_scores[1], by = dai_uuid]
+
+      return(dt)
+    }
+
+
+
 ## ---- get_pred_commands
 #' Collate results from netMHC prediction
 #'
@@ -179,19 +251,24 @@ collate_netMHC <- function(esl){
           # set the program type from command
             ptype <- command %>% stringr::str_extract("net[A-Za-z]+")
 
+          dtn <- dt %>% names
           # make netMHC names consistent
-            if ("Peptide" %chin% (dt %>% names)) dt %>% data.table::setnames("Peptide", "peptide")
-            if ("peptide" %chin% (dt %>% names)) dt %>% data.table::setnames("peptide", "nmer")
-            if ("Affinity(nM)" %chin% (dt %>% names)) dt %>% data.table::setnames("Affinity(nM)", "affinity(nM)")
-            if ("Aff(nM)" %chin% (dt %>% names)) dt %>% data.table::setnames("Aff(nM)", "affinity(nM)")
-            if ("HLA" %chin% (dt %>% names)) dt %>%
-              data.table::setnames("HLA", "allele")
-            if ("Allele" %chin% (dt %>% names)) dt %>% data.table::setnames("Allele", "allele")
-            if ("Pos" %chin% (dt %>% names)) dt %>%
+            if (dtn %include% "[Pp]eptide" %>% length > 0)
+                data.table::setnames(dt, dtn %include% "[Pp]eptide", "nmer")
+
+            if (dtn %include% "Aff.*nM.*" %>% length > 0)
+                data.table::setnames(dt, dtn %include% "Aff.*nM.*", "affinity(nM)")
+
+            if (dtn %include% "HLA|Allele" %>% length > 0)
+                data.table::setnames(dt, dtn %include% "HLA|Allele", "allele")
+
+            if (dtn %include% "Icore|iCore" %>% length > 0)
+                data.table::setnames(dt,dtn %include% "Icore|iCore", "icore")
+
+            if ("Pos" %chin% dtn) dt %>%
               data.table::setnames("Pos", "pos")
-            if ("Icore" %chin% (dt %>% names)) dt %>% data.table::setnames("Icore", "icore")
-            if ("iCore" %chin% (dt %>% names)) dt %>% data.table::setnames("iCore", "icore")
-            if ("Core" %chin% (dt %>% names)) dt %>% data.table::setnames("Core", "core")
+
+            if ("Core" %chin% dtn) dt %>% data.table::setnames("Core", "core")
 
           # fix netMHCpan allele output to match input
             if (command %like% "netMHCpan"){
@@ -865,12 +942,8 @@ garnish_variants <- function(vcfs) {
 
       sdt <- merge(dt, dt2[, .SD,
              .SDcols = c("CHROM",
-              "POS",
-              "REF",
-              "cDNA_change")],
-               by = c("CHROM",
-              "POS",
-              "REF",
+              "POS", "REF", "cDNA_change")],
+               by = c("CHROM", "POS", "REF",
               "cDNA_change")) %>% .[, vcf_type := "intersect"]
       return(sdt)
 
@@ -1163,64 +1236,7 @@ if (predict) {
       system
           })
 
-
-    message("Merging output")
-  # merge netMHC by program type
-    progl <- lapply(ag_out_raw %>% seq_along, function(dti) {
-     ag_out_raw[[dti]]$command[1] %>% stringr::str_extract("net[A-Za-z]+")
-     })
-
-   # merge netMHC output
-
-    for (ptype in (progl %>% unique %>% unlist)) {
-
-      dt <- merge(dt, ag_out_raw[(progl == ptype) %>% which] %>%
-            data.table::rbindlist, by = c("nmer", ptype), all.x = TRUE,
-            allow.cartesian = TRUE)
-    }
-
-  # read and merge mhcflurry output
-
-  fdt <- list.files(pattern = "mhcflurry_output.*csv") %>%
-    lapply(., function(x){
-      data.table::fread(x)
-    }) %>% data.table::rbindlist %>%
-        data.table::setnames(c("allele", "peptide"), c("MHC", "nmer"))
-
-   dt <- merge(dt, fdt, by = c("nmer", "MHC"), all.x = TRUE)
-
-  # calculate netMHC consensus score, preferring non-*net tools
-      for (col in (dt %>% names %include% "aff|[Rr]ank|Consensus_scores")) {
-        suppressWarnings(set(dt, j = col, value = dt[, get(col) %>% as.numeric]))
-      }
-
-    # get vector of netMHC scores
-      cols <- dt %>% names %includef% c("affinity(nM)")
-
-      dt[, Consensus_scores := c(.(get(cols)) %>%
-      stats::na.omit, NA) %>% data.table::first, by = 1:nrow(dt)]
-
-  # take average of mhcflurry and best available netMHC tool
-    dt[, Consensus_scores := c(Consensus_scores,
-                                   mhcflurry_prediction) %>%
-                                  mean(na.omit = TRUE),
-                                  by = 1:nrow(dt)]
-  # remove nmers without predictions
-
-    dt <- dt[!Consensus_scores %>% is.na]
-
-  # calculate DAI
-
-    dt[, DAI := NA %>% as.numeric]
-
-    data.table::setkey(dt, pep_type, dai_uuid)
-
-    # dai_uuid is always length 2
-    # calculate DAI by dividing
-
-    dt[!dai_uuid %>% is.na,
-    DAI := Consensus_scores[2] /
-      Consensus_scores[1], by = dai_uuid]
+   dt <- merge_pred_results(ag_out_raw, dt)
 
 }
    return(dt)
