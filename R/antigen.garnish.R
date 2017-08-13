@@ -446,14 +446,10 @@ run_netMHC <- function(dt){
           # if error, return empty dt
             if (es %>% class %>% .[1] == "try-error")
                 return(data.table::data.table(status = 1, command = command))
-            return(
-                   list(
-                        command,
-                        es)
-                   )
+            return(list(command, es))
             })
 
-dtl <- esl %>% collate_netMHC
+  dtl <- esl %>% collate_netMHC
 
       return(dtl)
 }
