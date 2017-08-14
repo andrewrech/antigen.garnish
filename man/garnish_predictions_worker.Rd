@@ -2,16 +2,13 @@
 % Please edit documentation in R/antigen.garnish.R
 \name{garnish_predictions_worker}
 \alias{garnish_predictions_worker}
-\title{Parallelized worker function for garnish_predictions}
+\title{Internal function for parallelized \code{nmer} creation.}
 \usage{
 garnish_predictions_worker(dt)
 }
 \arguments{
-\item{dt}{Data table. Input data table from garnish_predictions.}
-}
-\value{
-A data table summary of neoepitope by sample_id.
+\item{dt}{Data table. Input data table from \code{garnish_predictions}.}
 }
 \description{
-Parallelized worker function for garnish_predictions
+Internal function for parallelized \code{nmer} creation.
 }

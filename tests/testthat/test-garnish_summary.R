@@ -2,6 +2,7 @@ library(testthat)
 library(antigen.garnish)
 library(data.table)
 library(magrittr)
+library(dt.inflix)
 
 testthat::test_that("garnish_summary", {
 

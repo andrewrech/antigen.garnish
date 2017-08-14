@@ -4,24 +4,61 @@
 \alias{garnish_predictions}
 \title{Performs epitope prediction.}
 \usage{
-garnish_predictions(dt, assemble = TRUE, generate = TRUE, predict = TRUE)
+garnish_predictions(dt, assemble = TRUE, generate = TRUE, predict = TRUE,
+  humandb = "GRCh38", mousedb = "GRCm38")
 }
 \arguments{
-\item{dt}{Data frame. Input data frame from garnish_variants. \href{http://get.rech.io/antigen.garnish_example_input.txt}{Example.}}
+\item{dt}{Data table. Input data table from garnish_variants. \href{http://get.rech.io/antigen.garnish_example_input.txt}{Example}. Required columns: sample_id, ensembl_transcript_id (e.g. \code{ENST00000311936}), cDNA_change \href{http://varnomen.hgvs.org/recommendations/DNA/}{HGVS} notation (e.g. \code{c.718T>A}), space-separated MHC (e.g. \code{HLA-A*02:01 H-2-Kb HLA-DRB1*03:01}).}
 
 \item{assemble}{Logical. Assemble data table?}
 
 \item{generate}{Logical. Generate peptides?}
 
 \item{predict}{Logical. Predict binding affinities?}
-}
-\value{
-A data table of neoepitopes.
+
+\item{humandb}{Character vector. One of "GRCh37" or "GRCh38".}
+
+\item{mousedb}{Character vector. One of "GRCm37" or "GRCm38".}
 }
 \description{
 Performs epitope prediction on a data table of missense mutations.
 }
 \examples{
-See \\href{https://github.com/andrewrech/antigen.garnish#example}{andrewrech/antigen.garnish}
+\dontrun{
+library(magrittr)
+library(antigen.garnish)
 
+ # download an example VCF
+   dt <- "antigen.garnish_example.vcf" \%T>\%
+   utils::download.file("http://get.rech.io/antigen.garnish_example.vcf", .) \%>\%
+
+ # extract variants
+   garnish_variants \%>\%
+
+ # predict neoepitopes
+   garnish_predictions \%T>\%
+   str
+}
+
+\dontrun{
+## ---- using an existing data table
+
+library(data.table)
+library(magrittr)
+library(antigen.garnish)
+
+ dt <- data.table::data.table(
+          sample_id = "test",
+          ensembl_transcript_id = c("ENSMUST00000128119",
+            "ENSMUST00000044250",
+            "ENSMUST00000018743"),
+          cDNA_change = c("c.4988C>T",
+                          "c.1114T>G",
+                            "c.718T>A"),
+          MHC = c("HLA-A*02:01 HLA-DRB1*14:67",
+            "HLA-A*02:01 HLA-DRB1*14:67",
+            "HLA-A*03:01 HLA-DRB1*03:01")) \%>\%
+ garnish_predictions \%T>\%
+ str
+}
 }

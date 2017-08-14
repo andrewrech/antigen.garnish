@@ -2,6 +2,7 @@ library(testthat)
 library(antigen.garnish)
 library(data.table)
 library(magrittr)
+library(dt.inflix)
 
 testthat::test_that("garnish_predictions_worker", {
   # load test data
@@ -23,16 +24,8 @@ testthat::test_that("garnish_predictions_worker", {
   "pep_type", "pep_base", "mutant_loc"))
 
   # run test
-  dto <- garnish_predictions_worker(dt) %>% data.table::setkey(nmer)
-  dto$nmer %>% sort %>% lapply(nchar) %>% unlist %>% count %>%
+  dto <- garnish_predictions_worker(dt)
 
-  testthat::expect_equal(.,
-  structure(list(x = 8:15,
-                 freq = c(48L, 54L, 60L,
-                          66L, 72L, 78L, 84L, 90L)),
-                  .Names = c("x", "freq"),
-                  row.names = c(NA, -8L),
-                  class = "data.frame")
-  )
+  testthat::expect_equal(dto %>% nrow, 552)
 
     })

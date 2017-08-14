@@ -2,8 +2,9 @@ library(testthat)
 library(antigen.garnish)
 library(data.table)
 library(magrittr)
+library(dt.inflix)
 
-testthat::test_that("ex_cDNA", {
+testthat::test_that("extract_cDNA", {
 
   # load test data
   dt <- data.table::data.table(cDNA_change =
@@ -14,7 +15,7 @@ testthat::test_that("ex_cDNA", {
         "c.315_316insTAATGATACGGC",
         "c.3088_3089insT")) %>%
   # run test
-  ex_cDNA
+  extract_cDNA
 
   testthat::expect_equal(dt, structure(list(cDNA_change = c("c.4988C>T", "c.1114T>G", "c.718T>A",
     "c.718_722delTTGC", "c.315_316insTAATGATACGGC", "c.3088_3089insT"),

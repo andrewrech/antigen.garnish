@@ -10,20 +10,37 @@ garnish_variants(vcfs)
 \item{vcfs}{Character vector. VFC files to import.}
 }
 \value{
-A data table of intersected protein coding variants for neoepitope prediction.
+A VCF as a data table with one unique SnpEff variant annotation per row, including:
+\itemize{
+\item \strong{sample_id}: sample identifier constructed from input \code{.bam} file names
+\item \strong{se}: SnpEff annotation
+\item \strong{effect_type}: SnpEff effect type
+\item \strong{ensembl_transcript_id}: transcript effected
+\item \strong{ensembl_gene_id}: gene effected
+\item \strong{protein_change}: protein change in \href{http://varnomen.hgvs.org/recommendations/DNA/}{HGVS} format
+\item \strong{cDNA_change}: cDNA change in \href{http://varnomen.hgvs.org/recommendations/protein/}{HGVS} format
+\item \strong{protein_coding}: is the variant protein coding?
+}
 }
 \description{
-Process raw variants from a \href{https://github.com/broadinstitute/gatk}{MuTect2}/\href{https://github.com/Illumina/strelka}{Strelka2} - \href{https://github.com/pcingola/SnpEff}{SnpEff} variant annotation pipeline and filters for neoepitope prediction. Hg38 (human) and GRCm38 (murine) variant calls are required. Mutect2 and Strelka variant threshold prior to intersection were empirically established to limit false positives.
+Process variants annotated with \href{http://snpeff.sourceforge.net/}{SnpEff}. VCFs from matched samples are optionally intersected. \href{https://github.com/broadinstitute/gatk}{MuTect2}/\href{https://github.com/Illumina/strelka}{Strelka2}-derived VCFs are filtered for high confidence variants prior to intersection.
 }
 \examples{
+\dontrun{
 library(magrittr)
+library(antigen.garnish)
 
  # download an example VCF
    dt <- "antigen.garnish_example.vcf" \%T>\%
    utils::download.file("http://get.rech.io/antigen.garnish_example.vcf", .) \%>\%
 
  # extract variants
-   antigen.garnish::garnish_variants \%T>\%
+   garnish_variants \%T>\%
    str
 
+ # example output
+   dt <- data.table::fread(
+    "http://get.rech.io/antigen.garnish_example_output.txt") \%T>\%
+    str
+}
 }

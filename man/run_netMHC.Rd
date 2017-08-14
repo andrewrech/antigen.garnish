@@ -2,13 +2,13 @@
 % Please edit documentation in R/antigen.garnish.R
 \name{run_netMHC}
 \alias{run_netMHC}
-\title{Run netMHC commands.}
+\title{Internal function to run netMHC commands.}
 \usage{
 run_netMHC(dt)
 }
 \arguments{
-\item{dt}{Data table of commands to run.}
+\item{dt}{Data table of prediction commands to run.}
 }
 \description{
-Run netMHC commands.
+Internal function to run netMHC commands.
 }

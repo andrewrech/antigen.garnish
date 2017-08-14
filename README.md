@@ -1,4 +1,6 @@
-[![CRAN_Status_Badge](http://www.r-pkg.org/badges/version/antigen.garnish)](http://cran.r-project.org/package=antigen.garnish)
+[![Build Status](https://travis-ci.org/andrewrech/antigen.garnish.svg?branch=master)](https://travis-ci.org/andrewrech/antigen.garnish) [![codecov.io](https://codecov.io/github/andrewrech/antigen.garnish/coverage.svg?branch=master)](https://codecov.io/github/andrewrech/antigen.garnish?branch=master) ![CRAN_Status_Badge](http://www.r-pkg.org/badges/version/antigen.garnish) ![](https://img.shields.io/badge/version-0.0.1-blue.svg)
+
+
 
 # antigen.garnish
 
@@ -15,15 +17,19 @@ An R package for [neoepitope](http://science.sciencemag.org/content/348/6230/69)
 1. **Simplicity**: summarized neoepitopes for each sample
 1. **Thoroughness**:
     - missense mutations and frameshifts
-    - ensemble MHC class I/II binding prediction using [mhcflurry](https://github.com/hammerlab/mhcflurry), [netMHC](http://www.cbs.dtu.dk/services/NetMHC/), [netMHCII](http://www.cbs.dtu.dk/services/NetMHCII/), [netMHCpan](http://www.cbs.dtu.dk/services/NetMHCpan/) and [netMHCIIpan](http://www.cbs.dtu.dk/services/NetMHCIIpan/).
+    - ensemble MHC class I/II binding prediction using [mhcflurry](https://github.com/hammerlab/mhcflurry), [netMHC](http://www.cbs.dtu.dk/services/NetMHC/), [netMHCII](http://www.cbs.dtu.dk/services/NetMHCII/), [netMHCpan](http://www.cbs.dtu.dk/services/NetMHCpan/) and [netMHCIIpan](http://www.cbs.dtu.dk/services/NetMHCIIpan/i).
 1. **Speed**:
     - produce all possible 8-15-mer peptides from 10,000 variants in under 1 minute on a normal laptop
-    - parallelized prediction
+    - on an Amazon Web Services `m4.16xlarge` EC2 instance, 20,000 consensus predictions using 100+ MHC types in under 5 minutes
 
 ## Installation
 
+### Requirements
 
-### Required prediction tools
+* Linux
+* R &ge; 3.4
+
+### Install required prediction tools
 
 Install [mhcflurry](https://github.com/hammerlab/mhcflurry):
 
@@ -33,31 +39,32 @@ mhcflurry-downloads fetch
 nosetests .
 ```
 
-Install [netMHC](http://www.cbs.dtu.dk/services/NetMHC/), [netMHCII](http://www.cbs.dtu.dk/services/NetMHCII/), [netMHCpan](http://www.cbs.dtu.dk/services/NetMHCpan/), and [netMHCIIpan](http://www.cbs.dtu.dk/services/NetMHCIIpan/). These tools need to be available in `$PATH`.
+Install [netMHC](http://www.cbs.dtu.dk/services/NetMHC/), [netMHCII](http://www.cbs.dtu.dk/services/NetMHCII/), [netMHCpan](http://www.cbs.dtu.dk/services/NetMHCpan/), and [netMHCIIpan](http://www.cbs.dtu.dk/services/NetMHCIIpan/):
 
-### R dependencies
-
-Install R dependencies:
-
-```r
-source("https://bioconductor.org/biocLite.R")
-biocLite("biomaRt")
-
-devtools::install_github("tidyverse/magrittr")  ## Github version is required
-devtools::install_github("andrewrech/dt.inflix")
+```sh
+  cd "$HOME"
+  wget "http://get.rech.io/netMHC.tar.gz"
+  tar -xvzf netMHC.tar.gz
 ```
 
-### antigen.garnish
+### Install antigen.garnish
 
 ```r
 devtools::install_github("andrewrech/antigen.garnish")
 ```
 
-## [Package documentation](http://get.rech.io/antigen.garnish.pdf)
+## Package documentation
 
-* `garnish_variants`: Process variants from [SnpEff](http://snpeff.sourceforge.net/).
-* `garnish_predictions`: Perform ensemble neoepitope prediction.
-* `garnish_summary`: Summarize neoepitope prediction.
+* `garnish_variants`: process variants from [SnpEff](http://snpeff.sourceforge.net/)
+* `garnish_predictions`: perform ensemble neoepitope prediction
+* `garnish_summary`: summarize neoepitope prediction
+
+### Generate documentation
+
+```r
+system(paste(shQuote(file.path(R.home("bin"), "R")),
+    "CMD", "Rd2pdf", shQuote(find.package("antigen.garnish"))))
+```
 
 ### Examples
 
@@ -67,7 +74,7 @@ devtools::install_github("andrewrech/antigen.garnish")
 library(magrittr)
 
     # download an example VCF
-    "antigen.garnish_example.vcf" %T>%
+    dt <- "antigen.garnish_example.vcf" %T>%
     utils::download.file("http://get.rech.io/antigen.garnish_example.vcf", .) %>%
 
     # extract variants
@@ -84,14 +91,20 @@ library(magrittr)
     # summarize predictions
     antigen.garnish::garnish_summary %T>%
 
-    print %>%
-
-    # does antigen.garnish work?
-    testthat::compare(
-       data.table::fread("http://get.rech.io/antigen.garnish_example_summary.txt"))
+    print
 ```
 
-#### Test the sliding window
+### Tests
+
+#### Automated testing
+
+```r
+library(testthat)
+
+testthat::test_package("antigen.garnish")
+```
+
+#### How are peptides generated?
 
 ```r
 library(magrittr)

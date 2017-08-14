@@ -2,7 +2,7 @@
 % Please edit documentation in R/antigen.garnish.R
 \name{get_snpeff_annot}
 \alias{get_snpeff_annot}
-\title{Extract snpeff annotation information to a data table.}
+\title{Internal function to extract SnpEff annotation information to a data table.}
 \usage{
 get_snpeff_annot(dt)
 }
@@ -10,5 +10,5 @@ get_snpeff_annot(dt)
 \item{dt}{Data table with INFO column.}
 }
 \description{
-Extract snpeff annotation information to a data table.
+Internal function to extract SnpEff annotation information to a data table.
 }

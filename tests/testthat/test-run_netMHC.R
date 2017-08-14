@@ -2,8 +2,13 @@ library(testthat)
 library(antigen.garnish)
 library(data.table)
 library(magrittr)
+library(dt.inflix)
 
 testthat::test_that("run_netMHC", {
+
+   if (!check_pred_tools() %>% unlist %>% all) {
+    testthat::skip("Skipping run_netMHC because prediction tools are not in PATH")
+  }
 
   # load test data
   # download test files
@@ -35,13 +40,15 @@ testthat::test_that("run_netMHC", {
   dto <- run_netMHC(dt) %>% data.table::rbindlist(fill = TRUE)
 
    testthat::expect_gt(dto %>% nrow, 100)
-   testthat::expect_gt(dto %>% length, 35)
+   testthat::expect_gt(dto %>% length, 10)
    testthat::expect_gt(dto$`affinity(nM)_netMHC` %>%
                         stats::na.omit %>%
                         as.numeric %>%
                         sum, 1000000)
-   testthat::expect_true(c("AQSGTPPT", "AYESSEDC", "CSPRDRFL", "CSPWDRFL", "ENYWRKAY") %chin%
-                         dto$icore_netMHC %>%
-                         all)
+   testthat::expect_true(c("AQSGTPPT",
+                           "AYESSEDC",
+                           "CSPRDRFL",
+                           "CSPWDRFL",
+                           "ENYWRKAY") %chin% dto$icore_netMHC %>% all)
 
     })
