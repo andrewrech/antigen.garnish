@@ -53,11 +53,18 @@ Install [netMHC](http://www.cbs.dtu.dk/services/NetMHC/), [netMHCII](http://www.
 devtools::install_github("andrewrech/antigen.garnish")
 ```
 
-## [Package documentation](http://get.rech.io/antigen.garnish.pdf)
+## Package documentation
 
-* `garnish_variants`: Process variants from [SnpEff](http://snpeff.sourceforge.net/).
-* `garnish_predictions`: Perform ensemble neoepitope prediction.
-* `garnish_summary`: Summarize neoepitope prediction.
+* `garnish_variants`: process variants from [SnpEff](http://snpeff.sourceforge.net/)
+* `garnish_predictions`: perform ensemble neoepitope prediction
+* `garnish_summary`: summarize neoepitope prediction
+
+### Generate documentation
+
+```r
+system(paste(shQuote(file.path(R.home("bin"), "R")),
+    "CMD", "Rd2pdf", shQuote(find.package("antigen.garnish"))))
+```
 
 ### Examples
 

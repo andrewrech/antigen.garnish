@@ -2,7 +2,7 @@
 % Please edit documentation in R/antigen.garnish.R
 \name{get_DAI_uuid}
 \alias{get_DAI_uuid}
-\title{Pair peptides from missense sites by a common UUID for DAi calculations}
+\title{Internal function to pair peptides from missense sites by a common UUID for DAI calculations}
 \usage{
 get_DAI_uuid(dt)
 }
@@ -10,5 +10,5 @@ get_DAI_uuid(dt)
 \item{dt}{Data table of nmers.}
 }
 \description{
-Pair peptides from missense sites by a common UUID for DAi calculations
+Internal function to pair peptides from missense sites by a common UUID for DAI calculations
 }

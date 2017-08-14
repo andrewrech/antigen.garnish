@@ -2,7 +2,7 @@
 % Please edit documentation in R/antigen.garnish.R
 \name{extract_cDNA}
 \alias{extract_cDNA}
-\title{Extract cDNA changes from hgvs nomenclature (http://varnomen.hgvs.org/)}
+\title{Internal function to extract cDNA changes from HGVS notation}
 \usage{
 extract_cDNA(dt)
 }
@@ -10,5 +10,5 @@ extract_cDNA(dt)
 \item{dt}{Data table with INFO column.}
 }
 \description{
-Extract cDNA changes from hgvs nomenclature (http://varnomen.hgvs.org/)
+Internal function to extract cDNA changes from HGVS notation
 }

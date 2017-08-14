@@ -2,7 +2,7 @@
 % Please edit documentation in R/antigen.garnish.R
 \name{collate_netMHC}
 \alias{collate_netMHC}
-\title{Collate results from netMHC prediction}
+\title{Internal function to collate results from netMHC prediction}
 \usage{
 collate_netMHC(esl)
 }
@@ -10,5 +10,5 @@ collate_netMHC(esl)
 \item{esl}{List of outputs from netMHC.}
 }
 \description{
-Collate results from netMHC prediction
+Internal function to collate results from netMHC prediction
 }

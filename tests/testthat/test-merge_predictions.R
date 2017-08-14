@@ -16,9 +16,9 @@ testthat::test_that("garnish_predictions", {
      utils::download.file(
           paste0("http://get.rech.io/", .), .)
 
-    dto <- merge_pred_results(
+    dto <- merge_predictions(
             readRDS(gzcon(url("http://get.rech.io/antigen.garnish_netMHC_test_output.RDS"))),
-            readRDS(gzcon(url("http://get.rech.io/antigen.garnish_merge_pred_results_input_dt.RDS")))
+            readRDS(gzcon(url("http://get.rech.io/antigen.garnish_merge_predictions_input_dt.RDS")))
                    )
 
     testthat::expect_equal(dto %>% nrow, 462)

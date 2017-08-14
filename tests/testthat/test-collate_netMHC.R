@@ -97,9 +97,9 @@ esl <- list(
    testthat::expect_equal(dt[[1]] %>% nrow, 48)
    testthat::expect_equal(dt[[1]] %>% length, 15)
    testthat::expect_true(c("AQSGTPPT",
-                           "AYESSEDC",
-                           "CSPRDRFL",
-                           "CSPWDRFL",
-                           "ENYWRKAY") %chin% dt[[1]]$icore_netMHC %>% all)
+                              "AYESSEDC",
+                              "CSPRDRFL",
+                              "CSPWDRFL",
+                              "ENYWRKAY") %chin% dt[[1]]$icore_netMHC %>% all)
 
     })

@@ -10,10 +10,20 @@ garnish_variants(vcfs)
 \item{vcfs}{Character vector. VFC files to import.}
 }
 \value{
-A data table of intersected protein coding variants for neoepitope prediction.
+A VCF as a data table with one unique SnpEff variant annotation per row, including:
+\itemize{
+\item \strong{sample_id}: sample identifier constructed from input \code{.bam} file names
+\item \strong{se}: SnpEff annotation
+\item \strong{effect_type}: SnpEff effect type
+\item \strong{ensembl_transcript_id}: transcript effected
+\item \strong{ensembl_gene_id}: gene effected
+\item \strong{protein_change}: protein change in \href{http://varnomen.hgvs.org/recommendations/DNA/}{HGVS} format
+\item \strong{cDNA_change}: cDNA change in \href{http://varnomen.hgvs.org/recommendations/protein/}{HGVS} format
+\item \strong{protein_coding}: is the variant protein coding?
+}
 }
 \description{
-Process raw variants annotated with \href{https://github.com/pcingola/SnpEff}{SnpEff}. VCFs from matched samples are optionally intersected. \href{https://github.com/broadinstitute/gatk}{MuTect2}/\href{https://github.com/Illumina/strelka}{Strelka2}-derived VCFs are filtered for high confidence variants prior to intersection.
+Process variants annotated with \href{http://snpeff.sourceforge.net/}{SnpEff}. VCFs from matched samples are optionally intersected. \href{https://github.com/broadinstitute/gatk}{MuTect2}/\href{https://github.com/Illumina/strelka}{Strelka2}-derived VCFs are filtered for high confidence variants prior to intersection.
 }
 \examples{
 \dontrun{

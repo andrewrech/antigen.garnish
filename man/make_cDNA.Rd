@@ -2,7 +2,7 @@
 % Please edit documentation in R/antigen.garnish.R
 \name{make_cDNA}
 \alias{make_cDNA}
-\title{Create cDNA from hgvs nomenclature (http://varnomen.hgvs.org/)}
+\title{Internal function to create cDNA from HGVS notation}
 \usage{
 make_cDNA(dt)
 }
@@ -10,5 +10,5 @@ make_cDNA(dt)
 \item{dt}{Data table with INFO column.}
 }
 \description{
-Create cDNA from hgvs nomenclature (http://varnomen.hgvs.org/)
+Internal function to create cDNA from HGVS notation
 }

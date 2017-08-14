@@ -7,7 +7,22 @@
 garnish_summary(dt)
 }
 \arguments{
-\item{dt}{Data table. Prediction output from garnish_predictions.}
+\item{dt}{Data table. Prediction output from \code{garnish_predictions}.}
+}
+\value{
+A summary data table of \code{dt} by \code{sample_id} with the following columns:
+\itemize{
+\item \strong{priority_neos}: neoepitopes that meet both classic and alternative criteria, or that meet classic criteria and are derived from frameshift mutations
+\item \strong{classic_neos}: high affinity neoepitopes
+\item \strong{classic_top_score}: sum of the top three affinity scores (1 / MHC affinity (nM))
+\item \strong{alt_neos}: mutant nmers predicted to bind MHC with greatly improved affinity relative to their non-mutated counterpart
+\item \strong{alt_top_score}: sum of the top three \code{nmer} differential agretopicity indices; differential agretopicity index (DAI) is the ratio of MHC binding affinity between mutant and wt peptide.
+\item \strong{nmers}: mutant nmers
+\item \strong{variants}: genomic variants evaluated
+\item \strong{transcripts}: transcripts evaluated
+\item \strong{predictions}: wt and mutant predictions performed
+\item \strong{mhc_binders}: nmers predicted to at least minimally bind MHC
+}
 }
 \description{
 Calculate neoepitope summary statistics over samples.

@@ -8,7 +8,7 @@ garnish_predictions(dt, assemble = TRUE, generate = TRUE, predict = TRUE,
   humandb = "GRCh38", mousedb = "GRCm38")
 }
 \arguments{
-\item{dt}{Data table. Input data table from garnish_variants. \href{http://get.rech.io/antigen.garnish_example_input.txt}{Example}. Required columns: sample_id, nensembl_transcript_id (e.g. "ENST00000311936"), cDNA_change HGVS notation (e.g. "c.718T>A"), space-separated MHC (e.g. "HLA-A*02:01 H-2-Kb HLA-DRB1*03:01").}
+\item{dt}{Data table. Input data table from garnish_variants. \href{http://get.rech.io/antigen.garnish_example_input.txt}{Example}. Required columns: sample_id, ensembl_transcript_id (e.g. \code{ENST00000311936}), cDNA_change \href{http://varnomen.hgvs.org/recommendations/DNA/}{HGVS} notation (e.g. \code{c.718T>A}), space-separated MHC (e.g. \code{HLA-A*02:01 H-2-Kb HLA-DRB1*03:01}).}
 
 \item{assemble}{Logical. Assemble data table?}
 
@@ -19,9 +19,6 @@ garnish_predictions(dt, assemble = TRUE, generate = TRUE, predict = TRUE,
 \item{humandb}{Character vector. One of "GRCh37" or "GRCh38".}
 
 \item{mousedb}{Character vector. One of "GRCm37" or "GRCm38".}
-}
-\value{
-A data table of neoepitopes.
 }
 \description{
 Performs epitope prediction on a data table of missense mutations.
@@ -42,5 +39,4 @@ library(antigen.garnish)
    garnish_predictions \%T>\%
    str
 }
-
 }
