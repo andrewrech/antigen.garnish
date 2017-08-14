@@ -39,4 +39,26 @@ library(antigen.garnish)
    garnish_predictions \%T>\%
    str
 }
+
+\dontrun{
+## ---- using an existing data table
+
+library(data.table)
+library(magrittr)
+library(antigen.garnish)
+
+ dt <- data.table::data.table(
+          sample_id = "test",
+          ensembl_transcript_id = c("ENSMUST00000128119",
+            "ENSMUST00000044250",
+            "ENSMUST00000018743"),
+          cDNA_change = c("c.4988C>T",
+                          "c.1114T>G",
+                            "c.718T>A"),
+          MHC = c("HLA-A*02:01 HLA-DRB1*14:67",
+            "HLA-A*02:01 HLA-DRB1*14:67",
+            "HLA-A*03:01 HLA-DRB1*03:01")) \%>\%
+ garnish_predictions \%T>\%
+ str
+}
 }

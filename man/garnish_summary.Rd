@@ -51,5 +51,4 @@ library(antigen.garnish)
     "http://get.rech.io/antigen.garnish_example_summary.txt") \%T>\%
     str
 }
-
 }

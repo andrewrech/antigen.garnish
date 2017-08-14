@@ -1061,6 +1061,28 @@ garnish_variants <- function(vcfs) {
 #'    garnish_predictions %T>%
 #'    str
 #'}
+#'
+#'\dontrun{
+#'## ---- using an existing data table
+#'
+#'library(data.table)
+#'library(magrittr)
+#'library(antigen.garnish)
+#'
+#'  dt <- data.table::data.table(
+#'           sample_id = "test",
+#'           ensembl_transcript_id = c("ENSMUST00000128119",
+#'             "ENSMUST00000044250",
+#'             "ENSMUST00000018743"),
+#'           cDNA_change = c("c.4988C>T",
+#'                           "c.1114T>G",
+#'                             "c.718T>A"),
+#'           MHC = c("HLA-A*02:01 HLA-DRB1*14:67",
+#'             "HLA-A*02:01 HLA-DRB1*14:67",
+#'             "HLA-A*03:01 HLA-DRB1*03:01")) %>%
+#'  garnish_predictions %T>%
+#'  str
+#' }
 #' @export garnish_predictions
 #' @md
 garnish_predictions <- function(dt,
@@ -1425,7 +1447,6 @@ if (!c("var_uuid",
 #'     "http://get.rech.io/antigen.garnish_example_summary.txt") %T>%
 #'     str
 #'}
-#'
 #' @return A summary data table of \code{dt} by \code{sample_id} with the following columns:
 #' * **priority_neos**: neoepitopes that meet both classic and alternative criteria, or that meet classic criteria and are derived from frameshift mutations
 #' * **classic_neos**: high affinity neoepitopes
