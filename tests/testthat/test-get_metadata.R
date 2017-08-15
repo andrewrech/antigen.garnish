@@ -16,18 +16,18 @@ testthat::test_that("get_metadata", {
 
  testthat::expect_equal(dto %>% names,
         c("ensembl_transcript_id",
-        "external_gene_name",
-        "ensembl_gene_id",
-        "description",
-        "chromosome_name",
-        "start_position",
-        "end_position",
-        "transcript_start",
-        "transcript_end",
-        "transcript_length",
-        "refseq_mrna",
-        "coding",
-        "peptide")
+          "external_gene_name",
+          "ensembl_gene_id",
+          "description",
+          "chromosome_name",
+          "start_position",
+          "end_position",
+          "transcript_start",
+          "transcript_end",
+          "transcript_length",
+          "refseq_mrna",
+          "coding",
+          "peptide")
 )
 
     })

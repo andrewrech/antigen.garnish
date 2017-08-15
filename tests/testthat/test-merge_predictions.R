@@ -7,7 +7,7 @@ library(dt.inflix)
 testthat::test_that("garnish_predictions", {
 
 # load test data and run test
-
+  # requires mhcflurry output in disk
     "antigen.garnish_example_mhcflurry_output_6e7d571f-8b47-42c5-94e3-c8fcfe407669.csv" %>%
      utils::download.file(
           paste0("http://get.rech.io/", .), .)
@@ -21,7 +21,7 @@ testthat::test_that("garnish_predictions", {
             readRDS(gzcon(url("http://get.rech.io/antigen.garnish_merge_predictions_input_dt.RDS")))
                    )
 
-    testthat::expect_equal(dto %>% nrow, 462)
+    testthat::expect_equal(dto %>% nrow, 552)
     testthat::expect_equal(dto %>% length, 107)
 
     if (file.exists("antigen.garnish_example_mhcflurry_output_6e7d571f-8b47-42c5-94e3-c8fcfe407669.csv"))

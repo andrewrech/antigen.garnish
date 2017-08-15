@@ -8,7 +8,7 @@ garnish_predictions(dt, assemble = TRUE, generate = TRUE, predict = TRUE,
   humandb = "GRCh38", mousedb = "GRCm38")
 }
 \arguments{
-\item{dt}{Data table. Input data table from garnish_variants. \href{http://get.rech.io/antigen.garnish_example_input.txt}{Example}. Required columns: sample_id, ensembl_transcript_id (e.g. \code{ENST00000311936}), cDNA_change \href{http://varnomen.hgvs.org/recommendations/DNA/}{HGVS} notation (e.g. \code{c.718T>A}), space-separated MHC (e.g. \code{HLA-A*02:01 H-2-Kb HLA-DRB1*03:01}).}
+\item{dt}{Data table. Input data table from garnish_variants. Required columns: sample_id, ensembl_transcript_id (e.g. \code{ENST00000311936}), cDNA_change \href{http://varnomen.hgvs.org/recommendations/DNA/}{HGVS} notation (e.g. \code{c.718T>A}), space-separated MHC (e.g. \code{HLA-A*02:01 H-2-Kb HLA-DRB1*03:01}).}
 
 \item{assemble}{Logical. Assemble data table?}
 
@@ -49,15 +49,16 @@ library(antigen.garnish)
 
  dt <- data.table::data.table(
           sample_id = "test",
-          ensembl_transcript_id = c("ENSMUST00000128119",
+          ensembl_transcript_id =
+          c("ENSMUST00000128119",
             "ENSMUST00000044250",
             "ENSMUST00000018743"),
           cDNA_change = c("c.4988C>T",
                           "c.1114T>G",
-                            "c.718T>A"),
+                          "c.718T>A"),
           MHC = c("HLA-A*02:01 HLA-DRB1*14:67",
-            "HLA-A*02:01 HLA-DRB1*14:67",
-            "HLA-A*03:01 HLA-DRB1*03:01")) \%>\%
+                  "H-2-Kb H-2-IAd",
+                  "HLA-A*01:47 HLA-DRB1*03:08")) \%>\%
  garnish_predictions \%T>\%
  str
 }

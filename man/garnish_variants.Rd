@@ -37,10 +37,5 @@ library(antigen.garnish)
  # extract variants
    garnish_variants \%T>\%
    str
-
- # example output
-   dt <- data.table::fread(
-    "http://get.rech.io/antigen.garnish_example_output.txt") \%T>\%
-    str
 }
 }
