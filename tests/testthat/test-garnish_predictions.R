@@ -10,33 +10,35 @@ testthat::test_that("garnish_predictions", {
     testthat::skip("Skipping run_netMHC because prediction tools are not in PATH")
     }
 
-# copy of README
+    # load test data
+    dt <- data.table::data.table(
+           sample_id = "test",
+           ensembl_transcript_id =
+           c("ENSMUST00000128119",
+             "ENSMUST00000044250",
+             "ENSMUST00000018743"),
+           cDNA_change = c("c.4988C>T",
+                           "c.1114T>G",
+                           "c.718T>A"),
+           MHC = c("HLA-A*02:01 HLA-DRB1*14:67",
+                   "H-2-Kb H-2-IAd",
+                   "HLA-A*01:47 HLA-DRB1*03:08")) %>%
+      garnish_predictions
 
-library(magrittr)
-
-    # download an example VCF
-    dt <- "antigen.garnish_example.vcf" %T>%
-    utils::download.file("http://get.rech.io/antigen.garnish_example.vcf", .) %>%
-
-    # extract variants
-    garnish_variants %>%
-
-    # add MHC types
-        .[, MHC := c("HLA-A*02:01 HLA-DRB1*14:67",
-                    "HLA-A*02:01 HLA-DRB1*14:67",
-                    "HLA-A*03:01 HLA-DRB1*03:01")] %>%
-
-    # predict neoepitopes
-    garnish_predictions %>%
-
-    # summarize predictions
-    garnish_summary
-
-    # does antigen.garnish work?
-    testthat::expect_equal(dt$variants, 3)
-    testthat::expect_equal(dt$alt_neos, 2)
-    testthat::expect_gt(dt$predictions, 230)
+        testthat::expect_equal(dt %>% nrow, 552)
+        testthat::expect_equal(dt$MHC %>% unique %>% sort,
+            c("H-2-IAd",
+              "H-2-Kb",
+              "HLA-A*01:47",
+              "HLA-A*02:01",
+              "HLA-DRB1*03:08",
+              "HLA-DRB1*14:67"))
+          testthat::expect_equal(
+                dt[, nmer %>%
+                nchar %>%
+                unique] %>% sort,
+                8:15)
 
     if (file.exists("antigen.garnish_example.vcf"))
-    file.remove("antigen.garnish_example.vcf")
+      file.remove("antigen.garnish_example.vcf")
     })

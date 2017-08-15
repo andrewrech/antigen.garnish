@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/andrewrech/antigen.garnish.svg?branch=master)](https://travis-ci.org/andrewrech/antigen.garnish) [![codecov.io](https://codecov.io/github/andrewrech/antigen.garnish/coverage.svg?branch=master)](https://codecov.io/github/andrewrech/antigen.garnish?branch=master) ![CRAN_Status_Badge](http://www.r-pkg.org/badges/version/antigen.garnish) ![](https://img.shields.io/badge/version-0.0.1-blue.svg)
+[![Build Status](https://travis-ci.org/andrewrech/antigen.garnish.svg?branch=master)](https://travis-ci.org/andrewrech/antigen.garnish) [![codecov.io](https://codecov.io/github/andrewrech/antigen.garnish/coverage.svg?branch=master)](https://codecov.io/github/andrewrech/antigen.garnish?branch=master) ![](https://img.shields.io/badge/version-0.0.1-blue.svg)
 
 
 
@@ -89,10 +89,10 @@ library(magrittr)
     # extract variants
     antigen.garnish::garnish_variants %>%
 
-    # add MHC types
+    # add test MHC types
         .[, MHC := c("HLA-A*02:01 HLA-DRB1*14:67",
-                    "HLA-A*02:01 HLA-DRB1*14:67",
-                    "HLA-A*03:01 HLA-DRB1*03:01")] %>%
+                    "H-2-Kb H-2-IAd",
+                    "HLA-A*01:47 HLA-DRB1*03:08")] %>%
 
     # predict neoepitopes
     antigen.garnish::garnish_predictions %>%
@@ -136,6 +136,7 @@ library(magrittr)
 ## Authors
 
 * [Andrew J. Rech](http://info.rech.io)
+* [Lee P. Richman](http://www.med.upenn.edu/apps/faculty/index.php/g275/p1073)
 * [Robert H. Vonderheide](http://www.med.upenn.edu/apps/faculty/index.php/g275/p1073)
 
 ## License

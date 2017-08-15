@@ -131,8 +131,7 @@ get_DAI_uuid <- function(dt){
           data.table::fread(x)
         }) %>% data.table::rbindlist %>%
             data.table::setnames(c("allele", "peptide"), c("MHC", "nmer"))
-
-       dt <- merge(dt, fdt, by = c("nmer", "MHC"), all.x = TRUE)
+            dt <- merge(dt, fdt, by = c("nmer", "MHC"), all.x = TRUE)
 
        # read and merge mhcnuggets output
        nugdt <- list.files(pattern = "mhcnuggets_output.*csv") %>%
@@ -152,23 +151,33 @@ get_DAI_uuid <- function(dt){
             suppressWarnings(set(dt, j = col, value = dt[, get(col) %>% as.numeric]))
           }
 
-        # get vector of netMHC scores
-          cols <- dt %>% names %includef% c("affinity(nM)")
+      # get vector of netMHC scores
+         cols <- dt %>% names %includef% c("affinity(nM)")
 
-          dt[, Consensus_scores := c(.(get(cols)) %>%
-          stats::na.omit, NA) %>% data.table::first, by = 1:nrow(dt)]
+      # create a long format table
+        # to calculate consensus score
+      dtm <- dt[, .SD, .SDcols = c("nmer", "MHC", cols)] %>%
+           melt(id.vars = c("nmer", "MHC")) %>%
+      # order affinity predictions by program preference
+           .[, variable := variable %>% factor(levels = cols)] %>%
+      # key table so first non-NA value is the preferred programe
+           data.table::setkey(nmer, MHC, variable) %>%
+           .[, .(Consensus_scores =
+      # define Consensus_score
+              value %>%
+              na.omit %>%
+              .[1]), by = c("nmer", "MHC")] %>%
+           .[!Consensus_scores %>% is.na]
 
-      # take average of mhcflurry and best available netMHC tool
+      # merge back
+      dt %<>% merge(dtm, by = c("nmer", "MHC"))
+
+      # take average of mhcflurry, mhcnuggets, and best available netMHC tool
         dt[, Consensus_scores := c(Consensus_scores,
                                        mhcflurry_prediction,
                                           mhcnuggets_prediction) %>%
-                                      mean(na.omit = TRUE),
+                                      mean(na.rm = TRUE),
                                       by = 1:nrow(dt)]
-      # remove nmers without predictions
-
-        dt <- dt[!Consensus_scores %>% is.na]
-
-      # calculate DAI
 
         dt[, DAI := NA %>% as.numeric]
 
@@ -346,6 +355,7 @@ get_pred_commands <- function(dt){
   }
 
 
+
 ## ---- collate_netMHC
 #' Internal function to collate results from netMHC prediction
 #'
@@ -375,8 +385,7 @@ collate_netMHC <- function(esl){
           if (dtn %>%
               stringr::str_detect("ERROR") %>%
               any) {
-            paste0(command, " returned ERROR") %>%
-            warning
+            warning(paste0(command, " returned ERROR"))
             return(NULL)
           }
 
@@ -427,6 +436,7 @@ collate_netMHC <- function(esl){
                                  paste0((dt %>% names %exclude% "allele|nmer"), "_", ptype))
 
           # name allele column for merge
+            if (!"allele" %chin% (dt %>% names)) browser()
             dt %>%
               data.table::setnames("allele", ptype)
 
@@ -489,6 +499,8 @@ Sys.setenv(PATH = paste0(default_path, ":", Sys.getenv("PATH")))
         return(PATH_status)
 }
 
+
+
 ## ---- run_netMHC
 #' Internal function to run netMHC commands.
 #'
@@ -500,10 +512,6 @@ run_netMHC <- function(dt){
 
   if (!"command" %chin% (dt %>% names))
     stop("dt must contain command column")
-
-   if (!check_pred_tools() %>% unlist %>% all) {
-    stop("Missing prediction tools in PATH")
-  }
 
   # run commands
   esl <- parallel::mclapply(
@@ -651,7 +659,6 @@ get_snpeff_annot <- function(dt){
       return(dt)
 
         }
-
 
 
 
@@ -843,6 +850,8 @@ make_cDNA <- function(dt){
 
       }
 
+
+
 ## ---- extract_cDNA
 #' Internal function to extract cDNA changes from HGVS notation
 #'
@@ -889,6 +898,8 @@ extract_cDNA <- function(dt){
 
   }
 
+
+
 ## ---- translate_cDNA
 #' Internal function to translate cDNA to peptides
 #'
@@ -916,6 +927,8 @@ extract_cDNA <- function(dt){
 
         }) %>% unlist
   }
+
+
 
 ## ---- garnish_variants
 #' Intakes variants and returns an intersected data table for epitope prediction.
@@ -945,11 +958,6 @@ extract_cDNA <- function(dt){
 #'  # extract variants
 #'    garnish_variants %T>%
 #'    str
-#'
-#'  # example output
-#'    dt <- data.table::fread(
-#'     "http://get.rech.io/antigen.garnish_example_output.txt") %T>%
-#'     str
 #'}
 #' @export garnish_variants
 #' @md
@@ -1053,7 +1061,7 @@ garnish_variants <- function(vcfs) {
 #'
 #' Performs epitope prediction on a data table of missense mutations.
 #'
-#' @param dt Data table. Input data table from garnish_variants. \href{http://get.rech.io/antigen.garnish_example_input.txt}{Example}. Required columns: sample_id, ensembl_transcript_id (e.g. `ENST00000311936`), cDNA_change \href{http://varnomen.hgvs.org/recommendations/DNA/}{HGVS} notation (e.g. `c.718T>A`), space-separated MHC (e.g. `HLA-A*02:01 H-2-Kb HLA-DRB1*03:01`).
+#' @param dt Data table. Input data table from garnish_variants. Required columns: sample_id, ensembl_transcript_id (e.g. `ENST00000311936`), cDNA_change \href{http://varnomen.hgvs.org/recommendations/DNA/}{HGVS} notation (e.g. `c.718T>A`), space-separated MHC (e.g. `HLA-A*02:01 H-2-Kb HLA-DRB1*03:01`).
 #' @param assemble Logical. Assemble data table?
 #' @param generate Logical. Generate peptides?
 #' @param predict Logical. Predict binding affinities?
@@ -1113,15 +1121,16 @@ garnish_variants <- function(vcfs) {
 #'
 #'  dt <- data.table::data.table(
 #'           sample_id = "test",
-#'           ensembl_transcript_id = c("ENSMUST00000128119",
+#'           ensembl_transcript_id =
+#'           c("ENSMUST00000128119",
 #'             "ENSMUST00000044250",
 #'             "ENSMUST00000018743"),
 #'           cDNA_change = c("c.4988C>T",
 #'                           "c.1114T>G",
-#'                             "c.718T>A"),
+#'                           "c.718T>A"),
 #'           MHC = c("HLA-A*02:01 HLA-DRB1*14:67",
-#'             "HLA-A*02:01 HLA-DRB1*14:67",
-#'             "HLA-A*03:01 HLA-DRB1*03:01")) %>%
+#'                   "H-2-Kb H-2-IAd",
+#'                   "HLA-A*01:47 HLA-DRB1*03:08")) %>%
 #'  garnish_predictions %T>%
 #'  str
 #' }
@@ -1136,7 +1145,7 @@ garnish_predictions <- function(dt,
 
   if (!"data.frame" %chin% (dt %>% class)) stop("dt must be a data frame or data table")
 
-  if (!c("sample_id", "ensembl_transcript_id", "cDNA_change", "MHC") %chin% (dt %>% names) %>% all) stop("Input dt must contain four columns:\n\nsample_id\nensembl_transcript_id (e.g. \"ENST00000311936\")\ncDNA_change in HGVS notation (e.g. \"c.718T>A\")\nMHC\n    e.g. \"HLA-A*02:01 HLA-A*03:01\" or\n         \"H-2-Kb H-2-Kb\" or \"HLA-DRB1*11:07 [second type]\"\n\nExample: http://get.rech.io/antigen.garnish_example_input.txt")
+  if (!c("sample_id", "ensembl_transcript_id", "cDNA_change", "MHC") %chin% (dt %>% names) %>% all) stop("Input dt must contain four columns:\n\nsample_id\nensembl_transcript_id (e.g. \"ENST00000311936\")\ncDNA_change in HGVS notation (e.g. \"c.718T>A\")\nMHC\n    e.g. \"HLA-A*02:01 HLA-A*03:01\" or\n         \"H-2-Kb H-2-Kb\" or \"HLA-DRB1*11:07 [second type]\"")
 
   dt %<>% data.table::as.data.table
 
@@ -1176,7 +1185,8 @@ if (assemble){
     }
 
 
-  ## ---- create mutant peptide index
+
+## ---- create mutant peptide index
 
     # index first mismatch
     suppressWarnings({
@@ -1217,8 +1227,7 @@ if (assemble){
     # between two integers
       get_ss_str <- function(x, y) {
         mcMap(function(x, y) (x %>% as.integer):(y %>% as.integer) %>%
-              paste(collapse = " "), x, y) %>%
-              unlist
+              paste(collapse = " "), x, y) %>% unlist
         }
 
     # create a space-separated vector of mutant indices
@@ -1337,6 +1346,10 @@ if (predict) {
     dtfn <- dtl[[2]]
 
   # run commands
+   if (!check_pred_tools() %>% unlist %>% all) {
+    warning("Missing prediction tools in PATH, returning data table without predictions.")
+    return(dt)
+  }
 
     # netMHC
     message("Running netMHC in parallel")
@@ -1371,6 +1384,7 @@ if (predict) {
 }
    return(dt)
 }
+
 
 
 ## ---- garnish_predictions_worker
@@ -1496,11 +1510,6 @@ if (!c("var_uuid",
 #'  # summarize predictions
 #'    garnish_summary %T>%
 #'    print
-#'
-#'  # example output
-#'    dt <- data.table::fread(
-#'     "http://get.rech.io/antigen.garnish_example_summary.txt") %T>%
-#'     str
 #'}
 #' @return A summary data table of \code{dt} by \code{sample_id} with the following columns:
 #' * **priority_neos**: neoepitopes that meet both classic and alternative criteria, or that meet classic criteria and are derived from frameshift mutations
