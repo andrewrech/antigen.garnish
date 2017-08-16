@@ -189,9 +189,9 @@ get_DAI_uuid <- function(dt){
 #' @md
 get_pred_commands <- function(dt){
 
-  # if (!c("nmer", "MHC", "nmer_l") %chin%
-  #    (dt %>% names) %>% any)
-  #    stop("dt is missing columns")
+  if (!c("nmer", "MHC", "nmer_l") %chin%
+     (dt %>% names) %>% any)
+     stop("dt is missing columns")
 
   if (dt[, MHC %>% unique] %>%
       stringr::str_detect(" ") %>% any) dt %<>%
@@ -639,13 +639,12 @@ get_metadata <- function(dt,
 
 
   # set genome host
+  if (!humandb %chin% c("GRCh37", "GRCh38")) stop("humandb set incorrectly")
+  if (!mousedb %chin% c("GRCm37", "GRCm38")) stop("mousedb set incorrectly")
   if (humandb == "GRCh38") hhost <- "ensembl.org"
   if (humandb == "GRCh37") hhost <- "grch37.ensembl.org"
   if (mousedb == "GRCm38") mhost <- "ensembl.org"
   if (mousedb == "GRCm37") mhost <- "may2012.archive.ensembl.org"
-
-  if (!exists("hhost")) stop("humandb set incorrectly")
-  if (!exists("mhost")) stop("mousedb set incorrectly")
 
     # remove version suffix
     dt[, ensembl_transcript_id :=
@@ -1101,11 +1100,15 @@ garnish_predictions <- function(dt,
                                humandb = "GRCh38",
                                mousedb = "GRCm38") {
 
-  if (!"data.frame" %chin% (dt %>% class)) stop("dt must be a data frame or data table")
-
-  if (!c("sample_id", "ensembl_transcript_id", "cDNA_change", "MHC") %chin% (dt %>% names) %>% all) stop("Input dt must contain four columns:\n\nsample_id\nensembl_transcript_id (e.g. \"ENST00000311936\")\ncDNA_change in HGVS notation (e.g. \"c.718T>A\")\nMHC\n    e.g. \"HLA-A*02:01 HLA-A*03:01\" or\n         \"H-2-Kb H-2-Kb\" or \"HLA-DRB1*11:07 [second type]\"")
+  # remove temporary files on exit
+  on.exit({
+    message("Removing temporary files")
+    list.files(pattern = "(netMHC|mhcflurry).*_[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12}\\.csv") %>% file.remove
+  })
 
   dt %<>% data.table::as.data.table
+
+  if (!c("sample_id", "ensembl_transcript_id", "cDNA_change", "MHC") %chin% (dt %>% names) %>% all) stop("Input dt must contain four columns:\n\nsample_id\nensembl_transcript_id (e.g. \"ENST00000311936\")\ncDNA_change in HGVS notation (e.g. \"c.718T>A\")\nMHC\n    e.g. \"HLA-A*02:01 HLA-A*03:01\" or\n         \"H-2-Kb H-2-Kb\" or \"HLA-DRB1*11:07 [second type]\"")
 
 if (assemble){
 
@@ -1293,26 +1296,17 @@ if (generate) {
 
 if (predict) {
 
-  # remove temporary files on exit
-  on.exit({
-    message("Removing temporary files")
-    list.files(pattern = "(netMHC|mhcflurry).*_[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12}\\.csv") %>% file.remove
-  })
-
     dtl <- dt %>% get_pred_commands
-    dt <- dtl[[1]]
-    dtfn <- dtl[[2]]
 
   # run commands
    if (!check_pred_tools() %>% unlist %>% all) {
     warning("Missing prediction tools in PATH, returning data table without predictions.")
-    return(dt)
+    return(dtl[[1]])
   }
 
     # netMHC
     message("Running netMHC in parallel")
-    ag_out_raw <- run_netMHC(dtfn)
-    saveRDS(ag_out_raw, "ag_out_raw.RDS")
+    dto <- run_netMHC(dtl[[2]])
 
     # mhcflurry
     message("Running mhcflurry in parallel")
@@ -1324,7 +1318,7 @@ if (predict) {
       system
           })
 
-   dt <- merge_predictions(ag_out_raw, dt)
+   dt <- merge_predictions(dto, dtl[[1]])
 
 }
    return(dt)
@@ -1359,7 +1353,6 @@ if (!c("var_uuid",
   nmer_dt <- parallel::mclapply(1:nrow(dt),
                                 function(n){
 
-    tryCatch({
 
       ## --- Write peptide fragments
 
@@ -1418,10 +1411,6 @@ if (!c("var_uuid",
 
       return(nmer_dt)
 
-    }, error = function(e) {
-          print(cat("ERROR :", conditionMessage(e), "\n"))
-          return(NULL)
-          })
 
     }) %>% data.table::rbindlist %>% unique
 
