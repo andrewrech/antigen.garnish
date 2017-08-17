@@ -821,8 +821,7 @@ if (!c("var_uuid",
   # window n-mers over an index of interest
 
   message("Generating nmers")
-  ##TODO, turned off parallelization here to bypass error
-  nmer_dt <- lapply(1:nrow(dt),
+  nmer_dt <- parallel::mclapply(1:nrow(dt),
                                 function(n){
 
 
