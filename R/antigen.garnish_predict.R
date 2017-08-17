@@ -239,6 +239,7 @@ get_pred_commands <- function(dt){
             "mhcflurry_input_",  uuid::UUIDgenerate() %>% substr(1, 18), ".csv"))
     }
   # generate input for mhcnuggets predictions
+    dt[, mhcnuggets := MHC]
     dt[, mhcnuggets := detect_hla(mhcnuggets, alleles)]
     
     mnug_dt <- dt[mhcnuggets %chin% alleles[type == "mhcnuggets", allele] &
