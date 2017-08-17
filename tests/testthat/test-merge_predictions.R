@@ -31,7 +31,7 @@ testthat::test_that("garnish_predictions", {
   )
   
   testthat::expect_equal(dto %>% nrow, 552)
-  testthat::expect_equal(dto %>% length, 109)
+  testthat::expect_equal(dto %>% length, 110)
   
   if (file.exists("ag_ex_mhcnuggets_output_gru_HLA-A0203_fc5e83cf-8db7-4033.csv"))
     file.remove("ag_ex_mhcnuggets_output_gru_HLA-A0203_fc5e83cf-8db7-4033.csv")
