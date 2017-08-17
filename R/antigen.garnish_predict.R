@@ -97,8 +97,32 @@ get_DAI_uuid <- function(dt){
         }) %>% data.table::rbindlist %>%
             data.table::setnames(c("allele", "peptide"), c("MHC", "nmer"))
             dt <- merge(dt, fdt, by = c("nmer", "MHC"), all.x = TRUE)
+            
+      # read and merge mhcnuggets output
+      nugdt <- list.files(pattern = "mhcnuggets_output.*csv") %>%
+                lapply(., function(x){
+                  data.table::fread(x) %>%
+                    .[, mhcnuggets := basename(x) %>%
+                        stringr::str_extract(pattern = "(?<=_)(H-2-)|(HLA).*(?=_)") %>%
+                        unlist] %>%
+                    .[, tool := basename(x) %>%
+                        stringr::str_extract(pattern = "(gru)|(lstm)") %>%
+                        unlist]
+                }) %>%
+                data.table::rbindlist(fill = TRUE) %>%
+                data.table::setnames(c("Building", "model"),
+                                     c("nmer", "mhcnuggets_prediction")) %>%
+                .[tool == "gru", mhc_pred_gru := mhcnuggets_prediction] %>%
+                .[tool == "lstm", mhc_pred_lstm := mhcnuggets_prediction] %>%
+                .[, c("nmer", "mhcnuggets", "mhc_pred_gru", "mhc_pred_lstm")]
+              nugdt <- merge(nugdt[is.na(mhc_pred_gru), .SD, .SDcols = c("nmer", "mhcnuggets", "mhc_pred_lstm")],
+                             nugdt[is.na(mhc_pred_lstm), .SD, .SDcols = c("nmer", "mhcnuggets", "mhc_pred_gru")],
+                             by = c("nmer", "mhcnuggets"))
+              
+              dt <- merge(dt, nugdt, by = c("nmer", "mhcnuggets"), all.x = TRUE)
+            
 
-      # calculate netMHC consensus score, preferring non-*net tools
+      # calculate netMHC consensus score, preferring non-*pan tools
           for (col in (dt %>% names %include% "aff|[Rr]ank|Consensus_scores")) {
             suppressWarnings(set(dt, j = col, value = dt[, get(col) %>% as.numeric]))
           }
@@ -126,7 +150,9 @@ get_DAI_uuid <- function(dt){
 
       # take average of mhcflurry and best available netMHC tool
       dt[, Consensus_scores := c(Consensus_scores,
-                                       mhcflurry_prediction) %>%
+                                       mhcflurry_prediction,
+                                        mhcnuggets_pred_gru,
+                                          mhcnuggets_pred_lstm) %>%
                                       mean(na.rm = TRUE),
                                       by = 1:nrow(dt)]
 
@@ -190,7 +216,12 @@ get_pred_commands <- function(dt){
       "netMHCIIpan_alleles.txt", package = "antigen.garnish") %>%
                       data.table::fread(header = FALSE, sep = "\t") %>%
                       data.table::setnames("V1", "allele") %>%
-                      .[, type := "netMHCIIpan"]
+                      .[, type := "netMHCIIpan"],
+  system.file("extdata",
+       "mhcnuggets_alleles.txt", package = "antigen.garnish") %>%
+                      data.table::fread(header = FALSE, sep = "\t") %>%
+                      data.table::setnames("V1", "allele") %>%
+                      .[, type := "mhcnuggets"]
                       ))
 
   # generate input for mhcflurry predictions
@@ -207,6 +238,9 @@ get_pred_commands <- function(dt){
       data.table::fwrite(paste0(
             "mhcflurry_input_",  uuid::UUIDgenerate(), ".csv"))
     }
+  ##TODO  
+  # generate input for mhcnuggets predictions
+    dt[, mhcnuggets := detect_hla(mhcnuggets, alleles)]
 
   # generate matchable MHC substring for netMHC tools
     dt[, netMHCpan := MHC %>% stringr::str_replace(stringr::fixed("*"), "")]
@@ -221,7 +255,7 @@ get_pred_commands <- function(dt){
     dt[, netMHC := detect_hla(netMHC, alleles)]
     dt[, netMHCII := detect_hla(netMHCII, alleles)]
     dt[, netMHCIIpan := detect_hla(netMHCIIpan, alleles)]
-
+    
     dtfn <-
       {
         data.table::rbindlist(
