@@ -112,11 +112,11 @@ get_DAI_uuid <- function(dt){
                 data.table::rbindlist(fill = TRUE) %>%
                 data.table::setnames(c("Building", "model"),
                                      c("nmer", "mhcnuggets_prediction")) %>%
-                .[tool == "gru", mhc_pred_gru := mhcnuggets_prediction] %>%
-                .[tool == "lstm", mhc_pred_lstm := mhcnuggets_prediction] %>%
-                .[, c("nmer", "mhcnuggets", "mhc_pred_gru", "mhc_pred_lstm")]
-              nugdt <- merge(nugdt[is.na(mhc_pred_gru), .SD, .SDcols = c("nmer", "mhcnuggets", "mhc_pred_lstm")],
-                             nugdt[is.na(mhc_pred_lstm), .SD, .SDcols = c("nmer", "mhcnuggets", "mhc_pred_gru")],
+                .[tool == "gru", mhcnuggets_pred_gru := mhcnuggets_prediction] %>%
+                .[tool == "lstm", mhcnuggets_pred_lstm := mhcnuggets_prediction] %>%
+                .[, c("nmer", "mhcnuggets", "mhcnuggets_pred_gru", "mhcnuggets_pred_lstm")]
+              nugdt <- merge(nugdt[is.na(mhcnuggets_pred_gru), .SD, .SDcols = c("nmer", "mhcnuggets", "mhcnuggets_pred_lstm")],
+                             nugdt[is.na(mhcnuggets_pred_lstm), .SD, .SDcols = c("nmer", "mhcnuggets", "mhcnuggets_pred_gru")],
                              by = c("nmer", "mhcnuggets"))
               dt[, mhcnuggets := MHC]
               dt[, mhcnuggets := detect_hla(mhcnuggets, alleles)]
