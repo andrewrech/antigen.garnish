@@ -155,7 +155,7 @@ get_DAI_uuid <- function(dt){
                     .[, type := "mhcnuggets"]
                 ))
               
-              nugdt[, MHC := detect_hla(mhcnuggets, alleles)]
+              nugdt[, MHC := detect_hla(mhcnuggets)]
               dt <- merge(dt, nugdt, by = c("nmer", "MHC"), all.x = TRUE)
             
 
@@ -321,10 +321,10 @@ get_pred_commands <- function(dt){
 
   # replace substring with netMHC allele type
 
-    dt[, netMHCpan := detect_hla(netMHCpan, alleles)]
-    dt[, netMHC := detect_hla(netMHC, alleles)]
-    dt[, netMHCII := detect_hla(netMHCII, alleles)]
-    dt[, netMHCIIpan := detect_hla(netMHCIIpan, alleles)]
+    dt[, netMHCpan := detect_hla(netMHCpan)]
+    dt[, netMHC := detect_hla(netMHC)]
+    dt[, netMHCII := detect_hla(netMHCII)]
+    dt[, netMHCIIpan := detect_hla(netMHCIIpan)]
     
     dtfn <-
       {

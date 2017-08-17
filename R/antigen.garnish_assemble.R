@@ -6,8 +6,42 @@
 #'
 #' @export detect_hla
 #' @md
- detect_hla <- function(x, alleles){
+ detect_hla <- function(x){
 
+   alleles <- data.table::rbindlist(
+     list(
+       system.file("extdata",
+                   "netMHC_alleles.txt", package = "antigen.garnish") %>%
+         data.table::fread(header = FALSE, sep = "\t") %>%
+         data.table::setnames("V1", "allele") %>%
+         .[, type := "netMHC"],
+       system.file("extdata",
+                   "netMHCpan_alleles.txt", package = "antigen.garnish") %>%
+         data.table::fread(header = FALSE, sep = "\t") %>%
+         data.table::setnames("V1", "allele") %>%
+         .[, type := "netMHCpan"],
+       system.file("extdata",
+                   "mhcflurry_alleles.txt", package = "antigen.garnish") %>%
+         data.table::fread(header = FALSE, sep = "\t") %>%
+         data.table::setnames("V1", "allele") %>%
+         .[, type := "mhcflurry"],
+       system.file("extdata",
+                   "netMHCII_alleles.txt", package = "antigen.garnish") %>%
+         data.table::fread(header = FALSE, sep = "\t") %>%
+         data.table::setnames("V1", "allele") %>%
+         .[, type := "netMHCII"],
+       system.file("extdata",
+                   "netMHCIIpan_alleles.txt", package = "antigen.garnish") %>%
+         data.table::fread(header = FALSE, sep = "\t") %>%
+         data.table::setnames("V1", "allele") %>%
+         .[, type := "netMHCIIpan"],
+       system.file("extdata",
+                   "mhcnuggets_alleles.txt", package = "antigen.garnish") %>%
+         data.table::fread(header = FALSE, sep = "\t") %>%
+         data.table::setnames("V1", "allele") %>%
+         .[, type := "mhcnuggets"]
+     ))
+   
   prog <- deparse(substitute(x))
 
   for (hla in (x %>% unique)) {
