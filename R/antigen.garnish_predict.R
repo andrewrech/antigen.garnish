@@ -118,9 +118,9 @@ get_DAI_uuid <- function(dt){
               nugdt <- merge(nugdt[is.na(mhcnuggets_pred_gru), .SD, .SDcols = c("nmer", "mhcnuggets", "mhcnuggets_pred_lstm")],
                              nugdt[is.na(mhcnuggets_pred_lstm), .SD, .SDcols = c("nmer", "mhcnuggets", "mhcnuggets_pred_gru")],
                              by = c("nmer", "mhcnuggets"))
-              dt[, mhcnuggets := MHC]
-              dt[, mhcnuggets := detect_hla(mhcnuggets, alleles)]
-              dt <- merge(dt, nugdt, by = c("nmer", "mhcnuggets"), all.x = TRUE)
+              
+              nugdt[, MHC := detect_hla(mhcnuggets, alleles)]
+              dt <- merge(dt, nugdt, by = c("nmer", "MHC"), all.x = TRUE)
             
 
       # calculate netMHC consensus score, preferring non-*pan tools
@@ -240,8 +240,10 @@ get_pred_commands <- function(dt){
             "mhcflurry_input_",  uuid::UUIDgenerate() %>% substr(1, 18), ".csv"))
     }
   # generate input for mhcnuggets predictions
-    dt[, mhcnuggets := MHC]
-    dt[, mhcnuggets := detect_hla(mhcnuggets, alleles)]
+    dt[grep("H-2-", MHC), mhcnuggets := toupper(MHC)]
+    dt[grep("HLA", MHC), mhcnuggets := MHC %>%
+         stringr::str_replace(stringr::fixed("*"), "") %>%
+         stringr::str_replace(stringr::fixed(":"), "")]
     
     mnug_dt <- dt[mhcnuggets %chin% alleles[type == "mhcnuggets", allele] &
                     nmer_l < 15,
