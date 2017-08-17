@@ -250,26 +250,26 @@ get_pred_commands <- function(dt){
     
     for (i in mnug_dt[, allele %>% unique]){
       break_ups <- ((mnug_dt %>% nrow)/100) %>% ceiling
-      parallel::mclapply(mnug_dt %>% split(1:chunks), function(dt){
+      parallel::mclapply(mnug_dt %>% data.table::split(1:chunks), function(dt){
       
         filename <- paste0("mhcnuggets_input_gru_", i, "_", uuid::UUIDgenerate() %>% substr(1, 18), ".csv")
                   data.table::fwrite(dt[allele == i, peptide] %>%
                                             data.table::as.data.table,
                                                  filename,
                                                  col.names = FALSE)
-                        }
+                        })
                   }
       
     for (i in mnug_dt[, allele %>% unique]){
       break_ups <- ((mnug_dt %>% nrow)/100) %>% ceiling
-      parallel::mclapply(mnug_dt %>% split(1:chunks), function(dt){
+      parallel::mclapply(mnug_dt %>% data.table::split(1:chunks), function(dt){
         
         filename <- paste0("mhcnuggets_input_lstm_", i, "_", uuid::UUIDgenerate() %>% substr(1, 18), ".csv")
         data.table::fwrite(dt[allele == i, peptide] %>%
                              data.table::as.data.table,
                            filename,
                            col.names = FALSE)
-      }
+      })
     }
 
   # generate matchable MHC substring for netMHC tools
