@@ -119,8 +119,8 @@ get_DAI_uuid <- function(dt){
                              nugdt[is.na(mhcnuggets_pred_lstm), .SD, .SDcols = c("nmer", "mhcnuggets", "mhcnuggets_pred_gru")],
                              by = c("nmer", "mhcnuggets"))
       ##this is not a good way to do this, relies on class I mhcnugget alleles only, need to find a better way to convert back
-              nugdt[grep("H-2-", MHC), mhcnuggets := toupper(MHC)]
-              nugdt[grep("HLA", MHC), mhcnuggets := MHC %>%
+              nugdt[grep("H-2-", mhcnuggets), MHC := toupper(mhcnuggets)]
+              nugdt[grep("HLA", mhcnuggets), MHC := mhcnuggets %>%
                    stringr::str_replace(stringr::fixed("*"), "") %>%
                    stringr::str_replace(stringr::fixed(":"), "")]
               dt <- merge(dt, nugdt, by = c("nmer", "MHC"), all.x = TRUE)
