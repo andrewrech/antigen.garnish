@@ -119,10 +119,16 @@ get_DAI_uuid <- function(dt){
                              nugdt[is.na(mhcnuggets_pred_lstm), .SD, .SDcols = c("nmer", "mhcnuggets", "mhcnuggets_pred_gru")],
                              by = c("nmer", "mhcnuggets"))
       ##this is not a good way to do this, relies on class I mhcnugget alleles only, need to find a better way to convert back
-              nugdt[grep("H-2-", mhcnuggets), MHC := toupper(mhcnuggets)]
-              nugdt[grep("HLA", mhcnuggets), MHC := mhcnuggets %>%
-                   stringr::str_replace(stringr::fixed("*"), "") %>%
-                   stringr::str_replace(stringr::fixed(":"), "")]
+              nugdt[grep("H-2-", mhcnuggets), 
+                    MHC := mhcnuggets %>% stringr::str_replace("(?<=(H-2-))[A-Z]+$",
+                                                        paste0(substr(mhcnuggets, 5, nchar(mhcnuggets) - 1),
+                                                               substr(mhcnuggets, nchar(mhcnuggets),
+                                                                      nchar(mhcnuggets)) %>%
+                                                                 tolower))]
+              nugdt[grep("HLA-[A-Z][0-9]{4}", mhcnuggets),
+                    MHC := stringr::str_replace(string = mhcnuggets, pattern = "(?<=(HLA-)).*$",
+                                                replacement = paste0(substr(mhcnuggets, 5, 5), "*", substr(mhcnuggets, 6, 7),
+                                                                     ":", substr(mhcnuggets, 8, nchar(mhcnuggets))))]
               dt <- merge(dt, nugdt, by = c("nmer", "MHC"), all.x = TRUE)
             
 
@@ -257,7 +263,7 @@ get_pred_commands <- function(dt){
     
     for (i in mnug_dt[, allele %>% unique]){
       break_ups <- ((mnug_dt %>% nrow)/100) %>% ceiling
-      parallel::mclapply(mnug_dt %>% data.table::split(1:chunks), function(dt){
+      parallel::mclapply(mnug_dt %>% split(1:chunks), function(dt){
       
         filename <- paste0("mhcnuggets_input_gru_", i, "_", uuid::UUIDgenerate() %>% substr(1, 18), ".csv")
                   data.table::fwrite(dt[allele == i, peptide] %>%
@@ -269,7 +275,7 @@ get_pred_commands <- function(dt){
       
     for (i in mnug_dt[, allele %>% unique]){
       break_ups <- ((mnug_dt %>% nrow)/100) %>% ceiling
-      parallel::mclapply(mnug_dt %>% data.table::split(1:chunks), function(dt){
+      parallel::mclapply(mnug_dt %>% split(1:chunks), function(dt){
         
         filename <- paste0("mhcnuggets_input_lstm_", i, "_", uuid::UUIDgenerate() %>% substr(1, 18), ".csv")
         data.table::fwrite(dt[allele == i, peptide] %>%
