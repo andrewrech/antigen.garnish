@@ -52,6 +52,7 @@ Install [mhcnuggets](https://github.com/KarchinLab/mhcnuggets):
 ```sh
 cd "$HOME"
 git clone https://github.com/KarchinLab/mhcnuggets.git
+sudo -H pip install h5py
 ```
 
 ### Install antigen.garnish
