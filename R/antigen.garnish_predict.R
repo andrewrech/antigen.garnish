@@ -236,11 +236,41 @@ get_pred_commands <- function(dt){
     for (i in mf_dt[, allele %>% unique]){
       mf_dt[allele == i] %>%
       data.table::fwrite(paste0(
-            "mhcflurry_input_",  uuid::UUIDgenerate(), ".csv"))
+            "mhcflurry_input_",  uuid::UUIDgenerate() %>% substr(1, 18), ".csv"))
     }
-  ##TODO  
   # generate input for mhcnuggets predictions
     dt[, mhcnuggets := detect_hla(mhcnuggets, alleles)]
+    
+    mnug_dt <- dt[mhcnuggets %chin% alleles[type == "mhcnuggets", allele] &
+                    nmer_l < 15,
+                  .SD, .SDcols = c("mhcnuggets", "nmer")] %>%
+      data.table::copy %>%
+      data.table::setnames(c("mhcnuggets", "nmer"), c("allele", "peptide")) %>%
+      unique
+    
+    for (i in mnug_dt[, allele %>% unique]){
+      break_ups <- ((mnug_dt %>% nrow)/100) %>% ceiling
+      parallel::mclapply(mnug_dt %>% split(1:chunks), function(dt){
+      
+        filename <- paste0("mhcnuggets_input_gru_", i, "_", uuid::UUIDgenerate() %>% substr(1, 18), ".csv")
+                  data.table::fwrite(dt[allele == i, peptide] %>%
+                                            data.table::as.data.table,
+                                                 filename,
+                                                 col.names = FALSE)
+                        }
+                  }
+      
+    for (i in mnug_dt[, allele %>% unique]){
+      break_ups <- ((mnug_dt %>% nrow)/100) %>% ceiling
+      parallel::mclapply(mnug_dt %>% split(1:chunks), function(dt){
+        
+        filename <- paste0("mhcnuggets_input_lstm_", i, "_", uuid::UUIDgenerate() %>% substr(1, 18), ".csv")
+        data.table::fwrite(dt[allele == i, peptide] %>%
+                             data.table::as.data.table,
+                           filename,
+                           col.names = FALSE)
+      }
+    }
 
   # generate matchable MHC substring for netMHC tools
     dt[, netMHCpan := MHC %>% stringr::str_replace(stringr::fixed("*"), "")]
@@ -431,7 +461,7 @@ collate_netMHC <- function(esl){
       dto <- parallel::mclapply(dts %>% split(1:chunks), function(dtw){
 
         filename <- paste0(type, "_",
-                    uuid::UUIDgenerate(), ".csv")
+                    uuid::UUIDgenerate() %>% substr(1, 18), ".csv")
 
 
         # write out unique peptides for MHC type, length
