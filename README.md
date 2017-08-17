@@ -119,7 +119,7 @@ library(magrittr)
                     "front_truncate",
                     "end")) %>%
     # create nmers
-    antigen.garnish::garnish_predictions_worker %T>% print
+    antigen.garnish::get_nmers %T>% print
 ```
 
 ## Bugs

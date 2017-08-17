@@ -8,7 +8,7 @@ testthat::test_that("predictions using all MHC types for all prediction tools", 
 
   testthat::succeed()
 
-    if (parallel::detectCores() < 40) {
+    if (parallel::detectCores() < 16) {
     testthat::skip("Skipping long running predictions for all MHC types because ncores < 40")
   }
 
@@ -30,7 +30,7 @@ testthat::test_that("predictions using all MHC types for all prediction tools", 
     # run test
       dto <- dt %>% garnish_predictions()
 
-    testthat::expect_equal(dto %>% nrow, 12474)
+    testthat::expect_equal(dto %>% nrow, 14054)
     testthat::expect_equal(dto %>% length, 89)
 
     })

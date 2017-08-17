@@ -19,7 +19,7 @@ library(magrittr)
                     "front_truncate",
                     "end")) %>%
 
-    garnish_predictions_worker %T>% print
+    get_nmers %T>% print
 
     testthat::succeed()
     })
