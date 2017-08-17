@@ -2,7 +2,6 @@
 #' Replace HLA with matching type in netMHC format
 #'
 #' @param x Vector of HLA types named for program to convert to.
-#' @param alleles Table of alleles to choose from.
 #'
 #' @export detect_hla
 #' @md

@@ -263,7 +263,7 @@ get_pred_commands <- function(dt){
     
     for (i in mnug_dt[, allele %>% unique]){
       break_ups <- ((mnug_dt %>% nrow)/100) %>% ceiling
-      parallel::mclapply(mnug_dt %>% split(1:breakups), function(dt){
+      parallel::mclapply(mnug_dt %>% split(1:break_ups), function(dt){
       
         filename <- paste0("mhcnuggets_input_gru_", i, "_", uuid::UUIDgenerate() %>% substr(1, 18), ".csv")
         filename2 <- paste0("mhcnuggets_input_lstm_", i, "_", uuid::UUIDgenerate() %>% substr(1, 18), ".csv")
