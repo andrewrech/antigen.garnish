@@ -16,7 +16,39 @@ run_mhcflurry <- function(){
           })
 }
 
-
+## ---- run_mhcnuggets
+#' Internal function to run run_mhcnuggets commands.
+#'
+#' @export run_mhcnuggets
+#' @md
+run_mhcnuggets <- function(){
+  
+  message("Running mhcnuggets in parallel")
+  message("Running mhcnuggets with -m gru")
+  
+  list.files(pattern = "mhcflurry_input_gru.*csv") %>%
+    ## mhcnuggets is already parallelized, no need for mclapply
+    lapply(., function(x){
+      paste0("python ~/mhcnuggets/scripts/predict.py -m gru -w saves/kim2014/mhcnuggets_gru/",
+             stringr::str_extract(string = x, pattern = "(?<=_)H.*(?=_)"), ".h5 -p ", x,
+             " > ",
+             x %>% stringr::str_replace("input", "output")) %>%
+        system
+    })
+  
+  message("Running mhcnuggets with -m lstm")
+  
+  list.files(pattern = "mhcnuggets_input_lstm.*csv") %>%
+    
+    
+    lapply(., function(x){
+      paste0("python mhcnuggets/scripts/predict.py -m lstm -w saves/kim2014/mhcnuggets_lstm/",
+             stringr::str_extract(string = x, pattern = "(?<=_)H.*(?=_)"), ".h5 -p ", x,
+             " > ",
+             x %>% stringr::str_replace("input", "output")) %>%
+        system
+    })
+}
 
 ## ---- run_netMHC
 #' Internal function to run netMHC commands.
@@ -71,7 +103,9 @@ PATH_status <- list(
               netMHC = TRUE,
               netMHCpan = TRUE,
               netMHCII = TRUE,
-              netMHCIIpan = TRUE)
+              netMHCIIpan = TRUE,
+              mhcnuggets = TRUE
+              )
 
 Sys.setenv(PATH = paste0(default_path, ":", Sys.getenv("PATH")))
 
@@ -99,6 +133,10 @@ Sys.setenv(PATH = paste0(default_path, ":", Sys.getenv("PATH")))
         length == 0) {
           message("netMHCIIpan is not in PATH\n       Download: http://www.cbs.dtu.dk/services/NetMHCIIpan/")
         PATH_status$netMHCIIpan <- FALSE
-        }
+       }
+  if (file.exists("~/mhcnuggets/scripts/predict.py") == FALSE | file.exists("~/mhcnuggets/saves/kim2014") == FALSE) {
+        message("mhcnuggets may not be properly installed in home directory, please reclone into $HOME")
+        PATH_status$mhcnuggets <- FALSE
+       }
         return(PATH_status)
 }
