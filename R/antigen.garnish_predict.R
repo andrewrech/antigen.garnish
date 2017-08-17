@@ -118,44 +118,11 @@ get_DAI_uuid <- function(dt){
               nugdt <- merge(nugdt[is.na(mhcnuggets_pred_gru), .SD, .SDcols = c("nmer", "mhcnuggets", "mhcnuggets_pred_lstm")],
                              nugdt[is.na(mhcnuggets_pred_lstm), .SD, .SDcols = c("nmer", "mhcnuggets", "mhcnuggets_pred_gru")],
                              by = c("nmer", "mhcnuggets"))
-              
-              # get available MHC alleles for predictions
-              
-              alleles <- data.table::rbindlist(
-                list(
-                  system.file("extdata",
-                              "netMHC_alleles.txt", package = "antigen.garnish") %>%
-                    data.table::fread(header = FALSE, sep = "\t") %>%
-                    data.table::setnames("V1", "allele") %>%
-                    .[, type := "netMHC"],
-                  system.file("extdata",
-                              "netMHCpan_alleles.txt", package = "antigen.garnish") %>%
-                    data.table::fread(header = FALSE, sep = "\t") %>%
-                    data.table::setnames("V1", "allele") %>%
-                    .[, type := "netMHCpan"],
-                  system.file("extdata",
-                              "mhcflurry_alleles.txt", package = "antigen.garnish") %>%
-                    data.table::fread(header = FALSE, sep = "\t") %>%
-                    data.table::setnames("V1", "allele") %>%
-                    .[, type := "mhcflurry"],
-                  system.file("extdata",
-                              "netMHCII_alleles.txt", package = "antigen.garnish") %>%
-                    data.table::fread(header = FALSE, sep = "\t") %>%
-                    data.table::setnames("V1", "allele") %>%
-                    .[, type := "netMHCII"],
-                  system.file("extdata",
-                              "netMHCIIpan_alleles.txt", package = "antigen.garnish") %>%
-                    data.table::fread(header = FALSE, sep = "\t") %>%
-                    data.table::setnames("V1", "allele") %>%
-                    .[, type := "netMHCIIpan"],
-                  system.file("extdata",
-                              "mhcnuggets_alleles.txt", package = "antigen.garnish") %>%
-                    data.table::fread(header = FALSE, sep = "\t") %>%
-                    data.table::setnames("V1", "allele") %>%
-                    .[, type := "mhcnuggets"]
-                ))
-              
-              nugdt[, MHC := detect_hla(mhcnuggets)]
+      ##this is not a good way to do this, relies on class I mhcnugget alleles only, need to find a better way to convert back
+              nugdt[grep("H-2-", MHC), mhcnuggets := toupper(MHC)]
+              nugdt[grep("HLA", MHC), mhcnuggets := MHC %>%
+                   stringr::str_replace(stringr::fixed("*"), "") %>%
+                   stringr::str_replace(stringr::fixed(":"), "")]
               dt <- merge(dt, nugdt, by = c("nmer", "MHC"), all.x = TRUE)
             
 
