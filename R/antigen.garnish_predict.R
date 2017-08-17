@@ -118,7 +118,7 @@ get_DAI_uuid <- function(dt){
               nugdt <- merge(nugdt[is.na(mhc_pred_gru), .SD, .SDcols = c("nmer", "mhcnuggets", "mhc_pred_lstm")],
                              nugdt[is.na(mhc_pred_lstm), .SD, .SDcols = c("nmer", "mhcnuggets", "mhc_pred_gru")],
                              by = c("nmer", "mhcnuggets"))
-              dt[, MHC := mhcnuggets]
+              dt[, mhcnuggets := MHC]
               dt[, mhcnuggets := detect_hla(mhcnuggets, alleles)]
               dt <- merge(dt, nugdt, by = c("nmer", "mhcnuggets"), all.x = TRUE)
             
