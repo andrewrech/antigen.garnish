@@ -29,8 +29,8 @@ run_mhcnuggets <- function(){
   list.files(pattern = "mhcflurry_input_gru.*csv") %>%
     ## mhcnuggets is already parallelized, no need for mclapply
     lapply(., function(x){
-      paste0("python $HOME/mhcnuggets/scripts/predict.py -m gru -w saves/kim2014/mhcnuggets_gru/",
-             stringr::str_extract(string = x, pattern = "(?<=_)H.*(?=_)") %>% toupper, ".h5 -p ", x,
+      paste0("python $HOME/mhcnuggets/scripts/predict.py -m gru -w $HOME/mhcnuggets/saves/kim2014/mhcnuggets_gru/",
+             stringr::str_extract(string = x, pattern = "(?<=_)H.*(?=_)"), ".h5 -p ", x,
              " > ",
              x %>% stringr::str_replace("input", "output")) %>%
         system
@@ -42,8 +42,8 @@ run_mhcnuggets <- function(){
     
     
     lapply(., function(x){
-      paste0("python $HOME/mhcnuggets/scripts/predict.py -m lstm -w saves/kim2014/mhcnuggets_lstm/",
-             stringr::str_extract(string = x, pattern = "(?<=_)H.*(?=_)") %>% toupper, ".h5 -p ", x,
+      paste0("python $HOME/mhcnuggets/scripts/predict.py -m lstm -w $HOME/mhcnuggets/saves/kim2014/mhcnuggets_lstm/",
+             stringr::str_extract(string = x, pattern = "(?<=_)H.*(?=_)"), ".h5 -p ", x,
              " > ",
              x %>% stringr::str_replace("input", "output")) %>%
         system
