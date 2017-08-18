@@ -741,7 +741,7 @@ if (generate){
   dts[, mutant_loc := mutant_loc %>% as.numeric]
   
    ## drop failed mutant_loc calls from dt, will also omit NA with this  
-  dt <- dt[mutant_loc >= 1][!is.na(mutant_loc)]
+  dts <- dts[mutant_loc >= 1][!is.na(mutant_loc)]
 
   # generate a data table of unique variants for peptide generation
 
