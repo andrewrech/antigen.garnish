@@ -47,6 +47,14 @@ Install [netMHC](http://www.cbs.dtu.dk/services/NetMHC/), [netMHCII](http://www.
   tar -xvzf netMHC.tar.gz
 ```
 
+Install [mhcnuggets](https://github.com/KarchinLab/mhcnuggets):
+
+```sh
+cd "$HOME"
+git clone https://github.com/KarchinLab/mhcnuggets.git
+sudo -H pip install h5py
+```
+
 ### Install antigen.garnish
 
 ```r
