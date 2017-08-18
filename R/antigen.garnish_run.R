@@ -43,7 +43,7 @@ run_mhcnuggets <- function(){
     
     lapply(., function(x){
       paste0("python $HOME/mhcnuggets/scripts/predict.py -m lstm -w saves/kim2014/mhcnuggets_lstm/",
-             stringr::str_extract(string = x, pattern = "(?<=_)H.*(?=_)") %>% to upper, ".h5 -p ", x,
+             stringr::str_extract(string = x, pattern = "(?<=_)H.*(?=_)") %>% toupper, ".h5 -p ", x,
              " > ",
              x %>% stringr::str_replace("input", "output")) %>%
         system
