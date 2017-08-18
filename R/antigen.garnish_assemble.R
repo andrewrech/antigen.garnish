@@ -10,7 +10,7 @@
 
   prog <- deparse(substitute(x))
 
-  for (hla in (x %>% unique)) {
+  for (hla in (x %>% unique)){
 
     # match hla allele alelle (end|(not longer allele))
     hla_re <- paste0(hla, "($|[^0-9])")
@@ -86,20 +86,20 @@ get_metadata <- function(dt,
                                                  dataset = i,
                                                  host = host)
 
-    if (i == "mmusculus_gene_ensembl") {
+    if (i == "mmusculus_gene_ensembl"){
         trn <- dt[, ensembl_transcript_id %include% "ENSMUST" %>%
                   stats::na.omit %>%
                   unique]
               }
 
-    if (i == "hsapiens_gene_ensembl") {
+    if (i == "hsapiens_gene_ensembl"){
         trn <- dt[, ensembl_transcript_id %include% "ENST" %>%
                   stats::na.omit %>%
                   unique]
               }
 
    if (trn %>% length < 1) return(NULL)
-   if (trn %>% length >= 1) {
+   if (trn %>% length >= 1){
 
     # obtain transcript metadata
       var_dt <- biomaRt::getBM(attributes = c("ensembl_transcript_id",
@@ -112,7 +112,7 @@ get_metadata <- function(dt,
             data.table::as.data.table
 
       # obtain transcript cDNA and peptide sequences
-      seqdtl <- parallel::mclapply(c("coding", "peptide"), function(j) {
+      seqdtl <- parallel::mclapply(c("coding", "peptide"), function(j){
 
          biomaRt::getSequence(type = "ensembl_transcript_id",
                      id = trn,
@@ -156,7 +156,7 @@ make_cDNA <- function(dt){
 
     dt[, coding_mut := coding]
 
-    for (i in c("cDNA_locs", "cDNA_locl")) {
+    for (i in c("cDNA_locs", "cDNA_locl")){
       set(dt, j = i, value = dt[, get(i) %>%
           as.integer])
     }
@@ -332,7 +332,7 @@ extract_cDNA <- function(dt){
                 as.character %>%
                 paste(collapse = "")
 
-        }, error = function(e) {
+        }, error = function(e){
               return(NA)
               })
 

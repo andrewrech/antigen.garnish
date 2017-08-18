@@ -77,13 +77,13 @@ get_DAI_uuid <- function(dt){
 
       message("Merging output")
       # merge netMHC by program type
-        progl <- lapply(l %>% seq_along, function(dti) {
+        progl <- lapply(l %>% seq_along, function(dti){
          l[[dti]]$command[1] %>% stringr::str_extract("net[A-Za-z]+")
          })
 
        # merge netMHC output
 
-        for (ptype in (progl %>% unique %>% unlist)) {
+        for (ptype in (progl %>% unique %>% unlist)){
 
           dt <- merge(dt, l[(progl == ptype) %>% which] %>%
                 data.table::rbindlist, by = c("nmer", ptype), all.x = TRUE,
@@ -99,7 +99,7 @@ get_DAI_uuid <- function(dt){
             dt <- merge(dt, fdt, by = c("nmer", "MHC"), all.x = TRUE)
 
       # calculate netMHC consensus score, preferring non-*net tools
-          for (col in (dt %>% names %include% "aff|[Rr]ank|Consensus_scores")) {
+          for (col in (dt %>% names %include% "aff|[Rr]ank|Consensus_scores")){
             suppressWarnings(set(dt, j = col, value = dt[, get(col) %>% as.numeric]))
           }
 
@@ -307,7 +307,7 @@ collate_netMHC <- function(esl){
           # if error, warn and return
           if (dtn %>%
               stringr::str_detect("ERROR") %>%
-              any) {
+              any){
             warning(paste0(command, " returned ERROR"))
             return(NULL)
           }
@@ -387,7 +387,7 @@ collate_netMHC <- function(esl){
     combs <- data.table::CJ(dt[, get(type)] %>% unique,
                             dt[, nmer_l] %>% unique)
 
-    dto <- parallel::mclapply(1:nrow(combs), function(i) {
+    dto <- parallel::mclapply(1:nrow(combs), function(i){
 
       dts <- dt[get(type) == combs$V1[i] & nmer_l == combs$V2[i]]
 
@@ -507,7 +507,7 @@ garnish_predictions <- function(dt,
                                generate = TRUE,
                                predict = TRUE,
                                humandb = "GRCh38",
-                               mousedb = "GRCm38") {
+                               mousedb = "GRCm38"){
 
   # remove temporary files on exit
   on.exit({
@@ -595,7 +595,7 @@ if (assemble){
     # parallelized function to create a
     # space-separated character string
     # between two integers
-      get_ss_str <- function(x, y) {
+      get_ss_str <- function(x, y){
         mcMap(function(x, y) (x %>% as.integer):(y %>% as.integer) %>%
               paste(collapse = " "), x, y) %>% unlist
         }
@@ -607,13 +607,13 @@ if (assemble){
 
     # warning if mutant_loc == NA
       if (dt[mutant_loc %>% is.na] %>%
-            nrow > 1) {
+            nrow > 1){
         failn <- dt[mutant_loc %>% is.na] %>% nrow
         warning(paste0("Could not determine mutant index for ", failn, " records."))
       }
   }
 
-if (generate) {
+if (generate){
   message("Generating variants")
   # generation a uuid for each unique variant
   suppressWarnings(dt[, var_uuid :=
@@ -623,7 +623,7 @@ if (generate) {
   # separate over mutant indices
 
     if (dt[, mutant_loc %>% unique] %>%
-        stringr::str_detect(" ") %>% any) {
+        stringr::str_detect(" ") %>% any){
       dts <- dt %>% tidyr::separate_rows("mutant_loc", sep = " ")
     } else {
       dts <- dt
@@ -683,7 +683,7 @@ if (generate) {
     # remove mut == wt by sample_id
     # remove wt missing mut counterpart
 
-    for (id in dt[, sample_id %>% unique]) {
+    for (id in dt[, sample_id %>% unique]){
 
      # get wt nmers for fast !chmatch
      id_wt_nmers <- dt[sample_id == id &
@@ -703,13 +703,13 @@ if (generate) {
 
 }
 
-if (predict) {
+if (predict){
 
     dtl <- dt %>% get_pred_commands
 
   # run commands
 
-   if (check_pred_tools() %>% unlist %>% all) {
+   if (check_pred_tools() %>% unlist %>% all){
 
       dto <- run_netMHC(dtl[[2]])
       run_mhcflurry()
@@ -732,7 +732,7 @@ if (predict) {
 #'
 #' @export get_nmers
 #' @md
-get_nmers <- function(dt) {
+get_nmers <- function(dt){
 
 
 if (!c("var_uuid",
@@ -756,7 +756,7 @@ if (!c("var_uuid",
       ## --- Write peptide fragments
 
         # for every peptide length
-        nmer_dt <- lapply((15:8), function(pl) {
+        nmer_dt <- lapply((15:8), function(pl){
 
           mut_frag_t <- dt$pep_base[n] %>% strsplit("",
                               fixed = TRUE) %>% unlist

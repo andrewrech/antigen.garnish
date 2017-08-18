@@ -123,7 +123,7 @@ garnish_summary <- function(dt){
 #'}
 #' @export garnish_variants
 #' @md
-garnish_variants <- function(vcfs) {
+garnish_variants <- function(vcfs){
 
   message("Loading VCFs")
   ivfdtl <- parallel::mclapply(vcfs %>% seq_along, function(ivf){

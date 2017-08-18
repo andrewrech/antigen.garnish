@@ -8,7 +8,7 @@ testthat::test_that("predictions using all MHC types for all prediction tools", 
 
   testthat::succeed()
 
-    if (parallel::detectCores() < 16) {
+    if (parallel::detectCores() < 16){
     testthat::skip("Skipping long running predictions for all MHC types because ncores < 40")
   }
 

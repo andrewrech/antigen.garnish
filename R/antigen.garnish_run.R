@@ -76,27 +76,27 @@ PATH_status <- list(
 Sys.setenv(PATH = paste0(default_path, ":", Sys.getenv("PATH")))
 
  if (suppressWarnings(system('which mhcflurry-predict 2> /dev/null', intern = TRUE)) %>%
-        length == 0) {
+        length == 0){
         message("mhcflurry-predict is not in PATH\n       Download: https://github.com/hammerlab/mhcflurry")
       PATH_status$mhcflurry <- FALSE
       }
   if (suppressWarnings(system('which netMHC 2> /dev/null', intern = TRUE)) %>%
-        length == 0) {
+        length == 0){
           message("netMHC is not in PATH\n       Download: http://www.cbs.dtu.dk/services/NetMHC/")
         PATH_status$netMHC <- FALSE
         }
   if (suppressWarnings(system('which netMHCpan 2> /dev/null', intern = TRUE)) %>%
-        length == 0) {
+        length == 0){
           message("netMHCpan is not in PATH\n       Download: http://www.cbs.dtu.dk/services/NetMHCpan/")
         PATH_status$netMHCpan <- FALSE
         }
   if (suppressWarnings(system('which netMHCII 2> /dev/null', intern = TRUE)) %>%
-        length == 0) {
+        length == 0){
           message("netMHCII is not in PATH\n       Download: http://www.cbs.dtu.dk/services/NetMHCII/")
         PATH_status$netMHCII <- FALSE
         }
   if (suppressWarnings(system('which netMHCIIpan 2> /dev/null', intern = TRUE)) %>%
-        length == 0) {
+        length == 0){
           message("netMHCIIpan is not in PATH\n       Download: http://www.cbs.dtu.dk/services/NetMHCIIpan/")
         PATH_status$netMHCIIpan <- FALSE
         }
