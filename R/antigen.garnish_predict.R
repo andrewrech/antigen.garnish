@@ -97,8 +97,7 @@ get_DAI_uuid <- function(dt){
         }) %>% data.table::rbindlist %>%
             data.table::setnames(c("allele", "peptide"), c("MHC", "nmer"))
             dt <- merge(dt, fdt, by = c("nmer", "MHC"), all.x = TRUE)
-      # calculate netMHC consensus score, preferring non-*net tools
-          for (col in (dt %>% names %include% "aff|[Rr]ank|Consensus_scores")){
+     
       # read and merge mhcnuggets output
       nugdt <- list.files(pattern = "mhcnuggets_output.*csv") %>%
                 lapply(., function(x){
@@ -133,6 +132,9 @@ get_DAI_uuid <- function(dt){
                                                 replacement = paste0(substr(mhcnuggets, 5, 5), "*", substr(mhcnuggets, 6, 7),
                                                                      ":", substr(mhcnuggets, 8, nchar(mhcnuggets))))]
               dt <- merge(dt, nugdt, by = c("nmer", "MHC"), all.x = TRUE)
+              
+      # calculate netMHC consensus score, preferring non-*net tools
+       for (col in (dt %>% names %include% "aff|[Rr]ank|Consensus_scores")){    
            ##### TODO remove suppressWarnings
             suppressWarnings(set(dt, j = col, value = dt[, get(col) %>% as.numeric]))
           }
