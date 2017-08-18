@@ -620,7 +620,7 @@ garnish_predictions <- function(dt,
   # remove temporary files on exit
   on.exit({
     message("Removing temporary files")
-    list.files(pattern = "(netMHC|mhcflurry).*_[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12}\\.csv") %>% file.remove
+    list.files(pattern = "(netMHC|mhcflurry|mhcnuggets).*_[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}\\.csv") %>% file.remove
   })
 
   dt %<>% data.table::as.data.table
