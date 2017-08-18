@@ -771,7 +771,7 @@ if (generate){
             unique
  
   ## drop failed mutant_loc calls from basepep_dt, will also omit NA with this  
-  basepep_dt <- basepep_dt[mutant_loc >= 1]
+  basepep_dt <- basepep_dt[(nchar(pep_base) - mutant_loc) >= 1]
    
   if (basepep_dt %>% nrow == 0)
       return("no variants for peptide generation")
