@@ -4,10 +4,12 @@
 \alias{detect_hla}
 \title{Replace HLA with matching type in netMHC format}
 \usage{
-detect_hla(x)
+detect_hla(x, alleles)
 }
 \arguments{
 \item{x}{Vector of HLA types named for program to convert to.}
+
+\item{alleles}{Data table of 2 columns, 1. alleles properly formatted for 2. respective program name (e.g. mhcflurry, mhcnuggets, netMHC).}
 }
 \description{
 Replace HLA with matching type in netMHC format
