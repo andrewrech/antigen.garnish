@@ -45,7 +45,7 @@ testthat::test_that("detect_hla", {
          c("A0201", "A0301", "DRB1_0301", "DRB1_1467"))
 
   # run test
-  dt[, netMHCIIpan := detect_hla(netMHCIIpan)]$netMHCIIpan %>%
+  dt[, netMHCIIpan := detect_hla(netMHCIIpan, alleles)]$netMHCIIpan %>%
 
    testthat::expect_equal(c(NA, NA, "DRB1_0301", "DRB1_1467"))
     })
