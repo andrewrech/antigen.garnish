@@ -714,13 +714,15 @@ if (assemble){
             get_ss_str(mismatch_s, mismatch_l)]
 
     # warning if mutant_loc == NA
-      if (dt[mutant_loc %>% is.na] %>%
+      if (dt[is.na(mutant_loc) | mutant_loc < 1] %>%
             nrow > 1){
         failn <- dt[mutant_loc %>% is.na] %>% nrow
         warning(paste0("Could not determine mutant index for ", failn, " records."))
       }
   }
-
+      ## drop failed mutant_loc calls from dt  
+         dt <- dt[(is.na(mutant_loc) == FALSE) & (mutant_loc >= 1)]
+  
 if (generate){
   message("Generating variants")
   # generation a uuid for each unique variant
