@@ -7,7 +7,7 @@
 #' @export detect_hla
 #' @md
  detect_hla <- function(x, alleles){
-   
+
   prog <- deparse(substitute(x))
 
   for (hla in (x %>% unique)){
@@ -28,6 +28,7 @@
 
     return(x)
   }
+
 
 
 
