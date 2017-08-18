@@ -721,7 +721,7 @@ if (assemble){
       }
   }
       ## drop failed mutant_loc calls from dt, will also omit NA with this  
-         dt <- dt[mutant_loc >= 1]
+         dt <- dt[mutant_loc >= 1][!is.na(mutant_loc)]
   
 if (generate){
   message("Generating variants")
