@@ -286,12 +286,47 @@ get_pred_commands <- function(dt){
                                        stringr::str_replace(fixed("HLA-"), "")]
     dt[, netMHCIIpan := netMHCII %>% stringr::str_replace("DRB1", "DRB1_")]
 
-  # replace substring with netMHC allele type
-
-    dt[, netMHCpan := detect_hla(netMHCpan)]
-    dt[, netMHC := detect_hla(netMHC)]
-    dt[, netMHCII := detect_hla(netMHCII)]
-    dt[, netMHCIIpan := detect_hla(netMHCIIpan)]
+  # get MHC allele types for each program
+    
+    alleles <- data.table::rbindlist(
+      list(
+        system.file("extdata",
+                    "netMHC_alleles.txt", package = "antigen.garnish") %>%
+          data.table::fread(header = FALSE, sep = "\t") %>%
+          data.table::setnames("V1", "allele") %>%
+          .[, type := "netMHC"],
+        system.file("extdata",
+                    "netMHCpan_alleles.txt", package = "antigen.garnish") %>%
+          data.table::fread(header = FALSE, sep = "\t") %>%
+          data.table::setnames("V1", "allele") %>%
+          .[, type := "netMHCpan"],
+        system.file("extdata",
+                    "mhcflurry_alleles.txt", package = "antigen.garnish") %>%
+          data.table::fread(header = FALSE, sep = "\t") %>%
+          data.table::setnames("V1", "allele") %>%
+          .[, type := "mhcflurry"],
+        system.file("extdata",
+                    "netMHCII_alleles.txt", package = "antigen.garnish") %>%
+          data.table::fread(header = FALSE, sep = "\t") %>%
+          data.table::setnames("V1", "allele") %>%
+          .[, type := "netMHCII"],
+        system.file("extdata",
+                    "netMHCIIpan_alleles.txt", package = "antigen.garnish") %>%
+          data.table::fread(header = FALSE, sep = "\t") %>%
+          data.table::setnames("V1", "allele") %>%
+          .[, type := "netMHCIIpan"],
+        system.file("extdata",
+                    "mhcnuggets_alleles.txt", package = "antigen.garnish") %>%
+          data.table::fread(header = FALSE, sep = "\t") %>%
+          data.table::setnames("V1", "allele") %>%
+          .[, type := "mhcnuggets"]
+      ))
+    
+    # replace substring with netMHC allele type
+    dt[, netMHCpan := detect_hla(netMHCpan, alleles)]
+    dt[, netMHC := detect_hla(netMHC, alleles)]
+    dt[, netMHCII := detect_hla(netMHCII, alleles)]
+    dt[, netMHCIIpan := detect_hla(netMHCIIpan, alleles)]
 
     dtfn <-
       {
