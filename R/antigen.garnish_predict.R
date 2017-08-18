@@ -720,8 +720,8 @@ if (assemble){
         warning(paste0("Could not determine mutant index for ", failn, " records."))
       }
   }
-      ## drop failed mutant_loc calls from dt  
-         dt <- dt[(is.na(mutant_loc) == FALSE) & (mutant_loc >= 1)]
+      ## drop failed mutant_loc calls from dt, will also omit NA with this  
+         dt <- dt[mutant_loc >= 1]
   
 if (generate){
   message("Generating variants")
