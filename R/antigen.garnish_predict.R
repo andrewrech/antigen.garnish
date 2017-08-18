@@ -97,27 +97,24 @@ get_DAI_uuid <- function(dt){
         }) %>% data.table::rbindlist %>%
             data.table::setnames(c("allele", "peptide"), c("MHC", "nmer"))
             dt <- merge(dt, fdt, by = c("nmer", "MHC"), all.x = TRUE)
-     
+
       # read and merge mhcnuggets output
+##TODO
       nugdt <- list.files(pattern = "mhcnuggets_output.*csv") %>%
                 lapply(., function(x){
                   data.table::fread(x) %>%
                     .[, mhcnuggets := basename(x) %>%
-                        stringr::str_extract(pattern = "(?<=_)(H-2-)|(HLA).*(?=_)") %>%
-                        ##### TODO don't need unlist
-                        unlist] %>%
+                        stringr::str_extract(pattern = "(?<=_)(H-2-.*(?=_))|(HLA).*(?=_)")] %>%
                     .[, tool := basename(x) %>%
-                        stringr::str_extract(pattern = "(gru)|(lstm)") %>%
-                        unlist]
+                        stringr::str_extract(pattern = "(gru)|(lstm)")]
                 }) %>%
-                ##### TODO do you need fill = true? if something goes wrong with input, this will silence it
                 data.table::rbindlist(fill = TRUE) %>%
                 data.table::setnames(c("Building", "model"),
                                      c("nmer", "mhcnuggets_prediction")) %>%
                 .[tool == "gru", mhcnuggets_pred_gru := mhcnuggets_prediction] %>%
                 .[tool == "lstm", mhcnuggets_pred_lstm := mhcnuggets_prediction] %>%
                 .[, c("nmer", "mhcnuggets", "mhcnuggets_pred_gru", "mhcnuggets_pred_lstm")]
-
+###TODO
         nugdt <- merge(nugdt[is.na(mhcnuggets_pred_gru), .SD, .SDcols = c("nmer", "mhcnuggets", "mhcnuggets_pred_lstm")],
                  nugdt[is.na(mhcnuggets_pred_lstm), .SD, .SDcols = c("nmer", "mhcnuggets", "mhcnuggets_pred_gru")], by = c("nmer", "mhcnuggets"))
       ##this is not a good way to do this, relies on class I mhcnugget alleles only, need to find a better way to convert back
@@ -132,11 +129,10 @@ get_DAI_uuid <- function(dt){
                                                 replacement = paste0(substr(mhcnuggets, 5, 5), "*", substr(mhcnuggets, 6, 7),
                                                                      ":", substr(mhcnuggets, 8, nchar(mhcnuggets))))]
               dt <- merge(dt, nugdt, by = c("nmer", "MHC"), all.x = TRUE)
-              
+
       # calculate netMHC consensus score, preferring non-*net tools
-       for (col in (dt %>% names %include% "aff|[Rr]ank|Consensus_scores")){    
-           ##### TODO remove suppressWarnings
-            suppressWarnings(set(dt, j = col, value = dt[, get(col) %>% as.numeric]))
+       for (col in (dt %>% names %include% "aff|[Rr]ank|Consensus_scores")){
+            set(dt, j = col, value = dt[, get(col) %>% as.numeric])
           }
 
       # get vector of netMHC scores
@@ -263,7 +259,7 @@ get_pred_commands <- function(dt){
       data.table::setnames(c("mhcnuggets", "nmer"), c("allele", "peptide")) %>%
       unique
 
-    for (i in mnug_dt[, allele %>% unique]){
+    suppressWarnings(for (i in mnug_dt[, allele %>% unique]){
       break_ups <- ((mnug_dt %>% nrow)/100) %>% ceiling
       parallel::mclapply(mnug_dt %>% split(1:break_ups), function(dt){
 
@@ -278,18 +274,19 @@ get_pred_commands <- function(dt){
                                      filename2,
                                      col.names = FALSE)
                         })
-                  }
+                      }
+                  )
 
 
   # generate matchable MHC substring for netMHC tools
     dt[, netMHCpan := MHC %>% stringr::str_replace(stringr::fixed("*"), "")]
     dt[, netMHC := netMHCpan %>% stringr::str_replace(stringr::fixed(":"), "")]
     dt[, netMHCII := netMHCpan %>% stringr::str_replace(stringr::fixed(":"), "") %>%
-                                       stringr::str_replace(fixed("HLA-"), "")]
+                                       stringr::str_replace(stringr::fixed("HLA-"), "")]
     dt[, netMHCIIpan := netMHCII %>% stringr::str_replace("DRB1", "DRB1_")]
 
   # get MHC allele types for each program
-    
+
     alleles <- data.table::rbindlist(
       list(
         system.file("extdata",
@@ -323,7 +320,7 @@ get_pred_commands <- function(dt){
           data.table::setnames("V1", "allele") %>%
           .[, type := "mhcnuggets"]
       ))
-    
+
     # replace substring with netMHC allele type
     dt[, netMHCpan := detect_hla(netMHCpan, alleles)]
     dt[, netMHC := detect_hla(netMHC, alleles)]
@@ -714,13 +711,14 @@ if (assemble){
             get_ss_str(mismatch_s, mismatch_l)]
 
     # warning if mutant_loc == NA
-      if (dt[is.na(mutant_loc) | mutant_loc < 1] %>%
+      if (dt[is.na(mutant_loc) | (nchar(pep_mut) - as.numeric(mutant_loc) < 1)] %>%
             nrow > 1){
-        failn <- dt[mutant_loc %>% is.na] %>% nrow
-        warning(paste0("Could not determine mutant index for ", failn, " records."))
+        failn <- dt[is.na(mutant_loc) | (nchar(pep_mut) - as.numeric(mutant_loc) < 1)] %>% nrow
+        warning(paste0("Could not determine mutant index for ", failn, " records.\n",
+        "This may be due to frameshift variants that cause an immediate STOP"))
       }
   }
-  
+
 if (generate){
   message("Generating variants")
   # generation a uuid for each unique variant
@@ -769,10 +767,10 @@ if (generate){
                                  "pep_base",
                                  "mutant_loc")] %>%
             unique
- 
-  ## drop failed mutant_loc calls from basepep_dt, will also omit NA with this  
+
+  ## drop failed mutant_loc calls from basepep_dt, will also omit NA with this
   basepep_dt <- basepep_dt[(nchar(pep_base) - mutant_loc) >= 1]
-   
+
   if (basepep_dt %>% nrow == 0)
       return("no variants for peptide generation")
 
@@ -927,7 +925,3 @@ if (!c("var_uuid",
 
   return(nmer_dt)
 }
-
-
-
-
