@@ -17,7 +17,7 @@ An R package for [neoepitope](http://science.sciencemag.org/content/348/6230/69)
 1. **Simplicity**: summarized neoepitopes for each sample
 1. **Thoroughness**:
     - missense mutations and frameshifts
-    - ensemble MHC class I/II binding prediction using [mhcflurry](https://github.com/hammerlab/mhcflurry), [netMHC](http://www.cbs.dtu.dk/services/NetMHC/), [netMHCII](http://www.cbs.dtu.dk/services/NetMHCII/), [netMHCpan](http://www.cbs.dtu.dk/services/NetMHCpan/) and [netMHCIIpan](http://www.cbs.dtu.dk/services/NetMHCIIpan/i).
+    - ensemble MHC class I/II binding prediction using [mhcflurry](https://github.com/hammerlab/mhcflurry), [mhcnuggets](https://github.com/KarchinLab/mhcnuggets), [netMHC](http://www.cbs.dtu.dk/services/NetMHC/), [netMHCII](http://www.cbs.dtu.dk/services/NetMHCII/), [netMHCpan](http://www.cbs.dtu.dk/services/NetMHCpan/) and [netMHCIIpan](http://www.cbs.dtu.dk/services/NetMHCIIpan/i).
 1. **Speed**:
     - produce all possible 8-15-mer peptides from 10,000 variants in under 1 minute on a normal laptop
     - on an Amazon Web Services `m4.16xlarge` EC2 instance, 20,000 consensus predictions using 100+ MHC types in under 5 minutes
@@ -39,12 +39,12 @@ mhcflurry-downloads fetch
 nosetests .
 ```
 
-Install [netMHC](http://www.cbs.dtu.dk/services/NetMHC/), [netMHCII](http://www.cbs.dtu.dk/services/NetMHCII/), [netMHCpan](http://www.cbs.dtu.dk/services/NetMHCpan/), and [netMHCIIpan](http://www.cbs.dtu.dk/services/NetMHCIIpan/):
+Install netMHC and mhcnuggets prediction tools:
 
 ```sh
   cd "$HOME"
-  wget "http://get.rech.io/netMHC.tar.gz"
-  tar -xvzf netMHC.tar.gz
+  wget "http://get.rech.io/antigen.garnish.tar.gz"
+  tar -xvzf antigen.garnish.tar.gz
 ```
 
 Install [mhcnuggets](https://github.com/KarchinLab/mhcnuggets):
