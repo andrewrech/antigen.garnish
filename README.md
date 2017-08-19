@@ -44,7 +44,7 @@ Install netMHC and mhcnuggets prediction tools:
 ```sh
   cd "$HOME"
   wget "http://get.rech.io/antigen.garnish.tar.gz"
-  tar -xvzf netMHC.tar.gz
+  tar -xvzf antigen.garnish.tar.gz
 ```
 
 ### Install antigen.garnish
