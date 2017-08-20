@@ -158,7 +158,7 @@ get_DAI_uuid <- function(dt){
 
       # take average of mhcflurry, mhcnuggets, and best available netMHC tool
       cols <- cols <- dt %>% names %include% "(best_netMHC)|(mhcflurry_prediction$)|(mhcnuggets_pred_gru)|(mhcnuggets_pred_lstm)"
-      dt[, Consensus_scores :=  mean(.SD, na.rm = TRUE),
+      dt[, Consensus_scores :=  mean(as.numeric(.SD), na.rm = TRUE),
                                       by = 1:nrow(dt), .SDcols = cols]
 
         dt[, DAI := NA %>% as.numeric]
