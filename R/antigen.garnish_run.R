@@ -94,10 +94,10 @@ check_pred_tools <- function(){
 
 default_path <- paste0(system('echo $HOME', intern = TRUE),
                 c(
-                "/netMHC/netMHC-4.0",
-                "/netMHC/netMHCII-2.2",
-                "/netMHC/netMHCIIpan-3.1",
-                "/netMHC/netMHCpan-3.0")) %>%
+                "/antigen.garnish/netMHC/netMHC-4.0",
+                "/antigen.garnish/netMHC/netMHCII-2.2",
+                "/antigen.garnish/netMHC/netMHCIIpan-3.1",
+                "/antigen.garnish/netMHC/netMHCpan-3.0")) %>%
                 paste(collapse = ":")
 
 PATH_status <- list(
