@@ -26,28 +26,30 @@ run_mhcnuggets <- function(){
   message("Running mhcnuggets in parallel")
   message("Running mhcnuggets with -m gru")
 
+  suppressWarnings(
   list.files(pattern = "mhcnuggets_input_gru.*csv") %>%
-    ## mhcnuggets is already parallelized, no need for mclapply
-    lapply(., function(x){
+    parallel::mclapply(., function(x){
       paste0("python $HOME/mhcnuggets/scripts/predict.py -m gru -w $HOME/mhcnuggets/saves/kim2014/mhcnuggets_gru/",
              stringr::str_extract(string = x, pattern = "(?<=_)H.*(?=_)"), ".h5 -p ", x,
              " > ",
              x %>% stringr::str_replace("input", "output")) %>%
         system
     })
-
+  )
   message("Running mhcnuggets with -m lstm")
-
+  suppressWarnings(
   list.files(pattern = "mhcnuggets_input_lstm.*csv") %>%
-
-
-    lapply(., function(x){
+##TODO does parallelization work?
+    ##TODO suppress warnings due to python throwing index out of bounds error from mhcnuggets, is this needed?
+    
+    parallel::mclapply(., function(x){
       paste0("python $HOME/mhcnuggets/scripts/predict.py -m lstm -w $HOME/mhcnuggets/saves/kim2014/mhcnuggets_lstm/",
              stringr::str_extract(string = x, pattern = "(?<=_)H.*(?=_)"), ".h5 -p ", x,
              " > ",
              x %>% stringr::str_replace("input", "output")) %>%
         system
     })
+  )
 }
 
 ## ---- run_netMHC

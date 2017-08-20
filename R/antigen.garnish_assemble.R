@@ -114,7 +114,6 @@ get_metadata <- function(dt,
 
       # obtain transcript cDNA and peptide sequences
       seqdtl <- lapply(c("coding", "peptide"), function(j){
-##this returns seqdtl == NULL with mclapply for me for some reason, only works with lapply
          biomaRt::getSequence(type = "ensembl_transcript_id",
                      id = trn,
                      seqType = j,
