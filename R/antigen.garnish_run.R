@@ -29,7 +29,7 @@ run_mhcnuggets <- function(){
   suppressWarnings(
   list.files(pattern = "mhcnuggets_input_gru.*csv") %>%
     parallel::mclapply(., function(x){
-      paste0("python $HOME/mhcnuggets/scripts/predict.py -m gru -w $HOME/mhcnuggets/saves/kim2014/mhcnuggets_gru/",
+      paste0("python $HOME/anigen.garnish/mhcnuggets/scripts/predict.py -m gru -w $HOME/antigen.garnish/mhcnuggets/saves/kim2014/mhcnuggets_gru/",
              stringr::str_extract(string = x, pattern = "(?<=_)H.*(?=_)"), ".h5 -p ", x,
              " > ",
              x %>% stringr::str_replace("input", "output")) %>%
@@ -43,7 +43,7 @@ run_mhcnuggets <- function(){
     ##TODO suppress warnings due to python throwing index out of bounds error from mhcnuggets, is this needed?
     
     parallel::mclapply(., function(x){
-      paste0("python $HOME/mhcnuggets/scripts/predict.py -m lstm -w $HOME/mhcnuggets/saves/kim2014/mhcnuggets_lstm/",
+      paste0("python $HOME/antigen.garnish/mhcnuggets/scripts/predict.py -m lstm -w $HOME/antigen.garnish/mhcnuggets/saves/kim2014/mhcnuggets_lstm/",
              stringr::str_extract(string = x, pattern = "(?<=_)H.*(?=_)"), ".h5 -p ", x,
              " > ",
              x %>% stringr::str_replace("input", "output")) %>%
