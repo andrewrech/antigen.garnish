@@ -136,7 +136,7 @@ Sys.setenv(PATH = paste0(default_path, ":", Sys.getenv("PATH")))
           message("netMHCIIpan is not in PATH\n       Download: http://www.cbs.dtu.dk/services/NetMHCIIpan/")
         PATH_status$netMHCIIpan <- FALSE
        }
-  if (file.exists("~/mhcnuggets/scripts/predict.py") == FALSE | file.exists("~/mhcnuggets/saves/kim2014") == FALSE) {
+  if (file.exists("~/antigen.garnish/mhcnuggets/scripts/predict.py") == FALSE | file.exists("~/antigen.garnish/mhcnuggets/saves/kim2014") == FALSE) {
         message("mhcnuggets may not be properly installed in home directory, please reclone into $HOME")
         PATH_status$mhcnuggets <- FALSE
        }
