@@ -34,7 +34,7 @@ An R package for [neoepitope](http://science.sciencemag.org/content/348/6230/69)
 Install [mhcflurry](https://github.com/hammerlab/mhcflurry):
 
 ```sh
-pip install mhcflurry
+pip install mhcflurry h5py
 mhcflurry-downloads fetch
 nosetests .
 ```
