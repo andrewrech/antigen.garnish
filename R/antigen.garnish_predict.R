@@ -255,6 +255,7 @@ get_pred_commands <- function(dt){
          stringr::str_replace(stringr::fixed(":"), "")]
 
   ##write tables for gru input
+    if(dt[mhcnuggets %chin% alleles[type == "mhcnuggets_gru", allele]] %>% nrow > 0){
     mnug_dt <- dt[mhcnuggets %chin% alleles[type == "mhcnuggets_gru", allele] &
                     nmer_l < 15,
                   .SD, .SDcols = c("mhcnuggets", "nmer")] %>%
@@ -274,7 +275,9 @@ get_pred_commands <- function(dt){
                         })
                       }
                   )
+              }
   ##write tables for lstm input
+    if(dt[mhcnuggets %chin% alleles[type == "mhcnuggets_lstm", allele]] %>% nrow > 0){
     mnug_dt <- dt[mhcnuggets %chin% alleles[type == "mhcnuggets_lstm", allele] &
                     nmer_l < 15,
                   .SD, .SDcols = c("mhcnuggets", "nmer")] %>%
@@ -291,9 +294,10 @@ get_pred_commands <- function(dt){
                              data.table::as.data.table,
                            filename,
                            col.names = FALSE)
-      })
-    }
-    )
+                })
+              }
+            )
+          }
   # generate matchable MHC substring for netMHC tools
     dt[, netMHCpan := MHC %>% stringr::str_replace(stringr::fixed("*"), "")]
     dt[, netMHC := netMHCpan %>% stringr::str_replace(stringr::fixed(":"), "")]
