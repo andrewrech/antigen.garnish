@@ -592,7 +592,8 @@ garnish_predictions <- function(dt,
                                generate = TRUE,
                                predict = TRUE,
                                humandb = "GRCh38",
-                               mousedb = "GRCm38"){
+                               mousedb = "GRCm38",
+                               conf.int = FALSE){
 
   # remove temporary files on exit
   on.exit({
@@ -805,7 +806,7 @@ if (predict){
       run_mhcnuggets()
       dt <- merge_predictions(dto, dtl[[1]])
       cols <- dt %>% names %include% "(best_netMHC)|(mhcflurry_prediction$)|(mhcnuggets_pred_gru)|(mhcnuggets_pred_lstm)"
-    ##TODO, this is slow, consider removing or adding argument to make it optional  
+    if(conf.int){
       dt[, Upper.CI := parallel::mclapply(1:nrow(dt), function(i){
        x <- t.test(.SD)$conf.int[2]
       return(x)
@@ -814,7 +815,7 @@ if (predict){
         x <- t.test(.SD)$conf.int[1]
         return(x)
       }), by = 1:nrow(dt), .SDcols = cols]
-    
+    }
   } else {
     warning("Missing prediction tools in PATH, returning without predictions.")
   }
