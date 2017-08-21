@@ -114,8 +114,8 @@ get_DAI_uuid <- function(dt){
                 .[tool == "lstm", mhcnuggets_pred_lstm := mhcnuggets_prediction] %>%
                 .[, c("nmer", "mhcnuggets", "mhcnuggets_pred_gru", "mhcnuggets_pred_lstm")]
 ###TODO is fdt/nugdt %>% unique necessary for above and below merges?
-        nugdt <- merge(nugdt[!is.na(mhcnuggets_pred_lstm), .SD, .SDcols = c("nmer", "mhcnuggets", "mhcnuggets_pred_lstm")],
-                 nugdt[!is.na(mhcnuggets_pred_gru), .SD, .SDcols = c("nmer", "mhcnuggets", "mhcnuggets_pred_gru")], by = c("nmer", "mhcnuggets"),
+        nugdt <- merge(nugdt[!is.na(mhcnuggets_pred_lstm), .SD, .SDcols = c("nmer", "mhcnuggets", "mhcnuggets_pred_lstm")] %>% unique,
+                 nugdt[!is.na(mhcnuggets_pred_gru), .SD, .SDcols = c("nmer", "mhcnuggets", "mhcnuggets_pred_gru")] %>% unique, by = c("nmer", "mhcnuggets"),
                  all = TRUE)
       ##this is not a good way to do this, relies on class I mhcnugget alleles only, need to find a better way to convert back
               nugdt[grep("H-2-", mhcnuggets),
@@ -268,7 +268,7 @@ get_pred_commands <- function(dt){
       parallel::mclapply(mnug_dt[allele == i] %>% split(1:break_ups), function(dt){
 
         filename <- paste0("mhcnuggets_input_gru_", i, "_", uuid::UUIDgenerate() %>% substr(1, 18), ".csv")
-                  data.table::fwrite(mnug_dt[allele == i, peptide] %>%
+                  data.table::fwrite(dt[allele == i, peptide] %>%
                                             data.table::as.data.table,
                                                  filename,
                                                  col.names = FALSE)
@@ -288,9 +288,9 @@ get_pred_commands <- function(dt){
     suppressWarnings(for (i in mnug_dt[, allele %>% unique]){
       break_ups <- ((mnug_dt[allele == i] %>% nrow)/100) %>% ceiling
       parallel::mclapply(mnug_dt[allele == i] %>% split(1:break_ups), function(dt){
-        
+
         filename <- paste0("mhcnuggets_input_lstm_", i, "_", uuid::UUIDgenerate() %>% substr(1, 18), ".csv")
-        data.table::fwrite(mnug_dt[allele == i, peptide] %>%
+        data.table::fwrite(dt[allele == i, peptide] %>%
                              data.table::as.data.table,
                            filename,
                            col.names = FALSE)
