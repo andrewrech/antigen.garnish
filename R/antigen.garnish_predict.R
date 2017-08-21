@@ -812,7 +812,7 @@ if (predict){
 
       confi <- function(dt){
           dtl <- lapply(1:nrow(dt), function(i){
-        if(dt[i ,] %>% unlist %>% na.omit %>% unique %>% length <= 1){
+        if(dt[i ,] %>% unlist %>% na.omit %>% unique %>% length <= 2){
           return(list(NA, NA))}
           t.test(dt[i ,])$conf.int[1:2] %>% as.list
                         })
