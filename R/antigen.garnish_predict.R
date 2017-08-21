@@ -264,11 +264,11 @@ get_pred_commands <- function(dt){
       unique
 
     suppressWarnings(for (i in mnug_dt[, allele %>% unique]){
-      break_ups <- ((mnug_dt %>% nrow)/100) %>% ceiling
-      parallel::mclapply(mnug_dt %>% split(1:break_ups), function(dt){
+      break_ups <- ((mnug_dt[allele == i] %>% nrow)/100) %>% ceiling
+      parallel::mclapply(mnug_dt[allele == i] %>% split(1:break_ups), function(dt){
 
         filename <- paste0("mhcnuggets_input_gru_", i, "_", uuid::UUIDgenerate() %>% substr(1, 18), ".csv")
-                  data.table::fwrite(dt[allele == i, peptide] %>%
+                  data.table::fwrite(mnug_dt[allele == i, peptide] %>%
                                             data.table::as.data.table,
                                                  filename,
                                                  col.names = FALSE)
@@ -286,11 +286,11 @@ get_pred_commands <- function(dt){
       unique
 
     suppressWarnings(for (i in mnug_dt[, allele %>% unique]){
-      break_ups <- ((mnug_dt %>% nrow)/100) %>% ceiling
-      parallel::mclapply(mnug_dt %>% split(1:break_ups), function(dt){
+      break_ups <- ((mnug_dt[allele == i] %>% nrow)/100) %>% ceiling
+      parallel::mclapply(mnug_dt[allele == i] %>% split(1:break_ups), function(dt){
         
         filename <- paste0("mhcnuggets_input_lstm_", i, "_", uuid::UUIDgenerate() %>% substr(1, 18), ".csv")
-        data.table::fwrite(dt[allele == i, peptide] %>%
+        data.table::fwrite(mnug_dt[allele == i, peptide] %>%
                              data.table::as.data.table,
                            filename,
                            col.names = FALSE)
