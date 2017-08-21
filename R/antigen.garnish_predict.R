@@ -93,7 +93,9 @@ get_DAI_uuid <- function(dt){
       # read and merge mhcflurry output
       fdt <- list.files(pattern = "mhcflurry_output.*csv") %>%
         lapply(., function(x){
-          data.table::fread(x)
+          if(data.table::fread(x) %>% nrow > 0){
+            return(data.table::fread(x))}
+            else{return(NULL)}
         }) %>% data.table::rbindlist %>%
             data.table::setnames(c("allele", "peptide"), c("MHC", "nmer"))
             dt <- merge(dt, fdt %>% unique, by = c("nmer", "MHC"), all.x = TRUE)
@@ -101,11 +103,15 @@ get_DAI_uuid <- function(dt){
       # read and merge mhcnuggets output
       nugdt <- list.files(pattern = "mhcnuggets_output.*csv") %>%
                 lapply(., function(x){
-                  data.table::fread(x) %>%
+                  if(data.table::fread(x) %>% nrow < 1){
+                    return(NULL)}
+                  else{
+                    return(data.table::fread(x) %>%
                     .[, mhcnuggets := basename(x) %>%
                         stringr::str_extract(pattern = "(?<=_)(H-2-.*(?=_))|(HLA).*(?=_)")] %>%
                     .[, tool := basename(x) %>%
-                        stringr::str_extract(pattern = "(gru)|(lstm)")]
+                        stringr::str_extract(pattern = "(gru)|(lstm)")])
+                      }
                 }) %>%
                 data.table::rbindlist(fill = TRUE) %>%
                 data.table::setnames(c("Building", "model"),
@@ -113,7 +119,7 @@ get_DAI_uuid <- function(dt){
                 .[tool == "gru", mhcnuggets_pred_gru := mhcnuggets_prediction] %>%
                 .[tool == "lstm", mhcnuggets_pred_lstm := mhcnuggets_prediction] %>%
                 .[, c("nmer", "mhcnuggets", "mhcnuggets_pred_gru", "mhcnuggets_pred_lstm")]
-###TODO is fdt/nugdt %>% unique necessary for above and below merges?
+
         nugdt <- merge(nugdt[!is.na(mhcnuggets_pred_lstm), .SD, .SDcols = c("nmer", "mhcnuggets", "mhcnuggets_pred_lstm")] %>% unique,
                  nugdt[!is.na(mhcnuggets_pred_gru), .SD, .SDcols = c("nmer", "mhcnuggets", "mhcnuggets_pred_gru")] %>% unique, by = c("nmer", "mhcnuggets"),
                  all = TRUE)
@@ -812,7 +818,7 @@ if (predict){
 
       confi <- function(dt){
           dtl <- lapply(1:nrow(dt), function(i){
-        if(dt[i ,] %>% unlist %>% na.omit %>% unique %>% length <= 2){
+        if(dt[i ,] %>% unlist %>% na.omit %>% unique %>% length <= 1){
           return(list(NA, NA))}
           t.test(dt[i ,])$conf.int[1:2] %>% as.list
                         })
