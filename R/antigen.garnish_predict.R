@@ -522,7 +522,6 @@ collate_netMHC <- function(esl){
 #' @param predict Logical. Predict binding affinities?
 #' @param humandb Character vector. One of "GRCh37" or "GRCh38".
 #' @param mousedb Character vector. One of "GRCm37" or "GRCm38".
-#' @param conf.int Logical, should a confidence interval be calculated (this may significantly slow down output), default = FALSE
 #' @return A data table of binding predictions including:
 #' * **cDNA_seq**: mutant cDNA sequence
 #' * **cDNA_locs**: starting index of mutant cDNA
@@ -597,8 +596,7 @@ garnish_predictions <- function(dt,
                                generate = TRUE,
                                predict = TRUE,
                                humandb = "GRCh38",
-                               mousedb = "GRCm38",
-                               conf.int = TRUE){
+                               mousedb = "GRCm38"){
 
   # remove temporary files on exit
   on.exit({
@@ -811,9 +809,11 @@ if (predict){
       run_mhcnuggets()
       dt <- merge_predictions(dto, dtl[[1]])
       cols <- dt %>% names %include% "(best_netMHC)|(mhcflurry_prediction$)|(mhcnuggets_pred_gru)|(mhcnuggets_pred_lstm)"
-    if(conf.int){
+
       confi <- function(dt){
           dtl <- lapply(1:nrow(dt), function(i){
+        if(dt[i ,] %>% unlist %>% na.omit %>% unique %>% length <= 1){
+          return(list(NA, NA))}
           t.test(dt[i ,])$conf.int[1:2] %>% as.list
                         })
         lower <- lapply(dtl, function(x){x[[1]]}) %>% unlist
@@ -822,7 +822,6 @@ if (predict){
                             }
 
       dt[, c("Lower.CI", "Upper.CI") := confi(.SD), .SDcols = cols]
-    }
   } else {
     warning("Missing prediction tools in PATH, returning without predictions.")
   }
