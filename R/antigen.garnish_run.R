@@ -26,7 +26,7 @@ run_mhcnuggets <- function(){
   message("Running mhcnuggets in parallel")
   message("Running mhcnuggets with -m gru")
 
-  suppressWarnings(
+  sink("/dev/null")
   list.files(pattern = "mhcnuggets_input_gru.*csv") %>%
     parallel::mclapply(., function(x){
       paste0("python $HOME/antigen.garnish/mhcnuggets/scripts/predict.py -m gru -w $HOME/antigen.garnish/mhcnuggets/saves/kim2014/mhcnuggets_gru/",
@@ -35,9 +35,11 @@ run_mhcnuggets <- function(){
              x %>% stringr::str_replace("input", "output")) %>%
         system
     })
-  )
+  sink()
+  
   message("Running mhcnuggets with -m lstm")
-  suppressWarnings(
+  
+  sink("/dev/null")
   list.files(pattern = "mhcnuggets_input_lstm.*csv") %>%
 ##TODO does parallelization work?
     ##TODO suppress warnings due to python throwing index out of bounds error from mhcnuggets, is this needed?
@@ -49,7 +51,7 @@ run_mhcnuggets <- function(){
              x %>% stringr::str_replace("input", "output")) %>%
         system
     })
-  )
+  sink()
 }
 
 ## ---- run_netMHC
