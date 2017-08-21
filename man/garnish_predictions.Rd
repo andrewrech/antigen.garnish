@@ -5,7 +5,7 @@
 \title{Performs epitope prediction.}
 \usage{
 garnish_predictions(dt, assemble = TRUE, generate = TRUE, predict = TRUE,
-  humandb = "GRCh38", mousedb = "GRCm38", conf.int = FALSE)
+  humandb = "GRCh38", mousedb = "GRCm38")
 }
 \arguments{
 \item{dt}{Data table. Input data table from garnish_variants. Required columns: sample_id, ensembl_transcript_id (e.g. \code{ENST00000311936}), cDNA_change \href{http://varnomen.hgvs.org/recommendations/DNA/}{HGVS} notation (e.g. \code{c.718T>A}), space-separated MHC (e.g. \code{HLA-A*02:01 H-2-Kb HLA-DRB1*03:01}).}
@@ -19,8 +19,6 @@ garnish_predictions(dt, assemble = TRUE, generate = TRUE, predict = TRUE,
 \item{humandb}{Character vector. One of "GRCh37" or "GRCh38".}
 
 \item{mousedb}{Character vector. One of "GRCm37" or "GRCm38".}
-
-\item{conf.int}{Logical, should a confidence interval be calculated (this may significantly slow down output), default = FALSE}
 }
 \value{
 A data table of binding predictions including:
