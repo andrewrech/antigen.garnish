@@ -518,6 +518,7 @@ collate_netMHC <- function(esl){
 #' @param predict Logical. Predict binding affinities?
 #' @param humandb Character vector. One of "GRCh37" or "GRCh38".
 #' @param mousedb Character vector. One of "GRCm37" or "GRCm38".
+#' @param conf.int Logical, should a confidence interval be calculated (this may significantly slow down output), default = FALSE
 #' @return A data table of binding predictions including:
 #' * **cDNA_seq**: mutant cDNA sequence
 #' * **cDNA_locs**: starting index of mutant cDNA
