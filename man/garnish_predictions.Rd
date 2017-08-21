@@ -19,6 +19,8 @@ garnish_predictions(dt, assemble = TRUE, generate = TRUE, predict = TRUE,
 \item{humandb}{Character vector. One of "GRCh37" or "GRCh38".}
 
 \item{mousedb}{Character vector. One of "GRCm37" or "GRCm38".}
+
+\item{conf.int}{Logical, should a confidence interval be calculated (this may significantly slow down output), default = FALSE}
 }
 \value{
 A data table of binding predictions including:
