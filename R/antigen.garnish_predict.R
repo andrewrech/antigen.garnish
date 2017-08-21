@@ -96,7 +96,7 @@ get_DAI_uuid <- function(dt){
           data.table::fread(x)
         }) %>% data.table::rbindlist %>%
             data.table::setnames(c("allele", "peptide"), c("MHC", "nmer"))
-            dt <- merge(dt, fdt, by = c("nmer", "MHC"), all.x = TRUE)
+            dt <- merge(dt, fdt %>% unique, by = c("nmer", "MHC"), all.x = TRUE)
 
       # read and merge mhcnuggets output
       nugdt <- list.files(pattern = "mhcnuggets_output.*csv") %>%
@@ -113,7 +113,7 @@ get_DAI_uuid <- function(dt){
                 .[tool == "gru", mhcnuggets_pred_gru := mhcnuggets_prediction] %>%
                 .[tool == "lstm", mhcnuggets_pred_lstm := mhcnuggets_prediction] %>%
                 .[, c("nmer", "mhcnuggets", "mhcnuggets_pred_gru", "mhcnuggets_pred_lstm")]
-###TODO make sure this works if only one model produces output
+###TODO is fdt/nugdt %>% unique necessary for above and below merges?
         nugdt <- merge(nugdt[!is.na(mhcnuggets_pred_lstm), .SD, .SDcols = c("nmer", "mhcnuggets", "mhcnuggets_pred_lstm")],
                  nugdt[!is.na(mhcnuggets_pred_gru), .SD, .SDcols = c("nmer", "mhcnuggets", "mhcnuggets_pred_gru")], by = c("nmer", "mhcnuggets"),
                  all = TRUE)
@@ -128,7 +128,7 @@ get_DAI_uuid <- function(dt){
                     MHC := stringr::str_replace(string = mhcnuggets, pattern = "(?<=(HLA-)).*$",
                                                 replacement = paste0(substr(mhcnuggets, 5, 5), "*", substr(mhcnuggets, 6, 7),
                                                                      ":", substr(mhcnuggets, 8, nchar(mhcnuggets))))]
-              dt <- merge(dt, nugdt, by = c("nmer", "MHC"), all.x = TRUE)
+              dt <- merge(dt, nugdt %>% unique, by = c("nmer", "MHC"), all.x = TRUE)
 
       # calculate netMHC consensus score, preferring non-*net tools
        for (col in (dt %>% names %include% "aff|[Rr]ank|Consensus_scores")){
