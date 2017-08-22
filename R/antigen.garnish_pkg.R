@@ -4,10 +4,12 @@
 #'
 #'Advantages
 #'
-#'1. **Simplicity**: summarized neoepitopes for each sample
+#'1. **Simplicity**:
+#'    - table or vcf input
+#'    - summarized neoepitopes for each sample
 #'1. **Thoroughness**:
 #'    - missense mutations and frameshifts
-#'    - ensemble MHC class I/II binding prediction using [mhcflurry](https://github.com/hammerlab/mhcflurry), [netMHC](http://www.cbs.dtu.dk/services/NetMHC/), [netMHCII](http://www.cbs.dtu.dk/services/NetMHCII/), [netMHCpan](http://www.cbs.dtu.dk/services/NetMHCpan/) and [netMHCIIpan](http://www.cbs.dtu.dk/services/NetMHCIIpan/i).
+#'    - ensemble MHC class I/II binding prediction using [mhcflurry](https://github.com/hammerlab/mhcflurry), [mhcnuggets](https://github.com/KarchinLab/mhcnuggets), [netMHC](http://www.cbs.dtu.dk/services/NetMHC/), [netMHCII](http://www.cbs.dtu.dk/services/NetMHCII/), [netMHCpan](http://www.cbs.dtu.dk/services/NetMHCpan/) and [netMHCIIpan](http://www.cbs.dtu.dk/services/NetMHCIIpan/i).
 #'1. **Speed**:
 #'    - produce all possible 8-15-mer peptides from 10,000 variants in under 1 minute on a normal laptop
 #'    - on an Amazon Web Services `m4.16xlarge` EC2 instance, 20,000 consensus predictions using 100+ MHC types in under 5 minutes
@@ -26,7 +28,7 @@
 #' @importFrom Biostrings DNAString translate
 #' @importFrom biomaRt useMart getBM getSequence
 #' @importFrom magrittr %>% %T>% %$% %<>%
-#' @importFrom stats na.omit
+#' @importFrom stats na.omit t.test
 #' @importFrom stringi stri_detect_fixed
 #' @importFrom tidyr separate_rows
 #' @importFrom utils download.file

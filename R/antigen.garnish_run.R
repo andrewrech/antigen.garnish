@@ -13,7 +13,7 @@ run_mhcflurry <- function(){
 
     list.files(pattern = "mhcflurry_input.*csv") %>%
 
-mclapply(., function(x){
+  mclapply(., function(x){
       paste0("mhcflurry-predict ", x, " > ", x %>%
             stringr::str_replace("input", "output")) %>%
       system
@@ -30,29 +30,33 @@ mclapply(., function(x){
 
 run_mhcnuggets <- function(){
 
-  message("Running mhcnuggets with -m gru")
+  gruf <- list.files(pattern = "mhcnuggets_input_gru.*csv")
 
-  list.files(pattern = "mhcnuggets_input_gru.*csv") %>%
+  if (gruf %>% length > 1)
+    message("Running mhcnuggets with -m gru")
 
-parallel::mclapply(., function(x){
-      paste0("python $HOME/antigen.garnish/mhcnuggets/scripts/predict.py -m gru -w $HOME/antigen.garnish/mhcnuggets/saves/kim2014/mhcnuggets_gru/",
-             stringr::str_extract(string = x, pattern = "(?<=_)H.*(?=_)"), ".h5 -p ", x,
-             " > ",
-             x %>% stringr::str_replace("input", "output")) %>%
-        system(ignore.stderr = TRUE)
-    })
+  parallel::mclapply(gruf, function(x){
+        paste0("python $(which predict.py) -m gru -w $(dirname $(which predict.py))/../saves/kim2014/mhcnuggets_gru/",
+               stringr::str_extract(string = x, pattern = "(?<=_)H.*(?=_)"), ".h5 -p ", x,
+               " > ",
+               x %>% stringr::str_replace("input", "output")) %>%
+          system
+      })
 
+
+
+  lf <- list.files(pattern = "mhcnuggets_input_lstm.*csv")
+
+  if (lf %>% length > 1)
   message("Running mhcnuggets with -m lstm")
 
-  list.files(pattern = "mhcnuggets_input_lstm.*csv") %>%
-
-parallel::mclapply(., function(x){
-      paste0("python $HOME/antigen.garnish/mhcnuggets/scripts/predict.py -m lstm -w $HOME/antigen.garnish/mhcnuggets/saves/kim2014/mhcnuggets_lstm/",
-             stringr::str_extract(string = x, pattern = "(?<=_)H.*(?=_)"), ".h5 -p ", x,
-             " > ",
-             x %>% stringr::str_replace("input", "output")) %>%
-        system(ignore.stderr = TRUE)
-    })
+  parallel::mclapply(lf, function(x){
+        paste0("python $(which predict.py) -m lstm -w $(dirname $(which predict.py))/../saves/kim2014/mhcnuggets_lstm/",
+               stringr::str_extract(string = x, pattern = "(?<=_)H.*(?=_)"), ".h5 -p ", x,
+               " > ",
+               x %>% stringr::str_replace("input", "output")) %>%
+          system
+      })
 }
 
 
@@ -76,7 +80,7 @@ run_netMHC <- function(dt){
   esl <- parallel::mclapply(
          dt[, command],
 
-function(command){
+  function(command){
           # run command
            es <- try(system(command, intern = TRUE))
           # if error, return empty dt
@@ -102,11 +106,11 @@ check_pred_tools <- function(){
 
   default_path <- paste0(system('echo $HOME', intern = TRUE),
                   c(
-                  "/netMHC/netMHC-4.0",
-                  "/netMHC/netMHCII-2.2",
-                  "/netMHC/netMHCIIpan-3.1",
-                  "/netMHC/netMHCpan-3.0",
-                  "/mhcnuggets/scripts/"
+                  "/antigen.garnish/netMHC/netMHC-4.0",
+                  "/antigen.garnish/netMHC/netMHCII-2.2",
+                  "/antigen.garnish/netMHC/netMHCIIpan-3.1",
+                  "/antigen.garnish/netMHC/netMHCpan-3.0",
+                  "/antigen.garnish/mhcnuggets/scripts"
                   )) %>%
                   paste(collapse = ":")
 
@@ -149,7 +153,7 @@ check_pred_tools <- function(){
     if (suppressWarnings(system('which predict.py 2> /dev/null', intern = TRUE)) %>%
           length == 0){
             message("mhcnuggets predict.py is not in PATH\n       Download: https://github.com/KarchinLab/mhcnuggets")
-          tool_status$netMHCIIpan <- FALSE
+          tool_status$mhcnuggets <- FALSE
          }
 
           return(tool_status)

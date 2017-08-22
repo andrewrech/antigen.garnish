@@ -52,7 +52,7 @@ garnish_summary <- function(dt){
 
     # function to sum top values of a numeric vector
 
-sum_top_v <- function(x, value = 3){
+  sum_top_v <- function(x, value = 3){
 
         x %<>% sort %>% rev
         return(sum(x[1:value]))
@@ -60,7 +60,7 @@ sum_top_v <- function(x, value = 3){
 
   dt %>% data.table::setkey(sample_id)
 
-dtn <- parallel::mclapply(dt[, sample_id %>% unique], function(id){
+  dtn <- parallel::mclapply(dt[, sample_id %>% unique], function(id){
 
     dt <- dt[sample_id == id]
 
@@ -129,7 +129,7 @@ garnish_variants <- function(vcfs){
 
   message("Loading VCFs")
 
-ivfdtl <- parallel::mclapply(vcfs %>% seq_along, function(ivf){
+  ivfdtl <- parallel::mclapply(vcfs %>% seq_along, function(ivf){
 
   # load dt
       vcf <-  vcfR::read.vcfR(vcfs[ivf], verbose = TRUE)
@@ -155,11 +155,11 @@ ivfdtl <- parallel::mclapply(vcfs %>% seq_along, function(ivf){
 
     if (vcf@gt %>% length > 0) vdt <- cbind(vdt, vcf@gt %>% data.table::as.data.table)
 
-    if(vdt %>% nrow < 1) return(data.table::data.table(sample_id = sample_id))
+    if (vdt %>% nrow < 1) return(data.table::data.table(sample_id = sample_id))
 
     # filter passing Strelka2 and muTect variants
-    if(vcf_type == "Strelka") vdt <- vdt[FILTER == "PASS"]
-    if(vcf_type == "Mutect") vdt <- vdt[INFO %>%
+    if (vcf_type == "Strelka") vdt <- vdt[FILTER == "PASS"]
+    if (vcf_type == "Mutect") vdt <- vdt[INFO %>%
                                         stringr::str_extract("(?<=TLOD=)[0-9\\.]") %>%
                                         as.numeric > 6.0]
     vdt[, sample_id := sample_id]
@@ -180,7 +180,7 @@ ivfdtl <- parallel::mclapply(vcfs %>% seq_along, function(ivf){
 
     ivfdt <- ivfdtl %>% data.table::rbindlist
 
-merge_vcf <- function(dt, dt2){
+  merge_vcf <- function(dt, dt2){
 
     # a function to intersect annotated variants across VCFs using SnpEff
 
@@ -194,11 +194,11 @@ merge_vcf <- function(dt, dt2){
     }
   # return an intersected data table of variants
 
-sdt <- parallel::mclapply(ivfdt[, sample_id %>% unique], function(sn){
+  sdt <- parallel::mclapply(ivfdt[, sample_id %>% unique], function(sn){
 
     # find data tables with matching sample names
 
-sdt <- lapply(ivfdtl, function(dt){
+  sdt <- lapply(ivfdtl, function(dt){
 
      dt[, sample_id %>% .[1]] == sn
 

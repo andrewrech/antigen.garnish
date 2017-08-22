@@ -75,14 +75,12 @@ get_DAI_uuid <- function(dt){
 
 merge_predictions <- function(l, dt){
 
-
-
       message("Merging output")
       # merge netMHC by program type
 
-progl <- lapply(l %>% seq_along, function(dti){
-         l[[dti]]$command[1] %>% stringr::str_extract("net[A-Za-z]+")
-         })
+        progl <- lapply(l %>% seq_along, function(dti){
+          l[[dti]]$command[1] %>% stringr::str_extract("net[A-Za-z]+")
+          })
 
        # merge netMHC output
 
@@ -97,8 +95,8 @@ progl <- lapply(l %>% seq_along, function(dti){
 
       fdt <- list.files(pattern = "mhcflurry_output.*csv") %>%
 
-lapply(., function(x){
-          if(data.table::fread(x) %>% nrow > 0){
+      lapply(., function(x){
+          if (data.table::fread(x) %>% nrow > 0){
             return(data.table::fread(x))
           } else {
             return(NULL)
@@ -111,8 +109,8 @@ lapply(., function(x){
 
         nugdt <- list.files(pattern = "mhcnuggets_output.*csv") %>%
 
-lapply(., function(x){
-                  if(data.table::fread(x) %>% nrow >0 ){
+          lapply(., function(x){
+                  if (data.table::fread(x) %>% nrow >0 ){
                     return(
                      data.table::fread(x) %>%
                       .[, mhcnuggets := basename(x) %>%
@@ -131,30 +129,24 @@ lapply(., function(x){
                 .[tool == "lstm", mhcnuggets_pred_lstm := mhcnuggets_prediction] %>%
                 .[, c("nmer", "mhcnuggets", "mhcnuggets_pred_gru", "mhcnuggets_pred_lstm")]
 
-        nugdt <- merge(
-                     nugdt[!is.na(mhcnuggets_pred_lstm), .SD, .SDcols = c("nmer", "mhcnuggets", "mhcnuggets_pred_lstm")] %>% unique,
-                     nugdt[!is.na(mhcnuggets_pred_gru), .SD, .SDcols = c("nmer", "mhcnuggets", "mhcnuggets_pred_gru")] %>% unique,
-                     by = c("nmer", "mhcnuggets"),
-                     all = TRUE)
-        ##### TODO change this, merge directly to mhcnuggets column, no need to re-import
-         alleles <- data.table::rbindlist(
-          list(
-            system.file("extdata",
-                        "mhcflurry_alleles.txt", package = "antigen.garnish") %>%
-              data.table::fread(header = FALSE, sep = "\t") %>%
-              data.table::setnames("V1", "allele")
-                ))
-         alleles[, match := allele %>% stringr::str_replace_all(pattern = "-|:|\\*", replacement = "")] %>%
-           .[, match := match %>% toupper]
-         nugdt[, match := mhcnuggets %>% stringr::str_replace_all(pattern = "-|:|\\*", replacement = "")] %>%
-           .[, match := match %>% toupper]
+         nugdt <- merge(
+                     nugdt[!is.na(mhcnuggets_pred_lstm),
+                            .SD,
+                            .SDcols = c("nmer",
+                            "mhcnuggets",
+                            "mhcnuggets_pred_lstm")] %>% unique,
+                     nugdt[!is.na(mhcnuggets_pred_gru),
+                            .SD,
+                            .SDcols = c("nmer",
+                            "mhcnuggets",
+                            "mhcnuggets_pred_gru")] %>% unique,
+                        by = c("nmer", "mhcnuggets"),
+                        all = TRUE)
 
-         for (i in nugdt[, match] %>% unique){
-           nugdt[match == i, MHC := alleles[match == i, allele] %>% unique]
-         }
-
-        dt <- merge(dt, nugdt[, match := NULL] %>% unique, by = c("nmer", "MHC"), all.x = TRUE)
-        #####
+        dt <- merge(dt, nugdt %>%
+                    unique,
+                    by = c("nmer", "mhcnuggets"),
+                    all.x = TRUE)
 
       # calculate netMHC consensus score, preferring non-*net tools
          for (col in (dt %>% names %include% "aff|[Rr]ank|Consensus_scores")){
@@ -164,11 +156,11 @@ lapply(., function(x){
             }
 
         # get vector of netMHC scores
-           cols <- dt %>% names %includef% c("affinity(nM)")
+          cols <- dt %>% names %includef% c("affinity(nM)")
 
         # create a long format table
           # to calculate consensus score
-        dtm <- dt[, .SD, .SDcols = c("nmer", "MHC", cols)] %>%
+          dtm <- dt[, .SD, .SDcols = c("nmer", "MHC", cols)] %>%
              melt(id.vars = c("nmer", "MHC")) %>%
         # order affinity predictions by program preference
              .[, variable := variable %>% factor(levels = cols)] %>%
@@ -280,67 +272,13 @@ get_pred_commands <- function(dt){
 
   # generate input for mhcnuggets predictions
 
-    dt[grep("H-2-", MHC), mhcnuggets := toupper(MHC)]
-    dt[grep("HLA", MHC), mhcnuggets := MHC %>%
-         stringr::str_replace(stringr::fixed("*"), "") %>%
-         stringr::str_replace(stringr::fixed(":"), "")]
+    dt[, mhcnuggets := toupper(MHC) %>%
+       stringr::str_replace(stringr::fixed("*"), "") %>%
+       stringr::str_replace(stringr::fixed(":"), "")]
 
-  # write tables for gru input
-    if(dt[mhcnuggets %chin% alleles[type == "mhcnuggets_gru", allele]] %>% nrow > 0){
-    mnug_dt <- dt[mhcnuggets %chin% alleles[type == "mhcnuggets_gru", allele] &
-                    nmer_l < 15,
-                  .SD, .SDcols = c("mhcnuggets", "nmer")] %>%
-        data.table::setnames(c("mhcnuggets", "nmer"), c("allele", "peptide")) %>%
-        unique
+       write_nuggets_nmers(dt, alleles)
 
-      #### TODO why are you suppressing warnings here?
-      suppressWarnings(
-           for (i in mnug_dt[, allele %>% unique]){
-            break_ups <- ((mnug_dt[allele == i] %>% nrow)/100) %>% ceiling
 
-      parallel::mclapply(mnug_dt[allele == i] %>% split(1:break_ups), function(dt){
-
-            filename <- paste0("mhcnuggets_input_gru_",
-                               i,
-                               "_",
-                               uuid::UUIDgenerate() %>%
-                               substr(1, 18), ".csv")
-            data.table::fwrite(dt[allele == i, peptide] %>%
-                        data.table::as.data.table,
-                        filename,
-                        col.names = FALSE)
-                        })
-                      }
-                  )
-              }
-  # write tables for lstm input
-    if(dt[mhcnuggets %chin% alleles[type == "mhcnuggets_lstm", allele]] %>% nrow > 0){
-      mnug_dt <- dt[mhcnuggets %chin% alleles[type == "mhcnuggets_lstm", allele] &
-                    nmer_l < 15,
-                  .SD, .SDcols = c("mhcnuggets", "nmer")] %>%
-        data.table::setnames(c("mhcnuggets", "nmer"), c("allele", "peptide")) %>%
-        unique
-      #### TODO why are you suppressing warnings here?
-      suppressWarnings(
-           for (i in mnug_dt[, allele %>% unique]){
-            ##### TODO fix split
-            break_ups <- ((mnug_dt[allele == i] %>% nrow)/100) %>% ceiling
-
-    parallel::mclapply(mnug_dt[allele == i] %>% split(1:break_ups), function(dt){
-
-            filename <- paste0("mhcnuggets_input_lstm_",
-                               i,
-                               "_",
-                               uuid::UUIDgenerate() %>%
-                               substr(1, 18), ".csv")
-            data.table::fwrite(dt[allele == i, peptide] %>%
-                        data.table::as.data.table,
-                        filename,
-                        col.names = FALSE)
-                        })
-                      }
-                  )
-              }
   # generate matchable MHC substring for netMHC tools
     dt[, netMHCpan := MHC %>% stringr::str_replace(stringr::fixed("*"), "")]
     dt[, netMHC := netMHCpan %>% stringr::str_replace(stringr::fixed(":"), "")]
@@ -363,28 +301,28 @@ get_pred_commands <- function(dt){
               .SD, .SDcols = c("netMHC", "nmer", "nmer_l")] %>%
             data.table::copy %>%
             data.table::setkey(netMHC, nmer_l) %>%
-            write_nmers("netMHC"),
+            write_netmhc_nmers("netMHC"),
 
             dt[!netMHCpan %>% is.na &
             nmer_l < 15,
               .SD, .SDcols = c("netMHCpan", "nmer", "nmer_l")] %>%
             data.table::copy %>%
             data.table::setkey(netMHCpan, nmer_l) %>%
-            write_nmers("netMHCpan"),
+            write_netmhc_nmers("netMHCpan"),
 
             dt[!netMHCII %>% is.na &
             nmer_l == 15,
               .SD, .SDcols = c("netMHCII", "nmer", "nmer_l")] %>%
             data.table::copy %>%
             data.table::setkey(netMHCII, nmer_l) %>%
-            write_nmers("netMHCII"),
+            write_netmhc_nmers("netMHCII"),
 
             dt[!netMHCIIpan %>% is.na &
             nmer_l == 15,
               .SD, .SDcols = c("netMHCIIpan", "nmer", "nmer_l")] %>%
             data.table::copy %>%
             data.table::setkey(netMHCIIpan, nmer_l) %>%
-            write_nmers("netMHCIIpan")
+            write_netmhc_nmers("netMHCIIpan")
                                    ))
       }
 
@@ -406,7 +344,9 @@ get_pred_commands <- function(dt){
             "-a", allele,
             "-f", filename)
         ]
+
     return(list(dt, dtfn))
+
   }
 
 
@@ -493,7 +433,6 @@ esl, function(es){
                                  paste0((dt %>% names %exclude% "allele|nmer"), "_", ptype))
 
           # name allele column for merge
-            if (!"allele" %chin% (dt %>% names)) browser()
             dt %>%
               data.table::setnames("allele", ptype)
 
@@ -504,16 +443,101 @@ esl, function(es){
 
 
 
-## ---- write_nmers
+## ---- write_nuggets_nmers
+#' Internal function to output nmers for MHC prediction to disk
+#'
+#' @param dt Data table of nmers.
+#' @param alleles Data table of 2 columns, 1. alleles properly formatted for 2. respective program name (e.g. mhcflurry, mhcnuggets, netMHC).
+#'
+#' @export write_nuggets_nmers
+#' @md
+
+write_nuggets_nmers <- function(dt, alleles){
+
+  if (dt %>% nrow == 0) return(NULL)
+
+  if (!c("mhcnuggets", "nmer", "nmer_l") %chin% (dt %>% names) %>% any)
+          stop("dt must contain mhcnuggets and nmer columns")
+
+
+  # write tables for gru input
+
+    if (dt[mhcnuggets %chin% alleles[type == "mhcnuggets_gru", allele]] %>% nrow > 0){
+
+      mnug_dt <- dt[mhcnuggets %chin% alleles[type == "mhcnuggets_gru", allele] &
+                    nmer_l <= 11,
+                  .SD, .SDcols = c("mhcnuggets", "nmer")] %>%
+               data.table::setnames(c("mhcnuggets", "nmer"),
+                                    c("allele", "peptide")) %>%
+               unique
+
+      suppressWarnings(
+           for (i in mnug_dt[, allele %>% unique]){
+            break_ups <- ((mnug_dt[allele == i] %>% nrow)/100) %>% ceiling
+
+      parallel::mclapply(mnug_dt[allele == i] %>% split(1:break_ups), function(dt){
+
+            filename <- paste0("mhcnuggets_input_gru_",
+                               i,
+                               "_",
+                               uuid::UUIDgenerate() %>%
+                               substr(1, 18), ".csv")
+
+            data.table::fwrite(dt[allele == i, peptide] %>%
+                        data.table::as.data.table,
+                        filename,
+                        col.names = FALSE)
+                        })
+                      }
+                  )
+              }
+
+  # write tables for lstm input
+
+    if (dt[mhcnuggets %chin% alleles[type == "mhcnuggets_lstm", allele]] %>% nrow > 0){
+
+      mnug_dt <- dt[mhcnuggets %chin% alleles[type == "mhcnuggets_lstm", allele] &
+                    nmer_l <= 11,
+                  .SD, .SDcols = c("mhcnuggets", "nmer")] %>%
+        data.table::setnames(c("mhcnuggets", "nmer"),
+                             c("allele", "peptide")) %>%
+        unique
+
+      suppressWarnings(
+           for (i in mnug_dt[, allele %>% unique]){
+            ##### TODO fix split
+            break_ups <- ((mnug_dt[allele == i] %>% nrow)/100) %>% ceiling
+
+       parallel::mclapply(mnug_dt[allele == i] %>% split(1:break_ups), function(dt){
+
+            filename <- paste0("mhcnuggets_input_lstm_",
+                               i,
+                               "_",
+                               uuid::UUIDgenerate() %>%
+                               substr(1, 18), ".csv")
+
+            data.table::fwrite(dt[allele == i, peptide] %>%
+                        data.table::as.data.table,
+                        filename,
+                        col.names = FALSE)
+                        })
+                      }
+                  )
+              }
+  }
+
+
+
+## ---- write_netmhc_nmers
 #' Internal function to output nmers for MHC prediction to disk
 #'
 #' @param dt Data table of nmers.
 #' @param type Character vector. Name of program to format for.
 #'
-#' @export write_nmers
+#' @export write_netmhc_nmers
 #' @md
 
-write_nmers <- function(dt, type){
+write_netmhc_nmers <- function(dt, type){
     if (dt %>% nrow == 0) return(NULL)
     if (!c("nmer", "nmer_l") %chin% (dt %>% names) %>% any)
           stop("dt must contain nmer and nmer_l columns")
@@ -521,14 +545,14 @@ write_nmers <- function(dt, type){
     combs <- data.table::CJ(dt[, get(type)] %>% unique,
                             dt[, nmer_l] %>% unique)
 
-dto <- parallel::mclapply(1:nrow(combs), function(i){
+  dto <- parallel::mclapply(1:nrow(combs), function(i){
 
       dts <- dt[get(type) == combs$V1[i] & nmer_l == combs$V2[i]]
 
       # parallelize over 100 peptide chunks
       chunks <- ((dts %>% nrow)/100) %>% ceiling
 
-dto <- parallel::mclapply(dts %>% split(1:chunks), function(dtw){
+  dto <- parallel::mclapply(dts %>% split(1:chunks), function(dtw){
 
         filename <- paste0(type, "_",
                     uuid::UUIDgenerate() %>% substr(1, 18), ".csv")
@@ -652,7 +676,9 @@ garnish_predictions <- function(dt,
 
   dt %<>% data.table::as.data.table
 
-  if (!c("sample_id", "ensembl_transcript_id", "cDNA_change", "MHC") %chin% (dt %>% names) %>% all) stop("Input dt must contain four columns:\n\nsample_id\nensembl_transcript_id (e.g. \"ENST00000311936\")\ncDNA_change in HGVS notation (e.g. \"c.718T>A\")\nMHC\n    e.g. \"HLA-A*02:01 HLA-A*03:01\" or\n         \"H-2-Kb H-2-Kb\" or \"HLA-DRB1*11:07 [second type]\"")
+  if (!c("sample_id", "ensembl_transcript_id", "cDNA_change", "MHC") %chin%
+      (dt %>% names) %>% all)
+      stop("Input dt must contain four columns:\n\nsample_id\nensembl_transcript_id (e.g. \"ENST00000311936\")\ncDNA_change in HGVS notation (e.g. \"c.718T>A\")\nMHC\n    e.g. \"HLA-A*02:01 HLA-A*03:01\" or\n         \"H-2-Kb H-2-Kb\" or \"HLA-DRB1*11:07 [second type]\"")
 
 if (assemble){
 
@@ -852,31 +878,35 @@ if (predict){
    if (check_pred_tools() %>% unlist %>% all){
 
       dto <- run_netMHC(dtl[[2]])
+
       run_mhcflurry()
+
       run_mhcnuggets()
+
       dt <- merge_predictions(dto, dtl[[1]])
       cols <- dt %>% names %include% "(best_netMHC)|(mhcflurry_prediction$)|(mhcnuggets_pred_gru)|(mhcnuggets_pred_lstm)"
 
-confi <- function(dt){
+      confi <- function(dt){
 
-dtl <- lapply(1:nrow(dt), function(i){
-        if(dt[i ,] %>% unlist %>% na.omit %>% unique %>% length <= 1){
-          return(list(NA, NA))}
-          t.test(dt[i ,])$conf.int[1:2] %>% as.list
-                        })
+        dtl <- parallel::mclapply(1:nrow(dt), function(i){
 
-lower <- lapply(dtl, function(x){x[[1]]}) %>% unlist
+          if (dt[i ,] %>% unlist %>% na.omit %>% unique %>% length <= 1){
+            return(list(NA, NA))}
+            t.test(dt[i ,])$conf.int[1:2] %>% as.list
+                          })
 
-upper <- lapply(dtl, function(x){x[[2]]}) %>% unlist
-  return(list(lower, upper))
+        lo <- lapply(dtl, function(x){x[[1]]}) %>% unlist
+
+        up <- lapply(dtl, function(x){x[[2]]}) %>% unlist
+        return(list(lo, up))
                             }
 
       dt[, c("Lower.CI", "Upper.CI") := confi(.SD), .SDcols = cols]
-  } else {
-    warning("Missing prediction tools in PATH, returning without predictions.")
-  }
+      } else {
+        warning("Missing prediction tools in PATH, returning without predictions.")
+      }
 
-}
+   }
    return(dt)
 }
 
@@ -893,78 +923,78 @@ upper <- lapply(dtl, function(x){x[[2]]}) %>% unlist
 get_nmers <- function(dt){
 
 
-if (!c("var_uuid",
-       "pep_type",
-       "pep_base",
-       "mutant_loc") %chin% (dt %>% names) %>% all)
-  stop("dt is missing columns")
+  if (!c("var_uuid",
+         "pep_type",
+         "pep_base",
+         "mutant_loc") %chin% (dt %>% names) %>% all)
+    stop("dt is missing columns")
 
-  dt %<>% data.table::as.data.table
+    dt %<>% data.table::as.data.table
 
-  lines <- nrow(dt)
+    lines <- nrow(dt)
 
-  # a function to generate sliding
-  # window n-mers over an index of interest
+    # a function to generate sliding
+    # window n-mers over an index of interest
 
-  message("Generating nmers")
-  nmer_dt <- parallel::mclapply(1:nrow(dt),
+    message("Generating nmers")
+    nmer_dt <- parallel::mclapply(1:nrow(dt),
 
-function(n){
-
-
-      ## --- Write peptide fragments
-
-        # for every peptide length
-
-nmer_dt <- lapply((15:8), function(pl){
-
-          mut_frag_t <- dt$pep_base[n] %>% strsplit("",
-                              fixed = TRUE) %>% unlist
-          mut_frag_loc <- dt$mutant_loc[n]
-
-          # if the peptide is not long enough, return
-          if (!(mut_frag_t %>% length) >= pl) return(NULL)
-
-            # re-register peptide if the mutant index
-            # is not centered due to back truncation
-
-            # trim peptide front to mutant site
-            if (mut_frag_loc > pl){
-              rml <- mut_frag_loc - pl + 1
-              mut_frag_t <- mut_frag_t[rml:(length(mut_frag_t))]
-              mut_frag_loc <- pl
-              }
-
-            # trim peptide back to mutant site
-            fpl <- mut_frag_loc + pl - 1
-            if (fpl < length(mut_frag_t))
-                mut_frag_t <- mut_frag_t[1:(fpl)]
-
-          # slide across the peptide window
-          # create (n = pl )-mers wrapped in
-          # sync to prevent zoo::rollapply stdout
-
-          nmers <- zoo::rollapply(mut_frag_t, pl,
-                        print,
-                        partial = FALSE,
-                        align = "left") %>%
-
-apply(1, function(pmr){
-          paste(pmr, sep = "", collapse = "")
-          })
+     function(n){
 
 
-      # return a data table of peptides
+     ## --- Write peptide fragments
 
-      return(
-             data.table::data.table(
-                nmer = nmers,
-                nmer_i = 1:length(nmers),
-                pep_base = dt$pep_base[n],
-                pep_type = dt$pep_type[n],
-                var_uuid = dt$var_uuid[n]
-                )
-             )
+      # for every peptide length
+
+      nmer_dt <- lapply((15:8), function(pl){
+
+        mut_frag_t <- dt$pep_base[n] %>% strsplit("",
+                            fixed = TRUE) %>% unlist
+        mut_frag_loc <- dt$mutant_loc[n]
+
+        # if the peptide is not long enough, return
+        if (!(mut_frag_t %>% length) >= pl) return(NULL)
+
+          # re-register peptide if the mutant index
+          # is not centered due to back truncation
+
+          # trim peptide front to mutant site
+          if (mut_frag_loc > pl){
+            rml <- mut_frag_loc - pl + 1
+            mut_frag_t <- mut_frag_t[rml:(length(mut_frag_t))]
+            mut_frag_loc <- pl
+            }
+
+          # trim peptide back to mutant site
+          fpl <- mut_frag_loc + pl - 1
+          if (fpl < length(mut_frag_t))
+              mut_frag_t <- mut_frag_t[1:(fpl)]
+
+        # slide across the peptide window
+        # create (n = pl )-mers wrapped in
+        # sync to prevent zoo::rollapply stdout
+
+        nmers <- zoo::rollapply(mut_frag_t, pl,
+                      print,
+                      partial = FALSE,
+                      align = "left") %>%
+
+        apply(1, function(pmr){
+        paste(pmr, sep = "", collapse = "")
+        })
+
+
+        # return a data table of peptides
+
+        return(
+           data.table::data.table(
+              nmer = nmers,
+              nmer_i = 1:length(nmers),
+              pep_base = dt$pep_base[n],
+              pep_type = dt$pep_type[n],
+              var_uuid = dt$var_uuid[n]
+              )
+           )
 
 
     }) %>% data.table::rbindlist %>% unique

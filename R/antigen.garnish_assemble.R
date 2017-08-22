@@ -80,7 +80,7 @@ get_metadata <- function(dt,
 
     message("Obtaining cDNA and peptide sequences using biomaRt")
 
-var_dt <- lapply(bmds, function(i){
+    var_dt <- lapply(bmds, function(i){
 
       if (i == "hsapiens_gene_ensembl") host <- hhost
       if (i == "mmusculus_gene_ensembl") host <- mhost

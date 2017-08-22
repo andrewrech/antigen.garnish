@@ -4,7 +4,7 @@ library(data.table)
 library(magrittr)
 library(dt.inflix)
 
-testthat::test_that("write_nmers", {
+testthat::test_that("write_netmhc_nmers", {
 
   on.exit({
     list.files(pattern = "netMHC_.*csv") %>%
@@ -22,7 +22,7 @@ testthat::test_that("write_nmers", {
   -10L))
 
   # run test
-  dto <-  write_nmers(dt, "netMHC")
+  dto <-  write_netmhc_nmers(dt, "netMHC")
 
   testthat::expect_equal(
     data.table::fread(dto$filename,

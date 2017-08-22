@@ -14,7 +14,9 @@ An R package for [neoepitope](http://science.sciencemag.org/content/348/6230/69)
 
 ### Advantages
 
-1. **Simplicity**: summarized neoepitopes for each sample
+1. **Simplicity**:
+    - table or vcf input
+    - summarized neoepitopes for each sample
 1. **Thoroughness**:
     - missense mutations and frameshifts
     - ensemble MHC class I/II binding prediction using [mhcflurry](https://github.com/hammerlab/mhcflurry), [mhcnuggets](https://github.com/KarchinLab/mhcnuggets), [netMHC](http://www.cbs.dtu.dk/services/NetMHC/), [netMHCII](http://www.cbs.dtu.dk/services/NetMHCII/), [netMHCpan](http://www.cbs.dtu.dk/services/NetMHCpan/) and [netMHCIIpan](http://www.cbs.dtu.dk/services/NetMHCIIpan/i).

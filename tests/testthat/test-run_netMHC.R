@@ -17,25 +17,25 @@ testthat::test_that("run_netMHC", {
       type = c("netMHC", "netMHCpan", "netMHCIIpan"),
       allele = c("HLA-A0201", "HLA-A02:01", "DRB1_0301"),
       nmer_l = c(8L, 9L, 15L),
-      filename = c("netMHC_906b84c7-7442-4371-a94b-f0f1b1c80107.csv",
-                   "netMHCpan_af9b5685-733a-49c9-8f46-2ea18eab32f5.csv",
-                   "netMHCIIpan_5cf162b8-577c-44ae-9c72-f90a89f28a94.csv"
+      filename = c("antigen.garnish_example_netMHC_906b84c7-7442-4371.csv",
+                   "antigen.garnish_example_netMHCIIpan_af9b5685-733a-49c9.csv",
+                   "antigen.garnish_example_netMHCpan_5cf162b8-577c-44ae.csv"
       ),
-      command = c("netMHC -p -l 8 -a HLA-A0201 -f netMHC_906b84c7-7442-4371-a94b-f0f1b1c80107.csv",
-      "netMHCpan -p -l 9 -a HLA-A02:01 -f netMHCpan_af9b5685-733a-49c9-8f46-2ea18eab32f5.csv",
-      "netMHCIIpan -inptype 1 -length 15 -a DRB1_0301 -f netMHCIIpan_5cf162b8-577c-44ae-9c72-f90a89f28a94.csv"
+      command = c("netMHC -p -l 8 -a HLA-A0201 -f antigen.garnish_example_netMHC_906b84c7-7442-4371.csv",
+      "netMHCpan -p -l 9 -a HLA-A02:01 -f antigen.garnish_example_netMHCIIpan_af9b5685-733a-49c9.csv",
+      "netMHCIIpan -inptype 1 -length 15 -a DRB1_0301 -f antigen.garnish_example_netMHCpan_5cf162b8-577c-44ae.csv"
       )),
       .Names = c("type", "allele",
                  "nmer_l", "filename", "command"),
       class = c("data.table", "data.frame"),
       row.names = c(NA, -3L
   ))
-  utils::download.file("http://get.rech.io/netMHC_906b84c7-7442-4371-a94b-f0f1b1c80107.csv",
-                       "netMHC_906b84c7-7442-4371-a94b-f0f1b1c80107.csv")
-  utils::download.file("http://get.rech.io/netMHCpan_af9b5685-733a-49c9-8f46-2ea18eab32f5.csv",
-                       "netMHCpan_af9b5685-733a-49c9-8f46-2ea18eab32f5.csv")
-  utils::download.file("http://get.rech.io/netMHCIIpan_5cf162b8-577c-44ae-9c72-f90a89f28a94.csv",
-                       "netMHCIIpan_5cf162b8-577c-44ae-9c72-f90a89f28a94.csv")
+  utils::download.file("http://get.rech.io/antigen.garnish_example_netMHC_906b84c7-7442-4371.csv",
+                       "antigen.garnish_example_netMHC_906b84c7-7442-4371.csv")
+  utils::download.file("http://get.rech.io/antigen.garnish_example_netMHCIIpan_af9b5685-733a-49c9.csv",
+                       "antigen.garnish_example_netMHCIIpan_af9b5685-733a-49c9.csv")
+  utils::download.file("http://get.rech.io/antigen.garnish_example_netMHCpan_5cf162b8-577c-44ae.csv",
+                       "antigen.garnish_example_netMHCpan_5cf162b8-577c-44ae.csv")
   # run test
   dto <- run_netMHC(dt) %>% data.table::rbindlist(fill = TRUE)
 
