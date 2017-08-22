@@ -39,6 +39,4 @@ testthat::test_that("garnish_predictions", {
                 unique] %>% sort,
                 8:15)
 
-    if (file.exists("antigen.garnish_example.vcf"))
-      file.remove("antigen.garnish_example.vcf")
     })

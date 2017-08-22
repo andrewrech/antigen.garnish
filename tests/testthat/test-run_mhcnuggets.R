@@ -13,12 +13,10 @@ testthat::test_that("run_netMHC", {
 
     # load test data
     input <- c(
-      "antigen.garnish_example_mhcnuggets_input_gru_H-2-KB_dbd00aa2-95de-426d.csv",
-      "antigen.garnish_example_mhcnuggets_input_gru_HLA-A0301_aae53bd2-3f2e-4198.csv",
-      "antigen.garnish_example_mhcnuggets_input_gru_HLA-B3901_d44c0596-ba5d-4904.csv",
-      "antigen.garnish_example_mhcnuggets_input_lstm_HLA-A1101_4a35158a-1fc2-42a1.csv",
-      "antigen.garnish_example_mhcnuggets_input_lstm_HLA-A3201_28a9297e-58e3-48b6.csv",
-      "antigen.garnish_example_mhcnuggets_input_lstm_HLA-B1801_42078519-6467-42e1.csv"
+      "antigen.garnish_example_mhcnuggets_input_gru_H-2-KB_e2bcc9b8-94fa-412b.csv",
+      "antigen.garnish_example_mhcnuggets_input_gru_HLA-A0201_9efed71c-199b-44b3.csv",
+      "antigen.garnish_example_mhcnuggets_input_lstm_H-2-KB_97739391-6066-4632.csv",
+      "antigen.garnish_example_mhcnuggets_input_lstm_HLA-A0201_e4c2872d-c055-4a93.csv"
       )
 
     on.exit({
@@ -36,6 +34,6 @@ testthat::test_that("run_netMHC", {
       dt <- list.files(pattern = "antigen.garnish_example_mhcnuggets_output.*") %>%
         lapply(fread) %>% rbindlist
 
-   testthat::expect_equal(dt %>% nrow, 224)
+   testthat::expect_equal(dt %>% nrow, 304)
    testthat::expect_equal(dt %>% length, 2)
     })

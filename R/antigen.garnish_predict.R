@@ -77,7 +77,6 @@ merge_predictions <- function(l, dt){
 
       message("Merging output")
       # merge netMHC by program type
-
         progl <- lapply(l %>% seq_along, function(dti){
           l[[dti]]$command[1] %>% stringr::str_extract("net[A-Za-z]+")
           })
