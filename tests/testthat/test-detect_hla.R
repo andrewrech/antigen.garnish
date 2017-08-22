@@ -35,11 +35,16 @@ testthat::test_that("detect_hla", {
                       data.table::setnames("V1", "allele") %>%
                       .[, type := "netMHCIIpan"],
   system.file("extdata",
-                "mhcnuggets_alleles.txt", package = "antigen.garnish") %>%
+                "mhcnuggets_gru_alleles.txt", package = "antigen.garnish") %>%
                       data.table::fread(header = FALSE, sep = "\t") %>%
                       data.table::setnames("V1", "allele") %>%
-                      .[, type := "mhcnuggets"]
-                      ))
+                      .[, type := "mhcnuggets_gru"],
+  system.file("extdata",
+              "mhcnuggets_lstm_alleles.txt", package = "antigen.garnish") %>%
+                      data.table::fread(header = FALSE, sep = "\t") %>%
+                      data.table::setnames("V1", "allele") %>%
+                      .[, type := "mhcnuggets_lstm"]
+))
   
   dt <- data.table::data.table(netMHCIIpan =
          c("A0201", "A0301", "DRB1_0301", "DRB1_1467"))

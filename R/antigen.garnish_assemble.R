@@ -6,7 +6,8 @@
 #'
 #' @export detect_hla
 #' @md
- detect_hla <- function(x, alleles){
+
+detect_hla <- function(x, alleles){
 
   prog <- deparse(substitute(x))
 
@@ -31,7 +32,6 @@
 
 
 
-
 ## ---- get_metadata
 #' Internal function to add metadata by `ensembl_transcript_id`
 #'
@@ -41,6 +41,7 @@
 #'
 #' @export get_metadata
 #' @md
+
 get_metadata <- function(dt,
                          humandb = "GRCh38",
                          mousedb = "GRCm38"){
@@ -78,7 +79,8 @@ get_metadata <- function(dt,
           any) bmds <- c(bmds, "hsapiens_gene_ensembl")
 
     message("Obtaining cDNA and peptide sequences using biomaRt")
-    var_dt <- lapply(bmds, function(i){
+
+var_dt <- lapply(bmds, function(i){
 
       if (i == "hsapiens_gene_ensembl") host <- hhost
       if (i == "mmusculus_gene_ensembl") host <- mhost
@@ -113,9 +115,9 @@ get_metadata <- function(dt,
             data.table::as.data.table
 
       # obtain transcript cDNA and peptide sequences
-      seqdtl <- lapply(c("coding", "peptide"), function(j){
 
-      biomaRt::getSequence(type = "ensembl_transcript_id",
+        seqdtl <- lapply(c("coding", "peptide"), function(j){
+         biomaRt::getSequence(type = "ensembl_transcript_id",
                      id = trn,
                      seqType = j,
                      mart = mart) %>% data.table::as.data.table
@@ -142,6 +144,7 @@ get_metadata <- function(dt,
 #'
 #' @export make_cDNA
 #' @md
+
 make_cDNA <- function(dt){
 
   if (!c("cDNA_type",
@@ -224,6 +227,7 @@ make_cDNA <- function(dt){
 #' @param dt Data table with INFO column.
 #' @export get_snpeff_annot
 #' @md
+
 get_snpeff_annot <- function(dt){
 
     if (!"INFO" %chin% (dt %>% names)) stop("dt must contain INFO column")
@@ -263,7 +267,6 @@ get_snpeff_annot <- function(dt){
 
 
 
-
 ## ---- extract_cDNA
 #' Internal function to extract cDNA changes from HGVS notation
 #'
@@ -271,6 +274,7 @@ get_snpeff_annot <- function(dt){
 #'
 #' @export extract_cDNA
 #' @md
+
 extract_cDNA <- function(dt){
 
   # check required cols
@@ -319,9 +323,10 @@ extract_cDNA <- function(dt){
 #'
 #' @export translate_cDNA
 #' @md
-  translate_cDNA <- function(v){
 
-    parallel::mclapply(v, function(p){
+translate_cDNA <- function(v){
+
+parallel::mclapply(v, function(p){
 
      # protect vector length
        tryCatch({
@@ -333,7 +338,7 @@ extract_cDNA <- function(dt){
                 as.character %>%
                 paste(collapse = "")
 
-        }, error = function(e){
+}, error = function(e){
               return(NA)
               })
 

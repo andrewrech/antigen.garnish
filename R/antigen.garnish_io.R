@@ -37,6 +37,7 @@
 #' * **mhc_binders**: nmers predicted to at least minimally bind MHC
 #' @export garnish_summary
 #' @md
+
 garnish_summary <- function(dt){
 
 # summarize over unique nmers
@@ -50,7 +51,8 @@ garnish_summary <- function(dt){
   dt <- dt[DAI != Inf & DAI != -Inf & Consensus_scores != Inf & Consensus_scores != -Inf]
 
     # function to sum top values of a numeric vector
-      sum_top_v <- function(x, value = 3){
+
+sum_top_v <- function(x, value = 3){
 
         x %<>% sort %>% rev
         return(sum(x[1:value]))
@@ -58,7 +60,7 @@ garnish_summary <- function(dt){
 
   dt %>% data.table::setkey(sample_id)
 
-  dtn <- parallel::mclapply(dt[, sample_id %>% unique], function(id){
+dtn <- parallel::mclapply(dt[, sample_id %>% unique], function(id){
 
     dt <- dt[sample_id == id]
 
@@ -88,7 +90,6 @@ garnish_summary <- function(dt){
 
   return(dtn)
 }
-
 
 
 
@@ -123,10 +124,12 @@ garnish_summary <- function(dt){
 #'}
 #' @export garnish_variants
 #' @md
+
 garnish_variants <- function(vcfs){
 
   message("Loading VCFs")
-  ivfdtl <- parallel::mclapply(vcfs %>% seq_along, function(ivf){
+
+ivfdtl <- parallel::mclapply(vcfs %>% seq_along, function(ivf){
 
   # load dt
       vcf <-  vcfR::read.vcfR(vcfs[ivf], verbose = TRUE)
@@ -177,7 +180,7 @@ garnish_variants <- function(vcfs){
 
     ivfdt <- ivfdtl %>% data.table::rbindlist
 
-    merge_vcf <- function(dt, dt2){
+merge_vcf <- function(dt, dt2){
 
     # a function to intersect annotated variants across VCFs using SnpEff
 
@@ -190,10 +193,12 @@ garnish_variants <- function(vcfs){
 
     }
   # return an intersected data table of variants
-  sdt <- parallel::mclapply(ivfdt[, sample_id %>% unique], function(sn){
+
+sdt <- parallel::mclapply(ivfdt[, sample_id %>% unique], function(sn){
 
     # find data tables with matching sample names
-    sdt <- lapply(ivfdtl, function(dt){
+
+sdt <- lapply(ivfdtl, function(dt){
 
      dt[, sample_id %>% .[1]] == sn
 

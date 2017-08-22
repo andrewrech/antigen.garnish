@@ -1,57 +1,61 @@
+
+
+
 ## ---- run_mhcflurry
 #' Internal function to run run_mhcflurry commands.
 #'
 #' @export run_mhcflurry
 #' @md
+
 run_mhcflurry <- function(){
 
   message("Running mhcflurry in parallel")
 
     list.files(pattern = "mhcflurry_input.*csv") %>%
 
-    mclapply(., function(x){
+mclapply(., function(x){
       paste0("mhcflurry-predict ", x, " > ", x %>%
             stringr::str_replace("input", "output")) %>%
       system
           })
 }
 
+
+
 ## ---- run_mhcnuggets
 #' Internal function to run run_mhcnuggets commands.
 #'
 #' @export run_mhcnuggets
 #' @md
+
 run_mhcnuggets <- function(){
 
   message("Running mhcnuggets with -m gru")
 
   list.files(pattern = "mhcnuggets_input_gru.*csv") %>%
-    # mhcnuggets is already parallelized, no need for mclapply
-    lapply(., function(x){
-      paste0("python $HOME/mhcnuggets/scripts/predict.py -m gru -w $HOME/mhcnuggets/saves/kim2014/mhcnuggets_gru/",
-             stringr::str_extract(string = x,
-                                  pattern = "(?<=_)H.*(?=_)"),
-                                  ".h5 -p ",
-                                  x,
-                                  " > ",
-             x %>%
-             stringr::str_replace("input", "output")) %>%
-             system
+
+parallel::mclapply(., function(x){
+      paste0("python $HOME/antigen.garnish/mhcnuggets/scripts/predict.py -m gru -w $HOME/antigen.garnish/mhcnuggets/saves/kim2014/mhcnuggets_gru/",
+             stringr::str_extract(string = x, pattern = "(?<=_)H.*(?=_)"), ".h5 -p ", x,
+             " > ",
+             x %>% stringr::str_replace("input", "output")) %>%
+        system(ignore.stderr = TRUE)
     })
 
   message("Running mhcnuggets with -m lstm")
 
   list.files(pattern = "mhcnuggets_input_lstm.*csv") %>%
-  ##### TODO parallel?
-    lapply(., function(x){
-      paste0("python $HOME/mhcnuggets/scripts/predict.py -m lstm -w $HOME/mhcnuggets/saves/kim2014/mhcnuggets_lstm/",
-             ##### TODO  more explicit regexpr
+
+parallel::mclapply(., function(x){
+      paste0("python $HOME/antigen.garnish/mhcnuggets/scripts/predict.py -m lstm -w $HOME/antigen.garnish/mhcnuggets/saves/kim2014/mhcnuggets_lstm/",
              stringr::str_extract(string = x, pattern = "(?<=_)H.*(?=_)"), ".h5 -p ", x,
              " > ",
              x %>% stringr::str_replace("input", "output")) %>%
-        system
+        system(ignore.stderr = TRUE)
     })
 }
+
+
 
 ## ---- run_netMHC
 #' Internal function to run netMHC commands.
@@ -60,6 +64,7 @@ run_mhcnuggets <- function(){
 #'
 #' @export run_netMHC
 #' @md
+
 run_netMHC <- function(dt){
 
   if (!"command" %chin% (dt %>% names))
@@ -70,7 +75,8 @@ run_netMHC <- function(dt){
   # run commands
   esl <- parallel::mclapply(
          dt[, command],
-          function(command){
+
+function(command){
           # run command
            es <- try(system(command, intern = TRUE))
           # if error, return empty dt
@@ -91,6 +97,7 @@ run_netMHC <- function(dt){
 #'
 #' @export check_pred_tools
 #' @md
+
 check_pred_tools <- function(){
 
   default_path <- paste0(system('echo $HOME', intern = TRUE),
