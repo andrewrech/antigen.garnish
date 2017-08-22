@@ -23,26 +23,29 @@ run_mhcflurry <- function(){
 #' @md
 run_mhcnuggets <- function(){
 
-  message("Running mhcnuggets in parallel")
   message("Running mhcnuggets with -m gru")
 
   list.files(pattern = "mhcnuggets_input_gru.*csv") %>%
-    ## mhcnuggets is already parallelized, no need for mclapply
+    # mhcnuggets is already parallelized, no need for mclapply
     lapply(., function(x){
       paste0("python $HOME/mhcnuggets/scripts/predict.py -m gru -w $HOME/mhcnuggets/saves/kim2014/mhcnuggets_gru/",
-             stringr::str_extract(string = x, pattern = "(?<=_)H.*(?=_)"), ".h5 -p ", x,
-             " > ",
-             x %>% stringr::str_replace("input", "output")) %>%
-        system
+             stringr::str_extract(string = x,
+                                  pattern = "(?<=_)H.*(?=_)"),
+                                  ".h5 -p ",
+                                  x,
+                                  " > ",
+             x %>%
+             stringr::str_replace("input", "output")) %>%
+             system
     })
 
   message("Running mhcnuggets with -m lstm")
 
   list.files(pattern = "mhcnuggets_input_lstm.*csv") %>%
-
-
+  ##### TODO parallel?
     lapply(., function(x){
       paste0("python $HOME/mhcnuggets/scripts/predict.py -m lstm -w $HOME/mhcnuggets/saves/kim2014/mhcnuggets_lstm/",
+             ##### TODO  more explicit regexpr
              stringr::str_extract(string = x, pattern = "(?<=_)H.*(?=_)"), ".h5 -p ", x,
              " > ",
              x %>% stringr::str_replace("input", "output")) %>%
@@ -84,59 +87,63 @@ run_netMHC <- function(dt){
 
 
 ## ---- check_pred_tools
-#' Internal function to check for netMHC tools and mhcflurry in `PATH`
+#' Internal function to check for netMHC tools, mhcflurry and mhcnuggets
 #'
 #' @export check_pred_tools
 #' @md
 check_pred_tools <- function(){
 
-default_path <- paste0(system('echo $HOME', intern = TRUE),
-                c(
-                "/netMHC/netMHC-4.0",
-                "/netMHC/netMHCII-2.2",
-                "/netMHC/netMHCIIpan-3.1",
-                "/netMHC/netMHCpan-3.0")) %>%
-                paste(collapse = ":")
+  default_path <- paste0(system('echo $HOME', intern = TRUE),
+                  c(
+                  "/netMHC/netMHC-4.0",
+                  "/netMHC/netMHCII-2.2",
+                  "/netMHC/netMHCIIpan-3.1",
+                  "/netMHC/netMHCpan-3.0",
+                  "/mhcnuggets/scripts/"
+                  )) %>%
+                  paste(collapse = ":")
 
-PATH_status <- list(
-              mhcflurry = TRUE,
-              netMHC = TRUE,
-              netMHCpan = TRUE,
-              netMHCII = TRUE,
-              netMHCIIpan = TRUE,
-              mhcnuggets = TRUE
-              )
+  tool_status <- list(
+                mhcflurry = TRUE,
+                netMHC = TRUE,
+                netMHCpan = TRUE,
+                netMHCII = TRUE,
+                netMHCIIpan = TRUE,
+                mhcnuggets = TRUE
+                )
 
-Sys.setenv(PATH = paste0(default_path, ":", Sys.getenv("PATH")))
+  Sys.setenv(PATH = paste0(default_path, ":", Sys.getenv("PATH")))
 
- if (suppressWarnings(system('which mhcflurry-predict 2> /dev/null', intern = TRUE)) %>%
-        length == 0){
-        message("mhcflurry-predict is not in PATH\n       Download: https://github.com/hammerlab/mhcflurry")
-      PATH_status$mhcflurry <- FALSE
-      }
-  if (suppressWarnings(system('which netMHC 2> /dev/null', intern = TRUE)) %>%
-        length == 0){
-          message("netMHC is not in PATH\n       Download: http://www.cbs.dtu.dk/services/NetMHC/")
-        PATH_status$netMHC <- FALSE
+    if (suppressWarnings(system('which mhcflurry-predict 2> /dev/null', intern = TRUE)) %>%
+          length == 0){
+          message("mhcflurry-predict is not in PATH\n       Download: https://github.com/hammerlab/mhcflurry")
+        tool_status$mhcflurry <- FALSE
         }
-  if (suppressWarnings(system('which netMHCpan 2> /dev/null', intern = TRUE)) %>%
-        length == 0){
-          message("netMHCpan is not in PATH\n       Download: http://www.cbs.dtu.dk/services/NetMHCpan/")
-        PATH_status$netMHCpan <- FALSE
-        }
-  if (suppressWarnings(system('which netMHCII 2> /dev/null', intern = TRUE)) %>%
-        length == 0){
-          message("netMHCII is not in PATH\n       Download: http://www.cbs.dtu.dk/services/NetMHCII/")
-        PATH_status$netMHCII <- FALSE
-        }
-  if (suppressWarnings(system('which netMHCIIpan 2> /dev/null', intern = TRUE)) %>%
-        length == 0){
-          message("netMHCIIpan is not in PATH\n       Download: http://www.cbs.dtu.dk/services/NetMHCIIpan/")
-        PATH_status$netMHCIIpan <- FALSE
-       }
-  if (file.exists("~/mhcnuggets/scripts/predict.py") == FALSE | file.exists("~/mhcnuggets/saves/kim2014") == FALSE) {
-        message("mhcnuggets may not be properly installed in home directory, please reclone into $HOME")
-        PATH_status$mhcnuggets <- FALSE
-       }
-        return(PATH_status)
+    if (suppressWarnings(system('which netMHC 2> /dev/null', intern = TRUE)) %>%
+          length == 0){
+            message("netMHC is not in PATH\n       Download: http://www.cbs.dtu.dk/services/NetMHC/")
+          tool_status$netMHC <- FALSE
+          }
+    if (suppressWarnings(system('which netMHCpan 2> /dev/null', intern = TRUE)) %>%
+          length == 0){
+            message("netMHCpan is not in PATH\n       Download: http://www.cbs.dtu.dk/services/NetMHCpan/")
+          tool_status$netMHCpan <- FALSE
+          }
+    if (suppressWarnings(system('which netMHCII 2> /dev/null', intern = TRUE)) %>%
+          length == 0){
+            message("netMHCII is not in PATH\n       Download: http://www.cbs.dtu.dk/services/NetMHCII/")
+          tool_status$netMHCII <- FALSE
+          }
+    if (suppressWarnings(system('which netMHCIIpan 2> /dev/null', intern = TRUE)) %>%
+          length == 0){
+            message("netMHCIIpan is not in PATH\n       Download: http://www.cbs.dtu.dk/services/NetMHCIIpan/")
+          tool_status$netMHCIIpan <- FALSE
+         }
+    if (suppressWarnings(system('which predict.py 2> /dev/null', intern = TRUE)) %>%
+          length == 0){
+            message("mhcnuggets predict.py is not in PATH\n       Download: https://github.com/KarchinLab/mhcnuggets")
+          tool_status$netMHCIIpan <- FALSE
+         }
+
+          return(tool_status)
 }

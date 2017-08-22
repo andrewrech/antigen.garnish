@@ -2,10 +2,10 @@
 % Please edit documentation in R/antigen.garnish_run.R
 \name{check_pred_tools}
 \alias{check_pred_tools}
-\title{Internal function to check for netMHC tools and mhcflurry in \code{PATH}}
+\title{Internal function to check for netMHC tools, mhcflurry and mhcnuggets}
 \usage{
 check_pred_tools()
 }
 \description{
-Internal function to check for netMHC tools and mhcflurry in \code{PATH}
+Internal function to check for netMHC tools, mhcflurry and mhcnuggets
 }

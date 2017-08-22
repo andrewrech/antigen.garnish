@@ -78,7 +78,7 @@ get_metadata <- function(dt,
           any) bmds <- c(bmds, "hsapiens_gene_ensembl")
 
     message("Obtaining cDNA and peptide sequences using biomaRt")
-    var_dt <- parallel::mclapply(bmds, function(i){
+    var_dt <- lapply(bmds, function(i){
 
       if (i == "hsapiens_gene_ensembl") host <- hhost
       if (i == "mmusculus_gene_ensembl") host <- mhost
@@ -114,8 +114,8 @@ get_metadata <- function(dt,
 
       # obtain transcript cDNA and peptide sequences
       seqdtl <- lapply(c("coding", "peptide"), function(j){
-##this returns seqdtl == NULL with mclapply for me for some reason, only works with lapply
-         biomaRt::getSequence(type = "ensembl_transcript_id",
+
+      biomaRt::getSequence(type = "ensembl_transcript_id",
                      id = trn,
                      seqType = j,
                      mart = mart) %>% data.table::as.data.table

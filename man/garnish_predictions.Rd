@@ -8,7 +8,7 @@ garnish_predictions(dt, assemble = TRUE, generate = TRUE, predict = TRUE,
   humandb = "GRCh38", mousedb = "GRCm38")
 }
 \arguments{
-\item{dt}{Data table. Input data table from garnish_variants. Required columns: sample_id, ensembl_transcript_id (e.g. \code{ENST00000311936}), cDNA_change \href{http://varnomen.hgvs.org/recommendations/DNA/}{HGVS} notation (e.g. \code{c.718T>A}), space-separated MHC (e.g. \code{HLA-A*02:01 H-2-Kb HLA-DRB1*03:01}).}
+\item{dt}{Data table. Input data table from garnish_variants. Required columns: sample_id, ensembl_transcript_id (e.g. \code{ENST00000311936}), cDNA_change \href{http://varnomen.hgvs.org/recommendations/DNA/}{HGVS} notation (e.g. \code{c.718T&gt;A}), space-separated MHC (e.g. \code{HLA-A*02:01 H-2-Kb HLA-DRB1*03:01}).}
 
 \item{assemble}{Logical. Assemble data table?}
 

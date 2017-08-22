@@ -31,28 +31,20 @@ An R package for [neoepitope](http://science.sciencemag.org/content/348/6230/69)
 
 ### Install required prediction tools
 
-Install [mhcflurry](https://github.com/hammerlab/mhcflurry):
+Install `mhcflurry` and `mhcnuggets` dependencies:
 
 ```sh
-pip install mhcflurry
+pip install mhcflurry scipy h5py
 mhcflurry-downloads fetch
 nosetests .
 ```
 
-Install netMHC and mhcnuggets prediction tools:
+Install `netMHC` and `mhcnuggets` prediction tools:
 
 ```sh
   cd "$HOME"
   wget "http://get.rech.io/antigen.garnish.tar.gz"
   tar -xvzf antigen.garnish.tar.gz
-```
-
-Install [mhcnuggets](https://github.com/KarchinLab/mhcnuggets):
-
-```sh
-cd "$HOME"
-git clone https://github.com/KarchinLab/mhcnuggets.git
-sudo -H pip install h5py
 ```
 
 ### Install antigen.garnish
