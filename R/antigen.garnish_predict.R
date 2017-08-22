@@ -123,18 +123,22 @@ get_DAI_uuid <- function(dt){
         nugdt <- merge(nugdt[!is.na(mhcnuggets_pred_lstm), .SD, .SDcols = c("nmer", "mhcnuggets", "mhcnuggets_pred_lstm")] %>% unique,
                  nugdt[!is.na(mhcnuggets_pred_gru), .SD, .SDcols = c("nmer", "mhcnuggets", "mhcnuggets_pred_gru")] %>% unique, by = c("nmer", "mhcnuggets"),
                  all = TRUE)
-      ##this is not a good way to do this, relies on class I mhcnugget alleles only, need to find a better way to convert back
-            #   nugdt[grep("H-2-", mhcnuggets),
-            #         MHC := mhcnuggets %>% stringr::str_replace("(?<=(H-2-))[A-Z]+$",
-            #                                             paste0(substr(mhcnuggets, 5, nchar(mhcnuggets) - 1),
-            #                                                    substr(mhcnuggets, nchar(mhcnuggets),
-            #                                                           nchar(mhcnuggets)) %>%
-            #                                                      tolower))]
-            #   nugdt[grep("HLA-[A-Z][0-9]{4}", mhcnuggets),
-            #         MHC := stringr::str_replace(string = mhcnuggets, pattern = "(?<=(HLA-)).*$",
-            #                                     replacement = paste0(substr(mhcnuggets, 5, 5), "*", substr(mhcnuggets, 6, 7),
-            #                                                          ":", substr(mhcnuggets, 8, nchar(mhcnuggets))))]
-              dt <- merge(dt, nugdt %>% unique, by = c("nmer", "mhcnuggets"), all.x = TRUE)
+       
+         alleles <- data.table::rbindlist(
+          list(
+            system.file("extdata",
+                        "mhcflurry_alleles.txt", package = "antigen.garnish") %>%
+              data.table::fread(header = FALSE, sep = "\t") %>%
+              data.table::setnames("V1", "allele")
+                ))
+         alleles[, match := allele %>% stringr::str_replace_all(pattern = "-|:|\\*", replacement = "")] %>%
+           .[, match := match %>% toupper]
+         nugdt[, match := mhcnuggets %>% stringr::str_replace_all(pattern = "-|:|\\*", replacement = "")] %>%
+           .[, match := match %>% toupper]
+         for (i in nugdt[, match] %>% unique){
+           nugdt[match == i, MHC := alleles[match == i, allele] %>% unique]
+         }
+              dt <- merge(dt, nugdt[, match := NULL] %>% unique, by = c("nmer", "MHC"), all.x = TRUE)
 
       # calculate netMHC consensus score, preferring non-*net tools
        for (col in (dt %>% names %include% "aff|[Rr]ank|Consensus_scores")){
