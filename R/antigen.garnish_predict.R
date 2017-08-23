@@ -571,12 +571,13 @@ write_netmhc_nmers <- function(dt, type){
 
 
         }) %>% data.table::rbindlist
+    )
       return(dto)
 
     }) %>% data.table::rbindlist
 
   return(dto)
-  })
+  }
 
 
 
