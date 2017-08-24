@@ -36,7 +36,7 @@ run_mhcnuggets <- function(){
     message("Running mhcnuggets with -m gru")
 
   parallel::mclapply(gruf, function(x){
-        paste0("python $(which predict.py) -m gru -w $(dirname $(which predict.py))/../saves/kim2014/mhcnuggets_gru/",
+        paste0("python $(which predict.py) -m gru -w $(dirname $(which predict.py))/../saves/production/mhcnuggets/",
                stringr::str_extract(string = x, pattern = "(?<=_)H.*(?=_)"), ".h5 -p ", x,
                " > ",
                x %>% stringr::str_replace("input", "output")) %>%
@@ -51,7 +51,7 @@ run_mhcnuggets <- function(){
   message("Running mhcnuggets with -m lstm")
 
   parallel::mclapply(lf, function(x){
-        paste0("python $(which predict.py) -m lstm -w $(dirname $(which predict.py))/../saves/kim2014/mhcnuggets_lstm/",
+        paste0("python $(which predict.py) -m lstm -w $(dirname $(which predict.py))/../saves/production/mhcnuggets_beta/",
                stringr::str_extract(string = x, pattern = "(?<=_)H.*(?=_)"), ".h5 -p ", x,
                " > ",
                x %>% stringr::str_replace("input", "output")) %>%
