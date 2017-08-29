@@ -550,7 +550,8 @@ write_netmhc_nmers <- function(dt, type){
 
       # parallelize over 100 peptide chunks
       chunks <- ((dts %>% nrow)/100) %>% ceiling
-
+    
+  suppressWarnings(
   dto <- parallel::mclapply(dts %>% split(1:chunks), function(dtw){
 
         filename <- paste0(type, "_",
@@ -570,6 +571,7 @@ write_netmhc_nmers <- function(dt, type){
 
 
         }) %>% data.table::rbindlist
+    )
       return(dto)
 
     }) %>% data.table::rbindlist
