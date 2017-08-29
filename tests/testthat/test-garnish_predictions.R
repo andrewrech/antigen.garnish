@@ -43,6 +43,10 @@ testthat::test_that("garnish_predictions vcf", {
 
 testthat::test_that("garnish_predictions peptide", {
 
+   if (!check_pred_tools() %>% unlist %>% all){
+    testthat::skip("Skipping run_netMHC because prediction tools are not in PATH")
+    }
+
   dt <- data.table::data.table(
           sample_id = "test",
           pep_mut = "ATGACTGAATATAAACTTGTGGTA",
