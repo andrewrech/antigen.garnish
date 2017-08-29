@@ -581,6 +581,23 @@ write_netmhc_nmers <- function(dt, type){
 
 
 
+## ---- get_ss_str
+#' Parallelized function to create a space-separated character string between two integers
+#'
+#' @param x Integer. Starting integer.
+#' @param y Integer. Ending integer.
+#'
+#' @export get_ss_str
+#' @md
+
+get_ss_str <- function(x, y){
+
+mcMap(function(x, y) (x %>% as.integer):(y %>% as.integer) %>%
+          paste(collapse = " "), x, y) %>% unlist
+    }
+
+
+
 ## ---- garnish_predictions
 #' Performs epitope prediction.
 #'
@@ -754,6 +771,7 @@ dt with peptide:
                                  7 13 14
      MHC                         <same as above>
       ")
+
 if (assemble & input_type == "transcript"){
 
     dt %<>% get_metadata(humandb = humandb, mousedb = mousedb)
@@ -790,16 +808,6 @@ if (assemble & input_type == "transcript"){
 
 
 ## ---- create mutant peptide index
-
-    # parallelized function to create a
-    # space-separated character string
-    # between two integers
-
-    get_ss_str <- function(x, y){
-
-    mcMap(function(x, y) (x %>% as.integer):(y %>% as.integer) %>%
-              paste(collapse = " "), x, y) %>% unlist
-        }
 
     # index first mismatch
     suppressWarnings({

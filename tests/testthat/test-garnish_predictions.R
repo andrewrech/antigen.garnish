@@ -41,6 +41,27 @@ testthat::test_that("garnish_predictions vcf", {
 
     })
 
+testthat::test_that("garnish_predictions peptide assemble", {
+
+   if (!check_pred_tools() %>% unlist %>% all){
+    testthat::skip("Skipping run_netMHC because prediction tools are not in PATH")
+    }
+
+  dt <- data.table::data.table(
+          sample_id = "test",
+          pep_mut = "ATGACTGAATATAAACTTGTGGTA",
+          mutant_index = c("7 13 14",  "all", NA),
+          MHC = c("H-2-Kb HLA-A*02:01")
+                               )
+
+  dto <- garnish_predictions(dt, predict = FALSE)
+
+    testthat::expect_equal(dto %>% length,
+                         41)
+    testthat::expect_equal(dto %>% nrow,
+                         168)
+    })
+
 testthat::test_that("garnish_predictions peptide", {
 
    if (!check_pred_tools() %>% unlist %>% all){
@@ -60,4 +81,17 @@ testthat::test_that("garnish_predictions peptide", {
                          41)
     testthat::expect_equal(dto %>% nrow,
                          168)
+    })
+
+testthat::test_that("garnish_predictions warn on missing pred tools", {
+
+          data.table::data.table(
+          sample_id = "test",
+          pep_mut = "ATGACTGAATATAAACTTGTGGTA",
+          mutant_index = "7 13 14",
+          MHC = "H-2-Kb"
+                               ) %>%
+
+    {testthat::expect_warning(garnish_predictions(.))}
+
     })
