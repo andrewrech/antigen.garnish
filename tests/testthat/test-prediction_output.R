@@ -33,10 +33,10 @@ DAIdt[, n.aa.mismatch := lapply(1:nrow(DAIdt), function(i){
 
     testthat::expect_true(all(DAIdt$n.aa.mismatch == 1))
 
-  # match mutant_loc to SnpEff protein change call for all mutants
+  # match mutant_index to SnpEff protein change call for all mutants
     dt[, prot.change.from.se := stringr::str_extract_all(string = protein_change, pattern =  "[0-9]+") %>% unlist]
 
-    testthat::expect_true(dt[, mutant_loc == prot.change.from.se] %>% all)
+    testthat::expect_true(dt[, mutant_index == prot.change.from.se] %>% all)
 
   # test that pep_mut matches SnpEff protein change call for missense
 
@@ -120,8 +120,8 @@ DAIdt[, pep_wt2 := lapply(1:nrow(DAIdt), function(i){
       x <- pep_mut[i] %>%
       strsplit(split = "",
                         fixed = TRUE) %>% unlist
-      if (x[mutant_loc[i]] == new_aa_pep[i]){
-        x[mutant_loc[i]] <- old_aa_pep[i]
+      if (x[mutant_index[i]] == new_aa_pep[i]){
+        x[mutant_index[i]] <- old_aa_pep[i]
       } else {
         return(NA)
       }
@@ -137,8 +137,8 @@ DAIdt[, pep_mut2 := lapply(1:nrow(DAIdt), function(i){
        x <- pep_wt[i] %>%
        strsplit(split = "",
                          fixed = TRUE) %>% unlist
-       if (x[mutant_loc[i]] == old_aa_pep[i]){
-         x[mutant_loc[i]] <- new_aa_pep[i]
+       if (x[mutant_index[i]] == old_aa_pep[i]){
+         x[mutant_index[i]] <- new_aa_pep[i]
        } else {
         return(NA)
       }
@@ -160,7 +160,7 @@ DAIdt[, pep_mut2 := lapply(1:nrow(DAIdt), function(i){
     vect <- ndt[less == TRUE]$var_uuid
       test_dt <- DAIdt[var_uuid %chin% vect]
       test_dt[, nchar := nchar(pep_mut)]
-      test_dt[, min := min(c(mutant_loc, (nchar - mutant_loc))),
+      test_dt[, min := min(c(mutant_index, (nchar - mutant_index))),
       by = 1:nrow(test_dt)]
 
     testthat::expect_true(all(test_dt$min < 14))

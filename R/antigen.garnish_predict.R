@@ -584,7 +584,25 @@ write_netmhc_nmers <- function(dt, type){
 #'
 #' Performs epitope prediction on a data table of missense mutations.
 #'
-#' @param dt Data table. Input data table from garnish_variants. Required columns: sample_id, ensembl_transcript_id (e.g. `ENST00000311936`), cDNA_change \href{http://varnomen.hgvs.org/recommendations/DNA/}{HGVS} notation (e.g. `c.718T>A`), space-separated MHC (e.g. `HLA-A*02:01 H-2-Kb HLA-DRB1*03:01`).
+#' @param dt Data table. Input data table from garnish_variants or:
+#'
+#'        Column name                 Example input
+#'        -----------                 -------------
+#'     1)
+#'        sample_id                   sample_1
+#'        ensembl_transcript_id       ENST00000311936
+#'        cDNA_change                 c.718T>A
+#'        MHC                         HLA-A*02:01 HLA-A*03:01
+#'                                    H-2-Kb H-2-Kb
+#'                                    HLA-DRB1*11:07 [second type]
+#'
+#'     2)
+#'        sample_id                   <same as above>
+#'        pep_mut                     MTEYKLVVVDAGGVGKSALTIQLIQNHFV
+#'        mutant_index                all
+#'                                    7
+#'                                    7 13 14
+#'        MHC                         <same as above>
 #' @param assemble Logical. Assemble data table?
 #' @param generate Logical. Generate peptides?
 #' @param predict Logical. Predict binding affinities?
@@ -603,7 +621,7 @@ write_netmhc_nmers <- function(dt, type){
 #' * **pep_wt**: wt cDNA sequence
 #' * **mismatch_s**: starting index of mutant peptide sequence
 #' * **mismatch_l**: ending index of mutant peptide sequence
-#' * **mutant_loc**: index of mutant peptide for this row
+#' * **mutant_index**: index of mutant peptide for this row
 #' * **nmer**: nmer for prediction
 #' * **nmer_i**: index of nmer in sliding window
 #' * **\*_net**: netMHC prediction tool output
@@ -675,11 +693,38 @@ garnish_predictions <- function(dt,
 
   dt %<>% data.table::as.data.table
 
-  if (!c("sample_id", "ensembl_transcript_id", "cDNA_change", "MHC") %chin%
-      (dt %>% names) %>% all)
-      stop("Input dt must contain four columns:\n\nsample_id\nensembl_transcript_id (e.g. \"ENST00000311936\")\ncDNA_change in HGVS notation (e.g. \"c.718T>A\")\nMHC\n    e.g. \"HLA-A*02:01 HLA-A*03:01\" or\n         \"H-2-Kb H-2-Kb\" or \"HLA-DRB1*11:07 [second type]\"")
+  # specify transcript vs. direc cDNA / mutant index input
+    if (c("sample_id", "ensembl_transcript_id", "cDNA_change", "MHC") %chin%
+            (dt %>% names) %>% all) input_type <- "transcript"
+    if (c("sample_id", "pep_mut", "MHC") %chin%
+            (dt %>% names) %>% all) input_type <- "peptide"
+            dt[, frameshift := FALSE]
 
-if (assemble){
+
+  if (!exists("input_type"))
+      stop("
+  Input data table must in one of two forms:
+
+        Column name                 Example input
+        -----------                 -------------
+
+     1)
+        sample_id                   sample_1
+        ensembl_transcript_id       ENST00000311936
+        cDNA_change                 c.718T>A
+        MHC                         HLA-A*02:01 HLA-A*03:01
+                                    H-2-Kb H-2-Kb
+                                    HLA-DRB1*11:07 [second type]
+
+     2)
+        sample_id                   <same as above>
+        pep_mut                     MTEYKLVVVDAGGVGKSALTIQLIQNHFV
+        mutant_index                all
+                                    12
+                                    12 13 14
+        MHC                         <same as above>
+      ")
+if (assemble & input_type == "transcript"){
 
     dt %<>% get_metadata(humandb = humandb, mousedb = mousedb)
 
@@ -688,12 +733,11 @@ if (assemble){
     dt %<>% make_cDNA
 
     # translate protein sequences
-    dt[, pep_mut := coding_mut %>% translate_cDNA]
     dt[, pep_wt := coding %>% translate_cDNA]
+    dt[, pep_mut := coding_mut %>% translate_cDNA]
+    dt[, frameshift := FALSE]
 
     dt[, cDNA_delta := ((coding_mut %>% nchar) - (coding %>% nchar)) / 3 ]
-
-    dt[, frameshift := FALSE]
 
     # frameshifts have cDNA delta
     # not divisible by 3
@@ -706,7 +750,6 @@ if (assemble){
     dt %<>% .[peptide == pep_wt]
 
     # remove stop codons
-
     for (i in dt %>% names %include% "^pep"){
       set(dt, j = i, value = dt[, get(i) %>%
                                 stringr::str_extract_all("^[^\\*]+") %>%
@@ -717,6 +760,16 @@ if (assemble){
 
 
 ## ---- create mutant peptide index
+
+    # parallelized function to create a
+    # space-separated character string
+    # between two integers
+
+    get_ss_str <- function(x, y){
+
+    mcMap(function(x, y) (x %>% as.integer):(y %>% as.integer) %>%
+              paste(collapse = " "), x, y) %>% unlist
+        }
 
     # index first mismatch
     suppressWarnings({
@@ -733,73 +786,68 @@ if (assemble){
           })
 
     # remove rows with matching transcripts
-    dt %<>% .[!pep_wt == pep_mut]
+      dt %<>% .[!pep_wt == pep_mut]
 
     # initialize mismatch length
-        dt[, mismatch_l := mismatch_s]
+      dt[, mismatch_l := mismatch_s]
 
     # frameshifts are mutants until STOP
-        dt[frameshift == TRUE,
-        mismatch_l := pep_mut %>% nchar]
+      dt[frameshift == TRUE,
+      mismatch_l := pep_mut %>% nchar]
 
     # create mutant register for
     # non-frameshift insertions
-        dt[mismatch_l > mismatch_s &
+      dt[mismatch_l > mismatch_s &
            frameshift == FALSE,
-        mismatch_l := mismatch_s + (pep_mut %>% nchar) -
+      mismatch_l := mismatch_s + (pep_mut %>% nchar) -
                       (pep_wt %>% nchar)]
 
     # deletions are mutants over site only
-        dt[, mismatch_l := mismatch_s]
-
-    # parallelized function to create a
-    # space-separated character string
-    # between two integers
-
-get_ss_str <- function(x, y){
-
-mcMap(function(x, y) (x %>% as.integer):(y %>% as.integer) %>%
-              paste(collapse = " "), x, y) %>% unlist
-        }
+      dt[, mismatch_l := mismatch_s]
 
     # create a space-separated vector of mutant indices
-        dt[, mutant_loc := mismatch_s %>% as.character]
-        dt[mismatch_l > mismatch_s, mutant_loc :=
+        dt[, mutant_index := mismatch_s %>% as.character]
+        dt[mismatch_l > mismatch_s, mutant_index :=
             get_ss_str(mismatch_s, mismatch_l)]
 
-    # warning if mutant_loc == NA
-      if (dt[is.na(mutant_loc) | (nchar(pep_mut) - as.numeric(mutant_loc) < 1)] %>%
+    # warning if mutant_index == NA
+      if (dt[is.na(mutant_index) | (nchar(pep_mut) - as.numeric(mutant_index) < 1)] %>%
             nrow > 1){
-        failn <- dt[is.na(mutant_loc) | (nchar(pep_mut) - as.numeric(mutant_loc) < 1)] %>% nrow
+        failn <- dt[is.na(mutant_index) | (nchar(pep_mut) - as.numeric(mutant_index) < 1)] %>% nrow
         warning(paste0("Could not determine mutant index for ", failn, " records."))
       }
   }
 
 if (generate){
+
   message("Generating variants")
+
   # generation a uuid for each unique variant
-  suppressWarnings(dt[, var_uuid :=
-                  parallel::mclapply(1:nrow(dt),
-                  uuid::UUIDgenerate) %>% unlist])
+
+   suppressWarnings(dt[, var_uuid :=
+      parallel::mclapply(1:nrow(dt),
+      uuid::UUIDgenerate) %>% unlist])
 
   # separate over mutant indices
 
-    if (dt[, mutant_loc %>% unique] %>%
+    if (dt[, mutant_index %>% unique] %>%
         stringr::str_detect(" ") %>% any){
-      dts <- dt %>% tidyr::separate_rows("mutant_loc", sep = " ")
+      dts <- dt %>% tidyr::separate_rows("mutant_index", sep = " ")
     } else {
       dts <- dt
     }
 
   # convert back to numeric
-  dts[, mutant_loc := mutant_loc %>% as.numeric]
+
+    dts[, mutant_index := mutant_index %>% as.numeric]
 
   # generate a data table of unique variants for peptide generation
 
     dtnfs <- dts[frameshift == FALSE]
     dtfs <- dts[frameshift == TRUE]
 
-    basepep_dt <- data.table::rbindlist(list(
+   if (input_type == "transcript"){
+     basepep_dt <- data.table::rbindlist(list(
          # take pep_wt for non-fs for DAI calculation
            data.table::rbindlist(list(
                 dtnfs %>%
@@ -815,20 +863,28 @@ if (generate){
             dtfs %>%
             data.table::copy %>%
             .[, pep_base := pep_mut] %>%
-            .[, pep_type := "mutfs"])) %>%
+            .[, pep_type := "mut_other"])) %>%
 
          # take unique peptides
             .[, .SD, .SDcols = c("var_uuid",
                                  "pep_type",
                                  "pep_base",
-                                 "mutant_loc")] %>%
+                                 "mutant_index")] %>%
             unique
+    }
 
-  # filter mutant_loc
-  basepep_dt <- basepep_dt[(nchar(pep_base) - mutant_loc) >= 1]
+   if (input_type == "peptide"){
+      basepep_dt <- dtnfs %>%
+                      data.table::copy %>%
+                      .[, pep_base := pep_mut] %>%
+                      .[, pep_type := "mut_other"]
+     }
+
+  # filter mutant_index
+    basepep_dt <- basepep_dt[(nchar(pep_base) - mutant_index) >= 1]
 
   if (basepep_dt %>% nrow == 0)
-      return("no variants for peptide generation")
+    return("no variants for peptide generation")
 
     sink(file = "/dev/null")
     nmer_dt <- get_nmers(basepep_dt) %>% .[, nmer_l := nmer %>% nchar]
@@ -842,34 +898,40 @@ if (generate){
     suppressWarnings(dt[, nmer_uuid :=
                     parallel::mclapply(1:nrow(dt),
                     uuid::UUIDgenerate) %>% unlist])
+    if (input_type == "transcript"){
 
-     dt %<>% get_DAI_uuid
+         dt %<>% get_DAI_uuid
 
-    # remove mut == wt by sample_id
-    # remove wt missing mut counterpart
+        # remove mut == wt by sample_id
+        # remove wt missing mut counterpart
 
-    for (id in dt[, sample_id %>% unique]){
+        for (id in dt[, sample_id %>% unique]){
 
-     # get wt nmers for fast !chmatch
-     id_wt_nmers <- dt[sample_id == id &
-                        pep_type == "wt",
-                        nmer %>% unique]
+         # get wt nmers for fast !chmatch
+         id_wt_nmers <- dt[sample_id == id &
+                            pep_type == "wt",
+                            nmer %>% unique]
 
-     dt %<>% .[pep_type == "wt" |
-               sample_id != id |
-               (sample_id == id &
-                pep_type != "wt" &
-                !nmer %chin% id_wt_nmers)]
-         }
+         dt %<>% .[pep_type == "wt" |
+                   sample_id != id |
+                   (sample_id == id &
+                    pep_type != "wt" &
+                    !nmer %chin% id_wt_nmers)]
+             }
 
-    # remove wt without a matched mut
-     unmatched_dai <- dt[, .N, by = dai_uuid] %>% . [N == 1, dai_uuid]
-     if (unmatched_dai %>% length > 0) dt[!dai_uuid %chin% unmatched_dai]
+        # remove wt without a matched mut
+         unmatched_dai <- dt[, .N, by = dai_uuid] %>% . [N == 1, dai_uuid]
+         if (unmatched_dai %>% length > 0) dt[!dai_uuid %chin% unmatched_dai]
+       }
+
+    # DAI cannot be calculated with peptide input
+    if (input_type == "peptide")
+      dt[, dai_uuid := NA %>% as.character]
 
 }
 
 if (predict){
-
+browser()
     dtl <- dt %>% get_pred_commands
 
   # run commands
@@ -925,7 +987,7 @@ get_nmers <- function(dt){
   if (!c("var_uuid",
          "pep_type",
          "pep_base",
-         "mutant_loc") %chin% (dt %>% names) %>% all)
+         "mutant_index") %chin% (dt %>% names) %>% all)
     stop("dt is missing columns")
 
     dt %<>% data.table::as.data.table
@@ -949,7 +1011,7 @@ get_nmers <- function(dt){
 
         mut_frag_t <- dt$pep_base[n] %>% strsplit("",
                             fixed = TRUE) %>% unlist
-        mut_frag_loc <- dt$mutant_loc[n]
+        mut_frag_loc <- dt$mutant_index[n]
 
         # if the peptide is not long enough, return
         if (!(mut_frag_t %>% length) >= pl) return(NULL)

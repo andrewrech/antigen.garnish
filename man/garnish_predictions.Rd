@@ -35,7 +35,7 @@ A data table of binding predictions including:
 \item \strong{pep_wt}: wt cDNA sequence
 \item \strong{mismatch_s}: starting index of mutant peptide sequence
 \item \strong{mismatch_l}: ending index of mutant peptide sequence
-\item \strong{mutant_loc}: index of mutant peptide for this row
+\item \strong{mutant_index}: index of mutant peptide for this row
 \item \strong{nmer}: nmer for prediction
 \item \strong{nmer_i}: index of nmer in sliding window
 \item \strong{*_net}: netMHC prediction tool output

@@ -71,7 +71,7 @@ garnish_summary <- function(dt){
                        Consensus_scores < 50 |
                         (frameshift == TRUE &
                          (
-                          mutant_loc > (mismatch_s + 2)
+                          mutant_index > (mismatch_s + 2)
                           )
                           )
                        )] %>% nrow,
