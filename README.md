@@ -114,7 +114,7 @@ library(magrittr)
     # generate a fake peptide
     dt <- data.table::data.table(
        pep_base = "Y___*___THIS_IS_________*___A_CODE_TEST!______*__X",
-       mutant_loc = c(5, 25, 47, 50),
+       mutant_index = c(5, 25, 47, 50),
        pep_type = "test",
        var_uuid = c("middle",
                     "back_truncate",

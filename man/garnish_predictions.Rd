@@ -8,7 +8,27 @@ garnish_predictions(dt, assemble = TRUE, generate = TRUE, predict = TRUE,
   humandb = "GRCh38", mousedb = "GRCm38")
 }
 \arguments{
-\item{dt}{Data table. Input data table from garnish_variants. Required columns: sample_id, ensembl_transcript_id (e.g. \code{ENST00000311936}), cDNA_change \href{http://varnomen.hgvs.org/recommendations/DNA/}{HGVS} notation (e.g. \code{c.718T&gt;A}), space-separated MHC (e.g. \code{HLA-A*02:01 H-2-Kb HLA-DRB1*03:01}).}
+\item{dt}{Data table. Input data table from garnish_variants or a data table in one of these forms:
+
+dt with transcript id:\preformatted{Column name                 Example input
+
+sample_id                   sample_1
+ensembl_transcript_id       ENST00000311936
+cDNA_change                 c.718T>A
+MHC                         HLA-A02:01 HLA-A03:01
+                            H-2-Kb H-2-Kb
+                            HLA-DRB111:07 [second type]
+}
+
+dt with peptide:\preformatted{Column name                 Example input
+
+sample_id                   <same as above>
+pep_mut                     MTEYKLVVVDAGGVGKSALTIQLIQNHFV
+mutant_index                all
+                            7
+                            7 13 14
+MHC                         <same as above>
+}}
 
 \item{assemble}{Logical. Assemble data table?}
 
@@ -35,7 +55,7 @@ A data table of binding predictions including:
 \item \strong{pep_wt}: wt cDNA sequence
 \item \strong{mismatch_s}: starting index of mutant peptide sequence
 \item \strong{mismatch_l}: ending index of mutant peptide sequence
-\item \strong{mutant_loc}: index of mutant peptide for this row
+\item \strong{mutant_index}: index of mutant peptide for this row
 \item \strong{nmer}: nmer for prediction
 \item \strong{nmer_i}: index of nmer in sliding window
 \item \strong{*_net}: netMHC prediction tool output
@@ -62,16 +82,30 @@ Performs epitope prediction on a data table of missense mutations.
 library(magrittr)
 library(antigen.garnish)
 
- # download an example VCF
-   dt <- "antigen.garnish_example.vcf" \%T>\%
-   utils::download.file("http://get.rech.io/antigen.garnish_example.vcf", .) \%>\%
+# full pipeline
 
- # extract variants
-   garnish_variants \%>\%
+  # download an example VCF
+    dt <- "antigen.garnish_example.vcf" \%T>\%
+    utils::download.file("http://get.rech.io/antigen.garnish_example.vcf", .) \%>\%
 
- # predict neoepitopes
-   garnish_predictions \%T>\%
-   str
+  # extract variants
+    garnish_variants \%>\%
+
+  # predict neoepitopes
+    garnish_predictions \%T>\%
+    str
+
+# peptide input
+
+  # create input data table
+    dt <- data.table::data.table(
+           sample_id = "test",
+           pep_mut = "ATGACTGAATATAAACTTGTGGTA",
+           mutant_index = "7 13 14",
+           MHC = "H-2-Kb"
+
+    dto <- garnish_predictions(dt)
+
 }
 
 \dontrun{
