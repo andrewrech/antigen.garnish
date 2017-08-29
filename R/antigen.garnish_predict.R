@@ -550,7 +550,7 @@ write_netmhc_nmers <- function(dt, type){
 
       # parallelize over 100 peptide chunks
       chunks <- ((dts %>% nrow)/100) %>% ceiling
-    
+
   suppressWarnings(
   dto <- parallel::mclapply(dts %>% split(1:chunks), function(dtw){
 
@@ -586,25 +586,32 @@ write_netmhc_nmers <- function(dt, type){
 #'
 #' Performs epitope prediction on a data table of missense mutations.
 #'
-#' @param dt Data table. Input data table from garnish_variants or:
+#' @param dt Data table. Input data table from garnish_variants or a data table in one of these forms:
 #'
-#'        Column name                 Example input
-#'        -----------                 -------------
-#'     1)
-#'        sample_id                   sample_1
-#'        ensembl_transcript_id       ENST00000311936
-#'        cDNA_change                 c.718T>A
-#'        MHC                         HLA-A*02:01 HLA-A*03:01
-#'                                    H-2-Kb H-2-Kb
-#'                                    HLA-DRB1*11:07 [second type]
+#'dt with transcript id:
 #'
-#'     2)
-#'        sample_id                   <same as above>
-#'        pep_mut                     MTEYKLVVVDAGGVGKSALTIQLIQNHFV
-#'        mutant_index                all
-#'                                    7
-#'                                    7 13 14
-#'        MHC                         <same as above>
+#'
+#'     Column name                 Example input
+#'
+#'     sample_id                   sample_1
+#'     ensembl_transcript_id       ENST00000311936
+#'     cDNA_change                 c.718T>A
+#'     MHC                         HLA-A02:01 HLA-A03:01
+#'                                 H-2-Kb H-2-Kb
+#'                                 HLA-DRB111:07 [second type]
+#'
+#'
+#'dt with peptide:
+#'
+#'     Column name                 Example input
+#'
+#'     sample_id                   <same as above>
+#'     pep_mut                     MTEYKLVVVDAGGVGKSALTIQLIQNHFV
+#'     mutant_index                all
+#'                                 7
+#'                                 7 13 14
+#'     MHC                         <same as above>
+#'
 #' @param assemble Logical. Assemble data table?
 #' @param generate Logical. Generate peptides?
 #' @param predict Logical. Predict binding affinities?
@@ -643,16 +650,30 @@ write_netmhc_nmers <- function(dt, type){
 #'library(magrittr)
 #'library(antigen.garnish)
 #'
-#'  # download an example VCF
-#'    dt <- "antigen.garnish_example.vcf" %T>%
-#'    utils::download.file("http://get.rech.io/antigen.garnish_example.vcf", .) %>%
+#' # full pipeline
 #'
-#'  # extract variants
-#'    garnish_variants %>%
+#'   # download an example VCF
+#'     dt <- "antigen.garnish_example.vcf" %T>%
+#'     utils::download.file("http://get.rech.io/antigen.garnish_example.vcf", .) %>%
 #'
-#'  # predict neoepitopes
-#'    garnish_predictions %T>%
-#'    str
+#'   # extract variants
+#'     garnish_variants %>%
+#'
+#'   # predict neoepitopes
+#'     garnish_predictions %T>%
+#'     str
+#'
+#' # peptide input
+#'
+#'   # create input data table
+#'     dt <- data.table::data.table(
+#'            sample_id = "test",
+#'            pep_mut = "ATGACTGAATATAAACTTGTGGTA",
+#'            mutant_index = "7 13 14",
+#'            MHC = "H-2-Kb"
+#'
+#'     dto <- garnish_predictions(dt)
+#'
 #'}
 #'
 #'\dontrun{
@@ -705,26 +726,33 @@ garnish_predictions <- function(dt,
 
   if (!exists("input_type"))
       stop("
-  Input data table must in one of two forms:
+Input data table must be from
+garnish.variants or a data table
+in one of these forms:
 
-        Column name                 Example input
-        -----------                 -------------
+dt with transcript id:
 
-     1)
-        sample_id                   sample_1
-        ensembl_transcript_id       ENST00000311936
-        cDNA_change                 c.718T>A
-        MHC                         HLA-A*02:01 HLA-A*03:01
-                                    H-2-Kb H-2-Kb
-                                    HLA-DRB1*11:07 [second type]
 
-     2)
-        sample_id                   <same as above>
-        pep_mut                     MTEYKLVVVDAGGVGKSALTIQLIQNHFV
-        mutant_index                all
-                                    12
-                                    12 13 14
-        MHC                         <same as above>
+     Column name                 Example input
+
+     sample_id                   sample_1
+     ensembl_transcript_id       ENST00000311936
+     cDNA_change                 c.718T>A
+     MHC                         HLA-A02:01 HLA-A03:01
+                                 H-2-Kb H-2-Kb
+                                 HLA-DRB111:07 [second type]
+
+
+dt with peptide:
+
+     Column name                 Example input
+
+     sample_id                   <same as above>
+     pep_mut                     MTEYKLVVVDAGGVGKSALTIQLIQNHFV
+     mutant_index                all
+                                 7
+                                 7 13 14
+     MHC                         <same as above>
       ")
 if (assemble & input_type == "transcript"){
 
@@ -819,6 +847,11 @@ if (assemble & input_type == "transcript"){
         warning(paste0("Could not determine mutant index for ", failn, " records."))
       }
   }
+
+if (assemble & input_type == "peptide"){
+    dt[mutant_index == "all", mutant_index :=
+      get_ss_str(1, pep_mut %>% nchar)]
+}
 
 if (generate){
 
@@ -933,7 +966,7 @@ if (generate){
 }
 
 if (predict){
-browser()
+
     dtl <- dt %>% get_pred_commands
 
   # run commands
@@ -943,7 +976,6 @@ browser()
       dto <- run_netMHC(dtl[[2]])
 
       run_mhcflurry()
-
       run_mhcnuggets()
 
       dt <- merge_predictions(dto, dtl[[1]])
