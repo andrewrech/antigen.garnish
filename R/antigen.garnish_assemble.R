@@ -1,33 +1,52 @@
-## ---- detect_hla
-#' Replace HLA with matching type in netMHC format
+
+## ---- list_mhc
+#' List available MHC types using standard nomenclature
 #'
-#' @param x Vector of HLA types named for program to convert to.
-#' @param alleles Data table of 2 columns, 1. alleles properly formatted for 2. respective program name (e.g. mhcflurry, mhcnuggets, netMHC).
-#'
-#' @export detect_hla
+#' @export list_mhc
 #' @md
 
-detect_hla <- function(x, alleles){
+list_mhc <- function(){
+
+system.file("extdata",
+      "all.alleles.txt", package = "antigen.garnish") %>%
+                      data.table::fread(header = FALSE, sep = "\t") %>%
+                      utils::page
+  }
+
+
+
+## ---- detect_mhc
+#' Replace MHC with matching type in prediction tool format
+#'
+#' @param x Vector of HLA types named for program to convert to.
+#' @param alleles Data table of 2 columns, 1. formatted allele names 2. prediction tool name (e.g. mhcflurry, mhcnuggets, netMHC).
+#'
+#' @export detect_mhc
+#' @md
+
+detect_mhc <- function(x, alleles){
 
   prog <- deparse(substitute(x))
 
-  for (hla in (x %>% unique)){
+    for (hla in (x %>% unique)){
 
-    # match hla allele alelle (end|(not longer allele))
-    hla_re <- paste0(hla, "($|[^0-9])")
+      if (hla == "all") next
 
-    allele <- alleles[type == prog, allele %>%
-      .[stringi::stri_detect_regex(., hla_re) %>% which]] %>%
-      # match to first in case of multiple matches
-      # e.g. netMHCII
-      .[1]
+      # match hla allele alelle (end|(not longer allele))
+      hla_re <- paste0(hla, "($|[^0-9])")
 
-      if (allele %>% length == 0) allele <- NA
+      allele <- alleles[type == prog, allele %>%
+        .[stringi::stri_detect_regex(., hla_re) %>% which]] %>%
+        # match to first in case of multiple matches
+        # e.g. netMHCII
+        .[1]
 
-      x[x == hla] <- allele
-      }
+        if (allele %>% length == 0) allele <- NA
 
-    return(x)
+        x[x == hla] <- allele
+        }
+
+      return(x)
   }
 
 

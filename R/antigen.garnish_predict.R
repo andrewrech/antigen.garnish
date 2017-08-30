@@ -209,6 +209,14 @@ get_pred_commands <- function(dt){
      (dt %>% names) %>% any)
      stop("dt is missing columns")
 
+  # replace all with all MHC types
+    dt[MHC == "all", MHC :=
+    system.file("extdata",
+      "all_alleles.txt", package = "antigen.garnish") %>%
+       data.table::fread(header = FALSE, sep = "\t") %>%
+       .$V1 %>%
+       paste(collapse = " ")
+  ]
   if (dt[, MHC %>% unique] %>%
       stringr::str_detect(" ") %>% any) dt %<>%
       tidyr::separate_rows("MHC", sep = " ")
@@ -286,10 +294,10 @@ get_pred_commands <- function(dt){
     dt[, netMHCIIpan := netMHCII %>% stringr::str_replace("DRB1", "DRB1_")]
 
     # replace substring with netMHC allele type
-    dt[, netMHCpan := detect_hla(netMHCpan, alleles)]
-    dt[, netMHC := detect_hla(netMHC, alleles)]
-    dt[, netMHCII := detect_hla(netMHCII, alleles)]
-    dt[, netMHCIIpan := detect_hla(netMHCIIpan, alleles)]
+    dt[, netMHCpan := detect_mhc(netMHCpan, alleles)]
+    dt[, netMHC := detect_mhc(netMHC, alleles)]
+    dt[, netMHCII := detect_mhc(netMHCII, alleles)]
+    dt[, netMHCIIpan := detect_mhc(netMHCIIpan, alleles)]
 
     dtfn <-
       {
@@ -692,7 +700,7 @@ mcMap(function(x, y) (x %>% as.integer):(y %>% as.integer) %>%
 #'}
 #'
 #'\dontrun{
-#'# using an existing data table
+#'# input a data table of transcripts
 #'
 #'library(data.table)
 #'library(magrittr)
@@ -710,6 +718,22 @@ mcMap(function(x, y) (x %>% as.integer):(y %>% as.integer) %>%
 #'           MHC = c("HLA-A*02:01 HLA-DRB1*14:67",
 #'                   "H-2-Kb H-2-IAd",
 #'                   "HLA-A*01:47 HLA-DRB1*03:08")) %>%
+#'  garnish_predictions %T>%
+#'  str
+#' }
+#'
+#'\dontrun{
+#'# input a data table of peptides for all MHC types
+#'
+#'library(data.table)
+#'library(magrittr)
+#'library(antigen.garnish)
+#'
+#'  dt <- data.table::data.table(
+#'           sample_id = "test",
+#'           pep_mut = "MTEYKLVVVGAGDVGKSALTIQLIQNHFVDEYDP",
+#'           mutant_index = "12",
+#'           MHC = "all") %>%
 #'  garnish_predictions %T>%
 #'  str
 #' }
@@ -930,7 +954,7 @@ if (generate){
     sink(file = "/dev/null")
     nmer_dt <- get_nmers(basepep_dt) %>% .[, nmer_l := nmer %>% nchar]
     sink()
-
+ browser()
      dt <- merge(dt, nmer_dt,
         by = "var_uuid",
         all.x = TRUE)
