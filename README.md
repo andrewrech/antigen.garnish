@@ -44,7 +44,6 @@ sudo pip install scipy
 sudo pip install h5py
 sudo pip install mhcflurry
 mhcflurry-downloads fetch
-nosetests .
 ```
 
 Install `netMHC` and `mhcnuggets` prediction tools:
@@ -60,7 +59,7 @@ Install antigen.garnish
 ```r
 source("https://bioconductor.org/biocLite.R")
 biocLite("biomaRt")
-
+install.packages("devtools")
 devtools::install_github("andrewrech/antigen.garnish")
 ```
 
