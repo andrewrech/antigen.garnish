@@ -33,10 +33,16 @@ An R package for [neoepitope](http://science.sciencemag.org/content/348/6230/69)
 
 ### Install required prediction tools
 
-Install `mhcflurry` and `mhcnuggets` dependencies:
+Install R (version 3.4), mhcflurry and all necessary dependencies on a raw Ubuntu AMI (Ubuntu Server 16.04 LTS (HVM) - ami-cd0f5cb6):
 
 ```sh
-pip install mhcflurry scipy h5py
+sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys E298A3A825C0D65DFD57CBB651716619E084DAB9
+sudo add-apt-repository 'deb [arch=amd64,i386] https://cran.rstudio.com/bin/linux/ubuntu xenial/'
+sudo apt-get update
+sudo apt-get install r-base python-pip libcurl4-gnutls-dev libssl-dev subversion libxml2-dev
+sudo pip install scipy
+sudo pip install h5py
+sudo pip install mhcflurry
 mhcflurry-downloads fetch
 nosetests .
 ```
@@ -49,9 +55,12 @@ Install `netMHC` and `mhcnuggets` prediction tools:
   tar -xvzf antigen.garnish.tar.gz
 ```
 
-### Install antigen.garnish
+Install antigen.garnish
 
 ```r
+source("https://bioconductor.org/biocLite.R")
+biocLite("biomaRt")
+
 devtools::install_github("andrewrech/antigen.garnish")
 ```
 
