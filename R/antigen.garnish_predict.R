@@ -512,7 +512,6 @@ write_nuggets_nmers <- function(dt, alleles){
 
       suppressWarnings(
            for (i in mnug_dt[, allele %>% unique]){
-            ##### TODO fix split
             break_ups <- ((mnug_dt[allele == i] %>% nrow)/100) %>% ceiling
 
        parallel::mclapply(mnug_dt[allele == i] %>% split(1:break_ups), function(dt){
@@ -954,10 +953,9 @@ if (generate){
     sink(file = "/dev/null")
     nmer_dt <- get_nmers(basepep_dt) %>% .[, nmer_l := nmer %>% nchar]
     sink()
- browser()
-     dt <- merge(dt, nmer_dt,
-        by = "var_uuid",
-        all.x = TRUE)
+    dt <- merge(dt, nmer_dt,
+       by = "var_uuid",
+       all.x = TRUE)
 
     # generation a uuid for each unique nmer
     suppressWarnings(dt[, nmer_uuid :=

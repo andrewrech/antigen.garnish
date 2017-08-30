@@ -8,9 +8,9 @@
 list_mhc <- function(){
 
 system.file("extdata",
-      "all.alleles.txt", package = "antigen.garnish") %>%
+      "all_alleles.txt", package = "antigen.garnish") %>%
                       data.table::fread(header = FALSE, sep = "\t") %>%
-                      utils::page
+                      .$V1
   }
 
 
