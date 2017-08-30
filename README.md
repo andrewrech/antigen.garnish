@@ -33,7 +33,7 @@ An R package for [neoepitope](http://science.sciencemag.org/content/348/6230/69)
 
 ### Install required prediction tools
 
-Install `mhcflurry` and `mhcnuggets` dependencies:
+Install `mhcflurry` and `mhcnuggets` dependencies from the command line:
 
 ```sh
 pip install mhcflurry scipy h5py
@@ -41,7 +41,7 @@ mhcflurry-downloads fetch
 nosetests .
 ```
 
-Install `netMHC` and `mhcnuggets` prediction tools:
+Install `netMHC` and `mhcnuggets` prediction tools from the command line:
 
 ```sh
   cd "$HOME"
@@ -51,7 +51,11 @@ Install `netMHC` and `mhcnuggets` prediction tools:
 
 ### Install antigen.garnish
 
+From R:
+
 ```r
+if (!"devtools" %in% installed.packages()) install.packages("devtools")
+
 devtools::install_github("andrewrech/antigen.garnish")
 ```
 
@@ -62,6 +66,8 @@ devtools::install_github("andrewrech/antigen.garnish")
 * `garnish_summary`: summarize neoepitope prediction
 
 ### Generate documentation
+
+From R:
 
 ```r
 system(paste(shQuote(file.path(R.home("bin"), "R")),
