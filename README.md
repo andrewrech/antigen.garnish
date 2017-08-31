@@ -10,12 +10,12 @@ Ensemble neoepitope prediction from DNA variants in R.
 
 ## Description
 
-An R package for [neoepitope](http://science.sciencemag.org/content/348/6230/69) analysis that takes human or murine DNA point mutations, insertions, and deletions in VCF format and performs neoepitope prediction. Output is individual peptides and a summary by sample.
+An R package for [neoepitope](http://science.sciencemag.org/content/348/6230/69) analysis that takes human or murine DNA point mutations, insertions, and deletions and performs neoepitope prediction. Input is a VCF file or table of peptides. Output is neoepitopes and a summary by sample.
 
 ### Advantages
 
 1. **Simplicity**:
-    - table or vcf input
+    - VCF or table input
     - summarized neoepitopes for each sample
 1. **Thoroughness**:
     - missense mutations and frameshifts
@@ -33,7 +33,7 @@ An R package for [neoepitope](http://science.sciencemag.org/content/348/6230/69)
 
 ### Install depdendencies
 
-Install R (version 3.4), prediction tools, and dependencies on a raw Ubuntu AMI (Ubuntu Server 16.04 LTS (HVM) - ami-cd0f5cb6):
+Install R (version 3.4), prediction tools, and dependencies on a Ubuntu [AMI](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/EC2_GetStarted.html) (Ubuntu Server 16.04 LTS (HVM) - ami-cd0f5cb6):
 
 ```sh
 cd "$HOME"
@@ -59,9 +59,9 @@ install.packages("devtools")
 devtools::install_github("andrewrech/antigen.garnish")
 ```
 
-## Package [documentation](http://get.rech.io/antigen.garnish.pdf)
+## [Package documentation](http://get.rech.io/antigen.garnish.pdf)
 
-* `garnish_variants`: process variants from [SnpEff](http://snpeff.sourceforge.net/)
+* `garnish_variants`: process VCF variants from [SnpEff](http://snpeff.sourceforge.net/)
 * `garnish_predictions`: perform ensemble neoepitope prediction
 * `garnish_summary`: summarize neoepitope prediction
 
@@ -125,8 +125,9 @@ library(magrittr)
 
 ## Authors
 
-* [Andrew J. Rech](http://info.rech.io)
+* [Andrew J. Rech](http://info.rech.io) (maintainer)
 * [Lee P. Richman](http://www.med.upenn.edu/apps/faculty/index.php/g275/p1073)
+* [David Balli](https://www.linkedin.com/in/davidballi1)
 * [Robert H. Vonderheide](http://www.med.upenn.edu/apps/faculty/index.php/g275/p1073)
 
 ## License
