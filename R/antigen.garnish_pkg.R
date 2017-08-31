@@ -25,6 +25,7 @@
 #' @import parallel
 #' @import stringr
 #' @import testthat
+#' @import rio
 #' @importFrom Biostrings DNAString translate
 #' @importFrom biomaRt useMart getBM getSequence
 #' @importFrom magrittr %>% %T>% %$% %<>%

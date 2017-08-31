@@ -609,7 +609,7 @@ mcMap(function(x, y) (x %>% as.integer):(y %>% as.integer) %>%
 #' Performs epitope prediction.
 #'
 #' Performs epitope prediction on a data table of missense mutations.
-#'
+#' @param path Full file path to input, read by rio::import.  Supports xlsx, csv, txt, tsv and more. If file path and dt are provided, dt only will be used.
 #' @param dt Data table. Input data table from garnish_variants or a data table in one of these forms:
 #'
 #'dt with transcript id:
@@ -739,7 +739,8 @@ mcMap(function(x, y) (x %>% as.integer):(y %>% as.integer) %>%
 #' @export garnish_predictions
 #' @md
 
-garnish_predictions <- function(dt,
+garnish_predictions <- function(path = NULL,
+                                dt = NULL,
                                assemble = TRUE,
                                generate = TRUE,
                                predict = TRUE,
@@ -751,6 +752,18 @@ garnish_predictions <- function(dt,
     message("Removing temporary files")
     list.files(pattern = "(netMHC|mhcflurry|mhcnuggets).*_[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}\\.csv") %>% file.remove
   })
+  
+  if(missing(dt) & missing(path)){
+    stop("A object of class == data.table or file path must be provided.")
+  }
+  if(missing(path) & !missing(dt)){
+    dt <- dt
+  }
+  if(missing(dt) & !missing(path)){
+    if(!file.exists(path)){
+      stop("File not found. Please use full path to file or a data.table object.")
+      }else{dt <- rio::import(path)}
+  }
 
   dt %<>% data.table::as.data.table
 
@@ -766,7 +779,7 @@ garnish_predictions <- function(dt,
       stop("
 Input data table must be from
 garnish.variants or a data table
-in one of these forms:
+or file in one of these forms:
 
 dt with transcript id:
 
