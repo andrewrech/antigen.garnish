@@ -4,13 +4,11 @@
 \alias{garnish_predictions}
 \title{Performs epitope prediction.}
 \usage{
-garnish_predictions(path = NULL, dt = NULL, assemble = TRUE,
+garnish_predictions(dt = NULL, path = NULL, assemble = TRUE,
   generate = TRUE, predict = TRUE, humandb = "GRCh38",
   mousedb = "GRCm38")
 }
 \arguments{
-\item{path}{Full file path to input, read by rio::import.  Supports xlsx, csv, txt, tsv and more. If file path and dt are provided, dt only will be used.}
-
 \item{dt}{Data table. Input data table from garnish_variants or a data table in one of these forms:
 
 dt with transcript id:\preformatted{Column name                 Example input
@@ -32,6 +30,8 @@ mutant_index                all
                             7 13 14
 MHC                         <same as above>
 }}
+
+\item{path}{Full file path to input, read by rio::import.  Supports xlsx, csv, txt, tsv and more. If file path and dt are provided, dt only will be used.}
 
 \item{assemble}{Logical. Assemble data table?}
 
