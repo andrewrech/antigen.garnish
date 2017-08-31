@@ -82,29 +82,27 @@ Performs epitope prediction on a data table of missense mutations.
 library(magrittr)
 library(antigen.garnish)
 
-# full pipeline
+# run full pipeline
 
-  # download an example VCF
-    dt <- "antigen.garnish_example.vcf" \%T>\%
-    utils::download.file("http://get.rech.io/antigen.garnish_example.vcf", .) \%>\%
+   # download an example VCF
+   dt <- "antigen.garnish_example.vcf" \%T>\%
+   utils::download.file("http://get.rech.io/antigen.garnish_example.vcf", .) \%>\%
 
-  # extract variants
-    garnish_variants \%>\%
+   # extract variants
+   antigen.garnish::garnish_variants \%>\%
 
-  # predict neoepitopes
-    garnish_predictions \%T>\%
-    str
+   # add test MHC types
+       .[, MHC := c("HLA-A*02:01 HLA-DRB1*14:67",
+                   "H-2-Kb H-2-IAd",
+                   "HLA-A*01:47 HLA-DRB1*03:08")] \%>\%
 
-# peptide input
+   # predict neoepitopes
+   antigen.garnish::garnish_predictions \%>\%
 
-  # create input data table
-    dt <- data.table::data.table(
-           sample_id = "test",
-           pep_mut = "ATGACTGAATATAAACTTGTGGTA",
-           mutant_index = "7 13 14",
-           MHC = "H-2-Kb"
+   # summarize predictions
+   antigen.garnish::garnish_summary \%T>\%
 
-    dto <- garnish_predictions(dt)
+   print
 
 }
 

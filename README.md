@@ -31,30 +31,26 @@ An R package for [neoepitope](http://science.sciencemag.org/content/348/6230/69)
 * Linux
 * R &ge; 3.4
 
-### Install required prediction tools
+### Install depdendencies
 
-Install R (version 3.4), mhcflurry and all necessary dependencies on a raw Ubuntu AMI (Ubuntu Server 16.04 LTS (HVM) - ami-cd0f5cb6):
+Install R (version 3.4), prediction tools, and dependencies on a raw Ubuntu AMI (Ubuntu Server 16.04 LTS (HVM) - ami-cd0f5cb6):
 
 ```sh
-sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys E298A3A825C0D65DFD57CBB651716619E084DAB9
+cd "$HOME"
+sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys E298A3A825C0D65DFD57CBB651716619E084DAB9 &&
 sudo add-apt-repository 'deb [arch=amd64,i386] https://cran.rstudio.com/bin/linux/ubuntu xenial/'
-sudo apt-get update
-sudo apt-get install r-base python-pip libcurl4-gnutls-dev libssl-dev subversion libxml2-dev
-sudo pip install scipy
-sudo pip install h5py
-sudo pip install mhcflurry
+sudo apt-get update -y
+sudo apt-get install -y r-base python-pip libcurl4-gnutls-dev libssl-dev subversion libxml2-dev
+
+sudo pip install scipy h5py mhcflurry
 mhcflurry-downloads fetch
+
+wget "http://get.rech.io/antigen.garnish.tar.gz"
+tar -xvzf antigen.garnish.tar.gz
+
 ```
 
-Install `netMHC` and `mhcnuggets` prediction tools:
-
-```sh
-  cd "$HOME"
-  wget "http://get.rech.io/antigen.garnish.tar.gz"
-  tar -xvzf antigen.garnish.tar.gz
-```
-
-Install antigen.garnish
+Install antigen.garnish and dependencies from R:
 
 ```r
 source("https://bioconductor.org/biocLite.R")
@@ -63,18 +59,11 @@ install.packages("devtools")
 devtools::install_github("andrewrech/antigen.garnish")
 ```
 
-## Package documentation
+## Package [documentation](http://get.rech.io/antigen.garnish.pdf)
 
 * `garnish_variants`: process variants from [SnpEff](http://snpeff.sourceforge.net/)
 * `garnish_predictions`: perform ensemble neoepitope prediction
 * `garnish_summary`: summarize neoepitope prediction
-
-### Generate documentation
-
-```r
-system(paste(shQuote(file.path(R.home("bin"), "R")),
-    "CMD", "Rd2pdf", shQuote(find.package("antigen.garnish"))))
-```
 
 ### Examples
 
