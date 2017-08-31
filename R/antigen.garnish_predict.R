@@ -609,7 +609,7 @@ mcMap(function(x, y) (x %>% as.integer):(y %>% as.integer) %>%
 #' Performs epitope prediction.
 #'
 #' Performs epitope prediction on a data table of missense mutations.
-#' @param path Full file path to input, read by rio::import.  Supports xlsx, csv, txt, tsv and more. If file path and dt are provided, dt only will be used.
+#' @param path Character vector. Path to input table ([formats](https://cran.r-project.org/web/packages/rio/vignettes/rio.html#supported_file_formats)).
 #' @param dt Data table. Input data table from garnish_variants or a data table in one of these forms:
 #'
 #'dt with transcript id:
@@ -736,6 +736,18 @@ mcMap(function(x, y) (x %>% as.integer):(y %>% as.integer) %>%
 #'  garnish_predictions %T>%
 #'  str
 #' }
+#'
+#'\dontrun{
+#'# input from Excel
+#'
+#'    # download an example Excel file
+#'      path <- "antigen.garnish_test_input.xlsx" %T>%
+#'        utils::download.file("http://get.rech.io/antigen.garnish_test_input.xlsx", .)
+#'
+#'    # predict neoepitopes
+#'    dt <- garnish_predictions(path = path) %T>%
+#'      str
+#' }
 #' @export garnish_predictions
 #' @md
 
@@ -752,24 +764,18 @@ garnish_predictions <- function(dt = NULL,
     message("Removing temporary files")
     list.files(pattern = "(netMHC|mhcflurry|mhcnuggets).*_[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}\\.csv") %>% file.remove
   })
-  
-  if(missing(dt) & missing(path)){
-    stop("A object of class == data.table or file path must be provided.")
-  }
-  if(missing(path) & !missing(dt)){
-    dt <- dt
-  }
-  if(missing(dt) & !missing(path)){
-    if(!file.exists(path)){
-      stop("File not found. Please use full path to file or a data.table object.")
-      }else{dt <- rio::import(path)}
-  }
 
-  dt %<>% data.table::as.data.table
+  if (missing(dt) & missing(path)) stop("dt and path are missing.")
+  if (!missing(dt) & !missing(path)) stop("Choose dt or path input.")
 
-  # specify transcript vs. direc cDNA / mutant index input
+  if (missing(dt) & !missing(path))
+    dt <- rio::import(path) %>%
+    data.table::as.data.table
+
+  # specify transcript vs. direct cDNA / mutant index input
     if (c("sample_id", "ensembl_transcript_id", "cDNA_change", "MHC") %chin%
             (dt %>% names) %>% all) input_type <- "transcript"
+
     if (c("sample_id", "pep_mut", "MHC") %chin%
             (dt %>% names) %>% all) input_type <- "peptide"
             dt[, frameshift := FALSE]
@@ -778,8 +784,8 @@ garnish_predictions <- function(dt = NULL,
   if (!exists("input_type"))
       stop("
 Input data table must be from
-garnish.variants or a data table
-or file in one of these forms:
+garnish.variants or in
+one of these forms:
 
 dt with transcript id:
 

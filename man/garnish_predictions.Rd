@@ -31,7 +31,7 @@ mutant_index                all
 MHC                         <same as above>
 }}
 
-\item{path}{Full file path to input, read by rio::import.  Supports xlsx, csv, txt, tsv and more. If file path and dt are provided, dt only will be used.}
+\item{path}{Character vector. Path to input table (\href{https://cran.r-project.org/web/packages/rio/vignettes/rio.html#supported_file_formats}{formats}).}
 
 \item{assemble}{Logical. Assemble data table?}
 
@@ -146,5 +146,17 @@ library(antigen.garnish)
           MHC = "all") \%>\%
  garnish_predictions \%T>\%
  str
+}
+
+\dontrun{
+# input from Excel
+
+   # download an example Excel file
+     path <- "antigen.garnish_test_input.xlsx" \%T>\%
+       utils::download.file("http://get.rech.io/antigen.garnish_test_input.xlsx", .)
+
+   # predict neoepitopes
+   dt <- garnish_predictions(path = path) \%T>\%
+     str
 }
 }

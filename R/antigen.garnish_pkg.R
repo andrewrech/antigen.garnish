@@ -1,11 +1,11 @@
 #' \pkg{antigen.garnish}: ensemble neoepitope prediction from DNA variants in R.
 #'
-#' [antigen.garnish](http://neoepitopes.io) is an R package for [neoepitope](http://science.sciencemag.org/content/348/6230/69) analysis that takes human or murine DNA point mutations, insertions, and deletions in VCF format and performs neoepitope prediction. Output is individual peptides and a summary by sample.
+#' [antigen.garnish](http://neoepitopes.io) is an R package for [neoepitope](http://science.sciencemag.org/content/348/6230/69) analysis that takes human or murine DNA point mutations, insertions, and deletions and performs neoepitope prediction. Input is a VCF file or table of peptides. Output is neoepitopes and a summary by sample.
 #'
 #'Advantages
 #'
 #'1. **Simplicity**:
-#'    - table or vcf input
+#'    - VCF or table input
 #'    - summarized neoepitopes for each sample
 #'1. **Thoroughness**:
 #'    - missense mutations and frameshifts

@@ -6,14 +6,14 @@
 \alias{antigen.garnish-package}
 \title{\pkg{antigen.garnish}: ensemble neoepitope prediction from DNA variants in R.}
 \description{
-\href{http://neoepitopes.io}{antigen.garnish} is an R package for \href{http://science.sciencemag.org/content/348/6230/69}{neoepitope} analysis that takes human or murine DNA point mutations, insertions, and deletions in VCF format and performs neoepitope prediction. Output is individual peptides and a summary by sample.
+\href{http://neoepitopes.io}{antigen.garnish} is an R package for \href{http://science.sciencemag.org/content/348/6230/69}{neoepitope} analysis that takes human or murine DNA point mutations, insertions, and deletions and performs neoepitope prediction. Input is a VCF file or table of peptides. Output is neoepitopes and a summary by sample.
 }
 \details{
 Advantages
 \enumerate{
 \item \strong{Simplicity}:
 \itemize{
-\item table or vcf input
+\item VCF or table input
 \item summarized neoepitopes for each sample
 }
 \item \strong{Thoroughness}:

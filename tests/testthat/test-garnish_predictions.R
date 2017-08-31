@@ -41,19 +41,16 @@ testthat::test_that("garnish_predictions vcf", {
 
     })
 
-testthat::test_that("garnish_predictions from excel file", {
-  
-  if (!check_pred_tools() %>% unlist %>% all){
-    testthat::skip("Skipping run_netMHC because prediction tools are not in PATH")
-  }
-  
+testthat::test_that("garnish_predictions from Excel file", {
+
   # load test data
-  path <- system.file("extdata",
-              "test_input.xlsx", package = "antigen.garnish")
-  
-  dt <- garnish_predictions(path = path)
-  
-  
+  path <- "antigen.garnish_test_input.xlsx" %T>%
+    utils::download.file("http://get.rech.io/antigen.garnish_test_input.xlsx", .)
+
+
+  dt <- garnish_predictions(path = path, predict = FALSE)
+
+
   testthat::expect_equal(dt %>% nrow, 552)
   testthat::expect_equal(dt$MHC %>% unique %>% sort,
                          c("H-2-IAd",
@@ -67,7 +64,7 @@ testthat::test_that("garnish_predictions from excel file", {
          nchar %>%
          unique] %>% sort,
     8:15)
-  
+
 })
 
 testthat::test_that("garnish_predictions peptide assemble", {

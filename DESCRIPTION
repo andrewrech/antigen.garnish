@@ -2,7 +2,7 @@ Package: antigen.garnish
 Title: Ensemble neoepitope prediction from DNA variants in R
 Version: 0.0.1
 Authors@R: 'Andrew J. Rech <andrewrech@gmail.com> [aut, cre]'
-Description: An R package for neoepitope analysis that takes human or murine DNA point mutations, insertions, and deletions in VCF format and performs neoepitope prediction. Output is individual peptides and a summary by sample.
+Description: An R package for neoepitope analysis that takes human or murine DNA point mutations, insertions, and deletions and performs neoepitope prediction. Input is a VCF file or table of peptides. Output is neoepitopes and a summary by sample.
 Depends: R (>= 3.4.0)
 License: GPL-3
 Encoding: UTF-8
