@@ -739,8 +739,8 @@ mcMap(function(x, y) (x %>% as.integer):(y %>% as.integer) %>%
 #' @export garnish_predictions
 #' @md
 
-garnish_predictions <- function(path = NULL,
-                                dt = NULL,
+garnish_predictions <- function(dt = NULL,
+                                path = NULL,
                                assemble = TRUE,
                                generate = TRUE,
                                predict = TRUE,
