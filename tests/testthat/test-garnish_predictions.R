@@ -52,13 +52,6 @@ testthat::test_that("garnish_predictions from Excel file", {
 
 
   testthat::expect_equal(dt %>% nrow, 552)
-  testthat::expect_equal(dt$MHC %>% unique %>% sort,
-                         c("H-2-IAd",
-                           "H-2-Kb",
-                           "HLA-A*01:47",
-                           "HLA-A*02:01",
-                           "HLA-DRB1*03:08",
-                           "HLA-DRB1*14:67"))
   testthat::expect_equal(
     dt[, nmer %>%
          nchar %>%
