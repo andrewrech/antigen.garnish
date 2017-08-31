@@ -4,10 +4,13 @@
 \alias{garnish_predictions}
 \title{Performs epitope prediction.}
 \usage{
-garnish_predictions(dt, assemble = TRUE, generate = TRUE, predict = TRUE,
-  humandb = "GRCh38", mousedb = "GRCm38")
+garnish_predictions(path = NULL, dt = NULL, assemble = TRUE,
+  generate = TRUE, predict = TRUE, humandb = "GRCh38",
+  mousedb = "GRCm38")
 }
 \arguments{
+\item{path}{Full file path to input, read by rio::import.  Supports xlsx, csv, txt, tsv and more. If file path and dt are provided, dt only will be used.}
+
 \item{dt}{Data table. Input data table from garnish_variants or a data table in one of these forms:
 
 dt with transcript id:\preformatted{Column name                 Example input
