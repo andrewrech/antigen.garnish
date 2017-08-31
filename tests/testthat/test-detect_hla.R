@@ -4,7 +4,7 @@ library(data.table)
 library(magrittr)
 library(dt.inflix)
 
-testthat::test_that("detect_hla", {
+testthat::test_that("detect_mhc", {
 
   # load test data
   alleles <- data.table::rbindlist(
@@ -45,12 +45,12 @@ testthat::test_that("detect_hla", {
                       data.table::setnames("V1", "allele") %>%
                       .[, type := "mhcnuggets_lstm"]
 ))
-  
+
   dt <- data.table::data.table(netMHCIIpan =
          c("A0201", "A0301", "DRB1_0301", "DRB1_1467"))
 
   # run test
-  dt[, netMHCIIpan := detect_hla(netMHCIIpan, alleles)]$netMHCIIpan %>%
+  dt[, netMHCIIpan := detect_mhc(netMHCIIpan, alleles)]$netMHCIIpan %>%
 
    testthat::expect_equal(c(NA, NA, "DRB1_0301", "DRB1_1467"))
     })

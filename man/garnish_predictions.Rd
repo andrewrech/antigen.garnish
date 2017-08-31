@@ -107,7 +107,7 @@ library(antigen.garnish)
 }
 
 \dontrun{
-# using an existing data table
+# input a data table of transcripts
 
 library(data.table)
 library(magrittr)
@@ -125,6 +125,22 @@ library(antigen.garnish)
           MHC = c("HLA-A*02:01 HLA-DRB1*14:67",
                   "H-2-Kb H-2-IAd",
                   "HLA-A*01:47 HLA-DRB1*03:08")) \%>\%
+ garnish_predictions \%T>\%
+ str
+}
+
+\dontrun{
+# input a data table of peptides for all MHC types
+
+library(data.table)
+library(magrittr)
+library(antigen.garnish)
+
+ dt <- data.table::data.table(
+          sample_id = "test",
+          pep_mut = "MTEYKLVVVGAGDVGKSALTIQLIQNHFVDEYDP",
+          mutant_index = "12",
+          MHC = "all") \%>\%
  garnish_predictions \%T>\%
  str
 }
