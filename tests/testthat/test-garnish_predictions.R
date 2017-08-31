@@ -41,6 +41,25 @@ testthat::test_that("garnish_predictions vcf", {
 
     })
 
+testthat::test_that("garnish_predictions from Excel file", {
+
+  # load test data
+  path <- "antigen.garnish_test_input.xlsx" %T>%
+    utils::download.file("http://get.rech.io/antigen.garnish_test_input.xlsx", .)
+
+
+  dt <- garnish_predictions(path = path, predict = FALSE)
+
+
+  testthat::expect_equal(dt %>% nrow, 552)
+  testthat::expect_equal(
+    dt[, nmer %>%
+         nchar %>%
+         unique] %>% sort,
+    8:15)
+
+})
+
 testthat::test_that("garnish_predictions peptide assemble", {
 
    if (!check_pred_tools() %>% unlist %>% all){

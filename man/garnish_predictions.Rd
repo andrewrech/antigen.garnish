@@ -4,8 +4,9 @@
 \alias{garnish_predictions}
 \title{Performs epitope prediction.}
 \usage{
-garnish_predictions(dt, assemble = TRUE, generate = TRUE, predict = TRUE,
-  humandb = "GRCh38", mousedb = "GRCm38")
+garnish_predictions(dt = NULL, path = NULL, assemble = TRUE,
+  generate = TRUE, predict = TRUE, humandb = "GRCh38",
+  mousedb = "GRCm38")
 }
 \arguments{
 \item{dt}{Data table. Input data table from garnish_variants or a data table in one of these forms:
@@ -29,6 +30,8 @@ mutant_index                all
                             7 13 14
 MHC                         <same as above>
 }}
+
+\item{path}{Character vector. Path to input table (\href{https://cran.r-project.org/web/packages/rio/vignettes/rio.html#supported_file_formats}{formats}).}
 
 \item{assemble}{Logical. Assemble data table?}
 
@@ -143,5 +146,17 @@ library(antigen.garnish)
           MHC = "all") \%>\%
  garnish_predictions \%T>\%
  str
+}
+
+\dontrun{
+# input from Excel
+
+   # download an example Excel file
+     path <- "antigen.garnish_test_input.xlsx" \%T>\%
+       utils::download.file("http://get.rech.io/antigen.garnish_test_input.xlsx", .)
+
+   # predict neoepitopes
+   dt <- garnish_predictions(path = path) \%T>\%
+     str
 }
 }
