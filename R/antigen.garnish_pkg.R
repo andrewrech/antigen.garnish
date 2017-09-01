@@ -29,6 +29,7 @@
 #' @importFrom Biostrings DNAString translate
 #' @importFrom biomaRt useMart getBM getSequence
 #' @importFrom magrittr %>% %T>% %$% %<>%
+#' @importFrom Rdpack reprompt
 #' @importFrom stats na.omit t.test
 #' @importFrom stringi stri_detect_fixed
 #' @importFrom tidyr separate_rows
