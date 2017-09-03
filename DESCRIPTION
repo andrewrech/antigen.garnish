@@ -9,7 +9,7 @@ Encoding: UTF-8
 LazyData: true
 RemoteUrl: http://neoepitopes.io
 Imports: Biostrings, biomaRt, colorspace, data.table, dt.inflix, magrittr, parallel, Rdpack, rio, ShortRead, stats, stringi, stringr, testthat, tidyr, utils, uuid, vcfR, zoo
-Remotes: tidyverse/magrittr, andrewrech/dt.inflix, Rdatatable/data.table,bioc::release/Biostrings, bioc::release/biomaRt
+Remotes: tidyverse/magrittr, andrewrech/dt.inflix, Rdatatable/data.table,bioc::release/Biostrings, bioc::release/biomaRt, bioc::release/ShortRead
 RdMacros: Rdpack
 LazyLoad: yes
 RoxygenNote: 6.0.1.9000
