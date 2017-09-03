@@ -110,10 +110,9 @@ library(magrittr)
   
   # get predictions
   dt <- antigen.garnish::garnish_jaffa(path, db, MHCdt, fasta.file) %>%
-            antigen.garnish::garnish_predictions %>%
-                antigen.garnish::garnish_summary %T>%
-  
-  print
+            antigen.garnish::garnish_predictions
+    
+    head(dt)     
 ```
 
 ### Tests
