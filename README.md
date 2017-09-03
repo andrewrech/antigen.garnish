@@ -92,6 +92,29 @@ library(magrittr)
 
     print
 ```
+#### Predict neoepitopes from JAFFA output
+
+```r
+library(magrittr)
+  
+  # load some test jaffa output data
+  path <- "antigen.garnish_jaffa_results.csv" %T>%
+      utils::download.file("http://get.rech.io/antigen.garnish_jaffa_results.csv", .)
+  fasta.file <- "antigen.garnish_jaffa_results.fasta" %T>%
+    utils::download.file("http://get.rech.io/antigen.garnish_jaffa_results.fasta", .)
+  
+  # set mouse vs. human and MHC input
+  db <- "GRCm38"
+  MHCdt <- data.table::data.table(sample_id = c("4662", "Abx7"),
+                                  MHC = c("H-2-Kb H-2-Db H-2-IAb", "H-2-Ld H-2-IAd"))
+  
+  # get predictions
+  dt <- antigen.garnish::garnish_jaffa(path, db, MHCdt, fasta.file) %>%
+            antigen.garnish::garnish_predictions %>%
+                antigen.garnish::garnish_summary %T>%
+  
+  print
+```
 
 ### Tests
 
