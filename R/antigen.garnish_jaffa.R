@@ -49,16 +49,12 @@
 #'                         MHC = "H-2-Kb H-2-Db H-2-IAb)
 #'
 #'    # extract variants
-#'    antigen.garnish::garnish_jaffa(path, db, MHCdt, fasta.file) %>%
+#'    dt <- antigen.garnish::garnish_jaffa(path, db, MHCdt, fasta.file) %>%
 #'
 #'    # predict neoepitopes
-#'    antigen.garnish::garnish_predictions %>%
+#'    antigen.garnish::garnish_predictions 
 #'
-#'    # summarize predictions
-#'    antigen.garnish::garnish_summary %T>%
-#'
-#'    print
-#'
+#'    head(dt)
 #'}
 #'
 #' @export garnish_jaffa
@@ -140,8 +136,7 @@ garnish_jaffa <- function(path, db, MHCdt, fasta.file){
   contig <- fasta@id %>% data.table::as.data.table %>% .[, x] %>%
     data.table::as.data.table %>%
     data.table::setnames(".", "contig")
-##TODO is there how all contigs from jaffa results are formatted? is this the right regex?
-  ##could also use known patterns from jaffa_results.csv to piece together possibly.
+
   contig_dt <- data.table::data.table(seqs, contig) %>%
       .[, contig := contig %>% stringr::str_extract("(?<=(\\-{3})).*$") %>%
           stringr::str_extract("(?<=(\\-{3})).*$")]
