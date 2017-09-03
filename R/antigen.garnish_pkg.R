@@ -26,6 +26,7 @@
 #' @import stringr
 #' @import testthat
 #' @importFrom rio import
+#' @importFrom ShortRead sread readFasta
 #' @importFrom Biostrings DNAString translate
 #' @importFrom biomaRt useMart getBM getSequence
 #' @importFrom magrittr %>% %T>% %$% %<>%
