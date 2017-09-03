@@ -1,4 +1,6 @@
 ## ---- garnish_jaffa
+#' Derive variants from JAFFA output. 
+#'
 #' Returns a data.table object of reformatted input from JAFFA results files for garnish_predictions.
 #' Uses fasta and results.csv produced by JAFFA to generate all possible mutant fusion peptides predicted by
 #' RNAseq reads for further downstream analysis by garnish_predictions.  
