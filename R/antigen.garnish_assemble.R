@@ -352,7 +352,7 @@ parallel::mclapply(v, function(p){
 
           p %>%
             Biostrings::DNAString() %>%
-            Biostrings::translate() %>%
+            Biostrings::translate(if.fuzzy.codon = c("solve", "X")) %>%
                 as.vector %>%
                 as.character %>%
                 paste(collapse = "")
