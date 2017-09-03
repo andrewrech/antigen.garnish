@@ -147,7 +147,7 @@ garnish_jaffa <- function(path, db, MHCdt, fasta.file){
         by = "contig")
   
   ##TODO for now unclear if contig_break is before or after that base, err cautiously and skip that base
-  dt[, contig_1 := substr(x = sread, 1, `contig break` - 1),
+  dt[, contig_1 := substr(x = sread, 1, `contig break`),
      by = 1:nrow(dt)] %>%
         .[, contig_2 := substr(x = sread, `contig break` + 1, nchar(sread)),
           by = 1:nrow(dt)]
