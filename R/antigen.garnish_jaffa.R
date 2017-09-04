@@ -129,7 +129,7 @@ garnish_jaffa <- function(path, db, MHCdt, fasta.file){
   ##incorporate fasta file input, split contigs at breakpoint 
   fasta <- ShortRead::readFasta(fasta.file)
   
-  seqs <- fasta@sread %>% data.table::as.data.table %>% .[, x] %>%
+  seqs <- fasta@sread %>% data.table::as.data.table %>% .[, x %>% toupper] %>%
     data.table::as.data.table %>%
     data.table::setnames(".", "sread")
   
