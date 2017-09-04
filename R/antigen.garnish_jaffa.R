@@ -273,6 +273,10 @@ garnish_jaffa <- function(path, db, MHCdt, fasta.file){
   ##translate mutant peptides and get mutant index
   dt[, pep_fus := antigen.garnish::translate_cDNA(fus_tx) %>%
        stringr::str_replace(pattern = "\\*.*$", replacement = "")]
+  ##fuzzy matches will return NA, must drop those rows to continue
+  dt <- dt[!is.na(pep_fus)]
+  
+  ##get mutant indices
   suppressWarnings({
   dt[, mutant_index :=
   {
