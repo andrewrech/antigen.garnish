@@ -146,7 +146,7 @@ garnish_jaffa <- function(path, db, MHCdt, fasta.file){
         contig_dt,
         by = "contig")
   
-  ##TODO for now unclear if contig_break is before or after that base, err cautiously and skip that base
+  ##split up contigs into parts for each gene in fusion
   dt[, contig_1 := substr(x = sread, 1, `contig break`),
      by = 1:nrow(dt)] %>%
         .[, contig_2 := substr(x = sread, `contig break` + 1, nchar(sread)),
@@ -270,7 +270,6 @@ garnish_jaffa <- function(path, db, MHCdt, fasta.file){
         stringr::str_extract(paste0(contig_2, ".*$"))]
   dt[, fus_tx := paste0(fus1, fus2)]
   
-  ##TODO this bugs if coding seq contains an N, see yap1 in example data
   ##translate mutant peptides and get mutant index
   dt[, pep_fus := antigen.garnish::translate_cDNA(fus_tx) %>%
        stringr::str_replace(pattern = "\\*.*$", replacement = "")]
