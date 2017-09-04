@@ -25,8 +25,8 @@ testthat::test_that("garnish_jaffa_predict", {
             garnish_predictions
 
   testthat::expect_equal(dt %>% class %>% .[1], "data.table")
-  testthat::expect_equal(dt %>% nrow, 954196)
-  testthat::expect_equal(dt[, nmer %>% unique %>% length], 6207)
+  testthat::expect_equal(dt %>% nrow, 1595000)
+  testthat::expect_equal(dt[, nmer %>% unique %>% length], 7876)
 
   if (file.exists("antigen.garnish_jaffa_results.csv"))
   file.remove("antigen.garnish_jaffa_results.csv")
