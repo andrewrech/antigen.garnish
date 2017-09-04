@@ -102,7 +102,11 @@ testthat::test_that("garnish_predictions peptide", {
                          168)
     })
 
-if (!(check_pred_tools() %>% unlist %>% all)) testthat::test_that("garnish_predictions warn on missing pred tools", {
+testthat::test_that("garnish_predictions warn on missing pred tools", {
+
+   if (check_pred_tools() %>% unlist %>% all){
+    testthat::skip("Skipping test for warn on missing pred tools because prediction tools are in PATH")
+    }
 
           data.table::data.table(
           sample_id = "test",
