@@ -292,8 +292,8 @@ garnish_jaffa <- function(path, db, MHCdt, fasta.file){
   
   ##clean up a little
   dt <- dt[, c("sample_id", "pep_fus", "mutant_index", "fusion genes", "chrom1", "base1",
-               "chrom2", "base2", "fusion_uuid", "fus_tx" "pep_wt_1")] %>%
-          data.table::setnames(c("pep_fus"), c("pep_mut"))
+               "chrom2", "base2", "fusion_uuid", "fus_tx", "pep_wt_1")] %>%
+          data.table::setnames(c("pep_fus", "pep_wt_1"), c("pep_mut", "pep_gene_1"))
   
   dt <- merge(dt, MHCdt, by = "sample_id")
   
