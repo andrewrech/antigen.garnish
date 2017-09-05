@@ -371,8 +371,10 @@ collate_netMHC <- function(esl){
 
 esl, function(es){
 
-          command <- es[[1]]
+          command.in <- es[[1]]
           es <- es[[2]]
+  
+  if (length(command.in) > 1) stop("command.in is longer than 1")
 
           # parse results
             # isolate table and header
@@ -389,7 +391,7 @@ esl, function(es){
           if (dtn %>%
               stringr::str_detect("ERROR") %>%
               any){
-            warning(paste0(command, " returned ERROR"))
+            warning(paste0(command.in, " returned ERROR"))
             return(NULL)
           }
 
@@ -405,10 +407,10 @@ esl, function(es){
             dt %>% data.table::setnames(dt %>% names, dtn)
 
           # append command
-            dt$command <- command
+            dt[, command := command.in]
 
           # set the program type from command
-            ptype <- command %>% stringr::str_extract("net[A-Za-z]+")
+            ptype <- command.in %>% stringr::str_extract("net[A-Za-z]+")
 
           dtn <- dt %>% names
           # make netMHC names consistent
