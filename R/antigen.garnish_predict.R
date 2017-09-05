@@ -1028,10 +1028,11 @@ if (predict){
       dt <- merge_predictions(dto, dtl[[1]])
      
      ## drop out single wt nmer from rolling window over fusion peptides from JAFFA input
-     if(("fus_tx" %chin% names(dt)) %>% any) dt <- dt %>% 
+     if("fus_tx" %chin% names(dt)) dt <- dt %>% 
                 .[, drop := pep_wt_1 %>% grepl(pattern = nmer)] %>%
                   .[drop == FALSE] %>%
                     .[, drop := NULL]
+     
       cols <- dt %>% names %include% "(best_netMHC)|(mhcflurry_prediction$)|(mhcnuggets_pred_gru)|(mhcnuggets_pred_lstm)"
 
       confi <- function(dt){
