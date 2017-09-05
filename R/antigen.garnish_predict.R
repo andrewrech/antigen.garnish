@@ -1029,7 +1029,7 @@ if (predict){
      
      ## drop out single wt nmer from rolling window over fusion peptides from JAFFA input
      if("fus_tx" %chin% names(dt)) dt <- dt %>% 
-                .[, drop := pep_wt_1 %>% grepl(pattern = nmer)] %>%
+                .[, drop := pep_gene_1 %>% grepl(pattern = nmer), by  = 1:nrow(dt)] %>%
                   .[drop == FALSE] %>%
                     .[, drop := NULL]
      
