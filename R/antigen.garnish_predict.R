@@ -407,7 +407,7 @@ esl, function(es){
             dt %>% data.table::setnames(dt %>% names, dtn)
 
           # append command
-            dt[, command := command.in]
+            dt$command <- command
 
           # set the program type from command
             ptype <- command.in %>% stringr::str_extract("net[A-Za-z]+")
