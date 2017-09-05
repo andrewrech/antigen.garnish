@@ -899,7 +899,6 @@ if (assemble & input_type == "transcript"){
 if (assemble & input_type == "peptide"){
     dt[mutant_index == "all", mutant_index :=
       get_ss_str(1, pep_mut %>% nchar)]
-    dt[, frameshift := FALSE]
 }
 
 if (generate){
