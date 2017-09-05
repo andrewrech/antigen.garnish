@@ -1026,6 +1026,10 @@ if (predict){
       run_mhcnuggets()
 
       dt <- merge_predictions(dto, dtl[[1]])
+     if(("fus_tx" %chin% names(dt)) %>% any) dt <- dt %>% 
+                .[, drop := pep_wt_1 %>% grepl(pattern = nmer)] %>%
+                  .[drop == FALSE] %>%
+                    .[, drop := NULL]
       cols <- dt %>% names %include% "(best_netMHC)|(mhcflurry_prediction$)|(mhcnuggets_pred_gru)|(mhcnuggets_pred_lstm)"
 
       confi <- function(dt){
