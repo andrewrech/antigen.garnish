@@ -374,7 +374,7 @@ esl, function(es){
           command.in <- es[[1]]
           es <- es[[2]]
   
-  if (length(command.in) > 1) stop("command.in is longer than 1")
+  ##if (length(command.in) > 1) stop("command.in is longer than 1")
 
           # parse results
             # isolate table and header
