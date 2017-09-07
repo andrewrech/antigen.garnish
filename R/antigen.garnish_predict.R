@@ -972,8 +972,7 @@ if (generate){
     sink(file = "/dev/null")
     nmer_dt <- get_nmers(basepep_dt) %>% .[, nmer_l := nmer %>% nchar]
     sink()
-    dt <- merge(dt, nmer_dt,
-       by = "var_uuid",
+    dt <- data.table::fintersect(dt, nmer_dt,
        all = TRUE)
 
     ## drop out single wt nmer from rolling window over fusion peptides from JAFFA input
