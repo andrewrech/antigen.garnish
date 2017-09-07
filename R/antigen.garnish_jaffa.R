@@ -16,7 +16,7 @@
 #'                                 H-2-Kb H-2-Kb
 #'                                 all
 #'                                 HLA-DRB111:07 [second type]
-#' @param fasta.file Full file path to jaffa_results.fasta.
+#' @param fasta_file Full file path to jaffa_results.fasta.
 #' @return A data table of mutant peptides including:
 #' * **sample_id**: sample_id derived from jaffa_results.csv input.
 #' * **pep_mut**: Full length mutant fusion peptides from all possible inframe exon-exon fusions predicted by JAFFA.
@@ -41,15 +41,15 @@
 #'    path <- "jaffa_results.csv"
 #'    utils::download.file("http://get.rech.io/jaffa_results.csv", path)
 #'    
-#'    fasta.file <- "jaffa_results.fasta"
-#'    utils::download.file("http://get.rech.io/jaffa_results.fasta", fasta.file)
+#'    fasta_file <- "jaffa_results.fasta"
+#'    utils::download.file("http://get.rech.io/jaffa_results.fasta", fasta_file)
 #'    
 #'    db <- "GRCm38"
 #'    MHCdt <- data.table(sample_id = c("4662", "Abx7"),
 #'                         MHC = "H-2-Kb H-2-Db H-2-IAb)
 #'
 #'    # extract variants
-#'    dt <- antigen.garnish::garnish_jaffa(path, db, MHCdt, fasta.file) %>%
+#'    dt <- antigen.garnish::garnish_jaffa(path, db, MHCdt, fasta_file) %>%
 #'
 #'    # predict neoepitopes
 #'    antigen.garnish::garnish_predictions 
@@ -60,7 +60,7 @@
 #' @export garnish_jaffa
 #' @md
   
-garnish_jaffa <- function(path, db, MHCdt, fasta.file){
+garnish_jaffa <- function(path, db, MHCdt, fasta_file){
   if (missing(db) | !(db %chin% c("GRCm38",
 "GRCh38", "GRCm37", "GRCh37"))) stop("Please provide argument db, character vector of length one
                         %chin% c(\"GRCh38\", \"GRCh37\", \"GRCm37\",\"GRCm38\")")
@@ -73,7 +73,7 @@ garnish_jaffa <- function(path, db, MHCdt, fasta.file){
                           A                            H-2-Kb H-2-IAb
                           B                            HLA-A*02:03
                           C                            all")
-  if (missing(fasta.file) | !file.exists(fasta.file)) stop("Provide correct full path to jaffa_results.fasta")
+  if (missing(fasta_file) | !file.exists(fasta_file)) stop("Provide correct full path to jaffa_results.fasta")
   if (!((class(MHCdt) %chin% c("character", "data.table", "data.frame", "matrix")) %>% any)) stop("MHCdt must be a file path or data.table object.")
   
   if (class(MHCdt)[1] == "character"){
@@ -127,7 +127,7 @@ garnish_jaffa <- function(path, db, MHCdt, fasta.file){
   dt[, c("gene_1", "gene_2") := unfuse_genes(`fusion genes`)]
  
   ##incorporate fasta file input, split contigs at breakpoint 
-  fasta <- ShortRead::readFasta(fasta.file)
+  fasta <- ShortRead::readFasta(fasta_file)
   
   seqs <- fasta@sread %>% data.table::as.data.table %>% .[, x %>% toupper] %>%
     data.table::as.data.table %>%
