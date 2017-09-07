@@ -1048,6 +1048,24 @@ data.table::as.data.table %>% .[, program := "netMHCIIpan"])
 
       dt <- merge_predictions(dto, dtl[[1]])
 
+##TODO
+      rbindlist(list(
+        list.files(pattern = "mhcnuggets.*output") %>% tools::md5sum %>%
+      data.table::as.data.table %>% .[, program := "mhcnuggets"],
+      list.files(pattern = "mhcflurry.*output") %>% tools::md5sum %>%
+      data.table::as.data.table %>% .[, program := "mhcflurry"],
+      list.files(pattern = "netMHC[^I]") %>% tools::md5sum %>%
+      data.table::as.data.table %>% .[, program := "netMHC"],
+      list.files(pattern = "netMHCII[^p]") %>% tools::md5sum %>%
+      data.table::as.data.table %>% .[, program := "netMHCII"],
+      list.files(pattern = "netMHCIIpan") %>% tools::md5sum %>%
+      data.table::as.data.table %>% .[, program := "netMHCIIpan"])
+    ) %>% data.table::fwrite("outtab", sep = "\t", quote = FALSE, row.names = FALSE)
+
+
+
+
+
       cols <- dt %>% names %include% "(best_netMHC)|(mhcflurry_prediction$)|(mhcnuggets_pred_gru)|(mhcnuggets_pred_lstm)"
 
       confi <- function(dt){
