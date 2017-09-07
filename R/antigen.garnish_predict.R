@@ -975,14 +975,14 @@ if (generate){
     dt <- merge(dt, nmer_dt,
        by = "var_uuid",
        all.x = TRUE)
-    
+
     ## drop out single wt nmer from rolling window over fusion peptides from JAFFA input
-    if("fus_tx" %chin% names(dt)) dt <- dt %>% 
+    if("fus_tx" %chin% names(dt)) dt <- dt %>%
       .[, drop := pep_gene_1 %like% nmer, by  = 1:nrow(.)] %>%
       .[drop == FALSE] %>%
       .[, drop := NULL]
-    
-    
+
+
     # generation a uuid for each unique nmer
     suppressWarnings(dt[, nmer_uuid :=
                     parallel::mclapply(1:nrow(dt),
@@ -1024,6 +1024,20 @@ if (predict){
     dtl <- dt %>% get_pred_commands
 
   # run commands
+##TODO
+rbindlist(list(
+  list.files(pattern = "mhcnuggets") %>% tools::md5sum %>%
+data.table::as.data.table %>% .[, program := "mhcnuggets"],
+list.files(pattern = "mhcflurry") %>% tools::md5sum %>%
+data.table::as.data.table %>% .[, program := "mhcflurry"],
+list.files(pattern = "netMHC[^I]") %>% tools::md5sum %>%
+data.table::as.data.table %>% .[, program := "netMHC"],
+list.files(pattern = "netMHCII[^p]") %>% tools::md5sum %>%
+data.table::as.data.table %>% .[, program := "netMHCII"],
+list.files(pattern = "netMHCIIpan") %>% tools::md5sum %>%
+data.table::as.data.table %>% .[, program := "netMHCIIpan"])
+) %>% data.table::fwrite("hashtab", sep = "\t", quote = FALSE, row.names = FALSE)
+
 
    if (check_pred_tools() %>% unlist %>% all){
 
@@ -1033,7 +1047,7 @@ if (predict){
       run_mhcnuggets()
 
       dt <- merge_predictions(dto, dtl[[1]])
-     
+
       cols <- dt %>% names %include% "(best_netMHC)|(mhcflurry_prediction$)|(mhcnuggets_pred_gru)|(mhcnuggets_pred_lstm)"
 
       confi <- function(dt){
