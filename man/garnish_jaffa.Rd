@@ -22,7 +22,7 @@ MHC                         HLA-A02:01 HLA-A03:01
                             HLA-DRB111:07 [second type]
 }}
 
-\item{fasta.file}{Full file path to jaffa_results.fasta.}
+\item{fasta_file}{Full file path to jaffa_results.fasta.}
 }
 \value{
 A data table of mutant peptides including:
