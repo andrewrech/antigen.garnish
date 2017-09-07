@@ -975,7 +975,14 @@ if (generate){
     dt <- merge(dt, nmer_dt,
        by = "var_uuid",
        all.x = TRUE)
-
+    
+    ## drop out single wt nmer from rolling window over fusion peptides from JAFFA input
+    if("fus_tx" %chin% names(dt)) dt <- dt %>% 
+      .[, drop := pep_gene_1 %like% nmer, by  = 1:nrow(.)] %>%
+      .[drop == FALSE] %>%
+      .[, drop := NULL]
+    
+    
     # generation a uuid for each unique nmer
     suppressWarnings(dt[, nmer_uuid :=
                     parallel::mclapply(1:nrow(dt),
@@ -1026,12 +1033,6 @@ if (predict){
       run_mhcnuggets()
 
       dt <- merge_predictions(dto, dtl[[1]])
-     
-     ## drop out single wt nmer from rolling window over fusion peptides from JAFFA input
-     if("fus_tx" %chin% names(dt)) dt <- dt %>% 
-                .[, drop := nmer %chin% pep_gene_1] %>%
-                  .[drop == FALSE] %>%
-                    .[, drop := NULL]
      
       cols <- dt %>% names %include% "(best_netMHC)|(mhcflurry_prediction$)|(mhcnuggets_pred_gru)|(mhcnuggets_pred_lstm)"
 
