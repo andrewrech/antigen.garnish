@@ -77,7 +77,7 @@ run_netMHC <- function(dt){
   message("Running netMHC in parallel")
 
   # run commands
-  esl <- parallel::mclapply(
+  esl <- lapply(
          dt[, command],
 
   function(command){

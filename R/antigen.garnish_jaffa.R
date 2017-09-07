@@ -105,10 +105,12 @@ garnish_jaffa <- function(path, db, MHCdt, fasta_file){
 
   dt <- dt[aligns == TRUE & rearrangement == TRUE & classification != "LowConfidence" & inframe == TRUE]
 
-  dt[, fusion_uuid := parallel::mclapply(1:nrow(dt),
-                                         uuid::UUIDgenerate) %>% unlist]
+
+  ##dt[, fusion_uuid := parallel::mclapply(1:nrow(dt),
+                                         ##uuid::UUIDgenerate) %>% unlist]
 
  ##split up gene fusion components
+
   unfuse_genes <- function(col){
 
     dtl <- parallel::mclapply(1:length(col), function(i){
@@ -124,7 +126,7 @@ garnish_jaffa <- function(path, db, MHCdt, fasta_file){
 
   dt[, c("gene_1", "gene_2") := unfuse_genes(`fusion genes`)]
 
-  ##incorporate fasta_file input, split contigs at breakpoint
+  ##incorporate fasta file input, split contigs at breakpoint
   fasta <- ShortRead::readFasta(fasta_file)
 
   seqs <- fasta@sread %>% data.table::as.data.table %>% .[, x %>% toupper] %>%
@@ -290,7 +292,7 @@ garnish_jaffa <- function(path, db, MHCdt, fasta_file){
 
   ##clean up a little
   dt <- dt[, c("sample_id", "pep_fus", "mutant_index", "fusion genes", "chrom1", "base1",
-               "chrom2", "base2", "fusion_uuid", "fus_tx", "pep_wt_1")] %>%
+               "chrom2", "base2", "fus_tx", "pep_wt_1")] %>%
           data.table::setnames(c("pep_fus", "pep_wt_1"), c("pep_mut", "pep_gene_1"))
 
   dt <- merge(dt, MHCdt, by = "sample_id")
