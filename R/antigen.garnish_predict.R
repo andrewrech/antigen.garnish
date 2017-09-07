@@ -974,7 +974,7 @@ if (generate){
     sink()
     dt <- merge(dt, nmer_dt,
        by = "var_uuid",
-       all.x = TRUE)
+       all = TRUE)
 
     ## drop out single wt nmer from rolling window over fusion peptides from JAFFA input
     if("fus_tx" %chin% names(dt)) dt <- dt %>%
