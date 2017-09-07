@@ -973,7 +973,7 @@ if (generate){
     nmer_dt <- get_nmers(basepep_dt) %>% .[, nmer_l := nmer %>% nchar]
     sink()
     dt <- merge(dt, nmer_dt,
-            by = intersect(names(dt), names(nmer_dt),
+            by = intersect(names(dt), names(nmer_dt)),
             all.x = TRUE)
 
     ## drop out single wt nmer from rolling window over fusion peptides from JAFFA input
