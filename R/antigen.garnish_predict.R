@@ -76,6 +76,7 @@ get_DAI_uuid <- function(dt){
 merge_predictions <- function(l, dt){
 
       message("Merging output")
+
       # merge netMHC by program type
         progl <- lapply(l %>% seq_along, function(dti){
           l[[dti]]$command[1] %>% stringr::str_extract("net[A-Za-z]+")
@@ -190,7 +191,6 @@ merge_predictions <- function(l, dt){
         dt[!dai_uuid %>% is.na,
         DAI := Consensus_scores[2] /
           Consensus_scores[1], by = dai_uuid]
-
       return(dt)
     }
 
@@ -649,12 +649,12 @@ mcMap(function(x, y) (x %>% as.integer):(y %>% as.integer) %>%
 #' * **frameshift**: frameshift variant?
 #' * **coding**: wt cDNA sequence
 #' * **coding_mut**: mutant cDNA sequence
-#' * **pep_type**: type of peptide for this row
+#' * **pep_type**: type of peptide
 #' * **pep_mut**: mutant cDNA sequence
 #' * **pep_wt**: wt cDNA sequence
 #' * **mismatch_s**: starting index of mutant peptide sequence
 #' * **mismatch_l**: ending index of mutant peptide sequence
-#' * **mutant_index**: index of mutant peptide for this row
+#' * **mutant_index**: index of mutant peptide
 #' * **nmer**: nmer for prediction
 #' * **nmer_i**: index of nmer in sliding window
 #' * **\*_net**: netMHC prediction tool output
@@ -1026,13 +1026,13 @@ if (predict){
       run_mhcnuggets()
 
       dt <- merge_predictions(dto, dtl[[1]])
-     
+
      ## drop out single wt nmer from rolling window over fusion peptides from JAFFA input
-     if("fus_tx" %chin% names(dt)) dt <- dt %>% 
+     if("fus_tx" %chin% names(dt)) dt <- dt %>%
                 .[, drop := pep_gene_1 %>% grepl(pattern = nmer), by  = 1:nrow(dt)] %>%
                   .[drop == FALSE] %>%
                     .[, drop := NULL]
-     
+
       cols <- dt %>% names %include% "(best_netMHC)|(mhcflurry_prediction$)|(mhcnuggets_pred_gru)|(mhcnuggets_pred_lstm)"
 
       confi <- function(dt){
