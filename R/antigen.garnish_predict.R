@@ -1024,6 +1024,11 @@ if (predict){
     dtl <- dt %>% get_pred_commands
 
   # run commands
+ ##TODO hash_tables <- function(x){
+    ##l <- parallel::mclapply(list.files(pattern = x), function(i){
+      #data.table::fread(i) %>% .[order(V1)] %>% 
+      #.[, .SD data.table::fwrite("temp.txt")
+  
 ##TODO
 rbindlist(list(
   list.files(pattern = "mhcnuggets") %>% tools::md5sum %>%
