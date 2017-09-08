@@ -1039,18 +1039,10 @@ if (predict){
       
 
 ##TODO
-rbindlist(list(
-  list.files(pattern = "mhcnuggets") %>% tools::md5sum %>%
-data.table::as.data.table %>% .[, program := "mhcnuggets"],
-list.files(pattern = "mhcflurry") %>% tools::md5sum %>%
-data.table::as.data.table %>% .[, program := "mhcflurry"],
-list.files(pattern = "netMHC[^I]") %>% tools::md5sum %>%
-data.table::as.data.table %>% .[, program := "netMHC"],
-list.files(pattern = "netMHCII[^p]") %>% tools::md5sum %>%
-data.table::as.data.table %>% .[, program := "netMHCII"],
-list.files(pattern = "netMHCIIpan") %>% tools::md5sum %>%
-data.table::as.data.table %>% .[, program := "netMHCIIpan"])
-) %>% data.table::fwrite("hashtab", sep = "\t", quote = FALSE, row.names = FALSE)
+rbindlist(list(hash_tables("mhcnuggets"), hash_tables("mhcflurry"),
+ hash_tables("netMHC[^I]"), hash_tables("netMHCII[^p]"),
+  hash_tables("netMHCIIpan"))
+    ) %>% data.table::fwrite("hashtab", sep = "\t", quote = FALSE, row.names = FALSE)
 
 
    if (check_pred_tools() %>% unlist %>% all){
@@ -1064,18 +1056,16 @@ data.table::as.data.table %>% .[, program := "netMHCIIpan"])
 
 
 ##TODO
-      rbindlist(list(
-        list.files(pattern = "mhcnuggets.*output") %>% tools::md5sum %>%
-      data.table::as.data.table %>% .[, program := "mhcnuggets"],
-      list.files(pattern = "mhcflurry.*output") %>% tools::md5sum %>%
-      data.table::as.data.table %>% .[, program := "mhcflurry"],
-      list.files(pattern = "netMHC[^I]") %>% tools::md5sum %>%
-      data.table::as.data.table %>% .[, program := "netMHC"],
-      list.files(pattern = "netMHCII[^p]") %>% tools::md5sum %>%
-      data.table::as.data.table %>% .[, program := "netMHCII"],
-      list.files(pattern = "netMHCIIpan") %>% tools::md5sum %>%
-      data.table::as.data.table %>% .[, program := "netMHCIIpan"])
-    ) %>% data.table::fwrite("outtab", sep = "\t", quote = FALSE, row.names = FALSE)
+     parallel::mclapply(dto, function(i){
+       i %>% .[, .SD, .SDcols = (names(.) %exclude% "(command)|(uuid)")] %>%
+       .[order(nmer)] %>% data.table::fwrite("temp.txt")
+       h <- data.table::fread("temp.txt") %>% tools::md5sum
+       p <- i[, command] %>% .[1] %>% str_extract("netMHC.*(?= )")
+       dt <- data.table(h, p)
+       file.remove("temp.txt")
+       return(dt)}) %>%
+      data.table::rbindlist %>%
+      data.table::fwrite("outtab", sep = "\t", quote = FALSE, row.names = FALSE)
 
 
       cols <- dt %>% names %include% "(best_netMHC)|(mhcflurry_prediction$)|(mhcnuggets_pred_gru)|(mhcnuggets_pred_lstm)"
