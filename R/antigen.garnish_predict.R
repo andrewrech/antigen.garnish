@@ -1024,10 +1024,19 @@ if (predict){
     dtl <- dt %>% get_pred_commands
 
   # run commands
- ##TODO hash_tables <- function(x){
-    ##l <- parallel::mclapply(list.files(pattern = x), function(i){
-      #data.table::fread(i) %>% .[order(V1)] %>%
-      #.[, .SD data.table::fwrite("temp.txt")
+ ##TODO
+  hash_tables <- function(x){
+    dtl <- parallel::mclapply(list.files(pattern = x), function(i){
+      data.table::fread(i) %>% .[order(V1)] %>%
+      .[, .SD, .SDcols = (names(.) %exclude% "command")] %>% data.table::fwrite("temp.txt")
+      h <- data.table::fread("temp.txt") %>% tools::md5sum %>% data.table::as.data.table
+      h[, program := x]
+      file.remove("temp.txt")
+      return(h)}) %>% data.table::rbindlist
+    return(dtl)
+          }
+             
+      
 
 ##TODO
 rbindlist(list(
