@@ -1021,7 +1021,9 @@ if (generate){
 }
 
 if (predict){
-
+    
+    dt <- dt[order(nmer)]  
+  
     dtl <- dt %>% get_pred_commands
 
   # run commands
