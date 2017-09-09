@@ -551,7 +551,7 @@ write_netmhc_nmers <- function(dt, type){
     combs <- data.table::CJ(dt[, get(type)] %>% unique,
                             dt[, nmer_l] %>% unique)
 
-  dto <- parallel::mclapply(1:nrow(combs), function(i){
+  dto <- lapply(1:nrow(combs), function(i){
 
       dts <- dt[get(type) == combs$V1[i] & nmer_l == combs$V2[i]]
 
@@ -559,7 +559,7 @@ write_netmhc_nmers <- function(dt, type){
       chunks <- ((dts %>% nrow)/100) %>% ceiling
 
   suppressWarnings(
-  dto <- parallel::mclapply(dts %>% split(1:chunks), function(dtw){
+  dto <- lapply(dts %>% split(1:chunks), function(dtw){
 
         filename <- paste0(type, "_",
                     uuid::UUIDgenerate() %>% substr(1, 18), ".csv")
@@ -978,9 +978,10 @@ if (generate){
 
     ## drop out single wt nmer from rolling window over fusion peptides from JAFFA input
     if("fus_tx" %chin% names(dt)) dt <- dt %>%
-      .[, drop := pep_gene_1 %like% nmer, by  = 1:nrow(.)] %>%
-      .[drop == FALSE] %>%
-      .[, drop := NULL]
+      .[, drop := grepl(pattern = nmer, string = pep_gene_1),
+            by  = 1:nrow(.)] %>%
+                  .[drop == FALSE] %>%
+                    .[, drop := NULL]
 
 
     # generation a uuid for each unique nmer
@@ -1024,26 +1025,6 @@ if (predict){
     dtl <- dt %>% get_pred_commands
 
   # run commands
- ##TODO
-  hash_tables <- function(x){
-    dtl <- parallel::mclapply(list.files(pattern = x), function(i){
-      data.table::fread(i) %>% .[order(V1)] %>%
-      .[, .SD, .SDcols = (names(.) %exclude% "command")] %>% data.table::fwrite("temp.txt")
-      h <- data.table::fread("temp.txt") %>% tools::md5sum %>% data.table::as.data.table
-      h[, program := x]
-      file.remove("temp.txt")
-      return(h)}) %>% data.table::rbindlist
-    return(dtl)
-          }
-             
-      
-
-##TODO
-rbindlist(list(hash_tables("mhcnuggets"), hash_tables("mhcflurry"),
- hash_tables("netMHC[^I]"), hash_tables("netMHCII[^p]"),
-  hash_tables("netMHCIIpan"))
-    ) %>% data.table::fwrite("hashtab", sep = "\t", quote = FALSE, row.names = FALSE)
-
 
    if (check_pred_tools() %>% unlist %>% all){
 
@@ -1053,20 +1034,6 @@ rbindlist(list(hash_tables("mhcnuggets"), hash_tables("mhcflurry"),
       run_mhcnuggets()
 
       dt <- merge_predictions(dto, dtl[[1]])
-
-
-##TODO
-     parallel::mclapply(dto, function(i){
-       i %>% .[, .SD, .SDcols = (names(.) %exclude% "(command)|(uuid)")] %>%
-       .[order(nmer)] %>% data.table::fwrite("temp.txt")
-       h <- data.table::fread("temp.txt") %>% tools::md5sum
-       p <- i[, command] %>% .[1] %>% str_extract("netMHC.*(?= )")
-       dt <- data.table(h, p)
-       file.remove("temp.txt")
-       return(dt)}) %>%
-      data.table::rbindlist %>%
-      data.table::fwrite("outtab", sep = "\t", quote = FALSE, row.names = FALSE)
-
 
       cols <- dt %>% names %include% "(best_netMHC)|(mhcflurry_prediction$)|(mhcnuggets_pred_gru)|(mhcnuggets_pred_lstm)"
 
