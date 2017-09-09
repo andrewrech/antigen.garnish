@@ -107,7 +107,7 @@ garnish_jaffa <- function(path, db, MHCdt, fasta_file){
 
 
   dt[, fusion_uuid := parallel::mclapply(1:nrow(dt),
-                                         ##uuid::UUIDgenerate) %>% unlist]
+                              uuid::UUIDgenerate) %>% unlist]
 
  ##split up gene fusion components
 
