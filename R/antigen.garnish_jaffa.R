@@ -5,15 +5,6 @@
 #'
 #' @param path Full file path to jaffa_results.csv.
 #' @param db Character vector. One of `GRCm37`, `GRCm38`, `GRCh37`, or `GRCh38`.
-#' @param MHCdt Data table or full file path to a `rio::import` compatible file with format:
-#'
-#'     Column name                 Example input
-#'
-#'     sample_id                   sample_1
-#'     MHC                         HLA-A02:01 HLA-A03:01
-#'                                 H-2-Kb H-2-Kb
-#'                                 all
-#'                                 HLA-DRB111:07 [second type]
 #' @param fasta_file Full file path to jaffa_results.fasta.
 #' @return A data table of mutant peptides including:
 #' * **sample_id**: sample id
@@ -43,50 +34,36 @@
 #'    utils::download.file("http://get.rech.io/jaffa_results.fasta", fasta_file)
 #'
 #'    db <- "GRCm38"
-#'    MHCdt <- data.table(sample_id = c("4662", "Abx7"),
-#'                         MHC = "H-2-Kb H-2-Db H-2-IAb)
 #'
 #'    # extract variants
-#'    dt <- antigen.garnish::garnish_jaffa(path, db, MHCdt, fasta_file) %>%
+#'    dt <- antigen.garnish::garnish_jaffa(path, db, fasta_file) %>%
+#'    
+#'    .[, MHC := "H-2-Kb H-2-Db H-2-IAb"] %>%
+#'    
+#'    # take only a subset of the data to speed things up for this example
+#'    
+#'    .[1:20] %>%
 #'
 #'    # predict neoepitopes
-#'    antigen.garnish::garnish_predictions
+#'    antigen.garnish::garnish_predictions %>%
+#'    
+#'    #summarize output
+#'    antigen.garnish::garnish_summary %T>%
 #'
-#'    head(dt)
+#'    print
 #'}
 #'
 #' @export garnish_jaffa
 #' @md
 
-garnish_jaffa <- function(path, db, MHCdt, fasta_file){
+garnish_jaffa <- function(path, db, fasta_file){
   if (missing(db) | !(db %chin% c("GRCm38",
 "GRCh38", "GRCm37", "GRCh37"))) stop("Please provide argument db, character vector of length one
                         %chin% c(\"GRCh38\", \"GRCh37\", \"GRCm37\",\"GRCm38\")")
-
-  if (missing(MHCdt)) stop("Please provide argument MHCdt, either a file or data.table object with 2 columns
-                          1) sample_id, 2) MHC, a column of space separated MHC alleles for each unique sample,
-                          to see supported alleles, list_mhc(), or use \"all\":
-
-                          sample_id                    MHC
-                          A                            H-2-Kb H-2-IAb
-                          B                            HLA-A*02:03
-                          C                            all")
   if (missing(fasta_file) | !file.exists(fasta_file)) stop("Provide correct full path to jaffa_results.fasta")
-  if (!((class(MHCdt) %chin% c("character", "data.table", "data.frame", "matrix")) %>% any)) stop("MHCdt must be a file path or data.table object.")
-
-  if (class(MHCdt)[1] == "character"){
-    if (!file.exits(MHCdt)) stop("MHCdt file not found.")
-
-    MHCdt <- rio::import(MHCdt) %>% data.table::as.data.table
-
-  }
-
-  if(class(MHCdt)[1] == "data.frame"){
-
-    MHCdt %<>% data.table::as.data.table
-  }
 
   if (missing(path)) stop("Please provide a jaffa_results.csv")
+  
   if (db == "GRCh38") host <- "ensembl.org"
   if (db == "GRCh37") host <- "grch37.ensembl.org"
   if (db == "GRCm38") host <- "ensembl.org"
@@ -106,8 +83,8 @@ garnish_jaffa <- function(path, db, MHCdt, fasta_file){
   dt <- dt[aligns == TRUE & rearrangement == TRUE & classification != "LowConfidence" & inframe == TRUE]
 
 
-  ##dt[, fusion_uuid := parallel::mclapply(1:nrow(dt),
-                                         ##uuid::UUIDgenerate) %>% unlist]
+  dt[, fusion_uuid := parallel::mclapply(1:nrow(dt),
+                              uuid::UUIDgenerate) %>% unlist]
 
  ##split up gene fusion components
 
@@ -290,12 +267,10 @@ garnish_jaffa <- function(path, db, MHCdt, fasta_file){
     which %>% .[1], by = 1:nrow(dt)]
     })
 
-  ##clean up a little
-  dt <- dt[, c("sample_id", "pep_fus", "mutant_index", "fusion genes", "chrom1", "base1",
+  ##clean up a little and get rid of excess columns
+  dt <- dt[, c("sample_id", "pep_fus", "mutant_index", "fusion genes", "fusion_uuid", "chrom1", "base1",
                "chrom2", "base2", "fus_tx", "pep_wt_1")] %>%
           data.table::setnames(c("pep_fus", "pep_wt_1"), c("pep_mut", "pep_gene_1"))
-
-  dt <- merge(dt, MHCdt, by = "sample_id")
 
   return(dt)
 }

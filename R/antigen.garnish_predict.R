@@ -979,9 +979,10 @@ if (generate){
 
     ## drop out single wt nmer from rolling window over fusion peptides from JAFFA input
     if("fus_tx" %chin% names(dt)) dt <- dt %>%
-      .[, drop := pep_gene_1 %like% nmer, by  = 1:nrow(.)] %>%
-      .[drop == FALSE] %>%
-      .[, drop := NULL]
+      .[, drop := grepl(pattern = nmer, x = pep_gene_1),
+            by  = 1:nrow(.)] %>%
+                  .[drop == FALSE] %>%
+                    .[, drop := NULL]
 
 
     # generation a uuid for each unique nmer
@@ -1021,29 +1022,13 @@ if (generate){
 }
 
 if (predict){
-
+    
+    ##TODO
+  dt <- dt[order(nmer)]  
+  
     dtl <- dt %>% get_pred_commands
 
   # run commands
- ##TODO hash_tables <- function(x){
-    ##l <- parallel::mclapply(list.files(pattern = x), function(i){
-      #data.table::fread(i) %>% .[order(V1)] %>%
-      #.[, .SD data.table::fwrite("temp.txt")
-
-##TODO
-rbindlist(list(
-  list.files(pattern = "mhcnuggets") %>% tools::md5sum %>%
-data.table::as.data.table %>% .[, program := "mhcnuggets"],
-list.files(pattern = "mhcflurry") %>% tools::md5sum %>%
-data.table::as.data.table %>% .[, program := "mhcflurry"],
-list.files(pattern = "netMHC[^I]") %>% tools::md5sum %>%
-data.table::as.data.table %>% .[, program := "netMHC"],
-list.files(pattern = "netMHCII[^p]") %>% tools::md5sum %>%
-data.table::as.data.table %>% .[, program := "netMHCII"],
-list.files(pattern = "netMHCIIpan") %>% tools::md5sum %>%
-data.table::as.data.table %>% .[, program := "netMHCIIpan"])
-) %>% data.table::fwrite("hashtab", sep = "\t", quote = FALSE, row.names = FALSE)
-
 
    if (check_pred_tools() %>% unlist %>% all){
 
@@ -1053,22 +1038,6 @@ data.table::as.data.table %>% .[, program := "netMHCIIpan"])
       run_mhcnuggets()
 
       dt <- merge_predictions(dto, dtl[[1]])
-
-
-##TODO
-      rbindlist(list(
-        list.files(pattern = "mhcnuggets.*output") %>% tools::md5sum %>%
-      data.table::as.data.table %>% .[, program := "mhcnuggets"],
-      list.files(pattern = "mhcflurry.*output") %>% tools::md5sum %>%
-      data.table::as.data.table %>% .[, program := "mhcflurry"],
-      list.files(pattern = "netMHC[^I]") %>% tools::md5sum %>%
-      data.table::as.data.table %>% .[, program := "netMHC"],
-      list.files(pattern = "netMHCII[^p]") %>% tools::md5sum %>%
-      data.table::as.data.table %>% .[, program := "netMHCII"],
-      list.files(pattern = "netMHCIIpan") %>% tools::md5sum %>%
-      data.table::as.data.table %>% .[, program := "netMHCIIpan"])
-    ) %>% data.table::fwrite("outtab", sep = "\t", quote = FALSE, row.names = FALSE)
-
 
       cols <- dt %>% names %include% "(best_netMHC)|(mhcflurry_prediction$)|(mhcnuggets_pred_gru)|(mhcnuggets_pred_lstm)"
 

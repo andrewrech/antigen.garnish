@@ -26,11 +26,12 @@ testthat::test_that("garnish_jaffa_predict", {
                                   MHC = c("H-2-Kb H-2-Db H-2-IAb", "H-2-Ld H-2-IAd"))
 
   # run test
-  dt <- garnish_jaffa(path, db, MHCdt, fasta_file) %>%
+  dt <- garnish_jaffa(path, db, fasta_file) %>%
+          merge(., MHCdt, by = "sample_id") %>%
             garnish_predictions
 
     testthat::expect_equal(dt %>% class %>% .[1], "data.table")
-    testthat::expect_equal(dt %>% nrow, 1595000)
-    testthat::expect_equal(dt[, nmer %>% unique %>% length], 7876)
+    testthat::expect_equal(dt %>% nrow, 1827040)
+    testthat::expect_equal(dt[, nmer %>% unique %>% length], 7776)
 
    })
