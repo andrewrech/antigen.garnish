@@ -53,12 +53,12 @@ A data table of binding predictions including:
 \item \strong{frameshift}: frameshift variant?
 \item \strong{coding}: wt cDNA sequence
 \item \strong{coding_mut}: mutant cDNA sequence
-\item \strong{pep_type}: type of peptide for this row
+\item \strong{pep_type}: type of peptide
 \item \strong{pep_mut}: mutant cDNA sequence
 \item \strong{pep_wt}: wt cDNA sequence
 \item \strong{mismatch_s}: starting index of mutant peptide sequence
 \item \strong{mismatch_l}: ending index of mutant peptide sequence
-\item \strong{mutant_index}: index of mutant peptide for this row
+\item \strong{mutant_index}: index of mutant peptide
 \item \strong{nmer}: nmer for prediction
 \item \strong{nmer_i}: index of nmer in sliding window
 \item \strong{*_net}: netMHC prediction tool output

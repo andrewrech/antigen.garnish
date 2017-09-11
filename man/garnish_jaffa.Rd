@@ -2,44 +2,68 @@
 % Please edit documentation in R/antigen.garnish_jaffa.R
 \name{garnish_jaffa}
 \alias{garnish_jaffa}
-\title{Derive variants from JAFFA output.}
+\title{Derive mutant peptides from JAFFA gene fusion output.}
 \usage{
-garnish_jaffa(path, db, MHCdt, fasta_file)
+garnish_jaffa(path, db, fasta_file)
 }
 \arguments{
 \item{path}{Full file path to jaffa_results.csv.}
 
 \item{db}{Character vector. One of \code{GRCm37}, \code{GRCm38}, \code{GRCh37}, or \code{GRCh38}.}
 
-\item{MHCdt}{Data.table object or full file path to a rio::import compatible file with format:\preformatted{Column name                 Example input
-
-sample_id                   sample_1
-MHC                         HLA-A02:01 HLA-A03:01
-                            H-2-Kb H-2-Kb
-                            all
-                            HLA-DRB111:07 [second type]
-}}
-
 \item{fasta_file}{Full file path to jaffa_results.fasta.}
 }
 \value{
 A data table of mutant peptides including:
 \itemize{
-\item \strong{sample_id}: sample_id derived from jaffa_results.csv input.
-\item \strong{pep_mut}: Full length mutant fusion peptides from all possible inframe exon-exon fusions predicted by JAFFA.
-\item \strong{mutant_index}: Location of first mismatched AA between fusion peptide (pep_mut) and wt sequence of 5' gene of fusion.
-\item \strong{fusion gene}: Colon separated gene names composing fusion derived from JAFFA output.
-\item \strong{chrom1}: Chromosome of first fusion gene, format \code{chr[1-23,X,Y]}
-\item \strong{base1}: From JAFFA output, base number on chromosome of fusion gene 1 breakpoint
-\item \strong{chrom2}: Chromosome of second fusion gene, format \code{chr[1-23,X,Y]}
-\item \strong{base2}: From JAFFA output, base number on chromosome of fusion gene 2 breakpoint
-\item \strong{fusion_uuid}: Unique identifier for fusion event that will propogate through garnish_predictions.
-\item \strong{pep_wt}: Full wt sequence of peptide from 5' fusion gene.
-\item \strong{fus_tx}: Full sequence of combined coding transcripts of predicted fusion.
+\item \strong{sample_id}: sample id
+\item \strong{pep_mut}: mutant fusion peptide
+\item \strong{mutant_index}: index of mutant peptide
+\item \strong{fusion gene}: colon-separated gene names for the fusion product
+\item \strong{chrom1}: chromosome of first fusion gene
+\item \strong{base1}: base number of first fusion gene breakpoint
+\item \strong{chrom2}: chromosome of second fusion gene
+\item \strong{base2}: base number of second fusion gene breakpoint
+\item \strong{fusion_uuid}: unique identifier
+\item \strong{pep_wt}: wt cDNA sequence of peptide from 5' fusion gene.
+\item \strong{fus_tx}: cDNA sequence of predicted fusion product
 }
 }
 \description{
-Returns a data.table object of reformatted input from JAFFA results files for garnish_predictions.
-Uses fasta and results.csv produced by JAFFA to generate all possible mutant fusion peptides predicted by
-RNAseq reads for further downstream analysis by garnish_predictions.
+Derive mutant fusion peptides for neoepitope predictions from JAFFA \code{fasta} and \code{results.csv} output for input to \code{garnish_predictions}.
+}
+\examples{
+\dontrun{
+library(magrittr)
+library(antigen.garnish)
+
+# run garnish_jaffa pipeline
+
+   # download example jaffa results files
+   path <- "jaffa_results.csv"
+   utils::download.file("http://get.rech.io/jaffa_results.csv", path)
+
+   fasta_file <- "jaffa_results.fasta"
+   utils::download.file("http://get.rech.io/jaffa_results.fasta", fasta_file)
+
+   db <- "GRCm38"
+
+   # extract variants
+   dt <- antigen.garnish::garnish_jaffa(path, db, fasta_file) \%>\%
+   
+   .[, MHC := "H-2-Kb H-2-Db H-2-IAb"] \%>\%
+   
+   # take only a subset of the data to speed things up for this example
+   
+   .[1:20] \%>\%
+
+   # predict neoepitopes
+   antigen.garnish::garnish_predictions \%>\%
+   
+   #summarize output
+   antigen.garnish::garnish_summary \%T>\%
+
+   print
+}
+
 }
