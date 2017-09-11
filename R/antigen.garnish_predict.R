@@ -551,7 +551,7 @@ write_netmhc_nmers <- function(dt, type){
     combs <- data.table::CJ(dt[, get(type)] %>% unique,
                             dt[, nmer_l] %>% unique)
 
-  dto <- lapply(1:nrow(combs), function(i){
+  dto <- parallel::mclapply(1:nrow(combs), function(i){
 
       dts <- dt[get(type) == combs$V1[i] & nmer_l == combs$V2[i]]
 
@@ -559,7 +559,7 @@ write_netmhc_nmers <- function(dt, type){
       chunks <- ((dts %>% nrow)/100) %>% ceiling
 
   suppressWarnings(
-  dto <- lapply(dts %>% split(1:chunks), function(dtw){
+  dto <- parallel::mclapply(dts %>% split(1:chunks), function(dtw){
 
         filename <- paste0(type, "_",
                     uuid::UUIDgenerate() %>% substr(1, 18), ".csv")
