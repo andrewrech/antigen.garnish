@@ -17,11 +17,7 @@ testthat::test_that("garnish_jaffa", {
                                   MHC = c("H-2-Kb H-2-Db H-2-IAb", "H-2-Ld H-2-IAd"))
 
   # run test
-<<<<<<< HEAD
-   dt <- garnish_jaffa(path, db, MHCdt, fasta_file)
-=======
   dt <- garnish_jaffa(path, db, MHCdt, fasta_file)
->>>>>>> 88daccfe250a85b69b6441dc33c86782fda8f44b
 
    testthat::expect_equal(dt %>% class %>% .[1], "data.table")
    testthat::expect_equal(dt %>% nrow, 471)

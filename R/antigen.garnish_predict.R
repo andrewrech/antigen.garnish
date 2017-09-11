@@ -650,15 +650,16 @@ mcMap(function(x, y) (x %>% as.integer):(y %>% as.integer) %>%
 #' * **coding**: wt cDNA sequence
 #' * **coding_mut**: mutant cDNA sequence
 #' * **pep_type**: type of peptide
-#' * **pep_mut**: mutant cDNA sequence
-#' * **pep_wt**: wt cDNA sequence
+#' * **pep_mut**: mutant peptide sequence
+#' * **pep_wt**: wt peptide sequence
 #' * **mismatch_s**: starting index of mutant peptide sequence
 #' * **mismatch_l**: ending index of mutant peptide sequence
 #' * **mutant_index**: index of mutant peptide
 #' * **nmer**: nmer for prediction
 #' * **nmer_i**: index of nmer in sliding window
 #' * **\*_net**: netMHC prediction tool output
-#' * **mhcflurry_\***: netMHC prediction tool output
+#' * **mhcflurry_\***: mhcflurry_ prediction tool output
+#' * **mhcnuggets_\***: mhcnuggets_ prediction tool output
 #'
 #' as well as a transcript description:
 #' * description

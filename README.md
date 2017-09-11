@@ -47,7 +47,6 @@ mhcflurry-downloads fetch
 
 wget "http://get.rech.io/antigen.garnish.tar.gz"
 tar -xvzf antigen.garnish.tar.gz
-
 ```
 
 Install antigen.garnish and dependencies from R:
