@@ -1023,7 +1023,7 @@ if (generate){
 if (predict){
     
     ##TODO
-  ##dt <- dt[order(nmer)]  
+  dt <- dt[order(nmer)]  
   
     dtl <- dt %>% get_pred_commands
 
