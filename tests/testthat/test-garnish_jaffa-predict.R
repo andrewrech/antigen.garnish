@@ -30,7 +30,7 @@ testthat::test_that("garnish_jaffa_predict", {
             garnish_predictions
 
     testthat::expect_equal(dt %>% class %>% .[1], "data.table")
-    testthat::expect_equal(dt %>% nrow, 1595000)
-    testthat::expect_equal(dt[, nmer %>% unique %>% length], 7876)
+    testthat::expect_equal(dt %>% nrow, 1827040)
+    testthat::expect_equal(dt[, nmer %>% unique %>% length], 7776)
 
    })
