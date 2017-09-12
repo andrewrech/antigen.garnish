@@ -9,7 +9,6 @@ r:
 r_packages:
   - covr
 before_install:
-    - sudo apt-get -qq update
     - Rscript -e 'install.packages("devtools"); install.packages("testthat")'
 after_success:
   - Rscript -e 'library(covr); codecov()'
