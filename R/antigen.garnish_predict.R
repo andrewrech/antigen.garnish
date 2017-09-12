@@ -483,9 +483,9 @@ write_nuggets_nmers <- function(dt, alleles){
 
       suppressWarnings(
            for (i in mnug_dt[, allele %>% unique]){
-            break_ups <- ((mnug_dt[allele == i] %>% nrow)/100) %>% ceiling
+            breakpoints <- ((mnug_dt[allele == i] %>% nrow)/100) %>% ceiling
 
-      parallel::mclapply(mnug_dt[allele == i] %>% split(1:break_ups), function(dt){
+      parallel::mclapply(mnug_dt[allele == i] %>% split(1:breakpoints), function(dt){
 
             filename <- paste0("mhcnuggets_input_gru_",
                                i,
@@ -515,9 +515,9 @@ write_nuggets_nmers <- function(dt, alleles){
 
       suppressWarnings(
            for (i in mnug_dt[, allele %>% unique]){
-            break_ups <- ((mnug_dt[allele == i] %>% nrow)/100) %>% ceiling
+            breakpoints <- ((mnug_dt[allele == i] %>% nrow)/100) %>% ceiling
 
-       parallel::mclapply(mnug_dt[allele == i] %>% split(1:break_ups), function(dt){
+       parallel::mclapply(mnug_dt[allele == i] %>% split(1:breakpoints), function(dt){
 
             filename <- paste0("mhcnuggets_input_lstm_",
                                i,
@@ -981,8 +981,7 @@ if (generate){
 
     ## drop out single wt nmer from rolling window over fusion peptides from JAFFA input
     if("fus_tx" %chin% names(dt)) dt <- dt %>%
-      .[, drop := grepl(pattern = nmer, x = pep_gene_1),
-            by  = 1:nrow(.)] %>%
+      .[, drop := stringi::stri_detect_fixed(pattern = nmer, str = pep_gene_1)] %>%
                   .[drop == FALSE] %>%
                     .[, drop := NULL]
 
