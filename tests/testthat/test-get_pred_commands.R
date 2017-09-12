@@ -26,4 +26,10 @@ testthat::test_that("get_pred_commands", {
     testthat::expect_equal(dto %>% names,
        c("type", "allele", "nmer_l", "filename", "command"))
 
+       input <- list.files(pattern = "(netMHC)|(flurry)|(nuggets)")
+
+       on.exit({
+         suppressWarnings(file.remove(input, showWarnings = FALSE) %>% invisible)
+         })
+
     })
