@@ -153,7 +153,7 @@ garnish_summary <- function(dt){
 #'
 #' @param vcfs Paths to VFC files to import.
 #'
-#' @return Aa data table with one unique SnpEff variant annotation per row, including:
+#' @return A data table with one unique SnpEff variant annotation per row, including:
 #' * **sample_id**: sample identifier constructed from input \code{.bam} file names
 #' * **se**: SnpEff annotation
 #' * **effect_type**: SnpEff effect type
