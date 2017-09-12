@@ -2,7 +2,7 @@
 % Please edit documentation in R/antigen.garnish_predict.R
 \name{write_netmhc_nmers}
 \alias{write_netmhc_nmers}
-\title{Internal function to output nmers for MHC prediction to disk}
+\title{Internal function to output nmers for netMHC prediction to disk}
 \usage{
 write_netmhc_nmers(dt, type)
 }
@@ -12,5 +12,5 @@ write_netmhc_nmers(dt, type)
 \item{type}{Character vector. Name of program to format for.}
 }
 \description{
-Internal function to output nmers for MHC prediction to disk
+Internal function to output nmers for netMHC prediction to disk
 }

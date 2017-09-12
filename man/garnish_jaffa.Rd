@@ -2,19 +2,19 @@
 % Please edit documentation in R/antigen.garnish_jaffa.R
 \name{garnish_jaffa}
 \alias{garnish_jaffa}
-\title{Derive mutant peptides from JAFFA gene fusion output.}
+\title{Process gene fusions and return a data table for neoepitope prediction.}
 \usage{
 garnish_jaffa(path, db, fasta_path)
 }
 \arguments{
-\item{path}{Full file path to jaffa_results.csv.}
+\item{path}{Path to \code{jaffa_results.csv}.}
 
 \item{db}{Character vector. One of \code{GRCm37}, \code{GRCm38}, \code{GRCh37}, or \code{GRCh38}.}
 
-\item{fasta_path}{Full file path to jaffa_results.fasta.}
+\item{fasta_path}{Path to \code{jaffa_results.fasta}.}
 }
 \value{
-A data table of mutant peptides including:
+A data table of mutant peptides, including:
 \itemize{
 \item \strong{sample_id}: sample id
 \item \strong{pep_mut}: mutant fusion peptide
@@ -30,40 +30,5 @@ A data table of mutant peptides including:
 }
 }
 \description{
-Derive mutant fusion peptides for neoepitope predictions from JAFFA \code{fasta} and \code{results.csv} output for input to \code{garnish_predictions}.
-}
-\examples{
-\dontrun{
-library(magrittr)
-library(antigen.garnish)
-
-# run garnish_jaffa pipeline
-
-   # download example jaffa results files
-   path <- "jaffa_results.csv"
-   utils::download.file("http://get.rech.io/jaffa_results.csv", path)
-
-   fasta_path <- "jaffa_results.fasta"
-   utils::download.file("http://get.rech.io/jaffa_results.fasta", fasta_path)
-
-   db <- "GRCm38"
-
-   # extract variants
-   dt <- antigen.garnish::garnish_jaffa(path, db, fasta_path) \%>\%
-
-   .[, MHC := "H-2-Kb H-2-Db H-2-IAb"] \%>\%
-
-   # take only a subset of the data to speed things up for this example
-
-   .[1:20] \%>\%
-
-   # predict neoepitopes
-   antigen.garnish::garnish_predictions \%>\%
-
-   #summarize output
-   antigen.garnish::garnish_summary \%T>\%
-
-   print
-}
-
+Process \href{https://github.com/Oshlack/JAFFA}{JAFFA} gene fusion \code{fasta} and \code{results.csv} output for neoepitope prediction using \code{garnish_predictions}.
 }

@@ -2,15 +2,15 @@
 % Please edit documentation in R/antigen.garnish_predict.R
 \name{write_nuggets_nmers}
 \alias{write_nuggets_nmers}
-\title{Internal function to output nmers for MHC prediction to disk}
+\title{Internal function to output nmers for mhcnuggets prediction to disk}
 \usage{
 write_nuggets_nmers(dt, alleles)
 }
 \arguments{
 \item{dt}{Data table of nmers.}
 
-\item{alleles}{Data table of 2 columns, 1. alleles properly formatted for 2. respective program name (e.g. mhcflurry, mhcnuggets, netMHC).}
+\item{alleles}{Data table of 2 columns, 1. alleles properly formatted mhcnuggets.}
 }
 \description{
-Internal function to output nmers for MHC prediction to disk
+Internal function to output nmers for mhcnuggets prediction to disk
 }

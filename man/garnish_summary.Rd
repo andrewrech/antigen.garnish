@@ -2,7 +2,7 @@
 % Please edit documentation in R/antigen.garnish_io.R
 \name{garnish_summary}
 \alias{garnish_summary}
-\title{Summarize epitope prediction.}
+\title{Summarize neoepitope prediction.}
 \usage{
 garnish_summary(dt)
 }
@@ -20,10 +20,10 @@ A summary data table of \code{dt} by \code{sample_id} with the following columns
 \item \strong{alt_top_score}: sum of the top three mutant \code{nmer} differential agretopicity indices; differential agretopicity index (DAI) is the ratio of MHC binding affinity between mutant and wt peptide (see below)
 \item \strong{priority_neos}: mutant peptides that meet both ADN and CDN criteria, or that meet CDN criteria and are derived from frameshift mutations
 \item \strong{nmers}: total mutant \code{nmers} created
-\item \strong{variants}: total genomic variants evaluated
-\item \strong{transcripts}: total transcripts evaluated
 \item \strong{predictions}: wt and mutant predictions performed
 \item \strong{mhc_binders}: \code{nmers} predicted to at least minimally bind MHC (< 5000nM \eqn{IC_{50}})
+\item \strong{variants}: total genomic variants evaluated
+\item \strong{transcripts}: total transcripts evaluated
 }
 
 \strong{Additional information}
@@ -37,7 +37,7 @@ ADNs are generated from selective mutations in the peptide-MHC anchor position (
 To better model potential for oligoclonal antitumor responses directed against neoepitopes, we additionally report a \strong{top three neoepitope score}, which is defined as the sum of the top three affinity scores \eqn{\left(\frac{1}{IC_{50}}\right)} for CDNs or sum of top three DAI for ADNs. The top three was chosen in each case because this is the minimum number that captures the potential for an oligoclonal T cell response and mirrors experimentally confirmed oligoclonality of T cell responses against human tumors. Moreover, the top three score was the least correlated to total neoepitope load (vs. top 4 through top 15) is a large scale human analysis of neoepitope across 27 disease types (R-squared = 0.0495), and therefore not purely a derivative of total neoepitope load.
 }
 \description{
-Calculate neoepitope summary statistics over samples.
+Calculate neoepitope summary statistics for priority, classic, and alternative neoepitopes for each sample.
 }
 \examples{
 \dontrun{
@@ -49,13 +49,18 @@ library(antigen.garnish)
    utils::download.file("http://get.rech.io/antigen.garnish_example.vcf", .) \%>\%
 
  # extract variants
-   garnish_variants \%>\%
+   antigen.garnish::garnish_variants \%>\%
+
+ # add test MHC types
+     .[, MHC := c("HLA-A*02:01 HLA-DRB1*14:67",
+                  "H-2-Kb H-2-IAd",
+                 "HLA-A*01:47 HLA-DRB1*03:08")] \%>\%
 
  # predict neoepitopes
-   garnish_predictions \%>\%
+   antigen.garnish::garnish_predictions \%>\%
 
  # summarize predictions
-   garnish_summary \%T>\%
+   antigen.garnish::garnish_summary \%T>\%
    print
 }
 }
