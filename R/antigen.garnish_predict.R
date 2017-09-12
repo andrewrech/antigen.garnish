@@ -554,6 +554,7 @@ write_netmhc_nmers <- function(dt, type){
   dto <- parallel::mclapply(1:nrow(combs), function(i){
 
       dts <- dt[get(type) == combs$V1[i] & nmer_l == combs$V2[i]]
+      %>% unique
 
       # parallelize over 100 peptide chunks
       chunks <- ((dts %>% nrow)/100) %>% ceiling
@@ -1022,11 +1023,8 @@ if (generate){
 }
 
 if (predict){
-    
-    ##TODO
-  dt <- dt[order(nmer)]  
-  
-    dtl <- dt %>% get_pred_commands
+
+  dtl <- dt %>% get_pred_commands
 
   # run commands
 
