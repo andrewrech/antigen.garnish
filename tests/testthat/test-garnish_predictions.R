@@ -60,6 +60,42 @@ testthat::test_that("garnish_predictions from Excel file", {
 
 })
 
+testthat::test_that("test predict from jaffa input", {
+
+  if (!check_pred_tools() %>% unlist %>% all){
+   testthat::skip("Skipping run_netMHC because prediction tools are not in PATH")
+   }
+
+
+  on.exit({
+    list.files(pattern = "antigen.garnish_jaffa") %>%
+      file.remove})
+
+  # load test data
+
+    path <- "antigen.garnish_jaffa_results.csv" %T>%
+      utils::download.file("http://get.rech.io/antigen.garnish_jaffa_results.csv", .)
+    fasta_path <- "antigen.garnish_jaffa_results.fasta" %T>%
+      utils::download.file("http://get.rech.io/antigen.garnish_jaffa_results.fasta", .)
+
+  # get predictions
+    dt <- garnish_jaffa(path = path,
+                        db = "GRCm38",
+                        fasta_path = fasta_path)
+    # add mhc values
+    dt[, MHC := "H-2-Kb"]
+
+    # predictions
+    dt <- garnish_predictions(dt)
+
+    testthat::expect_equal(dt %>% class %>% .[1], "data.table")
+    testthat::expect_equal(dt %>% nrow, 36001)
+    testthat::expect_equal(dt %>% length, 49)
+    testthat::expect_equal(dt[, nmer %>% unique %>% length], 6510)
+
+   })
+
+
 testthat::test_that("garnish_predictions peptide assemble", {
 
    if (!check_pred_tools() %>% unlist %>% all){
