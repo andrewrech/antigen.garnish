@@ -10,7 +10,7 @@ r_packages:
   - covr
 before_install:
     - sudo apt-get -qq update
-    - Rscript -e 'install.packages("devtools"); install_github("hadley/testthat")'
+    - Rscript -e 'install.packages("devtools"); devtools::install_github("hadley/testthat")'
 after_success:
   - Rscript -e 'library(covr); codecov()'
 sudo: true
