@@ -10,12 +10,12 @@ testthat::test_that("garnish_jaffa", {
   # load test data
   path <- "antigen.garnish_jaffa_results.csv" %T>%
       utils::download.file("http://get.rech.io/antigen.garnish_jaffa_results.csv", .)
-  fasta_file <- "antigen.garnish_jaffa_results.fasta" %T>%
+  fasta_path <- "antigen.garnish_jaffa_results.fasta" %T>%
     utils::download.file("http://get.rech.io/antigen.garnish_jaffa_results.fasta", .)
   db <- "GRCm38"
 
   # run test
-   dt <- garnish_jaffa(path, db, fasta_file)
+   dt <- garnish_jaffa(path, db, fasta_path)
 
    testthat::expect_equal(dt %>% class %>% .[1], "data.table")
    testthat::expect_equal(dt %>% nrow, 471)

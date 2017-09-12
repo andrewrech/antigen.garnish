@@ -23,8 +23,9 @@ testthat::test_that("garnish_summary", {
         "alt_neos",
         "alt_top_score",
         "mhc_binders",
-        "variants",
-        "transcripts",
         "predictions",
-        "nmers"))
+        "nmers",
+        "variants",
+        "transcripts")
+)
     })

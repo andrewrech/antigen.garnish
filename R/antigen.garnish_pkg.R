@@ -1,6 +1,6 @@
 #' \pkg{antigen.garnish}: ensemble neoepitope prediction from DNA variants in R.
 #'
-#' [antigen.garnish](http://neoepitopes.io) is an R package for [neoepitope](http://science.sciencemag.org/content/348/6230/69) analysis that takes human or murine DNA point mutations, insertions, and deletions and performs neoepitope prediction. Input is a VCF file or table of peptides. Output is neoepitopes and a summary by sample.
+#' [antigen.garnish](http://neoepitopes.io) is an R package for [neoepitope](http://science.sciencemag.org/content/348/6230/69) analysis that takes human or murine DNA missense mutations, insertions, deletions, and gene fusions and performs neoepitope prediction. Input is a VCF file or table of peptides. Output is neoepitopes and a summary by sample.
 #'
 #'Advantages
 #'
@@ -8,15 +8,16 @@
 #'    - VCF or table input
 #'    - summarized neoepitopes for each sample
 #'1. **Thoroughness**:
-#'    - missense mutations and frameshifts
+#'    - missense mutations, insertions, deletions, and gene fusions
 #'    - ensemble MHC class I/II binding prediction using [mhcflurry](https://github.com/hammerlab/mhcflurry), [mhcnuggets](https://github.com/KarchinLab/mhcnuggets), [netMHC](http://www.cbs.dtu.dk/services/NetMHC/), [netMHCII](http://www.cbs.dtu.dk/services/NetMHCII/), [netMHCpan](http://www.cbs.dtu.dk/services/NetMHCpan/) and [netMHCIIpan](http://www.cbs.dtu.dk/services/NetMHCIIpan/i).
 #'1. **Speed**:
 #'    - produce all possible 8-15-mer peptides from 10,000 variants in under 1 minute on a normal laptop
 #'    - on an Amazon Web Services `m4.16xlarge` EC2 instance, 20,000 consensus predictions using 100+ MHC types in under 5 minutes
 #' @section Manifest:
-#' * `garnish_variants`: process variants from [SnpEff](http://snpeff.sourceforge.net/)
-#' * `garnish_predictions`: perform ensemble neoepitope prediction
-#' * `garnish_summary`: summarize neoepitope prediction
+#'* `garnish_variants`: process VCF variants from [SnpEff](http://snpeff.sourceforge.net/)
+#'* `garnish_jaffa`: process gene fusions from [JAFFA](https://github.com/Oshlack/JAFFA)
+#'* `garnish_predictions`: perform ensemble neoepitope prediction
+#'* `garnish_summary`: summarize neoepitope prediction
 #' @docType package
 #' @name antigen.garnish
 #' @import colorspace

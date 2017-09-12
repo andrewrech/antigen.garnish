@@ -10,7 +10,7 @@ Ensemble neoepitope prediction from DNA variants in R.
 
 ## Description
 
-An R package for [neoepitope](http://science.sciencemag.org/content/348/6230/69) analysis that takes human or murine DNA point mutations, insertions, and deletions and performs neoepitope prediction. Input is a VCF file or table of peptides. Output is neoepitopes and a summary by sample.
+An R package for [neoepitope](http://science.sciencemag.org/content/348/6230/69) analysis that takes human or murine DNA missense mutations, insertions, deletions, and gene fusions and performs neoepitope prediction. Input is a VCF file or table of peptides. Output is neoepitopes and a summary by sample.
 
 ### Advantages
 
@@ -18,7 +18,7 @@ An R package for [neoepitope](http://science.sciencemag.org/content/348/6230/69)
     - VCF or table input
     - summarized neoepitopes for each sample
 1. **Thoroughness**:
-    - missense mutations and frameshifts
+    - missense mutations, insertions, deletions, and gene fusions
     - ensemble MHC class I/II binding prediction using [mhcflurry](https://github.com/hammerlab/mhcflurry), [mhcnuggets](https://github.com/KarchinLab/mhcnuggets), [netMHC](http://www.cbs.dtu.dk/services/NetMHC/), [netMHCII](http://www.cbs.dtu.dk/services/NetMHCII/), [netMHCpan](http://www.cbs.dtu.dk/services/NetMHCpan/) and [netMHCIIpan](http://www.cbs.dtu.dk/services/NetMHCIIpan/i).
 1. **Speed**:
     - produce all possible 8-15-mer peptides from 10,000 variants in under 1 minute on a normal laptop
@@ -61,64 +61,61 @@ devtools::install_github("andrewrech/antigen.garnish")
 ## [Package documentation](http://get.rech.io/antigen.garnish.pdf)
 
 * `garnish_variants`: process VCF variants from [SnpEff](http://snpeff.sourceforge.net/)
+* `garnish_jaffa`: process gene fusions from [JAFFA](https://github.com/Oshlack/JAFFA)
 * `garnish_predictions`: perform ensemble neoepitope prediction
 * `garnish_summary`: summarize neoepitope prediction
 
 ### Examples
 
-#### Predict neoepitopes
+#### Predict neoepitopes from missense mutations, insertions, and deletions
 
 ```r
 library(magrittr)
+library(antigen.garnish)
 
-    # download an example VCF
+  # download an example VCF
     dt <- "antigen.garnish_example.vcf" %T>%
     utils::download.file("http://get.rech.io/antigen.garnish_example.vcf", .) %>%
 
-    # extract variants
+  # extract variants
     antigen.garnish::garnish_variants %>%
 
-    # add test MHC types
-        .[, MHC := c("HLA-A*02:01 HLA-DRB1*14:67",
-                    "H-2-Kb H-2-IAd",
-                    "HLA-A*01:47 HLA-DRB1*03:08")] %>%
+  # add test MHC types
+      .[, MHC := c("HLA-A*02:01 HLA-DRB1*14:67",
+                   "H-2-Kb H-2-IAd",
+                  "HLA-A*01:47 HLA-DRB1*03:08")] %>%
 
-    # predict neoepitopes
+  # predict neoepitopes
     antigen.garnish::garnish_predictions %>%
 
-    # summarize predictions
+  # summarize predictions
     antigen.garnish::garnish_summary %T>%
-
     print
 ```
-#### Predict neoepitopes from JAFFA output
+#### Predict neoepitopes from gene fusions
 
 ```r
 library(magrittr)
+library(antigen.garnish)
 
   # load some test jaffa output data
-  path <- "antigen.garnish_jaffa_results.csv" %T>%
+    path <- "antigen.garnish_jaffa_results.csv" %T>%
       utils::download.file("http://get.rech.io/antigen.garnish_jaffa_results.csv", .)
-  fasta_file <- "antigen.garnish_jaffa_results.fasta" %T>%
-    utils::download.file("http://get.rech.io/antigen.garnish_jaffa_results.fasta", .)
-
-  # set mouse vs. human and MHC input
-  db <- "GRCm38"
+    fasta_path <- "antigen.garnish_jaffa_results.fasta" %T>%
+      utils::download.file("http://get.rech.io/antigen.garnish_jaffa_results.fasta", .)
 
   # get predictions
-  dt <- antigen.garnish::garnish_jaffa(path, db, MHCdt, fasta_file) %>%
-            
-      # add MHC info
-      .[, MHC := "H-2-Kb H-2-Db H-2-IAb"] %>%
-            
-    # get predictions
-     antigen.garnish::garnish_predictions %>%
-            
-    # summarize predictions
-    antigen.garnish::garnish_summary %T>%
-            
-    print
+    dt <- antigen.garnish::garnish_jaffa(path, db = "GRCm38", fasta_path) %>%
 
+  # add MHC info
+    .[, MHC := "H-2-Kb"] %>%
+
+  # get predictions
+    antigen.garnish::garnish_predictions %>%
+
+  # summarize predictions
+    antigen.garnish::garnish_summary %T>%
+    print
 ```
 
 ### Tests
@@ -136,7 +133,7 @@ testthat::test_package("antigen.garnish")
 ```r
 library(magrittr)
 
-    # generate a fake peptide
+  # generate a fake peptide
     dt <- data.table::data.table(
        pep_base = "Y___*___THIS_IS_________*___A_CODE_TEST!______*__X",
        mutant_index = c(5, 25, 47, 50),
@@ -145,8 +142,8 @@ library(magrittr)
                     "back_truncate",
                     "front_truncate",
                     "end")) %>%
-    # create nmers
-    antigen.garnish::get_nmers %T>% print
+  # create nmers
+    antigen.garnish::make_nmers %T>% print
 ```
 
 ## Bugs

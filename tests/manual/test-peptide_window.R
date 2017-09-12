@@ -19,7 +19,7 @@ library(magrittr)
                     "front_truncate",
                     "end")) %>%
 
-    get_nmers %T>% print
+    make_nmers %T>% print
 
     testthat::succeed()
     })

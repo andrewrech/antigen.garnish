@@ -1,15 +1,15 @@
 
 
 
-## ---- get_DAI_uuid
+## ---- make_DAI_uuid
 #' Internal function to pair peptides from missense sites by a common UUID for DAI calculations
 #'
 #' @param dt Data table of nmers.
 #'
-#' @export get_DAI_uuid
+#' @export make_DAI_uuid
 #' @md
 
-get_DAI_uuid <- function(dt){
+make_DAI_uuid <- function(dt){
 
   if (!c("pep_type", "nmer", "nmer_i",
           "nmer_l", "var_uuid", "frameshift",
@@ -66,7 +66,7 @@ get_DAI_uuid <- function(dt){
 
 
 ## ---- merge_predictions
-#' Internal function to merge input data table and prediction results from netMHC tools, mhcflurry
+#' Internal function to merge input data table and prediction results
 #'
 #' @param l Output list from run_netMHC
 #' @param dt Input data table.
@@ -90,6 +90,7 @@ merge_predictions <- function(l, dt){
                 data.table::rbindlist, by = c("nmer", ptype), all.x = TRUE,
                 allow.cartesian = TRUE)
         }
+          dt %<>% unique
 
       # read and merge mhcflurry output
 
@@ -104,6 +105,7 @@ merge_predictions <- function(l, dt){
         }) %>% data.table::rbindlist %>%
             data.table::setnames(c("allele", "peptide"), c("MHC", "nmer"))
             dt <- merge(dt, fdt %>% unique, by = c("nmer", "MHC"), all.x = TRUE)
+            dt %<>% unique
 
       # read and merge mhcnuggets output
 
@@ -147,6 +149,7 @@ merge_predictions <- function(l, dt){
                     unique,
                     by = c("nmer", "mhcnuggets"),
                     all.x = TRUE)
+        dt %<>% unique
 
       # calculate netMHC consensus score, preferring non-*net tools
          for (col in (dt %>% names %include% "aff|[Rr]ank|Consensus_scores")){
@@ -451,10 +454,10 @@ esl, function(es){
 
 
 ## ---- write_nuggets_nmers
-#' Internal function to output nmers for MHC prediction to disk
+#' Internal function to output nmers for mhcnuggets prediction to disk
 #'
 #' @param dt Data table of nmers.
-#' @param alleles Data table of 2 columns, 1. alleles properly formatted for 2. respective program name (e.g. mhcflurry, mhcnuggets, netMHC).
+#' @param alleles Data table of 2 columns, 1. alleles properly formatted mhcnuggets.
 #'
 #' @export write_nuggets_nmers
 #' @md
@@ -535,7 +538,7 @@ write_nuggets_nmers <- function(dt, alleles){
 
 
 ## ---- write_netmhc_nmers
-#' Internal function to output nmers for MHC prediction to disk
+#' Internal function to output nmers for netMHC prediction to disk
 #'
 #' @param dt Data table of nmers.
 #' @param type Character vector. Name of program to format for.
@@ -553,8 +556,8 @@ write_netmhc_nmers <- function(dt, type){
 
   dto <- parallel::mclapply(1:nrow(combs), function(i){
 
-      dts <- dt[get(type) == combs$V1[i] & nmer_l == combs$V2[i]]
-      %>% unique
+      dts <- dt[get(type) == combs$V1[i] & nmer_l == combs$V2[i]] %>%
+      unique
 
       # parallelize over 100 peptide chunks
       chunks <- ((dts %>% nrow)/100) %>% ceiling
@@ -607,11 +610,11 @@ mcMap(function(x, y) (x %>% as.integer):(y %>% as.integer) %>%
 
 
 ## ---- garnish_predictions
-#' Performs epitope prediction.
+#' Perform neoepitope prediction.
 #'
-#' Performs epitope prediction on a data table of missense mutations.
-#' @param path Character vector. Path to input table ([formats](https://cran.r-project.org/web/packages/rio/vignettes/rio.html#supported_file_formats)).
-#' @param dt Data table. Input data table from garnish_variants or a data table in one of these forms:
+#' Perform ensemble neoepitope prediction on a data table of missense mutations, insertions, deletions or gene fusions using netMHC, mhcflurry, and mhcnuggets.
+#' @param path Path to input table ([acceptable formats](https://cran.r-project.org/web/packages/rio/vignettes/rio.html#supported_file_formats)).
+#' @param dt Data table. Input data table from `garnish_variants` or `garnish_jaffa`, or a data table in one of these forms:
 #'
 #'dt with transcript id:
 #'
@@ -695,7 +698,6 @@ mcMap(function(x, y) (x %>% as.integer):(y %>% as.integer) %>%
 #'
 #'    # summarize predictions
 #'    antigen.garnish::garnish_summary %T>%
-#'
 #'    print
 #'
 #'}
@@ -703,7 +705,6 @@ mcMap(function(x, y) (x %>% as.integer):(y %>% as.integer) %>%
 #'\dontrun{
 #'# input a data table of transcripts
 #'
-#'library(data.table)
 #'library(magrittr)
 #'library(antigen.garnish)
 #'
@@ -719,7 +720,7 @@ mcMap(function(x, y) (x %>% as.integer):(y %>% as.integer) %>%
 #'           MHC = c("HLA-A*02:01 HLA-DRB1*14:67",
 #'                   "H-2-Kb H-2-IAd",
 #'                   "HLA-A*01:47 HLA-DRB1*03:08")) %>%
-#'  garnish_predictions %T>%
+#'  antigen.garnish::garnish_predictions %T>%
 #'  str
 #' }
 #'
@@ -735,19 +736,19 @@ mcMap(function(x, y) (x %>% as.integer):(y %>% as.integer) %>%
 #'           pep_mut = "MTEYKLVVVGAGDVGKSALTIQLIQNHFVDEYDP",
 #'           mutant_index = "12",
 #'           MHC = "all") %>%
-#'  garnish_predictions %T>%
+#'  antigen.garnish::garnish_predictions %T>%
 #'  str
 #' }
 #'
 #'\dontrun{
-#'# input from Excel
+#'# input from Microsoft Excel
 #'
 #'    # download an example Excel file
 #'      path <- "antigen.garnish_test_input.xlsx" %T>%
 #'        utils::download.file("http://get.rech.io/antigen.garnish_test_input.xlsx", .)
 #'
 #'    # predict neoepitopes
-#'    dt <- garnish_predictions(path = path) %T>%
+#'      dt <- antigen.garnish::garnish_predictions(path = path) %T>%
 #'      str
 #' }
 #' @export garnish_predictions
@@ -972,17 +973,19 @@ if (generate){
     return("no variants for peptide generation")
 
     sink(file = "/dev/null")
-    nmer_dt <- get_nmers(basepep_dt) %>% .[, nmer_l := nmer %>% nchar]
+    nmer_dt <- make_nmers(basepep_dt) %>% .[, nmer_l := nmer %>% nchar]
     sink()
     dt <- merge(dt, nmer_dt,
             by = intersect(names(dt), names(nmer_dt)),
             all.x = TRUE)
 
     ## drop out single wt nmer from rolling window over fusion peptides from JAFFA input
-    if ("fus_tx" %chin% names(dt)) dt <- dt[, drop := stringi::stri_detect_fixed(pattern = nmer,
-                                            str = pep_gene_1 %>% substr(mutant_index - 14, mutant_index))] %>%
-                                              .[drop == FALSE] %>%
-                                                .[, drop := NULL]
+    if("fus_tx" %chin% names(dt)) dt <- dt %>%
+      .[, drop := grepl(pattern = nmer, x = pep_gene_1),
+            by  = 1:nrow(.)] %>%
+                  .[drop == FALSE] %>%
+                    .[, drop := NULL]
+
 
     # generation a uuid for each unique nmer
     suppressWarnings(dt[, nmer_uuid :=
@@ -990,7 +993,7 @@ if (generate){
                     uuid::UUIDgenerate) %>% unlist])
     if (input_type == "transcript"){
 
-         dt %<>% get_DAI_uuid
+         dt %<>% make_DAI_uuid
 
         # remove mut == wt by sample_id
         # remove wt missing mut counterpart
@@ -1063,15 +1066,15 @@ if (predict){
 
 
 
-## ---- get_nmers
+## ---- make_nmers
 #' Internal function for parallelized `nmer` creation.
 #'
 #' @param dt Data table. Input data table from `garnish_predictions`.
 #'
-#' @export get_nmers
+#' @export make_nmers
 #' @md
 
-get_nmers <- function(dt){
+make_nmers <- function(dt){
 
 
   if (!c("var_uuid",

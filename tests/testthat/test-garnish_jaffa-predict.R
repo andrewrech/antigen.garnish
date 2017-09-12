@@ -11,27 +11,20 @@ testthat::test_that("garnish_jaffa_predict", {
     list.files(pattern = "antigen.garnish_jaffa") %>%
       file.remove})
 
-  if (!check_pred_tools() %>% unlist %>% all){
-    testthat::skip("Skipping run_netMHC because prediction tools are not in PATH")
-  }
-
   # load test data
 
-  path <- "antigen.garnish_jaffa_results.csv" %T>%
+    path <- "antigen.garnish_jaffa_results.csv" %T>%
       utils::download.file("http://get.rech.io/antigen.garnish_jaffa_results.csv", .)
-  fasta_file <- "antigen.garnish_jaffa_results.fasta" %T>%
-    utils::download.file("http://get.rech.io/antigen.garnish_jaffa_results.fasta", .)
-  db <- "GRCm38"
-  MHCdt <- data.table::data.table(sample_id = c("4662", "Abx7"),
-                                  MHC = c("H-2-Kb H-2-Db H-2-IAb", "H-2-Ld H-2-IAd"))
+    fasta_path <- "antigen.garnish_jaffa_results.fasta" %T>%
+      utils::download.file("http://get.rech.io/antigen.garnish_jaffa_results.fasta", .)
 
-  # run test
-  dt <- garnish_jaffa(path, db, fasta_file) %>%
-          merge(., MHCdt, by = "sample_id") %>%
-            garnish_predictions
+  # get predictions
+    dt <- garnish_jaffa(path = path,
+                        db = "GRCm38",
+                        fasta_path = fasta_path)
 
     testthat::expect_equal(dt %>% class %>% .[1], "data.table")
-    testthat::expect_equal(dt %>% nrow, 1827040)
-    testthat::expect_equal(dt[, nmer %>% unique %>% length], 7776)
+    testthat::expect_equal(dt %>% nrow, 471)
+    testthat::expect_equal(dt %>% length, 11)
 
    })

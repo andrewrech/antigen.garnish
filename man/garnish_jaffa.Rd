@@ -4,14 +4,14 @@
 \alias{garnish_jaffa}
 \title{Derive mutant peptides from JAFFA gene fusion output.}
 \usage{
-garnish_jaffa(path, db, fasta_file)
+garnish_jaffa(path, db, fasta_path)
 }
 \arguments{
 \item{path}{Full file path to jaffa_results.csv.}
 
 \item{db}{Character vector. One of \code{GRCm37}, \code{GRCm38}, \code{GRCh37}, or \code{GRCh38}.}
 
-\item{fasta_file}{Full file path to jaffa_results.fasta.}
+\item{fasta_path}{Full file path to jaffa_results.fasta.}
 }
 \value{
 A data table of mutant peptides including:
@@ -43,23 +43,23 @@ library(antigen.garnish)
    path <- "jaffa_results.csv"
    utils::download.file("http://get.rech.io/jaffa_results.csv", path)
 
-   fasta_file <- "jaffa_results.fasta"
-   utils::download.file("http://get.rech.io/jaffa_results.fasta", fasta_file)
+   fasta_path <- "jaffa_results.fasta"
+   utils::download.file("http://get.rech.io/jaffa_results.fasta", fasta_path)
 
    db <- "GRCm38"
 
    # extract variants
-   dt <- antigen.garnish::garnish_jaffa(path, db, fasta_file) \%>\%
-   
+   dt <- antigen.garnish::garnish_jaffa(path, db, fasta_path) \%>\%
+
    .[, MHC := "H-2-Kb H-2-Db H-2-IAb"] \%>\%
-   
+
    # take only a subset of the data to speed things up for this example
-   
+
    .[1:20] \%>\%
 
    # predict neoepitopes
    antigen.garnish::garnish_predictions \%>\%
-   
+
    #summarize output
    antigen.garnish::garnish_summary \%T>\%
 
