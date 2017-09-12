@@ -979,12 +979,10 @@ if (generate){
             all.x = TRUE)
 
     ## drop out single wt nmer from rolling window over fusion peptides from JAFFA input
-    if("fus_tx" %chin% names(dt)) dt <- dt %>%
-      .[, drop := grepl(pattern = nmer, x = pep_gene_1),
-            by  = 1:nrow(.)] %>%
-                  .[drop == FALSE] %>%
-                    .[, drop := NULL]
-
+    if ("fus_tx" %chin% names(dt)) dt <- dt[, drop := stringi::stri_detect_fixed(pattern = nmer,
+                                            str = pep_gene_1 %>% substr(mutant_index - 14, mutant_index))] %>%
+                                              .[drop == FALSE] %>%
+                                                .[, drop := NULL]
 
     # generation a uuid for each unique nmer
     suppressWarnings(dt[, nmer_uuid :=
