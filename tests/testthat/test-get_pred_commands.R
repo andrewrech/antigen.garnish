@@ -28,8 +28,8 @@ testthat::test_that("get_pred_commands", {
 
        input <- list.files(pattern = "(netMHC)|(flurry)|(nuggets)")
 
-       on.exit({
-         suppressWarnings(file.remove(input, showWarnings = FALSE) %>% invisible)
-         })
+       #on.exit({
+        # suppressWarnings(file.remove(input, showWarnings = FALSE) %>% invisible)
+        # })
 
     })
