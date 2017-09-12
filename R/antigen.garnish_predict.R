@@ -392,7 +392,7 @@ esl, function(es){
           if (dtn %>%
               stringr::str_detect("ERROR") %>%
               any){
-            warning(paste0(command.in, " returned ERROR"))
+            warning(paste0(command, " returned ERROR"))
             return(NULL)
           }
 
