@@ -10,7 +10,7 @@ garnish_variants(vcfs)
 \item{vcfs}{Paths to VFC files to import.}
 }
 \value{
-Aa data table with one unique SnpEff variant annotation per row, including:
+A data table with one unique SnpEff variant annotation per row, including:
 \itemize{
 \item \strong{sample_id}: sample identifier constructed from input \code{.bam} file names
 \item \strong{se}: SnpEff annotation
