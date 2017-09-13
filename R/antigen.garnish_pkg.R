@@ -20,6 +20,7 @@
 #'* `garnish_summary`: summarize neoepitope prediction
 #' @docType package
 #' @name antigen.garnish
+#' @name BiocInstaller
 #' @import colorspace
 #' @import data.table
 #' @import dt.inflix
