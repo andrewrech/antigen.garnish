@@ -6,13 +6,23 @@ r:
   - bioc-release
   - release
   - devel
+  - 3.4.0
+env:
+  - MC_CORES=2 OMP_NUM_THREADS=2
+warnings_are_errors: false
+r_check_args: ""
+cache: packages
+before_install:
+    - sudo apt-get install -y libv8-3.14-dev ghostscript libgs-dev
+    - Rscript -e 'install.packages("devtools"); install.packages("testthat")'
+sudo: true
+repos:
+  CRAN: https://cloud.r-project.org
 r_packages:
   - covr
-env:
-  - MC_CORES=1
 after_success:
   - Rscript -e 'library(covr); codecov()'
-sudo: true
+cache: packages
 notifications:
   slack:
     rooms:
