@@ -8,12 +8,11 @@ r:
   - devel
 r_packages:
   - covr
-before_install:
-    - Rscript -e 'install.packages("devtools"); install.packages("testthat")'
+env:
+  - MC_CORES=1
 after_success:
   - Rscript -e 'library(covr); codecov()'
 sudo: true
-cache: packages
 notifications:
   slack:
     rooms:
