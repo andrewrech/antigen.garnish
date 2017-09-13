@@ -15,9 +15,9 @@ Summary table description:
 A summary data table of \code{dt} by \code{sample_id} with the following columns:
 \itemize{
 \item \strong{classic_neos}: classically defined neoepitopes (CDNs); defined as mutant \code{nmers} predicted to bind MHC with high affinity (< 50nM \eqn{IC_{50}})
-\item \strong{classic_top_score}: sum of the top three mutant \code{nmer} affinity scores
-\item \strong{alt_neos}: alternatively defined neoepitopes (ADNs); defined as mutant \code{nmers} predicted to bind MHC with greatly improved affinity relative to their non-mutated counterpart (10x for MHC class I and 4x for MHC class II)
-\item \strong{alt_top_score}: sum of the top three mutant \code{nmer} differential agretopicity indices; differential agretopicity index (DAI) is the ratio of MHC binding affinity between mutant and wt peptide
+\item \strong{classic_top_score}: sum of the top three mutant \code{nmer} affinity scores (see below)
+\item \strong{alt_neos}: alternatively defined neoepitopes (ADNs); defined as mutant \code{nmers} predicted to bind MHC with greatly improved affinity relative to non-mutated counterparts (10x for MHC class I and 4x for MHC class II) (see below)
+\item \strong{alt_top_score}: sum of the top three mutant \code{nmer} differential agretopicity indices; differential agretopicity index (DAI) is the ratio of MHC binding affinity between mutant and wt peptide (see below)
 \item \strong{priority_neos}: mutant peptides that meet both ADN and CDN criteria, or that meet CDN criteria and are derived from frameshift mutations
 \item \strong{nmers}: total mutant \code{nmers} created
 \item \strong{variants}: total genomic variants evaluated

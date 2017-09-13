@@ -2,14 +2,39 @@ Package: antigen.garnish
 Title: Ensemble neoepitope prediction from DNA variants in R
 Version: 0.0.1
 Authors@R: 'Andrew J. Rech <andrewrech@gmail.com> [aut, cre]'
-Description: An R package for neoepitope analysis that takes human or murine DNA point mutations, insertions, and deletions and performs neoepitope prediction. Input is a VCF file or table of peptides. Output is neoepitopes and a summary by sample.
+Description: An R package for neoepitope analysis that takes human or murine DNA missense mutations, insertions, deletions, and gene fusions and performs neoepitope prediction. Input is a VCF file or table of peptides. Output is neoepitopes and a summary by sample.
 Depends: R (>= 3.4.0)
 License: GPL-3
 Encoding: UTF-8
 LazyData: true
 RemoteUrl: http://neoepitopes.io
-Imports: Biostrings, biomaRt, colorspace, data.table, dt.inflix, magrittr, parallel, Rdpack, rio, stats, stringi, stringr, testthat, tidyr, utils, uuid, vcfR, zoo
-Remotes: tidyverse/magrittr, andrewrech/dt.inflix, Rdatatable/data.table,bioc::release/Biostrings, bioc::release/biomaRt
+Imports: BiocInstaller,
+                   Biostrings,
+                   biomaRt,
+                   colorspace,
+                   data.table,
+                   dt.inflix,
+                   magrittr,
+                   parallel,
+                   Rdpack,
+                   rio,
+                   ShortRead,
+                   stats,
+                   stringi,
+                   stringr,
+                   testthat,
+                   tidyr,
+                   utils,
+                   uuid,
+                   vcfR,
+                   zoo
+Remotes: tidyverse/magrittr,
+                   andrewrech/dt.inflix,
+                   Rdatatable/data.table,
+                   bioc::release/BiocInstaller,
+                   bioc::release/Biostrings,
+                   bioc::release/biomaRt,
+                   bioc::release/ShortRead
 RdMacros: Rdpack
 LazyLoad: yes
 RoxygenNote: 6.0.1.9000
