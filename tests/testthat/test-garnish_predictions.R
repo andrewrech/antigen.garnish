@@ -89,9 +89,9 @@ testthat::test_that("test predict from jaffa input", {
     dt <- garnish_predictions(dt)
 
     testthat::expect_equal(dt %>% class %>% .[1], "data.table")
-    testthat::expect_equal(dt %>% nrow, 36001)
+    testthat::expect_equal(dt %>% nrow, 1115)
     testthat::expect_equal(dt %>% length, 49)
-    testthat::expect_equal(dt[, nmer %>% unique %>% length], 6510)
+    testthat::expect_equal(dt[, nmer %>% unique %>% length], 161)
 
    })
 
