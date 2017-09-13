@@ -6,12 +6,11 @@ library(dt.inflix)
 
 testthat::test_that("write_netmhc_nmers", {
 
-  on.exit({
-    list.files(pattern = "netMHC_.*csv") %>%
-    file.remove})
+  invisible(
+      list.files(pattern = "netMHC.*-.*-.*\\.csv") %>%
+      file.remove)
 
   # load test data
-
   dt <- data.table::data.table(netMHC = c("HLA-A0201", "HLA-A0201", "HLA-A0201",
   "HLA-A0201", "HLA-A0201", "HLA-A0201", "HLA-A0201", "HLA-A0201",
   "HLA-A0201", "HLA-A0201"), nmer = c("AQSGTPPT", "AYESSEDC", "DDENYWRK",
@@ -30,6 +29,10 @@ testthat::test_that("write_netmhc_nmers", {
     "GTWVSGVQ", "GVQSGTPP", "KAYESSED",
     "KSYESSED") %>% all
     )
-  testthat::expect_equal(dto$allele %>% unique, "HLA-A0201")
 
+  invisible(
+      list.files(pattern = "netMHC.*-.*-.*\\.csv") %>%
+      file.remove)
+
+  testthat::expect_equal(dto$allele %>% unique, "HLA-A0201")
     })

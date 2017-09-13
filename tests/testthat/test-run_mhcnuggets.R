@@ -19,20 +19,13 @@ testthat::test_that("run_netMHC", {
       "antigen.garnish_example_mhcnuggets_input_lstm_HLA-A0201_e4c2872d-c055-4a93.csv"
       )
 
-    on.exit({
-      suppressWarnings(file.remove(input, showWarnings = FALSE) %>% invisible)
-      })
-
-    parallel::mclapply(input, function(i){
+    lapply(input, function(i){
       i %>%
       {utils::download.file(paste0("http://get.rech.io/", .), .)}
       })
 
     # run test
       run_mhcnuggets()
-
-      dt <- list.files(pattern = "antigen.garnish_example_mhcnuggets_output.*") %>%
-        lapply(fread) %>% rbindlist
 
    testthat::expect_equal(dt %>% nrow, 304)
    testthat::expect_equal(dt %>% length, 2)

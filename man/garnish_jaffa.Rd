@@ -32,3 +32,29 @@ A data table of mutant peptides, including:
 \description{
 Process \href{https://github.com/Oshlack/JAFFA}{JAFFA} gene fusion \code{fasta} and \code{results.csv} output for neoepitope prediction using \code{garnish_predictions}.
 }
+\examples{
+\dontrun{
+library(magrittr)
+library(antigen.garnish)
+
+ # load some test jaffa output data
+   path <- "antigen.garnish_jaffa_results.csv" \%T>\%
+     utils::download.file("http://get.rech.io/antigen.garnish_jaffa_results.csv", .)
+   fasta_path <- "antigen.garnish_jaffa_results.fasta" \%T>\%
+     utils::download.file("http://get.rech.io/antigen.garnish_jaffa_results.fasta", .)
+
+ # get predictions
+   dt <- antigen.garnish::garnish_jaffa(path, db = "GRCm38", fasta_path) \%>\%
+
+ # add MHC info
+   .[, MHC := "H-2-Kb"] \%>\%
+
+ # get predictions
+   antigen.garnish::garnish_predictions \%>\%
+
+ # summarize predictions
+   antigen.garnish::garnish_summary \%T>\%
+   print
+}
+
+}

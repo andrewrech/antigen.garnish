@@ -42,6 +42,7 @@
 #'  # summarize predictions
 #'    antigen.garnish::garnish_summary %T>%
 #'    print
+#'}
 #'
 #' @export garnish_jaffa
 #' @md

@@ -8,7 +8,7 @@ testthat::test_that("antigen.garnish neoepitope prediction", {
 
 # visually inspect sliding peptides
 
-library(magrittr)
+  library(magrittr)
 
   dt <- data.table::data.table(
        pep_base = "Y___*___THIS_IS_________*___A_NICE_TEST_______*__X",

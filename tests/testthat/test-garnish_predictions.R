@@ -66,11 +66,6 @@ testthat::test_that("test predict from jaffa input", {
    testthat::skip("Skipping run_netMHC because prediction tools are not in PATH")
    }
 
-
-  on.exit({
-    list.files(pattern = "antigen.garnish_jaffa") %>%
-      file.remove})
-
   # load test data
 
     path <- "antigen.garnish_jaffa_results.csv" %T>%
@@ -89,7 +84,7 @@ testthat::test_that("test predict from jaffa input", {
     dt <- garnish_predictions(dt)
 
     testthat::expect_equal(dt %>% class %>% .[1], "data.table")
-    testthat::expect_equal(dt %>% nrow, 1115)
+    testthat::expect_equal(dt %>% nrow, 1155)
     testthat::expect_equal(dt %>% length, 49)
     testthat::expect_equal(dt[, nmer %>% unique %>% length], 161)
 

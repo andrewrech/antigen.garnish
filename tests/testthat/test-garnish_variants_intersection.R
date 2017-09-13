@@ -20,9 +20,4 @@ testthat::test_that("garnish_variants intersection", {
    testthat::expect_equal(dto %>% length, 21)
    testthat::expect_equal(dto %>% nrow, 4)
 
-   if (file.exists("antigen.garnish_example_mutect2.vcf"))
-   file.remove("antigen.garnish_example_mutect2.vcf")
-   if (file.exists("antigen.garnish_example_strelka.vcf"))
-   file.remove("antigen.garnish_example_strelka.vcf")
-
     })

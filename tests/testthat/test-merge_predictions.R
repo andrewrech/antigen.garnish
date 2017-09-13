@@ -16,14 +16,11 @@ testthat::test_that("merge_predictions", {
     "antigen.garnish_example_mhcnuggets_output_lstm_HLA-A0201_2d23d1d7-5622-4930.csv"
                 )
 
-    on.exit({
-      suppressWarnings(file.remove(output, showWarnings = FALSE) %>% invisible)
-    })
 
-parallel::mclapply(output, function(i){
-        i %>%
-            {utils::download.file(paste0("http://get.rech.io/", .), .)}
-      })
+    lapply(output, function(i){
+          i %>%
+              {utils::download.file(paste0("http://get.rech.io/", .), .)}
+        })
 
   # run test
     dto <- merge_predictions(
@@ -35,6 +32,3 @@ parallel::mclapply(output, function(i){
   testthat::expect_equal(dto %>% length, 111)
 
 })
-
-
-saveRDS(dt, "antigen.garnish_merge_predictions_input_dt.RDS")
