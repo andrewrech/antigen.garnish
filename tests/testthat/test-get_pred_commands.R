@@ -6,6 +6,11 @@ library(dt.inflix)
 
 testthat::test_that("get_pred_commands", {
 
+       on.exit({
+       suppressWarnings(file.remove(list.files(pattern = "(netMHC)|(flurry)|(nuggets)"),
+                                    showWarnings = FALSE) %>% invisible)
+       })
+    
     # load test data
 
     dt <- data.table::data.table(
@@ -25,5 +30,4 @@ testthat::test_that("get_pred_commands", {
     testthat::expect_equal(dto %>% nrow, 12)
     testthat::expect_equal(dto %>% names,
        c("type", "allele", "nmer_l", "filename", "command"))
-
     })

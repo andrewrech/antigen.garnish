@@ -2,14 +2,14 @@
 % Please edit documentation in R/antigen.garnish_predict.R
 \name{garnish_predictions}
 \alias{garnish_predictions}
-\title{Performs epitope prediction.}
+\title{Perform neoepitope prediction.}
 \usage{
 garnish_predictions(dt = NULL, path = NULL, assemble = TRUE,
   generate = TRUE, predict = TRUE, humandb = "GRCh38",
   mousedb = "GRCm38")
 }
 \arguments{
-\item{dt}{Data table. Input data table from garnish_variants or a data table in one of these forms:
+\item{dt}{Data table. Input data table from \code{garnish_variants} or \code{garnish_jaffa}, or a data table in one of these forms:
 
 dt with transcript id:\preformatted{Column name                 Example input
 
@@ -31,7 +31,7 @@ mutant_index                all
 MHC                         <same as above>
 }}
 
-\item{path}{Character vector. Path to input table (\href{https://cran.r-project.org/web/packages/rio/vignettes/rio.html#supported_file_formats}{formats}).}
+\item{path}{Path to input table (\href{https://cran.r-project.org/web/packages/rio/vignettes/rio.html#supported_file_formats}{acceptable formats}).}
 
 \item{assemble}{Logical. Assemble data table?}
 
@@ -53,16 +53,17 @@ A data table of binding predictions including:
 \item \strong{frameshift}: frameshift variant?
 \item \strong{coding}: wt cDNA sequence
 \item \strong{coding_mut}: mutant cDNA sequence
-\item \strong{pep_type}: type of peptide for this row
-\item \strong{pep_mut}: mutant cDNA sequence
-\item \strong{pep_wt}: wt cDNA sequence
+\item \strong{pep_type}: type of peptide
+\item \strong{pep_mut}: mutant peptide sequence
+\item \strong{pep_wt}: wt peptide sequence
 \item \strong{mismatch_s}: starting index of mutant peptide sequence
 \item \strong{mismatch_l}: ending index of mutant peptide sequence
-\item \strong{mutant_index}: index of mutant peptide for this row
+\item \strong{mutant_index}: index of mutant peptide
 \item \strong{nmer}: nmer for prediction
 \item \strong{nmer_i}: index of nmer in sliding window
 \item \strong{*_net}: netMHC prediction tool output
-\item \strong{mhcflurry_*}: netMHC prediction tool output
+\item \strong{mhcflurry_*}: mhcflurry_ prediction tool output
+\item \strong{mhcnuggets_*}: mhcnuggets_ prediction tool output
 }
 
 as well as a transcript description:
@@ -78,7 +79,7 @@ as well as a transcript description:
 }
 }
 \description{
-Performs epitope prediction on a data table of missense mutations.
+Perform ensemble neoepitope prediction on a data table of missense mutations, insertions, deletions or gene fusions using netMHC, mhcflurry, and mhcnuggets.
 }
 \examples{
 \dontrun{
@@ -104,7 +105,6 @@ library(antigen.garnish)
 
    # summarize predictions
    antigen.garnish::garnish_summary \%T>\%
-
    print
 
 }
@@ -112,7 +112,6 @@ library(antigen.garnish)
 \dontrun{
 # input a data table of transcripts
 
-library(data.table)
 library(magrittr)
 library(antigen.garnish)
 
@@ -128,7 +127,7 @@ library(antigen.garnish)
           MHC = c("HLA-A*02:01 HLA-DRB1*14:67",
                   "H-2-Kb H-2-IAd",
                   "HLA-A*01:47 HLA-DRB1*03:08")) \%>\%
- garnish_predictions \%T>\%
+ antigen.garnish::garnish_predictions \%T>\%
  str
 }
 
@@ -144,19 +143,19 @@ library(antigen.garnish)
           pep_mut = "MTEYKLVVVGAGDVGKSALTIQLIQNHFVDEYDP",
           mutant_index = "12",
           MHC = "all") \%>\%
- garnish_predictions \%T>\%
+ antigen.garnish::garnish_predictions \%T>\%
  str
 }
 
 \dontrun{
-# input from Excel
+# input from Microsoft Excel
 
    # download an example Excel file
      path <- "antigen.garnish_test_input.xlsx" \%T>\%
        utils::download.file("http://get.rech.io/antigen.garnish_test_input.xlsx", .)
 
    # predict neoepitopes
-   dt <- garnish_predictions(path = path) \%T>\%
+     dt <- antigen.garnish::garnish_predictions(path = path) \%T>\%
      str
 }
 }

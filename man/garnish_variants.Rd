@@ -2,15 +2,15 @@
 % Please edit documentation in R/antigen.garnish_io.R
 \name{garnish_variants}
 \alias{garnish_variants}
-\title{Intakes variants and returns an intersected data table for epitope prediction.}
+\title{Process VCF variants and return a data table for epitope prediction.}
 \usage{
 garnish_variants(vcfs)
 }
 \arguments{
-\item{vcfs}{Character vector. VFC files to import.}
+\item{vcfs}{Paths to VFC files to import.}
 }
 \value{
-A VCF as a data table with one unique SnpEff variant annotation per row, including:
+A data table with one unique SnpEff variant annotation per row, including:
 \itemize{
 \item \strong{sample_id}: sample identifier constructed from input \code{.bam} file names
 \item \strong{se}: SnpEff annotation
@@ -23,7 +23,7 @@ A VCF as a data table with one unique SnpEff variant annotation per row, includi
 }
 }
 \description{
-Process variants annotated with \href{http://snpeff.sourceforge.net/}{SnpEff}. VCFs from matched samples are optionally intersected. \href{https://github.com/broadinstitute/gatk}{MuTect2}/\href{https://github.com/Illumina/strelka}{Strelka2}-derived VCFs are filtered for high confidence variants prior to intersection.
+Process VCF variants annotated with \href{http://snpeff.sourceforge.net/}{SnpEff} for neoepitope prediction using \code{garnish_predictions}. VCFs from matched samples are optionally intersected. \href{https://github.com/broadinstitute/gatk}{MuTect2}/\href{https://github.com/Illumina/strelka}{Strelka2}-derived VCFs are filtered for high confidence variants prior to intersection.
 }
 \examples{
 \dontrun{

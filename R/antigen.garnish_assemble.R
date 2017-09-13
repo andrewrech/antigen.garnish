@@ -240,14 +240,14 @@ make_cDNA <- function(dt){
 
 
 
-## ---- get_snpeff_annot
+## ---- get_snpeff
 #' Internal function to extract SnpEff annotation information to a data table.
 #'
-#' @param dt Data table with INFO column.
-#' @export get_snpeff_annot
+#' @param dt Data table with INFO column from a SnpEff-annotated VCF file.
+#' @export get_snpeff
 #' @md
 
-get_snpeff_annot <- function(dt){
+get_snpeff <- function(dt){
 
     if (!"INFO" %chin% (dt %>% names)) stop("dt must contain INFO column")
 

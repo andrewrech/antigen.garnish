@@ -1,7 +1,7 @@
 ## ---- garnish_summary
-#' Summarize epitope prediction.
+#' Summarize neoepitope prediction.
 #'
-#' Calculate neoepitope summary statistics over samples.
+#' Calculate neoepitope summary statistics for priority, classic, and alternative neoepitopes for each sample.
 #'
 #' @param dt Data table. Prediction output from `garnish_predictions`.
 #'
@@ -15,13 +15,18 @@
 #'    utils::download.file("http://get.rech.io/antigen.garnish_example.vcf", .) %>%
 #'
 #'  # extract variants
-#'    garnish_variants %>%
+#'    antigen.garnish::garnish_variants %>%
+#'
+#'  # add test MHC types
+#'      .[, MHC := c("HLA-A*02:01 HLA-DRB1*14:67",
+#'                   "H-2-Kb H-2-IAd",
+#'                  "HLA-A*01:47 HLA-DRB1*03:08")] %>%
 #'
 #'  # predict neoepitopes
-#'    garnish_predictions %>%
+#'    antigen.garnish::garnish_predictions %>%
 #'
 #'  # summarize predictions
-#'    garnish_summary %T>%
+#'    antigen.garnish::garnish_summary %T>%
 #'    print
 #'}
 #' @return
@@ -35,10 +40,10 @@
 #' * **alt_top_score**: sum of the top three mutant `nmer` differential agretopicity indices; differential agretopicity index (DAI) is the ratio of MHC binding affinity between mutant and wt peptide (see below)
 #' * **priority_neos**: mutant peptides that meet both ADN and CDN criteria, or that meet CDN criteria and are derived from frameshift mutations
 #' * **nmers**: total mutant `nmers` created
-#' * **variants**: total genomic variants evaluated
-#' * **transcripts**: total transcripts evaluated
 #' * **predictions**: wt and mutant predictions performed
 #' * **mhc_binders**: `nmers` predicted to at least minimally bind MHC (< 5000nM \eqn{IC_{50}})
+#' * **variants**: total genomic variants evaluated
+#' * **transcripts**: total transcripts evaluated
 #'
 #'**Additional information**
 #'
@@ -111,13 +116,30 @@ garnish_summary <- function(dt){
           alt_neos = dt[Consensus_scores < 5000 & DAI > 10] %>% nrow,
           alt_top_score = dt[Consensus_scores < 5000, DAI %>% sum_top_v],
           mhc_binders = dt[Consensus_scores < 5000] %>% nrow,
-          variants = dt[, var_uuid %>% unique] %>% length,
-          transcripts = dt[ensembl_transcript_id %>% unique] %>% nrow,
           predictions = dt[pep_type %like% "mut"] %>% nrow,
           nmers = dt[pep_type %like% "mut", nmer %>% unique] %>% length
           ))
 
     }) %>% data.table::rbindlist
+
+# get variant level statistics if available
+  if (c("ensembl_transcript_id", "var_uuid") %chin% (dt %>% names) %>% all) {
+    dtnv <- parallel::mclapply(dt[, sample_id %>% unique], function(id){
+
+      dt <- dt[sample_id == id]
+
+        return(
+            data.table::data.table(
+            sample_id = id,
+            variants = dt[, var_uuid %>% unique] %>% length,
+            transcripts = dt[ensembl_transcript_id %>% unique] %>% nrow
+            ))
+
+      }) %>% data.table::rbindlist
+
+      dtn <- merge(dtn, dtnv, by = "sample_id", all = TRUE)
+  }
+
 
   return(dtn)
 }
@@ -125,13 +147,13 @@ garnish_summary <- function(dt){
 
 
 ## ---- garnish_variants
-#' Intakes variants and returns an intersected data table for epitope prediction.
+#' Process VCF variants and return a data table for epitope prediction.
 #'
-#' Process variants annotated with [SnpEff](http://snpeff.sourceforge.net/). VCFs from matched samples are optionally intersected. [MuTect2](https://github.com/broadinstitute/gatk)/[Strelka2](https://github.com/Illumina/strelka)-derived VCFs are filtered for high confidence variants prior to intersection.
+#' Process VCF variants annotated with [SnpEff](http://snpeff.sourceforge.net/) for neoepitope prediction using `garnish_predictions`. VCFs from matched samples are optionally intersected. [MuTect2](https://github.com/broadinstitute/gatk)/[Strelka2](https://github.com/Illumina/strelka)-derived VCFs are filtered for high confidence variants prior to intersection.
 #'
-#' @param vcfs Character vector. VFC files to import.
+#' @param vcfs Paths to VFC files to import.
 #'
-#' @return A VCF as a data table with one unique SnpEff variant annotation per row, including:
+#' @return A data table with one unique SnpEff variant annotation per row, including:
 #' * **sample_id**: sample identifier constructed from input \code{.bam} file names
 #' * **se**: SnpEff annotation
 #' * **effect_type**: SnpEff effect type
@@ -198,7 +220,7 @@ garnish_variants <- function(vcfs){
 
     # filter SnpEff warnings
 
-    vdt %<>% get_snpeff_annot
+    vdt %<>% get_snpeff
 
     vdt %<>% .[!se %like% "ERROR_.*CHROMOSOME"]
     vdt %<>% .[!se %likef% "WARNING_SEQUENCE_NOT_AVAILABLE"]

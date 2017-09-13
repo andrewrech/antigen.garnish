@@ -2,7 +2,7 @@
 % Please edit documentation in R/antigen.garnish_predict.R
 \name{merge_predictions}
 \alias{merge_predictions}
-\title{Internal function to merge input data table and prediction results from netMHC tools, mhcflurry}
+\title{Internal function to merge input data table and prediction results}
 \usage{
 merge_predictions(l, dt)
 }
@@ -12,5 +12,5 @@ merge_predictions(l, dt)
 \item{dt}{Input data table.}
 }
 \description{
-Internal function to merge input data table and prediction results from netMHC tools, mhcflurry
+Internal function to merge input data table and prediction results
 }
