@@ -14,9 +14,9 @@ testthat::test_that("antigen.garnish neoepitope prediction", {
        pep_base = "Y___*___THIS_IS_________*___A_NICE_TEST_______*__X",
        mutant_index = c(5, 25, 47, 50),
        pep_type = "test",
-       var_uuid = c("middle",
+       var_uuid = c("front_truncate",
+                    "middle"
                     "back_truncate",
-                    "front_truncate",
                     "end")) %>%
 
     make_nmers %T>% print

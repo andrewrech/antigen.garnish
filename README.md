@@ -138,9 +138,10 @@ library(magrittr)
        pep_base = "Y___*___THIS_IS_________*___A_CODE_TEST!______*__X",
        mutant_index = c(5, 25, 47, 50),
        pep_type = "test",
-       var_uuid = c("middle",
-                    "back_truncate",
+       var_uuid = c(
                     "front_truncate",
+                    "middle",
+                    "back_truncate",
                     "end")) %>%
   # create nmers
     antigen.garnish::make_nmers %T>% print
