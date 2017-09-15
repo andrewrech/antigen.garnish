@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/andrewrech/antigen.garnish.svg?branch=master)](https://travis-ci.org/andrewrech/antigen.garnish) [![codecov.io](https://codecov.io/github/andrewrech/antigen.garnish/coverage.svg?branch=master)](https://codecov.io/github/andrewrech/antigen.garnish?branch=master) ![](https://img.shields.io/badge/version-0.0.1-blue.svg)
+[![Build Status](https://travis-ci.org/andrewrech/antigen.garnish.svg?branch=master)](https://travis-ci.org/andrewrech/antigen.garnish) [![codecov.io](https://codecov.io/github/andrewrech/antigen.garnish/coverage.svg?branch=master)](https://codecov.io/github/andrewrech/antigen.garnish?branch=master) ![](https://img.shields.io/badge/version-0.0.2-blue.svg)
 
 
 
@@ -154,6 +154,10 @@ library(magrittr)
 * [Lee P. Richman](http://www.med.upenn.edu/apps/faculty/index.php/g275/p1073)
 * [David Balli](https://www.linkedin.com/in/davidballi1)
 * [Robert H. Vonderheide](http://www.med.upenn.edu/apps/faculty/index.php/g275/p1073)
+
+## Contributing
+
+We welcome contributions and feedback via Github or [email](mailto:andrewrech@gmail.com).
 
 ## License
 
