@@ -97,7 +97,7 @@ merge_predictions <- function(l, dt){
         f_flurry <- list.files(pattern = "mhcflurry_output.*csv")
 
         if (f_flurry %>% length > 0){
-              fdt <- lapply(., function(x){
+              fdt <- lapply(f_flurry, function(x){
                   if (data.table::fread(x) %>% nrow > 0){
                     return(data.table::fread(x))
                   } else {
@@ -114,7 +114,7 @@ merge_predictions <- function(l, dt){
         f_nuggets <- list.files(pattern = "mhcnuggets_output.*csv")
 
         if (f_nuggets %>% length > 0){
-                  nugdt <- lapply(., function(x){
+                  nugdt <- lapply(f_nuggets, function(x){
                           if (data.table::fread(x) %>% nrow >0 ){
                             return(
                              data.table::fread(x) %>%
