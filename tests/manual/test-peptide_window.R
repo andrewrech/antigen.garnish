@@ -8,18 +8,18 @@ testthat::test_that("antigen.garnish neoepitope prediction", {
 
 # visually inspect sliding peptides
 
-  library(magrittr)
-
-  dt <- data.table::data.table(
-       pep_base = "Y___*___THIS_IS_________*___A_NICE_TEST_______*__X",
+  # generate a fake peptide
+    dt <- data.table::data.table(
+       pep_base = "Y___*___THIS_IS_________*___A_CODE_TEST!______*__X",
        mutant_index = c(5, 25, 47, 50),
        pep_type = "test",
-       var_uuid = c("front_truncate",
-                    "middle"
+       var_uuid = c(
+                    "front_truncate",
+                    "middle",
                     "back_truncate",
                     "end")) %>%
-
-    make_nmers %T>% print
+  # create nmers
+    antigen.garnish::make_nmers %T>% print
 
     testthat::succeed()
     })

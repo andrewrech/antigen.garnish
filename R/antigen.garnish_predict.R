@@ -94,61 +94,65 @@ merge_predictions <- function(l, dt){
 
       # read and merge mhcflurry output
 
-      fdt <- list.files(pattern = "mhcflurry_output.*csv") %>%
+        f_flurry <- list.files(pattern = "mhcflurry_output.*csv")
 
-      lapply(., function(x){
-          if (data.table::fread(x) %>% nrow > 0){
-            return(data.table::fread(x))
-          } else {
-            return(NULL)
-          }
-        }) %>% data.table::rbindlist %>%
-            data.table::setnames(c("allele", "peptide"), c("MHC", "nmer"))
-            dt <- merge(dt, fdt %>% unique, by = c("nmer", "MHC"), all.x = TRUE)
-            dt %<>% unique
+        if (f_flurry %>% length > 0){
+              fdt <- lapply(f_flurry, function(x){
+                  if (data.table::fread(x) %>% nrow > 0){
+                    return(data.table::fread(x))
+                  } else {
+                    return(NULL)
+                  }
+                }) %>% data.table::rbindlist %>%
+                    data.table::setnames(c("allele", "peptide"), c("MHC", "nmer"))
+                    dt <- merge(dt, fdt %>% unique, by = c("nmer", "MHC"), all.x = TRUE)
+                    dt %<>% unique
+                  }
 
       # read and merge mhcnuggets output
 
-        nugdt <- list.files(pattern = "mhcnuggets_output.*csv") %>%
+        f_nuggets <- list.files(pattern = "mhcnuggets_output.*csv")
 
-          lapply(., function(x){
-                  if (data.table::fread(x) %>% nrow >0 ){
-                    return(
-                     data.table::fread(x) %>%
-                      .[, mhcnuggets := basename(x) %>%
-                        stringr::str_extract(pattern = "(?<=_)(H-2-.*(?=_))|(HLA).*(?=_)")] %>%
-                      .[, tool := basename(x) %>%
-                        stringr::str_extract(pattern = "(gru)|(lstm)")])
-                   } else {
-                      return(NULL)
-                      }
-                }) %>%
+        if (f_nuggets %>% length > 0){
+                  nugdt <- lapply(f_nuggets, function(x){
+                          if (data.table::fread(x) %>% nrow >0 ){
+                            return(
+                             data.table::fread(x) %>%
+                              .[, mhcnuggets := basename(x) %>%
+                                stringr::str_extract(pattern = "(?<=_)(H-2-.*(?=_))|(HLA).*(?=_)")] %>%
+                              .[, tool := basename(x) %>%
+                                stringr::str_extract(pattern = "(gru)|(lstm)")])
+                           } else {
+                              return(NULL)
+                              }
+                        }) %>%
 
-                data.table::rbindlist(fill = TRUE) %>%
-                data.table::setnames(c("Building", "model"),
-                                     c("nmer", "mhcnuggets_prediction")) %>%
-                .[tool == "gru", mhcnuggets_pred_gru := mhcnuggets_prediction] %>%
-                .[tool == "lstm", mhcnuggets_pred_lstm := mhcnuggets_prediction] %>%
-                .[, c("nmer", "mhcnuggets", "mhcnuggets_pred_gru", "mhcnuggets_pred_lstm")]
+                        data.table::rbindlist(fill = TRUE) %>%
+                        data.table::setnames(c("Building", "model"),
+                                             c("nmer", "mhcnuggets_prediction")) %>%
+                        .[tool == "gru", mhcnuggets_pred_gru := mhcnuggets_prediction] %>%
+                        .[tool == "lstm", mhcnuggets_pred_lstm := mhcnuggets_prediction] %>%
+                        .[, c("nmer", "mhcnuggets", "mhcnuggets_pred_gru", "mhcnuggets_pred_lstm")]
 
-         nugdt <- merge(
-                     nugdt[!is.na(mhcnuggets_pred_lstm),
-                            .SD,
-                            .SDcols = c("nmer",
-                            "mhcnuggets",
-                            "mhcnuggets_pred_lstm")] %>% unique,
-                     nugdt[!is.na(mhcnuggets_pred_gru),
-                            .SD,
-                            .SDcols = c("nmer",
-                            "mhcnuggets",
-                            "mhcnuggets_pred_gru")] %>% unique,
-                        by = c("nmer", "mhcnuggets"),
-                        all = TRUE)
+                 nugdt <- merge(
+                             nugdt[!is.na(mhcnuggets_pred_lstm),
+                                    .SD,
+                                    .SDcols = c("nmer",
+                                    "mhcnuggets",
+                                    "mhcnuggets_pred_lstm")] %>% unique,
+                             nugdt[!is.na(mhcnuggets_pred_gru),
+                                    .SD,
+                                    .SDcols = c("nmer",
+                                    "mhcnuggets",
+                                    "mhcnuggets_pred_gru")] %>% unique,
+                                by = c("nmer", "mhcnuggets"),
+                                all = TRUE)
 
-        dt <- merge(dt, nugdt %>%
-                    unique,
-                    by = c("nmer", "mhcnuggets"),
-                    all.x = TRUE)
+                dt <- merge(dt, nugdt %>%
+                            unique,
+                            by = c("nmer", "mhcnuggets"),
+                            all.x = TRUE)
+              }
         dt %<>% unique
 
       # calculate netMHC consensus score, preferring non-*net tools
