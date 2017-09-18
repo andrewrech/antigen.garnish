@@ -10,7 +10,7 @@ Ensemble neoepitope prediction from DNA variants in R.
 
 ## Description
 
-An R package for [neoepitope](http://science.sciencemag.org/content/348/6230/69) analysis that takes human or murine DNA missense mutations, insertions, deletions, and gene fusions and performs neoepitope prediction. Input is a VCF file or table of peptides. Output is neoepitopes and a summary by sample.
+An R package for [neoepitope](http://science.sciencemag.org/content/348/6230/69) analysis that takes human or murine DNA missense mutations, insertions, deletions, and gene fusions and performs neoepitope prediction. Input is a VCF file or table of peptides. Output is neoepitopes and a summary by sample. [More information.](http://antigen-garnish-presentation.s3-website-us-east-1.amazonaws.com)
 
 ### Advantages
 
