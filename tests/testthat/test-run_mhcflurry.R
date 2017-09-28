@@ -6,15 +6,14 @@ library(dt.inflix)
 
 testthat::test_that("run_mhcflurry", {
 
+  if (!check_pred_tools() %>% unlist %>% all){
+    testthat::skip("Skipping run_mhcflurry because prediction tools are not in PATH")
+    }
+
   list.files(pattern = "mhcflurry.*csv") %>% file.remove
   on.exit(list.files(pattern = "mhcflurry_.*csv") %>% file.remove)
 
-   if (!check_pred_tools() %>% unlist %>% all){
-    testthat::skip("Skipping run_mhcflurry because prediction tools are not in PATH")
-  }
-
-
-    # load test data
+  # load test data
     input <- c(
       "antigen.garnish_example_mhcflurry_input_ff8dc120-44ee-4e33.csv",
       "antigen.garnish_example_mhcflurry_input_dc7e5ced-6a6e-4f12.csv"

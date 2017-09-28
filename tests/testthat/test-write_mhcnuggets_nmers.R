@@ -8,6 +8,7 @@ testthat::test_that("write_mhcnuggets_nmers", {
 
   list.files(pattern = "mhcnuggets_input_.*csv") %>% file.remove
   on.exit(list.files(pattern = "mhcnuggets_input_.*csv") %>% file.remove)
+
   # load test data
     alleles <- data.table::rbindlist(
                            list(
@@ -64,6 +65,7 @@ testthat::test_that("write_mhcnuggets_nmers", {
        nmer_l = c(8L, 9L, 10L, 8L, 9L, 10L))
 
     # run test
+
       write_mhcnuggets_nmers(dt, alleles)
 
       out <- list.files(pattern = "mhcnuggets_input_.*csv")

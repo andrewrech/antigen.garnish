@@ -1,3 +1,8 @@
+# antigen.garnish 0.0.3
+
+* Inverse match against global normal proteins
+* Improve testing, test formatting
+
 # antigen.garnish 0.0.2
 
 * Deduplicate predictions

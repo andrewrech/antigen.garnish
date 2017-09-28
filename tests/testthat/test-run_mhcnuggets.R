@@ -11,10 +11,10 @@ testthat::test_that("run_mhcnuggets", {
 
    if (!check_pred_tools() %>% unlist %>% all){
     testthat::skip("Skipping run_mhcnuggets because prediction tools are not in PATH")
-  }
+     }
 
 
-    # load test data
+  # load test data
     input <- c(
       "antigen.garnish_example_mhcnuggets_input_gru_H-2-KB_e2bcc9b8-94fa-412b.csv",
       "antigen.garnish_example_mhcnuggets_input_gru_HLA-A0201_9efed71c-199b-44b3.csv",
@@ -27,8 +27,8 @@ testthat::test_that("run_mhcnuggets", {
       {utils::download.file(paste0("http://get.rech.io/", .), .)}
       })
 
-    # run test
-      run_mhcnuggets()
+  # run test
+    run_mhcnuggets()
 
    testthat::expect_equal(list.files(pattern = "mhcnuggets_output.*csv") %>% length,
                           4)

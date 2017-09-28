@@ -7,9 +7,18 @@ library(Biostrings)
 
 testthat::test_that("prediction output", {
 
-  dt <- data.table::fread("http://get.rech.io/antigen.garnish_example_output.txt")
+    convert.aa <- function(x){
+          sn <- names(Biostrings::AMINO_ACID_CODE)
+          x <- Biostrings::AMINO_ACID_CODE[which(sn == x)]
+          unlist(x)
+        }
+
+
+  # load test data
+    dt <- data.table::fread("http://get.rech.io/antigen.garnish_example_output.txt")
 
   # test if nmers are contained in peptides
+
     dt[pep_type != "wt", test := stringr::str_extract(pattern = nmer, string = pep_mut)]
     dt[pep_type == "wt", test := stringr::str_extract(pattern = nmer, string = pep_wt)]
     dt[, validate := test == nmer,
@@ -18,6 +27,7 @@ testthat::test_that("prediction output", {
     testthat::expect_true(dt$validate %>% all)
 
   # test that DAI peptides are only 1 AA apart
+
     DAIdt <- dt[!is.na(dt$DAI)][pep_type != "wt"]
 
     DAIdt[, n.aa.mismatch := lapply(1:nrow(DAIdt), function(i){
@@ -34,11 +44,13 @@ testthat::test_that("prediction output", {
     testthat::expect_true(all(DAIdt$n.aa.mismatch == 1))
 
   # match mutant_index to SnpEff protein change call for all mutants
+
     dt[, prot.change.from.se := stringr::str_extract_all(string = protein_change, pattern =  "[0-9]+") %>% unlist]
 
     testthat::expect_true(dt[, mutant_index == prot.change.from.se] %>% all)
 
   # test that pep_mut matches SnpEff protein change call for missense
+
     DAIdt[, new_aa_pep := lapply(1:nrow(DAIdt), function(i){
           x <- pep_mut[i] %>%
           strsplit(split = "",
@@ -62,12 +74,6 @@ testthat::test_that("prediction output", {
 
           return(y[nAA])
         }) %>% unlist]
-
-    convert.aa <- function(x){
-          sn <- names(Biostrings::AMINO_ACID_CODE)
-          x <- Biostrings::AMINO_ACID_CODE[which(sn == x)]
-          unlist(x)
-        }
 
     DAIdt[, old_aa_pep := convert.aa(old_aa_pep),
       by = 1:nrow(DAIdt)][, new_aa_pep := convert.aa(new_aa_pep),
