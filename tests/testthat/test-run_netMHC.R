@@ -10,6 +10,9 @@ testthat::test_that("run_netMHC", {
     testthat::skip("Skipping run_netMHC because prediction tools are not in PATH")
   }
 
+  list.files(pattern = "netMHC.*csv") %>% file.remove
+  on.exit(list.files(pattern = "netMHC_.*csv") %>% file.remove)
+
   # load test data
   # download test files
   dt <- structure(

@@ -6,6 +6,9 @@ library(dt.inflix)
 
 testthat::test_that("merge_predictions", {
 
+  list.files(pattern = "antigen.garnish.*_output.*csv") %>% file.remove
+  on.exit(list.files(pattern = "antigen.garnish.*_output.*csv") %>% file.remove)
+
   # load test data
   # requires mhcflurry and mhcnuggets output on disk
 
@@ -28,7 +31,8 @@ testthat::test_that("merge_predictions", {
       readRDS(gzcon(url("http://get.rech.io/antigen.garnish_merge_predictions_input_dt.RDS")))
     )
 
-  testthat::expect_equal(dto %>% nrow, 552)
+  # exact length tested for individual methods
+  testthat::expect_gt(dto %>% nrow, 250)
   testthat::expect_equal(dto %>% length, 111)
 
 })

@@ -95,11 +95,14 @@ merge_predictions <- function(l, dt){
       # read and merge mhcflurry output
 
         f_flurry <- list.files(pattern = "mhcflurry_output.*csv")
-
         if (f_flurry %>% length > 0){
               fdt <- lapply(f_flurry, function(x){
-                  if (data.table::fread(x) %>% nrow > 0){
-                    return(data.table::fread(x))
+                  if (
+                      suppressWarnings(data.table::fread(x) %>% nrow > 0)
+                      ){
+                    return(
+                           suppressWarnings(data.table::fread(x))
+                           )
                   } else {
                     return(NULL)
                   }
@@ -111,13 +114,15 @@ merge_predictions <- function(l, dt){
 
       # read and merge mhcnuggets output
 
-        f_nuggets <- list.files(pattern = "mhcnuggets_output.*csv")
+        f_mhcnuggets <- list.files(pattern = "mhcnuggets_output.*csv")
 
-        if (f_nuggets %>% length > 0){
-                  nugdt <- lapply(f_nuggets, function(x){
-                          if (data.table::fread(x) %>% nrow >0 ){
+        if (f_mhcnuggets %>% length > 0){
+                  nugdt <- lapply(f_mhcnuggets, function(x){
+                          if (
+                              suppressWarnings(data.table::fread(x)) %>% nrow > 0
+                              ){
                             return(
-                             data.table::fread(x) %>%
+                             suppressWarnings(data.table::fread(x)) %>%
                               .[, mhcnuggets := basename(x) %>%
                                 stringr::str_extract(pattern = "(?<=_)(H-2-.*(?=_))|(HLA).*(?=_)")] %>%
                               .[, tool := basename(x) %>%
@@ -290,7 +295,7 @@ get_pred_commands <- function(dt){
        stringr::str_replace(stringr::fixed("*"), "") %>%
        stringr::str_replace(stringr::fixed(":"), "")]
 
-       write_nuggets_nmers(dt, alleles)
+       write_mhcnuggets_nmers(dt, alleles)
 
 
   # generate matchable MHC substring for netMHC tools
@@ -457,16 +462,16 @@ esl, function(es){
 
 
 
-## ---- write_nuggets_nmers
+## ---- write_mhcnuggets_nmers
 #' Internal function to output nmers for mhcnuggets prediction to disk
 #'
 #' @param dt Data table of nmers.
 #' @param alleles Data table of 2 columns, 1. alleles properly formatted mhcnuggets.
 #'
-#' @export write_nuggets_nmers
+#' @export write_mhcnuggets_nmers
 #' @md
 
-write_nuggets_nmers <- function(dt, alleles){
+write_mhcnuggets_nmers <- function(dt, alleles){
 
   if (dt %>% nrow == 0) return(NULL)
 
@@ -979,41 +984,98 @@ if (generate){
     sink(file = "/dev/null")
     nmer_dt <- make_nmers(basepep_dt) %>% .[, nmer_l := nmer %>% nchar]
     sink()
+
     dt <- merge(dt, nmer_dt,
             by = intersect(names(dt), names(nmer_dt)),
             all.x = TRUE)
 
-    ## drop out single wt nmer from rolling window over fusion peptides from JAFFA input
-    if("fus_tx" %chin% names(dt)) dt <- dt %>%
-      .[, drop := stringi::stri_detect_fixed(pattern = nmer, str = pep_gene_1)] %>%
-                  .[drop == FALSE] %>%
-                    .[, drop := NULL]
+      # remove peptides present in global normal protein database
 
+        # load global peptide database
+          if (dt$MHC %likef% "HLA" %>% any &
+              !dt$MHC %likef% "H-2" %>% any)
+              {
+                pepv <-
+                "antigen.garnish_GRCh38_pep.RDS" %>%
+                {
+                  utils::download.file(paste0("http://get.rech.io/", .), .)
+                  readRDS(.)
+                }
+              }
+          if (dt$MHC %likef% "H-2" %>% any &
+              !dt$MHC %likef% "HLA" %>% any)
+              {
+                pepv <-
+                "antigen.garnish_GRCm38_pep.RDS" %>%
+                {
+                  utils::download.file(paste0("http://get.rech.io/", .), .)
+                  readRDS(.)
+                }
+              }
+
+          if (dt$MHC %likef% "HLA" %>% any &
+              dt$MHC %likef% "H-2" %>% any)
+              {
+                pepv <- c(
+                "antigen.garnish_GRCm38_pep.RDS" %>%
+                {
+                  utils::download.file(paste0("http://get.rech.io/", .), .)
+                  readRDS(.)
+                },
+                "antigen.garnish_GRCh38_pep.RDS" %>%
+                {
+                  utils::download.file(paste0("http://get.rech.io/", .), .)
+                  readRDS(.)
+                }
+                )
+              }
+
+           # get unique normal proteins and unique non-wt nmers to match
+
+           pepv %<>% unique
+           nmv <- dt[pep_type != "wt", nmer %>% unique]
+
+           # return vector of matched nmers to drop
+
+             mv <- parallel::mclapply(nmv %>% seq_along, function(x){
+                ifelse(
+                       stringi::stri_detect_fixed(pepv, nmv[x]) %>% any,
+                       return(nmv[x]),
+                       return(NULL))
+               }) %>% unlist
+
+           # drop matched nmers
+             dt %<>% .[!(nmer %chin% mv & pep_type != "wt")]
+
+    # drop out single wt nmer from rolling window over fusion peptides from JAFFA input
+        if("fus_tx" %chin% names(dt)) dt <- dt %>%
+          .[, drop := stringi::stri_detect_fixed(pattern = nmer, str = pep_gene_1)] %>%
+                      .[drop == FALSE] %>%
+                        .[, drop := NULL]
 
     # generation a uuid for each unique nmer
-    suppressWarnings(dt[, nmer_uuid :=
-                    parallel::mclapply(1:nrow(dt),
-                    uuid::UUIDgenerate) %>% unlist])
+      suppressWarnings(dt[, nmer_uuid :=
+                      parallel::mclapply(1:nrow(dt),
+                      uuid::UUIDgenerate) %>% unlist])
+
     if (input_type == "transcript"){
 
          dt %<>% make_DAI_uuid
 
         # remove mut == wt by sample_id
-        # remove wt missing mut counterpart
+          for (id in dt[, sample_id %>% unique]){
 
-        for (id in dt[, sample_id %>% unique]){
+           # get wt nmers for fast !chmatch
+           id_wt_nmers <- dt[sample_id == id &
+                              pep_type == "wt",
+                              nmer %>% unique]
 
-         # get wt nmers for fast !chmatch
-         id_wt_nmers <- dt[sample_id == id &
-                            pep_type == "wt",
-                            nmer %>% unique]
-
-         dt %<>% .[pep_type == "wt" |
-                   sample_id != id |
-                   (sample_id == id &
-                    pep_type != "wt" &
-                    !nmer %chin% id_wt_nmers)]
-             }
+           dt %<>% .[pep_type == "wt" |
+           sample_id != id |
+           (sample_id == id &
+            pep_type != "wt" &
+            !nmer %chin% id_wt_nmers)]
+               }
 
         # remove wt without a matched mut
          unmatched_dai <- dt[, .N, by = dai_uuid] %>% . [N == 1, dai_uuid]

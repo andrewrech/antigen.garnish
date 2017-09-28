@@ -8,7 +8,7 @@ r:
   - devel
   - 3.4.0
 env:
-  - MC_CORES=2 OMP_NUM_THREADS=2
+  - MC_CORES=2 OMP_NUM_THREADS=2 DISPLAY=:1
 warnings_are_errors: false
 r_check_args: ""
 cache: packages

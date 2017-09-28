@@ -6,9 +6,8 @@ library(dt.inflix)
 
 testthat::test_that("get_pred_commands", {
 
-    invisible(
-      list.files(pattern = "netMHC.*-.*-.*\\.csv|nuggets.*-.*-.*\\.csv|flurry.*-.*-.*\\.csv") %>%
-      file.remove)
+  list.files(pattern = "(netMHC|nuggets|flurry).*-.*-.*\\.csv") %>% file.remove
+  on.exit(list.files(pattern = "(netMHC|nuggets|flurry).*-.*-.*\\.csv") %>% file.remove)
 
     # load test data
 
@@ -30,7 +29,4 @@ testthat::test_that("get_pred_commands", {
     testthat::expect_equal(dto %>% names,
        c("type", "allele", "nmer_l", "filename", "command"))
 
-    invisible(
-      list.files(pattern = "netMHC.*-.*-.*\\.csv|nuggets.*-.*-.*\\.csv|flurry.*-.*-.*\\.csv") %>%
-      file.remove)
     })

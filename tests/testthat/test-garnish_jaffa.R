@@ -6,6 +6,9 @@ library(dt.inflix)
 
 testthat::test_that("garnish_jaffa", {
 
+    list.files(pattern = "antigen.garnish_jaffa") %>% file.remove
+    on.exit(list.files(pattern = "antigen.garnish_jaffa") %>% file.remove)
+
   # load test data
     path <- "antigen.garnish_jaffa_results.csv" %T>%
         utils::download.file("http://get.rech.io/antigen.garnish_jaffa_results.csv", .)

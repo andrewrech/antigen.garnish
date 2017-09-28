@@ -4,7 +4,40 @@ library(data.table)
 library(magrittr)
 library(dt.inflix)
 
-testthat::test_that("garnish_predictions vcf", {
+testthat::test_that("garnish_predictions README example from VCF", {
+
+   if (!check_pred_tools() %>% unlist %>% all){
+    testthat::skip("Skipping run_netMHC because prediction tools are not in PATH")
+    }
+
+      # load test data
+      dt <- "antigen.garnish_example.vcf" %T>%
+      utils::download.file("http://get.rech.io/antigen.garnish_example.vcf", .) %>%
+      # run test
+      garnish_variants %>%
+        .[, MHC := c("HLA-A*02:01 HLA-DRB1*14:67",
+                     "H-2-Kb H-2-IAd",
+                    "HLA-A*01:47 HLA-DRB1*03:08")] %>%
+      garnish_predictions %>%
+      garnish_summary
+
+      testthat::expect_equivalent(
+            dt,
+            data.table::data.table(sample_id = "normal_tumor.bam",
+              priority_neos = 0L,
+              classic_neos = 0L,
+              classic_top_score = 0.0106647742091908,
+              alt_neos = 5L,
+              alt_top_score = 35.8060295823153,
+              mhc_binders = 13L,
+              predictions = 275L,
+              nmers = 275L,
+              variants = 3L,
+              transcripts = 3L)
+            )
+    })
+
+testthat::test_that("garnish_predictions from transcripts", {
 
    if (!check_pred_tools() %>% unlist %>% all){
     testthat::skip("Skipping run_netMHC because prediction tools are not in PATH")
@@ -25,7 +58,7 @@ testthat::test_that("garnish_predictions vcf", {
                    "HLA-A*01:47 HLA-DRB1*03:08")) %>%
       garnish_predictions
 
-        testthat::expect_equal(dt %>% nrow, 552)
+        testthat::expect_equal(dt %>% nrow, 551)
         testthat::expect_equal(dt$MHC %>% unique %>% sort,
             c("H-2-IAd",
               "H-2-Kb",
@@ -51,7 +84,7 @@ testthat::test_that("garnish_predictions from Excel file", {
   dt <- garnish_predictions(path = path, predict = FALSE)
 
 
-  testthat::expect_equal(dt %>% nrow, 552)
+  testthat::expect_equal(dt %>% nrow, 551)
   testthat::expect_equal(
     dt[, nmer %>%
          nchar %>%
@@ -67,35 +100,21 @@ testthat::test_that("test predict from jaffa input", {
    }
 
   # load test data
+    dt <- data.table::fread("http://get.rech.io/antigen.garnish_example_input_jaffa.csv")
 
-    path <- "antigen.garnish_jaffa_results.csv" %T>%
-      utils::download.file("http://get.rech.io/antigen.garnish_jaffa_results.csv", .)
-    fasta_path <- "antigen.garnish_jaffa_results.fasta" %T>%
-      utils::download.file("http://get.rech.io/antigen.garnish_jaffa_results.fasta", .)
-
-  # get predictions
-    dt <- garnish_jaffa(path = path,
-                        db = "GRCm38",
-                        fasta_path = fasta_path)
-    # add mhc values
     dt[, MHC := "H-2-Kb"]
 
     # predictions
     dt <- garnish_predictions(dt)
 
     testthat::expect_equal(dt %>% class %>% .[1], "data.table")
-    testthat::expect_equal(dt %>% nrow, 1155)
+    testthat::expect_equal(dt %>% nrow, 1071)
     testthat::expect_equal(dt %>% length, 49)
-    testthat::expect_equal(dt[, nmer %>% unique %>% length], 161)
+    testthat::expect_equal(dt[, nmer %>% unique %>% length], 140)
 
    })
 
-
-testthat::test_that("garnish_predictions peptide assemble", {
-
-   if (!check_pred_tools() %>% unlist %>% all){
-    testthat::skip("Skipping run_netMHC because prediction tools are not in PATH")
-    }
+testthat::test_that("garnish_predictions assemble from peptides", {
 
   dt <- data.table::data.table(
           sample_id = "test",
@@ -133,10 +152,10 @@ testthat::test_that("garnish_predictions peptide", {
                          168)
     })
 
-testthat::test_that("garnish_predictions warn on missing pred tools", {
+testthat::test_that("garnish_predictions warning on missing prediction tools", {
 
    if (check_pred_tools() %>% unlist %>% all){
-    testthat::skip("Skipping test for warn on missing pred tools because prediction tools are in PATH")
+    testthat::skip("Skipping test for warning on missing pred tools because prediction tools are in PATH")
     }
 
           data.table::data.table(

@@ -6,6 +6,9 @@ library(dt.inflix)
 
 testthat::test_that("garnish_predictions_assemble_generate", {
 
+  list.files(pattern = "(netMHC|nuggets|flurry).*-.*-.*\\.csv") %>% file.remove
+  on.exit(list.files(pattern = "(netMHC|nuggets|flurry).*-.*-.*\\.csv") %>% file.remove)
+
   # load test data
     dt <- data.table::data.table(
     CHROM = c("7", "11", "11"),
@@ -38,8 +41,8 @@ testthat::test_that("garnish_predictions_assemble_generate", {
   # run test
     dto <- garnish_predictions(dt, predict = FALSE)
 
-    testthat::expect_equal(dto %>% nrow, 552)
+    testthat::expect_equal(dto %>% nrow, 276)
     testthat::expect_equal(dto %>% length, 54)
-    testthat::expect_equal(dto$cDNA_locs %>% unique, c(4988L, 1114L, 718L))
+    testthat::expect_true(dto$cDNA_locs %>% unique %in% c(4988, 718, 1114) %>% all)
 
 })

@@ -4,10 +4,13 @@ library(data.table)
 library(magrittr)
 library(dt.inflix)
 
-testthat::test_that("run_netMHC", {
+testthat::test_that("run_mhcnuggets", {
+
+  list.files(pattern = "mhcnuggets.*csv") %>% file.remove
+  on.exit(list.files(pattern = "mhcnuggets_.*csv") %>% file.remove)
 
    if (!check_pred_tools() %>% unlist %>% all){
-    testthat::skip("Skipping run_netMHC because prediction tools are not in PATH")
+    testthat::skip("Skipping run_mhcnuggets because prediction tools are not in PATH")
   }
 
 
@@ -27,6 +30,13 @@ testthat::test_that("run_netMHC", {
     # run test
       run_mhcnuggets()
 
-   testthat::expect_equal(dt %>% nrow, 304)
-   testthat::expect_equal(dt %>% length, 2)
+   testthat::expect_equal(list.files(pattern = "mhcnuggets_output.*csv") %>% length,
+                          4)
+   testthat::expect_equal(
+                          list.files(pattern = "mhcnuggets_output.*csv") %>%
+                            parallel::mclapply(fread) %>%
+                            data.table::rbindlist %>%
+                            nrow,
+                            304
+                          )
     })
