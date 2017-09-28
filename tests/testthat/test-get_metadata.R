@@ -7,12 +7,12 @@ library(dt.inflix)
 testthat::test_that("get_metadata", {
 
   # load test data
-  dto <- data.table::data.table(
-           ensembl_transcript_id = c("ENSMUST00000128119",
-                                      "ENSMUST00000044250",
-                                      "ENST00000256078")) %>%
+    dto <- data.table::data.table(
+             ensembl_transcript_id = c("ENSMUST00000128119",
+                                        "ENSMUST00000044250",
+                                        "ENST00000256078")) %>%
   # run tets
-  get_metadata
+   get_metadata
 
  testthat::expect_equal(dto %>% names,
         c("ensembl_transcript_id",

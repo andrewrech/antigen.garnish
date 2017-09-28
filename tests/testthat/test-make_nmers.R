@@ -26,6 +26,6 @@ testthat::test_that("make_nmers", {
     # run test
       dto <- make_nmers(dt)
 
-  testthat::expect_equal(dto %>% nrow, 552)
+    testthat::expect_equal(dto %>% nrow, 552)
 
     })

@@ -7,15 +7,15 @@ library(dt.inflix)
 testthat::test_that("extract_cDNA", {
 
   # load test data
-  dt <- data.table::data.table(cDNA_change =
-      c("c.4988C>T",
-        "c.1114T>G",
-        "c.718T>A",
-        "c.718_722delTTGC",
-        "c.315_316insTAATGATACGGC",
-        "c.3088_3089insT")) %>%
+    dt <- data.table::data.table(cDNA_change =
+        c("c.4988C>T",
+          "c.1114T>G",
+          "c.718T>A",
+          "c.718_722delTTGC",
+          "c.315_316insTAATGATACGGC",
+          "c.3088_3089insT")) %>%
   # run test
-  extract_cDNA
+    extract_cDNA
 
   testthat::expect_equal(dt, structure(list(cDNA_change = c("c.4988C>T", "c.1114T>G", "c.718T>A",
     "c.718_722delTTGC", "c.315_316insTAATGATACGGC", "c.3088_3089insT"),

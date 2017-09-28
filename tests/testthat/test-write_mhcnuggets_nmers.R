@@ -4,7 +4,10 @@ library(data.table)
 library(magrittr)
 library(dt.inflix)
 
-testthat::test_that("detect_mhc", {
+testthat::test_that("write_mhcnuggets_nmers", {
+
+  list.files(pattern = "mhcnuggets_input_.*csv") %>% file.remove
+  on.exit(list.files(pattern = "mhcnuggets_input_.*csv") %>% file.remove)
 
   # load test data
     alleles <- data.table::rbindlist(
@@ -35,22 +38,44 @@ testthat::test_that("detect_mhc", {
                         data.table::setnames("V1", "allele") %>%
                         .[, type := "netMHCIIpan"],
     system.file("extdata",
-                  "mhcnuggets_gru_alleles.txt", package = "antigen.garnish") %>%
+         "mhcnuggets_gru_alleles.txt", package = "antigen.garnish") %>%
                         data.table::fread(header = FALSE, sep = "\t") %>%
                         data.table::setnames("V1", "allele") %>%
                         .[, type := "mhcnuggets_gru"],
     system.file("extdata",
-                "mhcnuggets_lstm_alleles.txt", package = "antigen.garnish") %>%
+        "mhcnuggets_lstm_alleles.txt", package = "antigen.garnish") %>%
                         data.table::fread(header = FALSE, sep = "\t") %>%
                         data.table::setnames("V1", "allele") %>%
                         .[, type := "mhcnuggets_lstm"]
-  ))
+                        ))
 
-    dt <- data.table::data.table(netMHCIIpan =
-           c("A0201", "A0301", "DRB1_0301", "DRB1_1467"))
+    dt <- data.table::data.table(
+       mhcnuggets = c("HLA-A0201",
+                      "HLA-A0201",
+                      "HLA-A0201",
+                      "HLA-A0201",
+                      "HLA-A0201",
+                      "HLA-A0201"),
+       nmer = c("AQSGTPPT",
+                "AQSGTPPTG",
+                "AQSGTPPTGL",
+                "AQSGTPPT",
+                "AQSGTPPTG",
+                "AQSGTPPTGL"),
+       nmer_l = c(8L, 9L, 10L, 8L, 9L, 10L))
 
-  # run test
-    dt[, netMHCIIpan := detect_mhc(netMHCIIpan, alleles)]$netMHCIIpan %>%
+    # run test
 
-    testthat::expect_equal(c(NA, NA, "DRB1_0301", "DRB1_1467"))
+      write_mhcnuggets_nmers(dt, alleles)
+
+      out <- list.files(pattern = "mhcnuggets_input_.*csv")
+
+      testthat::expect_equal(
+        out %>% length, 2)
+
+      testthat::expect_equal(
+        out %>% lapply(., function(x){
+          x %>% fread(header = FALSE)
+        }) %>% unlist %>% length, 6)
+
     })
