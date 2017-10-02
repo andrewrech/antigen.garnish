@@ -32,7 +32,7 @@ An R package for [neoepitope](http://science.sciencemag.org/content/348/6230/69)
 * Linux
 * R &ge; 3.4
 
-### Install depdendencies
+### Install dependencies
 
 Install R (version 3.4), prediction tools, and dependencies on a Ubuntu [AMI](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/EC2_GetStarted.html) (Ubuntu Server 16.04 LTS (HVM) - ami-cd0f5cb6):
 
