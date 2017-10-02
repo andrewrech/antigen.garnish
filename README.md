@@ -65,6 +65,7 @@ devtools::install_github("andrewrech/antigen.garnish")
 * `garnish_jaffa`: process gene fusions from [JAFFA](https://github.com/Oshlack/JAFFA)
 * `garnish_predictions`: perform ensemble neoepitope prediction
 * `garnish_summary`: summarize neoepitope prediction
+* `garnish_plots`: generate summary plots for neoepitope prediction
 
 ### Examples
 
