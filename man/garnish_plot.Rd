@@ -12,7 +12,7 @@ garnish_plot(dt = NULL, jdt = NULL, save = TRUE)
 \arguments{
 \item{dt}{Data table. Prediction output from \code{garnish_predictions}. Either dt or jdt must be provided as input.}
 
-\item{jdt}{Data table. Prediction output from \code{garnish_jaffa} passed to \code{garnish_predictions}. Either dt or jdt must be provided as input.}
+\item{jdt}{Data table. Prediction output from jaffa input passed to \code{garnish_jaffa}. Either dt or jdt must be provided as input.}
 
 \item{save}{Optional: Should the plot be saved to the working directory as antigen.garnish_summary.pdf? Default is TRUE.}
 
@@ -40,7 +40,7 @@ The second plot and third plots are returned only if frameshift and/or fusion mu
 the number of peptides per sample by MHC class I or II and binned by binding affinity (1000 - 500nM, 500 - 50nM, and < 50 nM).
 }
 \description{
-Plots ADN, CDN, priority, frameshift, and fusion derived neoepitopes for Class I and Class II MHC by sample. See \code{garnish_summary} for more information on neoepitope classification by antigen.garnish.
+Plots ADN, CDN, priority, frameshift, and fusion derived neoepitopes for Class I and Class II MHC by sample.
 
 Plots ADN, CDN, priority, frameshift, and fusion derived neoepitopes for Class I and Class II MHC by sample.
 See \code{garnish_summary} for more information on neoepitope classification by antigen.garnish.
