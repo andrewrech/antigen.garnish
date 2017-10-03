@@ -11,7 +11,7 @@ testthat::test_that("cat_tables", {
   # load test data
   dt <- data.table::fread("http://get.rech.io/antigen.garnish_example_jaffa_output.txt")
   
-  jdt <- dt[pep_type == "fus"]
+  jdt <- dt[pep_type == "fus"] %>% .[, fus_tx := "AAAGGGCCCCTTT"]
   
   dt <- dt[pep_type != "fus"]
   
