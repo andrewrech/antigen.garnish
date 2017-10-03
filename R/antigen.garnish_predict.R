@@ -233,6 +233,10 @@ get_pred_commands <- function(dt){
       stringr::str_detect(" ") %>% any) dt %<>%
       tidyr::separate_rows("MHC", sep = " ")
 
+      dt[, class :=
+            ifelse(MHC %>% stringr::str_detect("(HLA-[ABC]\\*)|(H-2-[A-Z][a-z])"),
+            "I", "II")]
+
   # get available MHC alleles for predictions
 
   alleles <- data.table::rbindlist(
@@ -683,6 +687,9 @@ mcMap(function(x, y) (x %>% as.integer):(y %>% as.integer) %>%
 #' * transcript_start
 #' * peptide
 #' * refseq_mrna
+#'
+#' @seealso \code{\link{garnish_summary}}
+#'
 #' @examples
 #'\dontrun{
 #'library(magrittr)

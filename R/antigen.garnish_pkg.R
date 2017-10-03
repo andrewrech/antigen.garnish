@@ -24,12 +24,14 @@
 #' @import colorspace
 #' @import data.table
 #' @import dt.inflix
+#' @import ggplot2
 #' @import parallel
 #' @import stringr
 #' @import testthat
 #' @importFrom rio import
 #' @importFrom ShortRead sread readFasta
 #' @importFrom Biostrings DNAString translate
+#' @importFrom(cowplot, ggsave)
 #' @importFrom biomaRt useMart getBM getSequence
 #' @importFrom magrittr %>% %T>% %$% %<>%
 #' @importFrom Rdpack reprompt
