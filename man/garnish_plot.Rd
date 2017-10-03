@@ -12,7 +12,7 @@ garnish_plot(dt = NULL, jdt = NULL, save = TRUE)
 \arguments{
 \item{dt}{Data table. Prediction output from \code{garnish_predictions}. Either dt or jdt must be provided as input.}
 
-\item{jdt}{Data table. Prediction output from \code{garnish_jaffa`` %>%}garnish_predictions`. Either dt or jdt must be provided as input.}
+\item{jdt}{Data table. Prediction output from \code{garnish_jaffa} %>% \code{garnish_predictions}. Either dt or jdt must be provided as input.}
 
 \item{save}{Optional: Should the plot be saved to the working directory as antigen.garnish_summary.pdf? Default is TRUE.}
 
