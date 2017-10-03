@@ -2,10 +2,14 @@
 % Please edit documentation in R/antigen.garnish_io.R
 \name{cat_tables}
 \alias{cat_tables}
-\title{Internal function to combine garnish_predictions outputs from garnish_jaffa
-and garnish_variants or direct input to garnish_predictions.}
+\title{An internal antigen.garnish function.}
 \usage{
 cat_tables(dt1, dt2)
+}
+\arguments{
+\item{dt1}{An input data.table}
+
+\item{dt2}{An input data.table}
 }
 \description{
 Internal function to combine garnish_predictions outputs from garnish_jaffa
