@@ -90,8 +90,6 @@ garnish_summary <- function(dt){
     dt[, DAI := DAI %>% as.numeric]
     dt[is.na(DAI), DAI  := 0]
 
-  dt <- data.table(DAI = NA)
-  dt <- dt[DAI != Inf]
 
   dt <- dt[DAI != Inf & DAI != -Inf & Consensus_scores != Inf & Consensus_scores != -Inf]
 
@@ -104,6 +102,9 @@ garnish_summary <- function(dt){
       }
 
   dt %>% data.table::setkey(sample_id)
+  
+  dt[, class := "I"]
+  dt[MHC %like% "(HLA-D[A-Z0-9]+\\*)|(H-2-[A-Z]{2}[a-z])", class]
 
   dtn <- parallel::mclapply(dt[, sample_id %>% unique], function(id){
 
