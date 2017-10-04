@@ -463,11 +463,7 @@ garnish_plot <- function(input){
       
         }
     # create and filter data table
-    dt <- dt[pep_type != "wt"] %>% unique(by = c("nmer",
-                                                 "MHC",
-                                                 "sample_id",
-                                                 "DAI",
-                                                 "Consensus_scores"))
+    dt <- dt[pep_type != "wt"] %>% unique
 
   # add ADN, CDN, priority classification to table
     dt <- dt %>% .[Consensus_scores < 5000] %>%
@@ -477,7 +473,7 @@ garnish_plot <- function(input){
       .[frameshift == TRUE & Consensus_scores < 1000, type := "frameshift"]
     
   # check if fusions present in input dt
-    if (names(dt) %like% "fusion_uuid" %>% any) dt[!is.na(fusion_uuid) & Consensus_scores < 1000,
+    if (names(dt) %like% "fusion_uuid" %>% any) dt[!is.na(fusion_uuid) & fusion_uuid != "" & Consensus_scores < 1000,
                                                     type := "fusion"]
 
     dt <- dt[!is.na(type)]    
@@ -551,7 +547,7 @@ garnish_plot <- function(input){
 
     if (nrow(dt[frameshift == TRUE]) > 0){
 
-      dt_pl <- dt[type == "frameshift"]
+      dt_pl <- dt[frameshift == TRUE]
       
       dt_pl[, binding := "<1000nM"] %>%
         .[Consensus_scores < 500, binding := "<500nM"] %>%
