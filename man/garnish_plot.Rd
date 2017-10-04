@@ -2,28 +2,29 @@
 % Please edit documentation in R/antigen.garnish_io.R
 \name{garnish_plot}
 \alias{garnish_plot}
-\title{Graph summary results using ggplot2.}
+\title{Graph \code{garnish_predictions} results.}
 \usage{
-garnish_plot(dt = NULL, jdt = NULL, save = TRUE)
+garnish_plot(input)
 }
 \arguments{
-\item{dt}{Data table. Prediction output from \code{garnish_predictions}. Either dt or jdt must be provided as input.}
-
-\item{jdt}{Data table. Prediction output from jaffa input passed to \code{garnish_jaffa} and then \code{garnish_predictions}. Either dt or jdt must be provided as input.}
-
-\item{save}{Optional: Should the plot be saved to the working directory as antigen.garnish_summary.pdf? Default is TRUE.}
+\item{input}{Output from \code{garnish_predictions} to be graphed. \code{input} may be a data.table object, list of data.tables, or file path of a rio::import compatible file type.}
 }
 \value{
-A list of ggplot2 objects and, if save = TRUE, saves each of these objects pdfs in the working directory.
+Saves one or more plots as pdfs in the working directory.
 The first plot is a column graph indicating the number of peptides in each sample classified as ADN, CDN, priority, frameshift-derived, and fusion-derived neoepitopes
-(if any) for each sample, faceted by Class I vs Class II MHC. The threshold for fusion and frameshift derived neoepitopes is Consensus_scores < 1000nM.
-See `garnish_summary`` documentation for further explanation of neoepitope classification of ADN, CDN, and priority.
+(if any) for each sample, faceted by Class I vs Class II MHC. The threshold for inclusion of fusion and frameshift derived neoepitopes is Consensus_scores < 1000nM.
+See \code{garnish_summary} documentation for further explanation of neoepitope classification.
 
-The second plot and third plots are returned only if frameshift and/or fusion mutants (respectively) are present in the input table. These plot
+The second plot and third plots are returned only if qualifying frameshift and/or fusion mutants (respectively) are present in the input table. These plot
 the number of peptides per sample by MHC class I or II and binned by binding affinity (1000 - 500nM, 500 - 50nM, and < 50 nM).
+
+N.B. if a list of data.tables is input, unique plots will be generated for each.  To create plots that incorporate all desired samples, combine data.tables into a single
+object or file first, and ensure that each sample has a unique value for sample_id so they are properly combined.  Longer sample_ids obliterate the plotting space, so by
+default this function shortens sample_id to 7 and adds "_i" to each sample_id.  This is necessary for \code{garnish_variants} derived input as the concatenated bam file names
+used for sample_id are quite large.  Renaming sample_ids to nchar < 7 will prevent this manipulation.
 }
 \description{
-Plots ADN, CDN, priority, frameshift, and fusion derived neoepitopes for Class I and Class II MHC by sample.
+Plot ADN, CDN, priority, frameshift, and fusion derived \code{nmers} for class I and class II MHC by \code{sample_id}.
 }
 \examples{
 \dontrun{
@@ -31,7 +32,7 @@ library(magrittr)
 library(antigen.garnish)
 
  # download an example VCF
-   g <- "antigen.garnish_example.vcf" \%T>\%
+   "antigen.garnish_example.vcf" \%T>\%
    utils::download.file("http://get.rech.io/antigen.garnish_example.vcf", .) \%>\%
 
  # extract variants
@@ -47,16 +48,15 @@ library(antigen.garnish)
 
  # plot it
    antigen.garnish::garnish_plot
-  
- # here is our ggplot object that can be further customized 
-  class(g)
- 
- # save the plot with a custom ggplot theme 
- g + my_ggplot_custom_theme_object \%>\% cowplot::ggsave("antigen.garnish_custom_themed_plot.pdf")
-  
- # show location of where default plot was saved
-  list.files(pattern = "summary\\\\.pdf", full.names = TRUE)   
-  
+
+ # show location of where plots were saved
+  list.files(pattern = "summary\\\\.pdf", full.names = TRUE)
+
 }
 
+}
+\seealso{
+\code{\link{garnish_predictions}}
+
+\code{\link{garnish_summary}}
 }

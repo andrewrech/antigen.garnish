@@ -58,3 +58,6 @@ library(antigen.garnish)
 }
 
 }
+\seealso{
+\code{\link{garnish_predictions}}
+}

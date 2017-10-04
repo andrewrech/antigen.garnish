@@ -159,3 +159,6 @@ library(antigen.garnish)
      str
 }
 }
+\seealso{
+\code{\link{garnish_summary}}
+}
