@@ -548,7 +548,7 @@ garnish_plot <- function(input){
     
     file.rename("antigen.garnish_Neoepitopes_summary.pdf", filename)
 
-    if (nrow(dt[frameshift == TRUE]) > 1){
+    if (nrow(dt[frameshift == TRUE]) > 0){
 
       dt_pl <- dt[type == "frameshift"]
       
