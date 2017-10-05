@@ -31,7 +31,6 @@
 #' @importFrom rio import
 #' @importFrom ShortRead sread readFasta
 #' @importFrom Biostrings DNAString translate
-#' @importFrom(cowplot, ggsave)
 #' @importFrom biomaRt useMart getBM getSequence
 #' @importFrom magrittr %>% %T>% %$% %<>%
 #' @importFrom Rdpack reprompt

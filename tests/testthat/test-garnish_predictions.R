@@ -25,16 +25,26 @@ testthat::test_that("garnish_predictions README example from VCF", {
     testthat::expect_equivalent(
           dt,
           data.table::data.table(sample_id = "normal_tumor.bam",
-            priority_neos = 0L,
-            classic_neos = 0L,
-            classic_top_score = 0.0106647742091908,
-            alt_neos = 5L,
-            alt_top_score = 35.8060295823153,
-            mhc_binders = 13L,
-            predictions = 275L,
-            nmers = 275L,
-            variants = 3L,
-            transcripts = 3L)
+                         priority_neos_class_I = 0L,
+                         priority_neos_class_II = 0L,
+                         classic_neos_class_I = 0L,
+                         classic_neos_class_II = 0L,
+                         classic_top_score_class_I = 0.0106647742091908,
+                         classic_top_score_class_II = 0.0010342955988725,
+                         alt_neos_class_I = 3L,
+                         alt_neos_class_II = 0L,
+                         alt_top_score_class_I = 33.424955713995,
+                         alt_top_score_class_II = 3.00997014163189,
+                         fs_neos_class_I = 0L,
+                         fs_neos_class_II = 0L,
+                         fusion_neos_class_I = 0L,
+                         fusion_neos_class_II = 0L,
+                         mhc_binders_class_I = 7L,
+                         mhc_binders_class_II = 6L,
+                         predictions = 275L,
+                         nmers = 275L,
+                         variants = 3L,
+                         transcripts = 3L)
           )
     })
 
@@ -111,7 +121,6 @@ testthat::test_that("test predict from jaffa input", {
 
   testthat::expect_equal(dt %>% class %>% .[1], "data.table")
   testthat::expect_equal(dt %>% nrow, 1071)
-  testthat::expect_equal(dt %>% length, 49)
   testthat::expect_equal(dt[, nmer %>% unique %>% length], 140)
 
    })
@@ -151,7 +160,7 @@ testthat::test_that("garnish_predictions peptide", {
     dto <- garnish_predictions(dt)
 
   testthat::expect_equal(dto %>% length,
-                         41)
+                         42)
   testthat::expect_equal(dto %>% nrow,
                          168)
     })

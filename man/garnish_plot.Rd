@@ -7,21 +7,12 @@
 garnish_plot(input)
 }
 \arguments{
-\item{input}{Output from \code{garnish_predictions} to be graphed. \code{input} may be a data.table object, list of data.tables, or file path of a rio::import compatible file type.}
+\item{input}{Output from \code{garnish_predictions} to graph. \code{input} may be a data.table object, list of data.tables, or file path to a rio::import-compatible file type. If a list of data tables is provided, unique plots will be generated for each data table.}
 }
 \value{
-Saves one or more plots as pdfs in the working directory.
-The first plot is a column graph indicating the number of peptides in each sample classified as ADN, CDN, priority, frameshift-derived, and fusion-derived neoepitopes
-(if any) for each sample, faceted by Class I vs Class II MHC. The threshold for inclusion of fusion and frameshift derived neoepitopes is Consensus_scores < 1000nM.
-See \code{garnish_summary} documentation for further explanation of neoepitope classification.
+NULL
 
-The second plot and third plots are returned only if qualifying frameshift and/or fusion mutants (respectively) are present in the input table. These plot
-the number of peptides per sample by MHC class I or II and binned by binding affinity (1000 - 500nM, 500 - 50nM, and < 50 nM).
-
-N.B. if a list of data.tables is input, unique plots will be generated for each.  To create plots that incorporate all desired samples, combine data.tables into a single
-object or file first, and ensure that each sample has a unique value for sample_id so they are properly combined.  Longer sample_ids obliterate the plotting space, so by
-default this function shortens sample_id to 7 and adds "_i" to each sample_id.  This is necessary for \code{garnish_variants} derived input as the concatenated bam file names
-used for sample_id are quite large.  Renaming sample_ids to nchar < 7 will prevent this manipulation.
+As a side effect: saves graph illustrating the number of neoepitopes in each sample to the working directory. The threshold for inclusion of fusion and frameshift-derived neoepitopes is \eqn{IC_{50}} < 1000nM.
 }
 \description{
 Plot ADN, CDN, priority, frameshift, and fusion derived \code{nmers} for class I and class II MHC by \code{sample_id}.
@@ -31,26 +22,13 @@ Plot ADN, CDN, priority, frameshift, and fusion derived \code{nmers} for class I
 library(magrittr)
 library(antigen.garnish)
 
- # download an example VCF
-   "antigen.garnish_example.vcf" \%T>\%
-   utils::download.file("http://get.rech.io/antigen.garnish_example.vcf", .) \%>\%
+ # download example output
+   "antigen.garnish_example_jaffa_output.txt" \%T>\%
+   utils::download.file(
+    "http://get.rech.io/antigen.garnish_example_jaffa_output.txt", .) \%>\%
 
- # extract variants
-   antigen.garnish::garnish_variants \%>\%
-
- # add test MHC types
-     .[, MHC := c("HLA-A*02:01 HLA-DRB1*14:67",
-                  "H-2-Kb H-2-IAd",
-                 "HLA-A*01:47 HLA-DRB1*03:07")] \%>\%
-
- # predict neoepitopes
-   antigen.garnish::garnish_predictions \%>\%
-
- # plot it
+ # create plot
    antigen.garnish::garnish_plot
-
- # show location of where plots were saved
-  list.files(pattern = "summary\\\\.pdf", full.names = TRUE)
 
 }
 

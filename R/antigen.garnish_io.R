@@ -39,8 +39,8 @@
 #' * **alt_neos**: alternatively defined neoepitopes (ADNs); defined as mutant `nmers` predicted to bind MHC with greatly improved affinity relative to non-mutated counterparts (10x for MHC class I and 4x for MHC class II) (see below)
 #' * **alt_top_score**: sum of the top three mutant `nmer` differential agretopicity indices; differential agretopicity index (DAI) is the ratio of MHC binding affinity between mutant and wt peptide (see below)
 #' * **priority_neos**: mutant peptides that meet both ADN and CDN criteria, or that meet CDN criteria and are derived from frameshift mutations
-#' * **fs_neos**: mutant `nmers` derived from frameshift variants predicted to bind MHC with < 500nM \eqn{IC_{50}})
-#' * **fusion_neos**: mutant `nmers` derived from fusion variants predicted to bind MHC with < 500nM \eqn{IC_{50}})
+#' * **fs_neos**: mutant `nmers` derived from frameshift variants predicted to bind MHC with < 500nM \eqn{IC_{50}}
+#' * **fusion_neos**: mutant `nmers` derived from fusion variants predicted to bind MHC with < 500nM \eqn{IC_{50}}
 #' * **nmers**: total mutant `nmers` created
 #' * **predictions**: wt and mutant predictions performed
 #' * **mhc_binders**: `nmers` predicted to at least minimally bind MHC (< 5000nM \eqn{IC_{50}})
@@ -102,9 +102,6 @@ garnish_summary <- function(dt){
       }
 
   dt %>% data.table::setkey(sample_id)
-  
-  dt[, class := "I"]
-  dt[MHC %like% "(HLA-D[A-Z0-9]+\\*)|(H-2-[A-Z]{2}[a-z])", class]
 
   dtn <- parallel::mclapply(dt[, sample_id %>% unique], function(id){
 
@@ -270,6 +267,7 @@ garnish_variants <- function(vcfs){
     if (vdt %>% nrow < 1) return(data.table::data.table(sample_id = sample_id))
 
     # filter passing Strelka2 and muTect variants
+
     if (vcf_type == "Strelka") vdt <- vdt[FILTER == "PASS"]
     if (vcf_type == "Mutect") vdt <- vdt[INFO %>%
                                         stringr::str_extract("(?<=TLOD=)[0-9\\.]") %>%
@@ -340,7 +338,7 @@ garnish_variants <- function(vcfs){
 #'
 #' Plot ADN, CDN, priority, frameshift, and fusion derived `nmers` for class I and class II MHC by `sample_id`.
 #'
-#' @param input Output from `garnish_predictions` to be graphed. `input` may be a data.table object, list of data.tables, or file path of a rio::import compatible file type. 
+#' @param input Output from `garnish_predictions` to graph. `input` may be a data.table object, list of data.tables, or file path to a rio::import-compatible file type. If a list of data tables is provided, unique plots will be generated for each data table.
 #'
 #' @seealso \code{\link{garnish_predictions}}
 #' @seealso \code{\link{garnish_summary}}
@@ -350,60 +348,34 @@ garnish_variants <- function(vcfs){
 #'library(magrittr)
 #'library(antigen.garnish)
 #'
-#'  # download an example VCF
-#'    "antigen.garnish_example.vcf" %T>%
-#'    utils::download.file("http://get.rech.io/antigen.garnish_example.vcf", .) %>%
+#'  # download example output
+#'    "antigen.garnish_example_jaffa_output.txt" %T>%
+#'    utils::download.file(
+#'     "http://get.rech.io/antigen.garnish_example_jaffa_output.txt", .) %>%
 #'
-#'  # extract variants
-#'    antigen.garnish::garnish_variants %>%
-#'
-#'  # add test MHC types
-#'      .[, MHC := c("HLA-A*02:01 HLA-DRB1*14:67",
-#'                   "H-2-Kb H-2-IAd",
-#'                  "HLA-A*01:47 HLA-DRB1*03:07")] %>%
-#'
-#'  # predict neoepitopes
-#'    antigen.garnish::garnish_predictions %>%
-#'
-#'  # plot it
+#'  # create plot
 #'    antigen.garnish::garnish_plot
-#'
-#'  # show location of where plots were saved
-#'   list.files(pattern = "summary\\.pdf", full.names = TRUE)
 #'
 #'}
 #'
-#' @return
+#' @return NULL
 #'
-#' Saves one or more plots as pdfs in the working directory.
-#' The first plot is a column graph indicating the number of peptides in each sample classified as ADN, CDN, priority, frameshift-derived, and fusion-derived neoepitopes
-#' (if any) for each sample, faceted by Class I vs Class II MHC. The threshold for inclusion of fusion and frameshift derived neoepitopes is Consensus_scores < 1000nM.
-#' See `garnish_summary` documentation for further explanation of neoepitope classification.
-#'
-#' The second plot and third plots are returned only if qualifying frameshift and/or fusion mutants (respectively) are present in the input table. These plot
-#' the number of peptides per sample by MHC class I or II and binned by binding affinity (1000 - 500nM, 500 - 50nM, and < 50 nM).
-#' 
-#' N.B. if a list of data.tables is input, unique plots will be generated for each.  To create plots that incorporate all desired samples, combine data.tables into a single
-#' object or file first, and ensure that each sample has a unique value for sample_id so they are properly combined.  Longer sample_ids obliterate the plotting space, so by
-#' default this function shortens sample_id to 7 and adds "_i" to each sample_id.  This is necessary for `garnish_variants` derived input as the concatenated bam file names
-#' used for sample_id are quite large.  Renaming sample_ids to nchar < 7 will prevent this manipulation. 
+#' As a side effect: saves graph illustrating the number of neoepitopes in each sample to the working directory. The threshold for inclusion of fusion and frameshift-derived neoepitopes is \eqn{IC_{50}} < 1000nM.
 #'
 #' @export garnish_plot
 #'
 #' @md
 
 garnish_plot <- function(input){
-  
-  # check input
-  if (length(input) > 1 & class(input)[1] != "data.table") stop("Input must be a full file path to a rio::import supported file type, a data.table object,
-                                                                or a list of data.tables (e.g. garnish_plot(list(dt1, dt2, dt3))")
-  
-  if (class(input)[1] == "character") input <- rio::import(input) %>% data.table::as.data.table
-  
-  if (class(input)[1] != "list" & class(input)[1] != "data.table") stop("Input must be a full file path to a rio::import supported file type, a data.table object,
-                                                                        or a list of data.tables (e.g. garnish_plot(list(dt1, dt2, dt3))")
 
-  # set up our theming
+  # check input
+  if (length(input) > 1 & class(input)[1] != "data.table") stop("Input must be a path to a rio::import-supported file type, a data.table, or a list of data tables (e.g. garnish_plot(list(dt1, dt2, dt3))")
+
+  if (class(input)[1] == "character") input <- rio::import(input) %>% data.table::as.data.table
+
+  if (class(input)[1] != "list" & class(input)[1] != "data.table") stop("Input must be a full file path to a rio::import supported file type, a data.table object, or a list of data.tables (e.g. garnish_plot(list(dt1, dt2, dt3))")
+
+  # set up theming
   ag_gg_theme <-
     ggplot2::theme(line = ggplot2::element_line(colour = "#000000")) +
     ggplot2::theme(axis.line = ggplot2::element_line(color="black")) +
@@ -431,11 +403,11 @@ garnish_plot <- function(input){
   ag_colors <-   c("#ff80ab",
                    "#b388ff",
                    "#82b1ff",
-                   "#a7ffeb",
-                   "#b9f6ca",
-                   "#f4ff81",
-                   "#ffe57f",
                    "#ff9e80",
+                   "#a7ffeb",
+                   "#f4ff81",
+                   "#b9f6ca",
+                   "#ffe57f",
                    "#ff8a80",
                    "#ea80fc",
                    "#8c9eff",
@@ -444,23 +416,21 @@ garnish_plot <- function(input){
                    "#ccff90",
                    "#ffff8d",
                    "#ffd180")
-  
+
   if(class(input)[1] != "list") input <- list(input)
-  
-  parallel::mclapply(input %>% seq_along, function(i){
+
+  lapply(input %>% seq_along, function(i){
 
     dt <- input[[i]]
-    
+    dt <- data.table::copy(dt)
+
       if (!(c("nmer",
               "MHC",
               "sample_id",
               "DAI",
               "Consensus_scores") %chin% names(dt)) %>% any){
-        
-        message(paste0("'sample_id', 'nmer', 'MHC', 'frameshift', 'DAI', and 'Consensus_scores' columns are required in all inputs.
-                       Is input #", i, " garnish_predictions() output?"))
-        return(NULL)
-      
+
+        stop(paste0("'sample_id', 'nmer', 'MHC', 'frameshift', 'DAI', and 'Consensus_scores' columns are required in all inputs."))
         }
     # create and filter data table
     dt <- dt[pep_type != "wt"] %>% unique
@@ -471,35 +441,33 @@ garnish_plot <- function(input){
       .[pep_type == "mutnfs" & DAI > 10, type := "ADN"] %>%
       .[pep_type == "mutnfs" & Consensus_scores < 50 & DAI > 10, type := "priority"] %>%
       .[frameshift == TRUE & Consensus_scores < 1000, type := "frameshift"]
-    
-  # check if fusions present in input dt
-    if (names(dt) %like% "fusion_uuid" %>% any) dt[!is.na(fusion_uuid) & fusion_uuid != "" & Consensus_scores < 1000,
-                                                    type := "fusion"]
 
-    dt <- dt[!is.na(type)]    
-    
+  # check if fusions present in input dt
+    if (names(dt) %like% "fusion_uuid" %>% any)
+      dt[!is.na(fusion_uuid) & fusion_uuid != "" &
+         Consensus_scores < 1000,
+         type := "fusion"]
+
+    dt <- dt[!is.na(type)]
+
   # check if anything is left in the dt
     if (nrow(dt) < 1){
-      
-      message(paste0("No neoeptiopes with Consensus_scores < 5000nM or that meet minimum classification criteria in input # ", i, " skipping to next input."))
-      
-      return(NULL)
-      
+      warning(paste0("No neoeptiopes with Consensus_scores < 5000nM or that meet minimum classification criteria in input # ", i, " skipping to next input."))
     }
-    
-  # cat MHC alleles together by class for graphing 
-    dt[MHC %like% "(HLA-[ABC]\\*)|(H-2-[A-Z][a-z])", MHC := "MHC Class I"]
-    dt[MHC %like% "(HLA-D[A-Z0-9]+\\*)|(H-2-[A-Z]{2}[a-z])", MHC := "MHC Class II"]
-    
-    
+
+  # cat MHC alleles together by class for graphing
+    dt[class == "I", MHC := "MHC Class I"]
+    dt[class == "II", MHC := "MHC Class II"]
+
+
     gg_dt <- dt[, .N, by = c("sample_id", "MHC", "type")]
 
-  # function to fill in missing combinations of factors to graph dt with even bars per sample_id
+  # function to fill in missing combinations of factors to graph dt with an even bars per sample_id
 
     gdt <- dt %>% (function(dt){
 
       ns <- dt[, sample_id %>% unique %>% length]
-      
+
       type <- lapply(dt[, type %>% unique], function(x){
         replicate(ns * 2, x)
       }) %>% unlist
@@ -526,9 +494,8 @@ garnish_plot <- function(input){
       }
     }
 
-    filename <- paste0("antigen.garnish_Neoepitopes_summary_", i, ".pdf")
-    
   # make first summary plot, neo class by sample_id and MHC
+
    g <- ggplot2::ggplot(gg_dt, ggplot2::aes(x = sample_id, y = N)) +
             ggplot2::geom_col(ggplot2::aes(fill = type), col = "black", position = "dodge") +
             ggplot2::facet_wrap(~MHC) +
@@ -540,19 +507,22 @@ garnish_plot <- function(input){
             ggplot2::xlab("") +
             ggplot2::ggtitle(paste0("antigen.garnish summary"))
 
-      # did not use paste to iterate the name because it messed with device detection, rename after plot creation
-    cowplot::ggsave(plot = g, "antigen.garnish_Neoepitopes_summary.pdf", height = 6, width = 9)
-    
-    file.rename("antigen.garnish_Neoepitopes_summary.pdf", filename)
+           ggplot2::ggsave(plot = g,
+                  paste0("antigen.garnish_Neoepitopes_summary_",
+                    format(Sys.time(), "%d/%m/%y %H:%M:%OS") %>%
+                    stringr::str_replace_all("[^A-Za-z0-9]", "_") %>%
+                    stringr::str_replace_all("[_]+", "_"),
+                    ".pdf")
+                  , height = 6, width = 9)
 
     if (nrow(dt[frameshift == TRUE]) > 0){
 
       dt_pl <- dt[frameshift == TRUE]
-      
+
       dt_pl[, binding := "<1000nM"] %>%
         .[Consensus_scores < 500, binding := "<500nM"] %>%
           .[Consensus_scores < 50, binding := "<50nM"]
-  
+
       gg_dt <- dt_pl[, .N, by = c("sample_id", "MHC", "binding")]
 
     # function to fill in missing combinations of factors to graph dt with even bars per sample_id
@@ -579,9 +549,7 @@ garnish_plot <- function(input){
                   substr(1, 7) %>% paste0(., "_", i)]
         }
        }
-      
-      filename <- paste0("antigen.garnish_Frameshift_summary_", i, ".pdf")
-      
+
     # make frameshift summary plot, binding affinity by sample_id and MHC
       g <- ggplot2::ggplot(gg_dt, ggplot2::aes(x = sample_id, y = N)) +
               ggplot2::geom_col(ggplot2::aes(fill = binding), col = "black", position = "dodge") +
@@ -594,50 +562,49 @@ garnish_plot <- function(input){
               ggplot2::xlab("") +
               ggplot2::ggtitle(paste0("Frameshift neoepitopes"))
 
-    cowplot::ggsave(plot = g, "antigen.garnish_Frameshift_summary.pdf", height = 6, width = 9)
+    ggplot2::ggsave(plot = g, paste0("antigen.garnish_Frameshift_summary_",
+                      format(Sys.time(), "%d/%m/%y %H:%M:%OS") %>%
+                      stringr::str_replace_all("[^A-Za-z0-9]", "_") %>%
+                      stringr::str_replace_all("[_]+", "_"),
+                      ".pdf"), height = 6, width = 9)
 
-    file.rename("antigen.garnish_Frameshift_summary.pdf", filename)
-    
     }
 
-  # fusions plot if applicable
     if ("fusion" %chin% dt[, type %>% unique]%>% any){
-      
+
       dt_pl <- dt[type == "fusion"]
-      
+
       dt_pl[, binding := "<1000nM"] %>%
         .[Consensus_scores < 500, binding := "<500nM"] %>%
         .[Consensus_scores < 50, binding := "<50nM"]
-      
+
       gg_dt <- dt_pl[, .N, by = c("sample_id", "MHC", "binding")]
-      
+
       # function to fill in missing combinations of factors to graph dt with even bars per sample_id
       gdt <- dt_pl %>% (function(dt){
-        
+
         ns <- dt[, sample_id %>% unique %>% length]
-        
+
         gdt <- data.table(sample_id = dt[, sample_id %>% unique],
                           MHC = c(replicate(ns, "MHC Class I"), replicate(ns, "MHC Class II")),
                           binding = c(replicate(ns * 2, "<50nM"), replicate(ns * 2, "<500nM"), replicate(ns * 2, "<1000nM")),
                           N = 0) %>% unique
       })
-      
+
       gg_dt <- merge(gg_dt, gdt, by = intersect(names(gg_dt), names(gdt)), all = TRUE) %>%
         .[, N := max(N), by = c("sample_id", "binding", "MHC")] %>% unique
-      
+
       # shorten names for display if needed
       if (any(gg_dt[, sample_id %>% unique %>% nchar] > 7)){
-        
+
         for (i in gg_dt[nchar(sample_id) > 7, sample_id %>% unique] %>% seq_along){
-          
+
           gg_dt[sample_id == gg_dt[nchar(sample_id) > 7, sample_id %>% unique][i],
                 sample_id := sample_id %>%
                   substr(1, 7) %>% paste0(., "_", i)]
         }
       }
-      
-      filename <- paste0("antigen.garnish_Fusions_summary_", i, ".pdf")
-      
+
       # make fusions summary plot, binding affinity by sample_id and MHC
       g <- ggplot2::ggplot(gg_dt, ggplot2::aes(x = sample_id, y = N)) +
               ggplot2::geom_col(ggplot2::aes(fill = binding), col = "black", position = "dodge") +
@@ -649,12 +616,15 @@ garnish_plot <- function(input){
               ggplot2::ylab("peptides") +
               ggplot2::xlab("") +
               ggplot2::ggtitle(paste0("Fusion neoepitopes"))
-      
-      cowplot::ggsave(plot = g, "antigen.garnish_Fusions_summary.pdf", height = 6, width = 9)
-      
-      file.rename("antigen.garnish_Fusions_summary.pdf", filename)
+
+      ggplot2::ggsave(plot = g,
+                      paste0("antigen.garnish_Fusions_summary_",
+                      format(Sys.time(), "%d/%m/%y %H:%M:%OS") %>%
+                      stringr::str_replace_all("[^A-Za-z0-9]", "_") %>%
+                      stringr::str_replace_all("[_]+", "_"),
+                      ".pdf"), height = 6, width = 9)
     }
   })
-
+  return(NULL)
   }
 
