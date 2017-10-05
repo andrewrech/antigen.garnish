@@ -1,7 +1,7 @@
 ## ---- garnish_summary
 #' Summarize neoepitope prediction.
 #'
-#' Calculate neoepitope summary statistics for priority, classic, and alternative neoepitopes for each sample.
+#' Calculate neoepitope summary statistics for priority, classic, alternative, frameshift-derived, and fusion-derived neoepitopes for each sample.
 #'
 #' @param dt Data table. Prediction output from `garnish_predictions`.
 #'
@@ -55,7 +55,7 @@
 #'
 #'ADNs are generated from selective mutations in the peptide-MHC anchor position (*i.e.* the agretope) rather than mutations randomly occurring across the peptide sequence. This feature leads to two potentially important and unique immunological characteristics of ADNs. First, unlike CDNs, the TCR-facing peptide sequence in ADNs is likely the same as the corresponding non-mutant peptide. Second, the MHC binding of the corresponding non-mutant peptide may be so low that its presentation in the thymus is minimal and central tolerance may be bypassed. Functionally, there is evidence of strong immunogenicity of ADNs. Peptides, which in retrospect satisfy ADN selection criteria, are common among human tumor antigens that have been experimentally confirmed to be immunogenic. A recent extensive analysis of tumor immunity in a patient with ovarian carcinoma showed that the top five reactive mutant peptides had substantially higher mutant to non-mutant predicted MHC class I binding affinity. Moreover, a re-analysis of validated neoepitopes from non-small cell lung carcinoma or melanoma patients showed that one third of these were ADNs (resulting from an anchor position substitution that improved MHC affinity > 10-fold).
 #'
-#'To better model potential for oligoclonal antitumor responses directed against neoepitopes, we additionally report a **top three neoepitope score**, which is defined as the sum of the top three affinity scores \eqn{\left(\frac{1}{IC_{50}}\right)} for CDNs or sum of top three DAI for ADNs. The top three was chosen in each case because this is the minimum number that captures the potential for an oligoclonal T cell response and mirrors experimentally confirmed oligoclonality of T cell responses against human tumors. Moreover, the top three score was the least correlated to total neoepitope load (vs. top 4 through top 15) is a large scale human analysis of neoepitope across 27 disease types (R-squared = 0.0495), and therefore not purely a derivative of total neoepitope load.
+#'To better model potential for oligoclonal antitumor responses directed against neoepitopes, we additionally report a **top three neoepitope score**, which is defined as the sum of the top three affinity scores \eqn{\left(\frac{1}{IC_{50}}\right)} for CDNs or sum of top three DAI for ADNs. The top three was chosen in each case because this is the minimum number that captures the potential for an oligoclonal T cell response and mirrors experimentally confirmed oligoclonality of T cell responses against human tumors. Moreover, the top three score was the least correlated to total neoepitope load (vs. top 4 through top 15) in a large scale human analysis of neoepitope across 27 disease types (R-squared = 0.0495), and therefore not purely a derivative of total neoepitope load.
 #'
 #' @export garnish_summary
 #'
@@ -151,19 +151,19 @@ garnish_summary <- function(dt){
                                       Consensus_scores < 5000, DAI %>% sum_top_v],
           fs_neos_class_I = dt[class == "I" &
                                       effect_type %like% "frameshift" &
-                                      Consensus_scores < 500] %>%
+                                      Consensus_scores < 1000] %>%
                                       data.table::as.data.table %>% nrow,
           fs_neos_class_II = dt[class == "II" &
                                       effect_type %like% "frameshift" &
-                                      Consensus_scores < 500]  %>%
+                                      Consensus_scores < 1000]  %>%
                                       data.table::as.data.table %>% nrow,
           fusion_neos_class_I = dt[class == "I" &
                                       !is.na(fusion_uuid) &
-                                      Consensus_scores < 500] %>%
+                                      Consensus_scores < 1000] %>%
                                       data.table::as.data.table %>% nrow,
           fusion_neos_class_II = dt[class == "II" &
                                       !is.na(fusion_uuid) &
-                                      Consensus_scores < 500]  %>%
+                                      Consensus_scores < 1000]  %>%
                                       data.table::as.data.table %>% nrow,
           mhc_binders_class_I = dt[class == "I" &
                                       Consensus_scores < 5000] %>% nrow,
@@ -338,7 +338,7 @@ garnish_variants <- function(vcfs){
 #'
 #' Plot ADN, CDN, priority, frameshift, and fusion derived `nmers` for class I and class II MHC by `sample_id`.
 #'
-#' @param input Output from `garnish_predictions` to graph. `input` may be a data.table object, list of data.tables, or file path to a rio::import-compatible file type. If a list of data tables is provided, unique plots will be generated for each data table.
+#' @param input Output from `garnish_predictions` to graph. `input` may be a data table object, list of data tables, or file path to a rio::import-compatible file type. If a list of data tables is provided, unique plots will be generated for each data table.
 #'
 #' @seealso \code{\link{garnish_predictions}}
 #' @seealso \code{\link{garnish_summary}}
@@ -369,7 +369,7 @@ garnish_variants <- function(vcfs){
 garnish_plot <- function(input){
 
   # check input
-  if (length(input) > 1 & class(input)[1] != "data.table") stop("Input must be a path to a rio::import-supported file type, a data.table, or a list of data tables (e.g. garnish_plot(list(dt1, dt2, dt3))")
+  if (length(input) > 1 & class(input[[1]])[1] != "data.table") stop("Input must be a path to a rio::import-supported file type, a data.table, or a list of data tables (e.g. garnish_plot(list(dt1, dt2, dt3))")
 
   if (class(input)[1] == "character") input <- rio::import(input) %>% data.table::as.data.table
 
@@ -428,10 +428,12 @@ garnish_plot <- function(input){
               "MHC",
               "sample_id",
               "DAI",
+              "frameshift",
               "Consensus_scores") %chin% names(dt)) %>% any){
 
         stop(paste0("'sample_id', 'nmer', 'MHC', 'frameshift', 'DAI', and 'Consensus_scores' columns are required in all inputs."))
         }
+    
     # create and filter data table
     dt <- dt[pep_type != "wt"] %>% unique
 
@@ -453,6 +455,10 @@ garnish_plot <- function(input){
   # check if anything is left in the dt
     if (nrow(dt) < 1){
       warning(paste0("No neoeptiopes with Consensus_scores < 5000nM or that meet minimum classification criteria in input # ", i, " skipping to next input."))
+      
+      # return(NULL)
+      # TODO do we need return NULL here like I originally had to skip to the next iteration of the loop?  otherwise it just displays
+      # a warning and keeps going?
     }
 
   # cat MHC alleles together by class for graphing
