@@ -369,7 +369,7 @@ garnish_variants <- function(vcfs){
 garnish_plot <- function(input){
 
   # check input
-  if (length(input) > 1 & class(input[[1]])[1] != "data.table") stop("Input must be a path to a rio::import-supported file type, a data.table, or a list of data tables (e.g. garnish_plot(list(dt1, dt2, dt3))")
+  if (class(input)[1] == "list" & class(input[[1]])[1] != "data.table") stop("Input must be a path to a rio::import-supported file type, a data.table, or a list of data tables (e.g. garnish_plot(list(dt1, dt2, dt3))")
 
   if (class(input)[1] == "character") input <- rio::import(input) %>% data.table::as.data.table
 
