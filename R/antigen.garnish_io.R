@@ -1,7 +1,7 @@
 ## ---- garnish_summary
 #' Summarize neoepitope prediction.
 #'
-#' Calculate neoepitope summary statistics for priority, classic, and alternative neoepitopes for each sample.
+#' Calculate neoepitope summary statistics for priority, classic, alternative, frameshift-derived, and fusion-derived neoepitopes for each sample.
 #'
 #' @param dt Data table. Prediction output from `garnish_predictions`.
 #'
@@ -39,6 +39,8 @@
 #' * **alt_neos**: alternatively defined neoepitopes (ADNs); defined as mutant `nmers` predicted to bind MHC with greatly improved affinity relative to non-mutated counterparts (10x for MHC class I and 4x for MHC class II) (see below)
 #' * **alt_top_score**: sum of the top three mutant `nmer` differential agretopicity indices; differential agretopicity index (DAI) is the ratio of MHC binding affinity between mutant and wt peptide (see below)
 #' * **priority_neos**: mutant peptides that meet both ADN and CDN criteria, or that meet CDN criteria and are derived from frameshift mutations
+#' * **fs_neos**: mutant `nmers` derived from frameshift variants predicted to bind MHC with < 500nM \eqn{IC_{50}}
+#' * **fusion_neos**: mutant `nmers` derived from fusion variants predicted to bind MHC with < 500nM \eqn{IC_{50}}
 #' * **nmers**: total mutant `nmers` created
 #' * **predictions**: wt and mutant predictions performed
 #' * **mhc_binders**: `nmers` predicted to at least minimally bind MHC (< 5000nM \eqn{IC_{50}})
@@ -53,7 +55,7 @@
 #'
 #'ADNs are generated from selective mutations in the peptide-MHC anchor position (*i.e.* the agretope) rather than mutations randomly occurring across the peptide sequence. This feature leads to two potentially important and unique immunological characteristics of ADNs. First, unlike CDNs, the TCR-facing peptide sequence in ADNs is likely the same as the corresponding non-mutant peptide. Second, the MHC binding of the corresponding non-mutant peptide may be so low that its presentation in the thymus is minimal and central tolerance may be bypassed. Functionally, there is evidence of strong immunogenicity of ADNs. Peptides, which in retrospect satisfy ADN selection criteria, are common among human tumor antigens that have been experimentally confirmed to be immunogenic. A recent extensive analysis of tumor immunity in a patient with ovarian carcinoma showed that the top five reactive mutant peptides had substantially higher mutant to non-mutant predicted MHC class I binding affinity. Moreover, a re-analysis of validated neoepitopes from non-small cell lung carcinoma or melanoma patients showed that one third of these were ADNs (resulting from an anchor position substitution that improved MHC affinity > 10-fold).
 #'
-#'To better model potential for oligoclonal antitumor responses directed against neoepitopes, we additionally report a **top three neoepitope score**, which is defined as the sum of the top three affinity scores \eqn{\left(\frac{1}{IC_{50}}\right)} for CDNs or sum of top three DAI for ADNs. The top three was chosen in each case because this is the minimum number that captures the potential for an oligoclonal T cell response and mirrors experimentally confirmed oligoclonality of T cell responses against human tumors. Moreover, the top three score was the least correlated to total neoepitope load (vs. top 4 through top 15) is a large scale human analysis of neoepitope across 27 disease types (R-squared = 0.0495), and therefore not purely a derivative of total neoepitope load.
+#'To better model potential for oligoclonal antitumor responses directed against neoepitopes, we additionally report a **top three neoepitope score**, which is defined as the sum of the top three affinity scores \eqn{\left(\frac{1}{IC_{50}}\right)} for CDNs or sum of top three DAI for ADNs. The top three was chosen in each case because this is the minimum number that captures the potential for an oligoclonal T cell response and mirrors experimentally confirmed oligoclonality of T cell responses against human tumors. Moreover, the top three score was the least correlated to total neoepitope load (vs. top 4 through top 15) in a large scale human analysis of neoepitope across 27 disease types (R-squared = 0.0495), and therefore not purely a derivative of total neoepitope load.
 #'
 #' @export garnish_summary
 #'
@@ -84,9 +86,14 @@ garnish_summary <- function(dt){
                   "MHC",
                   "nmer"))
 
+  # set NA DAI to 0 to filter Inf and -Inf
+    dt[, DAI := DAI %>% as.numeric]
+    dt[is.na(DAI), DAI  := 0]
+
+
   dt <- dt[DAI != Inf & DAI != -Inf & Consensus_scores != Inf & Consensus_scores != -Inf]
 
-    # function to sum top values of a numeric vector
+# function to sum top values of a numeric vector
 
   sum_top_v <- function(x, value = 3){
 
@@ -100,22 +107,68 @@ garnish_summary <- function(dt){
 
     dt <- dt[sample_id == id]
 
+    if (!("fusion_uuid" %chin% names(dt)) %>% any) dt[, fusion_uuid := NA]
+    if (!("effect_type" %chin% names(dt)) %>% any) dt[, effect_type := NA]
+
       return(
           data.table::data.table(
           sample_id = id,
-          priority_neos = dt[DAI > 10 & (
-                       Consensus_scores < 50 |
-                        (frameshift == TRUE &
-                         (
-                          mutant_index > (mismatch_s + 2)
-                          )
-                          )
-                       )] %>% nrow,
-          classic_neos = dt[Consensus_scores < 50] %>% nrow,
-          classic_top_score = dt[Consensus_scores < 5000, (1/Consensus_scores) %>% sum_top_v],
-          alt_neos = dt[Consensus_scores < 5000 & DAI > 10] %>% nrow,
-          alt_top_score = dt[Consensus_scores < 5000, DAI %>% sum_top_v],
-          mhc_binders = dt[Consensus_scores < 5000] %>% nrow,
+          priority_neos_class_I = dt[class == "I" &
+                                        DAI > 10 &
+                                         Consensus_scores < 50] %>% nrow,
+          priority_neos_class_II = dt[class == "II" &
+                                        DAI > 10 &
+                                        Consensus_scores < 50] %>% nrow,
+          classic_neos_class_I = dt[class == "I" &
+                                      pep_type == "mutnfs" &
+                                      Consensus_scores < 50] %>%
+                                      data.table::as.data.table %>%  nrow,
+          classic_neos_class_II = dt[class == "II" &
+                                      pep_type == "mutnfs" &
+                                      Consensus_scores < 50] %>%
+                                      data.table::as.data.table %>%  nrow,
+          classic_top_score_class_I = dt[class == "I" &
+                                      pep_type == "mutnfs" &
+                                      Consensus_scores < 5000, (1/Consensus_scores) %>% sum_top_v],
+          classic_top_score_class_II = dt[class == "II" &
+                                      pep_type == "mutnfs" &
+                                      Consensus_scores < 5000, (1/Consensus_scores) %>% sum_top_v],
+          alt_neos_class_I = dt[class == "I" &
+                                      pep_type == "mutnfs" &
+                                      Consensus_scores < 5000 &
+                                      DAI > 10] %>%
+                                      data.table::as.data.table %>% nrow,
+          alt_neos_class_II = dt[class == "II" &
+                                      pep_type == "mutnfs" &
+                                      Consensus_scores < 5000 &
+                                      DAI > 10] %>%
+                                      data.table::as.data.table %>%  nrow,
+          alt_top_score_class_I = dt[class == "I" &
+                                      pep_type == "mutnfs" &
+                                      Consensus_scores < 5000, DAI %>% sum_top_v],
+          alt_top_score_class_II = dt[class == "II" &
+                                      pep_type == "mutnfs" &
+                                      Consensus_scores < 5000, DAI %>% sum_top_v],
+          fs_neos_class_I = dt[class == "I" &
+                                      effect_type %like% "frameshift" &
+                                      Consensus_scores < 1000] %>%
+                                      data.table::as.data.table %>% nrow,
+          fs_neos_class_II = dt[class == "II" &
+                                      effect_type %like% "frameshift" &
+                                      Consensus_scores < 1000]  %>%
+                                      data.table::as.data.table %>% nrow,
+          fusion_neos_class_I = dt[class == "I" &
+                                      !is.na(fusion_uuid) &
+                                      Consensus_scores < 1000] %>%
+                                      data.table::as.data.table %>% nrow,
+          fusion_neos_class_II = dt[class == "II" &
+                                      !is.na(fusion_uuid) &
+                                      Consensus_scores < 1000]  %>%
+                                      data.table::as.data.table %>% nrow,
+          mhc_binders_class_I = dt[class == "I" &
+                                      Consensus_scores < 5000] %>% nrow,
+          mhc_binders_class_II = dt[class == "II" &
+                                      Consensus_scores < 5000] %>% nrow,
           predictions = dt[pep_type %like% "mut"] %>% nrow,
           nmers = dt[pep_type %like% "mut", nmer %>% unique] %>% length
           ))
@@ -162,6 +215,9 @@ garnish_summary <- function(dt){
 #' * **protein_change**: protein change in [HGVS](http://varnomen.hgvs.org/recommendations/DNA/) format
 #' * **cDNA_change**: cDNA change in [HGVS](http://varnomen.hgvs.org/recommendations/protein/) format
 #' * **protein_coding**: is the variant protein coding?
+#'
+#' @seealso \code{\link{garnish_predictions}}
+#'
 #' @examples
 #'\dontrun{
 #'library(magrittr)
@@ -211,6 +267,7 @@ garnish_variants <- function(vcfs){
     if (vdt %>% nrow < 1) return(data.table::data.table(sample_id = sample_id))
 
     # filter passing Strelka2 and muTect variants
+
     if (vcf_type == "Strelka") vdt <- vdt[FILTER == "PASS"]
     if (vcf_type == "Mutect") vdt <- vdt[INFO %>%
                                         stringr::str_extract("(?<=TLOD=)[0-9\\.]") %>%
@@ -273,3 +330,305 @@ garnish_variants <- function(vcfs){
   return(sdt)
 
 }
+
+
+
+## ---- garnish_plot
+#' Graph `garnish_predictions` results.
+#'
+#' Plot ADN, CDN, priority, frameshift, and fusion derived `nmers` for class I and class II MHC by `sample_id`.
+#'
+#' @param input Output from `garnish_predictions` to graph. `input` may be a data table object, list of data tables, or file path to a rio::import-compatible file type. If a list of data tables is provided, unique plots will be generated for each data table.
+#'
+#' @seealso \code{\link{garnish_predictions}}
+#' @seealso \code{\link{garnish_summary}}
+#'
+#' @examples
+#'\dontrun{
+#'library(magrittr)
+#'library(antigen.garnish)
+#'
+#'  # download example output
+#'    "antigen.garnish_example_jaffa_output.txt" %T>%
+#'    utils::download.file(
+#'     "http://get.rech.io/antigen.garnish_example_jaffa_output.txt", .) %>%
+#'
+#'  # create plot
+#'    antigen.garnish::garnish_plot
+#'
+#'}
+#'
+#' @return NULL
+#'
+#' As a side effect: saves graph illustrating the number of neoepitopes in each sample to the working directory. The threshold for inclusion of fusion and frameshift-derived neoepitopes is \eqn{IC_{50}} < 1000nM.
+#'
+#' @export garnish_plot
+#'
+#' @md
+
+garnish_plot <- function(input){
+
+  # check input
+  if (class(input)[1] == "list" & class(input[[1]])[1] != "data.table") stop("Input must be a path to a rio::import-supported file type, a data.table, or a list of data tables (e.g. garnish_plot(list(dt1, dt2, dt3))")
+
+  if (class(input)[1] == "character") input <- rio::import(input) %>% data.table::as.data.table
+
+  if (class(input)[1] != "list" & class(input)[1] != "data.table") stop("Input must be a full file path to a rio::import supported file type, a data.table object, or a list of data.tables (e.g. garnish_plot(list(dt1, dt2, dt3))")
+
+  # set up theming
+  ag_gg_theme <-
+    ggplot2::theme(line = ggplot2::element_line(colour = "#000000")) +
+    ggplot2::theme(axis.line = ggplot2::element_line(color="black")) +
+    ggplot2::theme(plot.title = ggplot2::element_text(size = ggplot2::rel(2*1.2),
+          colour = "#000000", lineheight = 0.9, face = "bold", vjust = 0)) +
+    ggplot2::theme(axis.title.x = ggplot2::element_text(colour = "#000000",
+          size = ggplot2::rel(2*1.425), face = "bold")) +
+    ggplot2::theme(axis.title.y = ggplot2::element_text(colour = "#000000",
+          size = ggplot2::rel(2*1.425), face = "bold", angle = 90, vjust = 0)) +
+    ggplot2::theme(axis.text.x = ggplot2::element_text(colour = "#000000",
+          size = ggplot2::rel(2*1.425), face = "bold", angle = 30, hjust = 0.9, vjust = 0.92)) +
+    ggplot2::theme(axis.text.y = ggplot2::element_text(colour = "#000000",
+          size = ggplot2::rel(2*1.425), face = "bold", hjust = 0.9, vjust = 0.92, angle = 30)) +
+    ggplot2::theme(legend.text = ggplot2::element_text(colour = "#000000",
+          size = ggplot2::rel(2*1))) +
+    ggplot2::theme(strip.background = ggplot2::element_rect(fill = "#eeeeee")) +
+    ggplot2::theme(strip.text = ggplot2::element_text(face = "bold")) +
+    ggplot2::theme(legend.key = ggplot2::element_blank()) +
+    ggplot2::theme(legend.background = ggplot2::element_rect(fill = "transparent", colour = NA)) +
+    ggplot2::theme(panel.grid = ggplot2::element_blank()) +
+    ggplot2::theme(panel.background = ggplot2::element_rect(fill = "transparent", colour = NA)) +
+    ggplot2::theme(plot.background = ggplot2::element_rect(fill = "transparent", colour = NA)) +
+    ggplot2::theme(plot.margin=grid::unit(c(0, 0, 0, 0 ), "cm"))
+
+  ag_colors <-   c("#ff80ab",
+                   "#b388ff",
+                   "#82b1ff",
+                   "#ff9e80",
+                   "#a7ffeb",
+                   "#f4ff81",
+                   "#b9f6ca",
+                   "#ffe57f",
+                   "#ff8a80",
+                   "#ea80fc",
+                   "#8c9eff",
+                   "#80d8ff",
+                   "#84ffff",
+                   "#ccff90",
+                   "#ffff8d",
+                   "#ffd180")
+
+  if(class(input)[1] != "list") input <- list(input)
+
+  lapply(input %>% seq_along, function(i){
+
+    dt <- input[[i]]
+    dt <- data.table::copy(dt)
+
+      if (!(c("nmer",
+              "MHC",
+              "sample_id",
+              "DAI",
+              "frameshift",
+              "Consensus_scores") %chin% names(dt)) %>% any){
+
+        stop(paste0("'sample_id', 'nmer', 'MHC', 'frameshift', 'DAI', and 'Consensus_scores' columns are required in all inputs."))
+        }
+
+    # create and filter data table
+    dt <- dt[pep_type != "wt"] %>% unique
+
+  # add ADN, CDN, priority classification to table
+    dt <- dt %>% .[Consensus_scores < 5000] %>%
+      .[pep_type == "mutnfs" & Consensus_scores < 50, type := "CDN"] %>%
+      .[pep_type == "mutnfs" & DAI > 10, type := "ADN"] %>%
+      .[pep_type == "mutnfs" & Consensus_scores < 50 & DAI > 10, type := "priority"] %>%
+      .[frameshift == TRUE & Consensus_scores < 1000, type := "frameshift"]
+
+  # check if fusions present in input dt
+    if (names(dt) %like% "fusion_uuid" %>% any)
+      dt[!is.na(fusion_uuid) & fusion_uuid != "" &
+         Consensus_scores < 1000,
+         type := "fusion"]
+
+    dt <- dt[!is.na(type)]
+
+  # check if anything is left in the dt
+    if (nrow(dt) < 1){
+      warning(paste0("No neoeptiopes with Consensus_scores < 5000nM or that meet minimum classification criteria in input # ", i, " skipping to next input."))
+
+      return(NULL)
+    }
+
+  # cat MHC alleles together by class for graphing
+    dt[class == "I", MHC := "MHC Class I"]
+    dt[class == "II", MHC := "MHC Class II"]
+
+
+    gg_dt <- dt[, .N, by = c("sample_id", "MHC", "type")]
+
+  # function to fill in missing combinations of factors to graph dt with an even bars per sample_id
+
+    gdt <- dt %>% (function(dt){
+
+      ns <- dt[, sample_id %>% unique %>% length]
+
+      type <- lapply(dt[, type %>% unique], function(x){
+        replicate(ns * 2, x)
+      }) %>% unlist
+
+      gdt <- data.table(sample_id = dt[, sample_id %>% unique],
+                        MHC = c(replicate(ns, "MHC Class I"), replicate(ns, "MHC Class II")),
+                        type = type,
+                        N = 0) %>% unique
+      return(gdt)
+    })
+
+    gg_dt <- merge(gg_dt, gdt, by = intersect(names(gg_dt), names(gdt)), all = TRUE) %>%
+      .[, N := max(N), by = c("sample_id", "type", "MHC")] %>% unique
+
+  # shorten names for display
+
+    if (any(gg_dt[, sample_id %>% unique %>% nchar] > 7)){
+
+      for (i in gg_dt[nchar(sample_id) > 7, sample_id %>% unique] %>% seq_along){
+
+        gg_dt[sample_id == gg_dt[nchar(sample_id) > 7, sample_id %>% unique][i],
+              sample_id := sample_id %>%
+                substr(1, 7) %>% paste0(., "_", i)]
+      }
+    }
+
+  # make first summary plot, neo class by sample_id and MHC
+
+   g <- ggplot2::ggplot(gg_dt, ggplot2::aes(x = sample_id, y = N)) +
+            ggplot2::geom_col(ggplot2::aes(fill = type), col = "black", position = "dodge") +
+            ggplot2::facet_wrap(~MHC) +
+            ag_gg_theme +
+            ggplot2::theme(legend.position = "bottom", legend.title = ggplot2::element_blank()) +
+            ggplot2::scale_fill_manual(values = ag_colors) +
+            ggplot2::theme(strip.text.x = ggplot2::element_text(size = ggplot2::rel(2))) +
+            ggplot2::ylab("peptides") +
+            ggplot2::xlab("") +
+            ggplot2::ggtitle(paste0("antigen.garnish summary"))
+
+           ggplot2::ggsave(plot = g,
+                  paste0("antigen.garnish_Neoepitopes_summary_",
+                    format(Sys.time(), "%d/%m/%y %H:%M:%OS") %>%
+                    stringr::str_replace_all("[^A-Za-z0-9]", "_") %>%
+                    stringr::str_replace_all("[_]+", "_"),
+                    ".pdf")
+                  , height = 6, width = 9)
+
+    if (nrow(dt[frameshift == TRUE]) > 0){
+
+      dt_pl <- dt[frameshift == TRUE]
+
+      dt_pl[, binding := "<1000nM"] %>%
+        .[Consensus_scores < 500, binding := "<500nM"] %>%
+          .[Consensus_scores < 50, binding := "<50nM"]
+
+      gg_dt <- dt_pl[, .N, by = c("sample_id", "MHC", "binding")]
+
+    # function to fill in missing combinations of factors to graph dt with even bars per sample_id
+      gdt <- dt_pl %>% (function(dt){
+
+        ns <- dt[, sample_id %>% unique %>% length]
+
+        gdt <- data.table(sample_id = dt[, sample_id %>% unique],
+                          MHC = c(replicate(ns, "MHC Class I"), replicate(ns, "MHC Class II")),
+                          binding = c(replicate(ns * 2, "<50nM"), replicate(ns * 2, "<500nM"), replicate(ns * 2, "<1000nM")),
+                          N = 0) %>% unique
+      })
+
+      gg_dt <- merge(gg_dt, gdt, by = intersect(names(gg_dt), names(gdt)), all = TRUE) %>%
+        .[, N := max(N), by = c("sample_id", "binding", "MHC")] %>% unique
+
+      # shorten names for display if needed
+       if (any(gg_dt[, sample_id %>% unique %>% nchar] > 7)){
+
+        for (i in gg_dt[nchar(sample_id) > 7, sample_id %>% unique] %>% seq_along){
+
+          gg_dt[sample_id == gg_dt[nchar(sample_id) > 7, sample_id %>% unique][i],
+                sample_id := sample_id %>%
+                  substr(1, 7) %>% paste0(., "_", i)]
+        }
+       }
+
+    # make frameshift summary plot, binding affinity by sample_id and MHC
+      g <- ggplot2::ggplot(gg_dt, ggplot2::aes(x = sample_id, y = N)) +
+              ggplot2::geom_col(ggplot2::aes(fill = binding), col = "black", position = "dodge") +
+              ggplot2::facet_wrap(~MHC) +
+              ag_gg_theme +
+              ggplot2::theme(legend.position = "bottom", legend.title = ggplot2::element_blank()) +
+              ggplot2::scale_fill_manual(values = ag_colors[1:3]) +
+              ggplot2::theme(strip.text.x = ggplot2::element_text(size = ggplot2::rel(2))) +
+              ggplot2::ylab("peptides") +
+              ggplot2::xlab("") +
+              ggplot2::ggtitle(paste0("Frameshift neoepitopes"))
+
+    ggplot2::ggsave(plot = g, paste0("antigen.garnish_Frameshift_summary_",
+                      format(Sys.time(), "%d/%m/%y %H:%M:%OS") %>%
+                      stringr::str_replace_all("[^A-Za-z0-9]", "_") %>%
+                      stringr::str_replace_all("[_]+", "_"),
+                      ".pdf"), height = 6, width = 9)
+
+    }
+
+    if ("fusion" %chin% dt[, type %>% unique]%>% any){
+
+      dt_pl <- dt[type == "fusion"]
+
+      dt_pl[, binding := "<1000nM"] %>%
+        .[Consensus_scores < 500, binding := "<500nM"] %>%
+        .[Consensus_scores < 50, binding := "<50nM"]
+
+      gg_dt <- dt_pl[, .N, by = c("sample_id", "MHC", "binding")]
+
+      # function to fill in missing combinations of factors to graph dt with even bars per sample_id
+      gdt <- dt_pl %>% (function(dt){
+
+        ns <- dt[, sample_id %>% unique %>% length]
+
+        gdt <- data.table(sample_id = dt[, sample_id %>% unique],
+                          MHC = c(replicate(ns, "MHC Class I"), replicate(ns, "MHC Class II")),
+                          binding = c(replicate(ns * 2, "<50nM"), replicate(ns * 2, "<500nM"), replicate(ns * 2, "<1000nM")),
+                          N = 0) %>% unique
+      })
+
+      gg_dt <- merge(gg_dt, gdt, by = intersect(names(gg_dt), names(gdt)), all = TRUE) %>%
+        .[, N := max(N), by = c("sample_id", "binding", "MHC")] %>% unique
+
+      # shorten names for display if needed
+      if (any(gg_dt[, sample_id %>% unique %>% nchar] > 7)){
+
+        for (i in gg_dt[nchar(sample_id) > 7, sample_id %>% unique] %>% seq_along){
+
+          gg_dt[sample_id == gg_dt[nchar(sample_id) > 7, sample_id %>% unique][i],
+                sample_id := sample_id %>%
+                  substr(1, 7) %>% paste0(., "_", i)]
+        }
+      }
+
+      # make fusions summary plot, binding affinity by sample_id and MHC
+      g <- ggplot2::ggplot(gg_dt, ggplot2::aes(x = sample_id, y = N)) +
+              ggplot2::geom_col(ggplot2::aes(fill = binding), col = "black", position = "dodge") +
+              ggplot2::facet_wrap(~MHC) +
+              ag_gg_theme +
+              ggplot2::theme(legend.position = "bottom", legend.title = ggplot2::element_blank()) +
+              ggplot2::scale_fill_manual(values = ag_colors[1:3]) +
+              ggplot2::theme(strip.text.x = ggplot2::element_text(size = ggplot2::rel(2))) +
+              ggplot2::ylab("peptides") +
+              ggplot2::xlab("") +
+              ggplot2::ggtitle(paste0("Fusion neoepitopes"))
+
+      ggplot2::ggsave(plot = g,
+                      paste0("antigen.garnish_Fusions_summary_",
+                      format(Sys.time(), "%d/%m/%y %H:%M:%OS") %>%
+                      stringr::str_replace_all("[^A-Za-z0-9]", "_") %>%
+                      stringr::str_replace_all("[_]+", "_"),
+                      ".pdf"), height = 6, width = 9)
+    }
+  })
+  return(NULL)
+  }
+

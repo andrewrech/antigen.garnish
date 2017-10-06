@@ -19,6 +19,8 @@
 #' * **pep_wt**: wt cDNA sequence of peptide from 5' fusion gene.
 #' * **fus_tx**: cDNA sequence of predicted fusion product
 #'
+#' @seealso \code{\link{garnish_predictions}}
+#'
 #' @examples
 #'\dontrun{
 #'library(magrittr)
