@@ -1,3 +1,8 @@
+# antigen.garnish 0.0.4
+
+* Summary plots
+* Improve tests
+
 # antigen.garnish 0.0.3
 
 * Inverse match against global normal proteins
