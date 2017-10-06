@@ -24,6 +24,7 @@
 #' @import colorspace
 #' @import data.table
 #' @import dt.inflix
+#' @import ggplot2
 #' @import parallel
 #' @import stringr
 #' @import testthat
