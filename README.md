@@ -53,8 +53,6 @@ tar -xvzf antigen.garnish.tar.gz
 Install antigen.garnish and dependencies from R:
 
 ```r
-source("https://bioconductor.org/biocLite.R")
-biocLite("biomaRt")
 install.packages("devtools")
 devtools::install_github("andrewrech/antigen.garnish")
 ```
