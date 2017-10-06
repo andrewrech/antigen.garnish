@@ -433,7 +433,7 @@ garnish_plot <- function(input){
 
         stop(paste0("'sample_id', 'nmer', 'MHC', 'frameshift', 'DAI', and 'Consensus_scores' columns are required in all inputs."))
         }
-    
+
     # create and filter data table
     dt <- dt[pep_type != "wt"] %>% unique
 
@@ -455,10 +455,8 @@ garnish_plot <- function(input){
   # check if anything is left in the dt
     if (nrow(dt) < 1){
       warning(paste0("No neoeptiopes with Consensus_scores < 5000nM or that meet minimum classification criteria in input # ", i, " skipping to next input."))
-      
-      # return(NULL)
-      # TODO do we need return NULL here like I originally had to skip to the next iteration of the loop?  otherwise it just displays
-      # a warning and keeps going?
+
+      return(NULL)
     }
 
   # cat MHC alleles together by class for graphing
