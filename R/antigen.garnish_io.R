@@ -206,6 +206,7 @@ garnish_summary <- function(dt){
 #' 
 #' `garnish_variants` has been well tested on the intersection of Mutect2 and Strelka2 variant calls. Intersection is on the basis of the VCF fields CHROM, POS, REF and the cDNA change indicated in SnpEff annotations.
 #' Intersecting variant callers that are not left-justfied or do not identify variants with the same POS and REF fields as other callers used will not properly intersect and variant calls will be inappropriately lost.
+#' Variant calls from a single run of a variant caller, such as Strelka2 *.snv.vcf and *.indel.vcf must be merged into a single vcf file for intersection to work properly. [GATK](https://software.broadinstitute.org/gatk/download/) `CatVariants` tool works nicely.
 #' 
 #' We recommend comparing `garnish_variants` output with \code{intersect = TRUE} and \code{intersect = FALSE} to ensure that variants are not inappropriately lost if using variant callers other than Mutect2 and Strelka2.     
 #'
