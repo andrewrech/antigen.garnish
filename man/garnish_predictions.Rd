@@ -80,6 +80,7 @@ as well as a transcript description:
 }
 \description{
 Perform ensemble neoepitope prediction on a data table of missense mutations, insertions, deletions or gene fusions using netMHC, mhcflurry, and mhcnuggets.
+See \code{list_mhc} for compatible MHC allele syntax.  Multiple MHC alleles for a single sample_id should be space separated.  See example.
 }
 \examples{
 \dontrun{
@@ -95,7 +96,7 @@ library(antigen.garnish)
    # extract variants
    antigen.garnish::garnish_variants \%>\%
 
-   # add test MHC types
+   # add space separataed MHC types with antigen.garnish::list_mhc() compatible names
        .[, MHC := c("HLA-A*02:01 HLA-DRB1*14:67",
                    "H-2-Kb H-2-IAd",
                    "HLA-A*01:47 HLA-DRB1*03:08")] \%>\%

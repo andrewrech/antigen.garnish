@@ -46,7 +46,7 @@ library(antigen.garnish)
  # get predictions
    dt <- antigen.garnish::garnish_jaffa(path, db = "GRCm38", fasta_path) \%>\%
 
- # add MHC info
+ # add MHC info with antigen.garnish::list_mhc() compatible names
    .[, MHC := "H-2-Kb"] \%>\%
 
  # get predictions
