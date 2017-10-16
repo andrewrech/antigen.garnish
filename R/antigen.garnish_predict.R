@@ -626,6 +626,8 @@ mcMap(function(x, y) (x %>% as.integer):(y %>% as.integer) %>%
 #' Perform neoepitope prediction.
 #'
 #' Perform ensemble neoepitope prediction on a data table of missense mutations, insertions, deletions or gene fusions using netMHC, mhcflurry, and mhcnuggets.
+#' See `list_mhc` for compatible MHC allele syntax.  Multiple MHC alleles for a single sample_id should be space separated.  See example.
+#' 
 #' @param path Path to input table ([acceptable formats](https://cran.r-project.org/web/packages/rio/vignettes/rio.html#supported_file_formats)).
 #' @param dt Data table. Input data table from `garnish_variants` or `garnish_jaffa`, or a data table in one of these forms:
 #'
@@ -704,7 +706,7 @@ mcMap(function(x, y) (x %>% as.integer):(y %>% as.integer) %>%
 #'    # extract variants
 #'    antigen.garnish::garnish_variants %>%
 #'
-#'    # add test MHC types
+#'    # add space separataed MHC types with antigen.garnish::list_mhc() compatible names
 #'        .[, MHC := c("HLA-A*02:01 HLA-DRB1*14:67",
 #'                    "H-2-Kb H-2-IAd",
 #'                    "HLA-A*01:47 HLA-DRB1*03:08")] %>%

@@ -203,8 +203,12 @@ garnish_summary <- function(dt){
 #' Process VCF variants and return a data table for epitope prediction.
 #'
 #' Process VCF variants annotated with [SnpEff](http://snpeff.sourceforge.net/) for neoepitope prediction using `garnish_predictions`. VCFs from matched samples are optionally intersected. [MuTect2](https://github.com/broadinstitute/gatk)/[Strelka2](https://github.com/Illumina/strelka)-derived VCFs are filtered for high confidence variants prior to intersection.
+#' `garnish_variants` has been well tested on the intersection of Mutect2 and Strelka2 variant calls. Intersection is on the basis of the VCF fields CHROM, POS, REF and the cDNA change indicated in SnpEff annotations.
+#' Intersecting variant callers that are not left-justfied or do not identify variants with the same POS and REF fields as other callers used will not properly intersect and variant calls will be inappropriately lost.
+#' We recommend comparing `garnish_variants` output with \code{intersect = TRUE} and \code{intersect = FALSE} to ensure that variants are not inappropriately lost if using variant callers other than Mutect2 and Strelka2.     
 #'
 #' @param vcfs Paths to VFC files to import.
+#' @param intersect Should only the intersection of variants in multiple vcfs derived from the same BAM filename be taken? Default is TRUE. See references for advantages of intersecting variant calls. 
 #'
 #' @return A data table with one unique SnpEff variant annotation per row, including:
 #' * **sample_id**: sample identifier constructed from input \code{.bam} file names
@@ -232,9 +236,13 @@ garnish_summary <- function(dt){
 #'    str
 #'}
 #' @export garnish_variants
+#' 
+#' @references 
+#' Callari M, Sammut SJ, De Mattos-Arruda L, Bruna A, Rueda OM, Chin SF, and Caldas C. 2017. Intersect-then-combine approach: improving the performance of somatic variant calling in whole exome sequencing data using multiple aligners and callers. Genome Medicine. 9:35.
+#' 
 #' @md
 
-garnish_variants <- function(vcfs){
+garnish_variants <- function(vcfs, intersect = TRUE){
 
   message("Loading VCFs")
 
@@ -301,7 +309,21 @@ garnish_variants <- function(vcfs){
               "cDNA_change")) %>% .[, vcf_type := "intersect"]
       return(sdt)
 
-    }
+  }
+  
+  union_vcf <- function(dt, dt2){
+    
+    # a function to take the union of annotated variants across VCFs using SnpEff
+    
+    sdt <- merge(dt, dt2[, .SD,
+                         .SDcols = c("CHROM",
+                                     "POS", "REF", "cDNA_change")],
+                 all = TRUE,
+                 by = c("CHROM", "POS", "REF",
+                        "cDNA_change")) %>% .[, vcf_type := "union"]
+    return(sdt)
+    
+  }
   # return an intersected data table of variants
 
   sdt <- parallel::mclapply(ivfdt[, sample_id %>% unique], function(sn){
@@ -316,7 +338,8 @@ garnish_variants <- function(vcfs){
 
   # merge all data tables with matching sample names
     if (ivfdtl[sdt] %>% length == 1) return(ivfdtl[[sdt %>% which]])
-    if (ivfdtl[sdt] %>% length > 1) return(ivfdtl[sdt] %>% Reduce(merge_vcf, .))
+    if ((ivfdtl[sdt] %>% length > 1) & intersect == TRUE) return(ivfdtl[sdt] %>% Reduce(merge_vcf, .))
+    if ((ivfdtl[sdt] %>% length > 1) & intersect == FALSE) return(ivfdtl[sdt] %>% Reduce(union_vcf, .))
 
 
   }) %>% data.table::rbindlist
