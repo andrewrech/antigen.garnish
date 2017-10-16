@@ -9,7 +9,7 @@ garnish_variants(vcfs, intersect = TRUE)
 \arguments{
 \item{vcfs}{Paths to VFC files to import.}
 
-\item{intersect}{Should only the intersection of variants in multiple vcfs derived from the same BAM filename be taken? Default is TRUE. See references for advantages of intersecting variant calls.}
+\item{intersect}{logical. Should only the intersection of variants in multiple vcfs derived from the same BAM filename be taken? Default is TRUE. See references for advantages of intersecting variant calls.}
 }
 \value{
 A data table with one unique SnpEff variant annotation per row, including:
