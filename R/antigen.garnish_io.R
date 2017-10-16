@@ -210,7 +210,7 @@ garnish_summary <- function(dt){
 #' We recommend comparing `garnish_variants` output with \code{intersect = TRUE} and \code{intersect = FALSE} to ensure that variants are not inappropriately lost if using variant callers other than Mutect2 and Strelka2.     
 #'
 #' @param vcfs Paths to VFC files to import.
-#' @param intersect Should only the intersection of variants in multiple vcfs derived from the same BAM filename be taken? Default is TRUE. See references for advantages of intersecting variant calls. 
+#' @param intersect logical. Should only the intersection of variants in multiple vcfs derived from the same BAM filename be taken? Default is TRUE. See references for advantages of intersecting variant calls. 
 #'
 #' @return A data table with one unique SnpEff variant annotation per row, including:
 #' * **sample_id**: sample identifier constructed from input \code{.bam} file names
