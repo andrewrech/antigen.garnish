@@ -26,8 +26,11 @@ A data table with one unique SnpEff variant annotation per row, including:
 }
 \description{
 Process VCF variants annotated with \href{http://snpeff.sourceforge.net/}{SnpEff} for neoepitope prediction using \code{garnish_predictions}. VCFs from matched samples are optionally intersected. \href{https://github.com/broadinstitute/gatk}{MuTect2}/\href{https://github.com/Illumina/strelka}{Strelka2}-derived VCFs are filtered for high confidence variants prior to intersection.
+}
+\details{
 \code{garnish_variants} has been well tested on the intersection of Mutect2 and Strelka2 variant calls. Intersection is on the basis of the VCF fields CHROM, POS, REF and the cDNA change indicated in SnpEff annotations.
 Intersecting variant callers that are not left-justfied or do not identify variants with the same POS and REF fields as other callers used will not properly intersect and variant calls will be inappropriately lost.
+
 We recommend comparing \code{garnish_variants} output with \code{intersect = TRUE} and \code{intersect = FALSE} to ensure that variants are not inappropriately lost if using variant callers other than Mutect2 and Strelka2.
 }
 \examples{
