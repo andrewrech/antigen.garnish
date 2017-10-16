@@ -64,6 +64,7 @@ devtools::install_github("andrewrech/antigen.garnish")
 * `garnish_predictions`: perform ensemble neoepitope prediction
 * `garnish_summary`: summarize neoepitope prediction
 * `garnish_plot`: generate summary plots for neoepitope prediction
+* `list_mhc`: list all supported MHC alleles and appropriate syntax for use with `antigen.garnish`
 
 ### Examples
 
@@ -80,7 +81,7 @@ library(antigen.garnish)
   # extract variants
     antigen.garnish::garnish_variants %>%
 
-  # add test MHC types
+  # add space separated MHC types with antigen.garnish::list_mhc() compatible names
       .[, MHC := c("HLA-A*02:01 HLA-DRB1*14:67",
                    "H-2-Kb H-2-IAd",
                   "HLA-A*01:47 HLA-DRB1*03:08")] %>%
@@ -107,7 +108,7 @@ library(antigen.garnish)
   # get predictions
     dt <- antigen.garnish::garnish_jaffa(path, db = "GRCm38", fasta_path) %>%
 
-  # add MHC info
+  # add MHC info with antigen.garnish::list_mhc() compatible names
     .[, MHC := "H-2-Kb"] %>%
 
   # get predictions
