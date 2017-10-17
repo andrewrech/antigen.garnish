@@ -14,10 +14,18 @@ testthat::test_that("garnish_variants intersection", {
       utils::download.file(paste0("http://get.rech.io/", .), .)
 
   # run test
-    dto <- garnish_variants(c("antigen.garnish_example_mutect2.vcf",
+    dto_i <- garnish_variants(c("antigen.garnish_example_mutect2.vcf",
                      "antigen.garnish_example_strelka.vcf"))
 
-  testthat::expect_equal(dto %>% length, 23)
-  testthat::expect_equal(dto %>% nrow, 64)
+  testthat::expect_equal(dto_i %>% length, 23)
+  testthat::expect_equal(dto_i %>% nrow, 64)
+
+    # run test
+    dto_ni <- garnish_variants(c("antigen.garnish_example_mutect2.vcf",
+                     "antigen.garnish_example_strelka.vcf"),
+            intersect = FALSE)
+
+  testthat::expect_equal(dto_ni %>% length, 23)
+  testthat::expect_equal(dto_ni %>% nrow, 118)
 
     })
