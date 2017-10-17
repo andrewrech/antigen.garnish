@@ -262,7 +262,7 @@ garnish_variants <- function(vcfs, intersect = TRUE){
   # extract vcf type
       vcf_type <- vcf@meta %>%
         unlist %>%
-        stringr::str_extract(stringr::regex("(Strelka)|(Mutect)|(VarScan)|(samtools mpileup)|(somaticsniper)|(freebayes)|(virmidr)",
+        stringr::str_extract(stringr::regex("(Strelka)|(Mutect)|(VarScan)|(samtools mpileup)|(somaticsniper)|(freebayes)|(virmid)",
           ignore_case = TRUE)) %>%
         stats::na.omit %>%
                  unlist %>%
