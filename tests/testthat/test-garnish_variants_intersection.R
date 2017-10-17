@@ -18,14 +18,14 @@ testthat::test_that("garnish_variants intersection", {
                      "antigen.garnish_example_strelka.vcf"))
 
   testthat::expect_equal(dto_i %>% length, 23)
-  testthat::expect_equal(dto_i %>% nrow, 64)
+  testthat::expect_equal(dto_i %>% nrow, 32)
 
-    # run test
-    dto_ni <- garnish_variants(c("antigen.garnish_example_mutect2.vcf",
+  # run test
+  dto_ni <- garnish_variants(c("antigen.garnish_example_mutect2.vcf",
                      "antigen.garnish_example_strelka.vcf"),
             intersect = FALSE)
 
-  testthat::expect_equal(dto_ni %>% length, 23)
-  testthat::expect_equal(dto_ni %>% nrow, 118)
+  testthat::expect_equal(dto_ni %>% length, 25)
+  testthat::expect_equal(dto_ni %>% nrow, 220)
 
     })

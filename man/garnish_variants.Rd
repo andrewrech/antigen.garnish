@@ -9,7 +9,7 @@ garnish_variants(vcfs, intersect = TRUE)
 \arguments{
 \item{vcfs}{Paths to VFC files to import.}
 
-\item{intersect}{Logical. Return only the intersection of variants in multiple \code{vcfs} with identical sample names? Intersection performed on \code{SnpEff} annotations.}
+\item{intersect}{Logical. Return only the intersection of variants in multiple \code{vcfs} with identical sample names? Intersection performed on \code{SnpEff} annotations. One \code{vcf} file per somatic variant caller-input samples pair is required.}
 }
 \value{
 A data table with one unique SnpEff variant annotation per row, including:
@@ -26,6 +26,9 @@ A data table with one unique SnpEff variant annotation per row, including:
 }
 \description{
 Process paired tumor-normal VCF variants annotated with \href{http://snpeff.sourceforge.net/}{SnpEff} for neoepitope prediction using \code{garnish_predictions}. VCFs from matched samples can be optionally intersected to select only variants present across input files.
+}
+\details{
+Recommended somatic variant callers: \href{https://github.com/broadinstitute/gatk}{MuTect2}, \href{https://github.com/Illumina/strelka}{Strelka2}
 }
 \examples{
 \dontrun{

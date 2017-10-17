@@ -18,6 +18,10 @@
 #'* `garnish_jaffa`: process gene fusions from [JAFFA](https://github.com/Oshlack/JAFFA)
 #'* `garnish_predictions`: perform ensemble neoepitope prediction
 #'* `garnish_summary`: summarize neoepitope prediction
+#'* `garnish_plot`: generate summary plots for neoepitope prediction
+#'* `list_mhc`: list all supported MHC alleles and appropriate syntax for use with `antigen.garnish`
+#' @section Bug, issues, feedback:
+#' Please report bugs and issues and provide feedback via [Github](https://github.com/andrewrech/antigen.garnish/issues) or to [andrewrech\@gmail.com](mailto:andrewrech\@gmail.com).
 #' @docType package
 #' @name antigen.garnish
 #' @name BiocInstaller
