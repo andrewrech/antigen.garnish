@@ -24,9 +24,6 @@ after_success:
   - Rscript -e 'library(covr); codecov()'
 cache: packages
 notifications:
-  slack:
-    rooms:
-      - svn-group:WwFD9sJdhbUOPdCX9WA329BL#travis-ci
   email:
     on_success: always
     recipients:

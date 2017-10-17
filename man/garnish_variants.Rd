@@ -9,7 +9,7 @@ garnish_variants(vcfs, intersect = TRUE)
 \arguments{
 \item{vcfs}{Paths to VFC files to import.}
 
-\item{intersect}{logical. Should only the intersection of variants in multiple vcfs derived from the same BAM filename be taken? Default is TRUE. See references for advantages of intersecting variant calls.}
+\item{intersect}{Logical. Return only the intersection of variants in multiple \code{vcfs} with identical sample names? Intersection performed on \code{SnpEff} annotations.}
 }
 \value{
 A data table with one unique SnpEff variant annotation per row, including:
@@ -25,14 +25,7 @@ A data table with one unique SnpEff variant annotation per row, including:
 }
 }
 \description{
-Process VCF variants annotated with \href{http://snpeff.sourceforge.net/}{SnpEff} for neoepitope prediction using \code{garnish_predictions}. VCFs from matched samples are optionally intersected. \href{https://github.com/broadinstitute/gatk}{MuTect2}/\href{https://github.com/Illumina/strelka}{Strelka2}-derived VCFs are filtered for high confidence variants prior to intersection.
-}
-\details{
-\code{garnish_variants} has been well tested on the intersection of Mutect2 and Strelka2 variant calls. Intersection is on the basis of the VCF fields CHROM, POS, REF and the cDNA change indicated in SnpEff annotations.
-Intersecting variant callers that are not left-justfied or do not identify variants with the same POS and REF fields as other callers used will not properly intersect and variant calls will be inappropriately lost.
-Variant calls from a single run of a variant caller, such as Strelka2 *.snv.vcf and *.indel.vcf must be merged into a single vcf file for intersection to work properly. \href{https://software.broadinstitute.org/gatk/download/}{GATK} \code{CatVariants} tool works nicely.
-
-We recommend comparing \code{garnish_variants} output with \code{intersect = TRUE} and \code{intersect = FALSE} to ensure that variants are not inappropriately lost if using variant callers other than Mutect2 and Strelka2.
+Process paired tumor-normal VCF variants annotated with \href{http://snpeff.sourceforge.net/}{SnpEff} for neoepitope prediction using \code{garnish_predictions}. VCFs from matched samples can be optionally intersected to select only variants present across input files.
 }
 \examples{
 \dontrun{
@@ -47,6 +40,7 @@ library(antigen.garnish)
    garnish_variants \%T>\%
    str
 }
+
 }
 \references{
 Callari M, Sammut SJ, De Mattos-Arruda L, Bruna A, Rueda OM, Chin SF, and Caldas C. 2017. Intersect-then-combine approach: improving the performance of somatic variant calling in whole exome sequencing data using multiple aligners and callers. Genome Medicine. 9:35.

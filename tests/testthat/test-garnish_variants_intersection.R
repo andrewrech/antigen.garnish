@@ -17,7 +17,7 @@ testthat::test_that("garnish_variants intersection", {
     dto <- garnish_variants(c("antigen.garnish_example_mutect2.vcf",
                      "antigen.garnish_example_strelka.vcf"))
 
-  testthat::expect_equal(dto %>% length, 21)
-  testthat::expect_equal(dto %>% nrow, 4)
+  testthat::expect_equal(dto %>% length, 23)
+  testthat::expect_equal(dto %>% nrow, 64)
 
     })
