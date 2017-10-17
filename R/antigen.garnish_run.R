@@ -71,23 +71,34 @@ run_mhcnuggets <- function(){
 
 run_netMHC <- function(dt){
 
+  # attempt to avoid netMHC core dump with job ramp
+    iter <- dt[, command] %>% seq_along
+    at_least_time <- Sys.time() + (0.1*(0:length(iter)) )
+
+
   if (!"command" %chin% (dt %>% names))
     stop("dt must contain command column")
 
   message("Running netMHC in parallel")
 
   # run commands
-  esl <- parallel::mclapply(
-         dt[, command],
+  esl <- parallel::mclapply(iter,
 
-  function(command){
-          # run command
-           es <- try(system(command, intern = TRUE))
-          # if error, return empty dt
-            if (es %>% class %>% .[1] == "try-error")
-                return(data.table::data.table(status = 1, command = command))
-            return(list(command, es))
-            })
+    function(i){
+
+            command <- dt[, command][i]
+
+            # ramp jobs slowly
+            while (at_least_time[i] > Sys.time())
+              Sys.sleep(0.1)
+
+            # run command
+             es <- try(system(command, intern = TRUE))
+            # if error, return empty dt
+              if (es %>% class %>% .[1] == "try-error")
+                  return(data.table::data.table(status = 1, command = command))
+              return(list(command, es))
+              })
 
   dtl <- esl %>% collate_netMHC
 
