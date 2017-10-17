@@ -26,6 +26,6 @@ testthat::test_that("garnish_variants intersection", {
             intersect = FALSE)
 
   testthat::expect_equal(dto_ni %>% length, 25)
-  testthat::expect_equal(dto_ni %>% nrow, 220)
+  testthat::expect_equal(dto_ni %>% nrow, 222)
 
     })
