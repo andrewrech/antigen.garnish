@@ -193,7 +193,6 @@ garnish_summary <- function(dt){
       dtn <- merge(dtn, dtnv, by = "sample_id", all = TRUE)
   }
 
-
   return(dtn)
 }
 
@@ -202,16 +201,12 @@ garnish_summary <- function(dt){
 ## ---- garnish_variants
 #' Process VCF variants and return a data table for epitope prediction.
 #'
-#' Process VCF variants annotated with [SnpEff](http://snpeff.sourceforge.net/) for neoepitope prediction using `garnish_predictions`. VCFs from matched samples are optionally intersected. [MuTect2](https://github.com/broadinstitute/gatk)/[Strelka2](https://github.com/Illumina/strelka)-derived VCFs are filtered for high confidence variants prior to intersection.
-#' 
-#' `garnish_variants` has been well tested on the intersection of Mutect2 and Strelka2 variant calls. Intersection is on the basis of the VCF fields CHROM, POS, REF and the cDNA change indicated in SnpEff annotations.
-#' Intersecting variant callers that are not left-justfied or do not identify variants with the same POS and REF fields as other callers used will not properly intersect and variant calls will be inappropriately lost.
-#' Variant calls from a single run of a variant caller, such as Strelka2 *.snv.vcf and *.indel.vcf must be merged into a single vcf file for intersection to work properly. [GATK](https://software.broadinstitute.org/gatk/download/) `CatVariants` tool works nicely.
-#' 
-#' We recommend comparing `garnish_variants` output with \code{intersect = TRUE} and \code{intersect = FALSE} to ensure that variants are not inappropriately lost if using variant callers other than Mutect2 and Strelka2.     
+#' Process paired tumor-normal VCF variants annotated with [SnpEff](http://snpeff.sourceforge.net/) for neoepitope prediction using `garnish_predictions`. VCFs from matched samples can be optionally intersected to select only variants present across input files.
+#'
+#' Recommended somatic variant callers: [MuTect2](https://github.com/broadinstitute/gatk), [Strelka2](https://github.com/Illumina/strelka)
 #'
 #' @param vcfs Paths to VFC files to import.
-#' @param intersect logical. Should only the intersection of variants in multiple vcfs derived from the same BAM filename be taken? Default is TRUE. See references for advantages of intersecting variant calls. 
+#' @param intersect Logical. Return only the intersection of variants in multiple `vcfs` with identical sample names? Intersection performed on `SnpEff` annotations. One `vcf` file per somatic variant caller-input samples pair is required.
 #'
 #' @return A data table with one unique SnpEff variant annotation per row, including:
 #' * **sample_id**: sample identifier constructed from input \code{.bam} file names
@@ -238,11 +233,11 @@ garnish_summary <- function(dt){
 #'    garnish_variants %T>%
 #'    str
 #'}
-#' @export garnish_variants
-#' 
-#' @references 
+#'
+#' @references
 #' Callari M, Sammut SJ, De Mattos-Arruda L, Bruna A, Rueda OM, Chin SF, and Caldas C. 2017. Intersect-then-combine approach: improving the performance of somatic variant calling in whole exome sequencing data using multiple aligners and callers. Genome Medicine. 9:35.
-#' 
+#'
+#' @export garnish_variants
 #' @md
 
 garnish_variants <- function(vcfs, intersect = TRUE){
@@ -264,25 +259,30 @@ garnish_variants <- function(vcfs, intersect = TRUE){
                       sort %>%
                       paste(collapse = "_") %>%
                       stringr::str_replace("\\.bam", "")
-      # extract vcf type
-      vcf_type <- vcf@meta %>% unlist %>% stringr::str_extract(stringr::regex("Strelka|Mutect", ignore_case = TRUE)) %>% stats::na.omit %>%
-                  unlist %>% data.table::first
+  # extract vcf type
+      vcf_type <- vcf@meta %>%
+        unlist %>%
+        stringr::str_extract(stringr::regex("(Strelka)|(Mutect)|(VarScan)|(samtools mpileup)|(somaticsniper)|(freebayes)|(virmid)",
+          ignore_case = TRUE)) %>%
+        stats::na.omit %>%
+                 unlist %>%
+        data.table::first
       if (vcf_type %>% length == 0) vcf_type <- "other"
 
   # return a data table of variants
 
     vdt <- vcf@fix %>% data.table::as.data.table
 
+  # check that VCF is SnpEff-annotated
+
+    if (!vdt[, INFO %>%
+      stringr::str_detect(fixed("ANN=")) %>% all])
+      stop(paste0("\nInput file \n", vcfs[ivf], "\nis missing INFO SnpEff annotations"))
+
     if (vcf@gt %>% length > 0) vdt <- cbind(vdt, vcf@gt %>% data.table::as.data.table)
 
     if (vdt %>% nrow < 1) return(data.table::data.table(sample_id = sample_id))
 
-    # filter passing Strelka2 and muTect variants
-
-    if (vcf_type == "Strelka") vdt <- vdt[FILTER == "PASS"]
-    if (vcf_type == "Mutect") vdt <- vdt[INFO %>%
-                                        stringr::str_extract("(?<=TLOD=)[0-9\\.]") %>%
-                                        as.numeric > 6.0]
     vdt[, sample_id := sample_id]
     vdt[, vcf_type := vcf_type]
 
@@ -296,62 +296,119 @@ garnish_variants <- function(vcfs, intersect = TRUE){
     vdt %<>% .[!se %likef% "WARNING_TRANSCRIPT_MULTIPLE_STOP_CODONS"]
     vdt %<>% .[!se %likef% "WARNING_TRANSCRIPT_NO_START_CODON"]
 
+    # filter out NA
+    vdt %<>% .[!ensembl_transcript_id %>% is.na &
+               !cDNA_change %>% is.na]
+
     return(vdt)
     })
 
-    ivfdt <- ivfdtl %>% data.table::rbindlist
+    rename_vcf_fields <- function(dt1, dt2) {
+
+       # a function to rename VCF INFO and
+        # FORMAT fields for merging
+
+      for (common_col in c("INFO", "FORMAT")){
+
+          if (common_col %chin% (dt %>% names))
+            dt %>%
+              data.table::setnames(common_col,
+                paste0(common_col, "_", dt[, vcf_type[1]]))
+          if (common_col %chin% (dt2 %>% names))
+            dt2 %>%
+              data.table::setnames(common_col,
+                paste0(common_col, "_", dt2[, vcf_type[1]]))
+        }
+    }
+
 
   merge_vcf <- function(dt, dt2){
 
-    # a function to intersect annotated variants across VCFs using SnpEff
+    # a function to intersect annotated variants
+      # across VCFs using SnpEff
 
       sdt <- merge(dt, dt2[, .SD,
-             .SDcols = c("CHROM",
-              "POS", "REF", "cDNA_change")],
-               by = c("CHROM", "POS", "REF",
-              "cDNA_change")) %>% .[, vcf_type := "intersect"]
-      return(sdt)
+                 .SDcols = c("INFO",
+                             "FORMAT",
+                             "ensembl_transcript_id",
+                             "cDNA_change")],
+                 by = c("ensembl_transcript_id",
+                        "cDNA_change"))
+
+      sdt[, vcf_type := "intersect"]
+         return(sdt)
 
   }
-  
+
   union_vcf <- function(dt, dt2){
-    
-    # a function to take the union of annotated variants across VCFs using SnpEff
-    
-    sdt <- merge(dt, dt2[, .SD,
-                         .SDcols = c("CHROM",
-                                     "POS", "REF", "cDNA_change")],
-                 all = TRUE,
-                 by = c("CHROM", "POS", "REF",
-                        "cDNA_change")) %>% .[, vcf_type := "union"]
-    return(sdt)
-    
+
+    # a function to take the union of annotated variants
+      # across VCFs using SnpEff
+
+      rename_vcf_fields(dt, dt2)
+      mdt <- merge(dt, dt2[, .SD,
+                 .SDcols = c(dt2 %>% names %include% "^INFO",
+                             dt2 %>% names %include% "^FORMAT",
+                             "ensembl_transcript_id",
+                             "cDNA_change")],
+                  by = c("ensembl_transcript_id",
+                          "cDNA_change"))
+
+      overlaps <- mdt[, paste0(ensembl_transcript_id,
+                               cDNA_change) %>%
+                        unique]
+
+      sdt <- rbindlist(list(
+            mdt,
+            dt[!paste0(ensembl_transcript_id, cDNA_change) %chin%
+              overlaps],
+            dt2[!paste0(ensembl_transcript_id, cDNA_change) %chin%
+              overlaps]
+              ), use.names = TRUE, fill = TRUE)
+
+
+      sdt[, vcf_type := "union"]
+           return(sdt)
+
   }
-  # return an intersected data table of variants
 
-  sdt <- parallel::mclapply(ivfdt[, sample_id %>% unique], function(sn){
+      sample_ids <- lapply(ivfdtl, function(dt){
+                    dt$sample_id %>% unique
+                      }) %>% unique
 
-    # find data tables with matching sample names
+    # return an intersected data table of variants
 
-  sdt <- lapply(ivfdtl, function(dt){
+      sdt <- parallel::mclapply(sample_ids, ##### TODO
+                                function(sn){
 
-     dt[, sample_id %>% .[1]] == sn
+        # find data tables with matching sample names
 
-    }) %>% unlist
+          sdt <- lapply(ivfdtl, function(dt){
 
-  # merge all data tables with matching sample names
-    if (ivfdtl[sdt] %>% length == 1) return(ivfdtl[[sdt %>% which]])
-    if ((ivfdtl[sdt] %>% length > 1) & intersect == TRUE) return(ivfdtl[sdt] %>% Reduce(merge_vcf, .))
-    if ((ivfdtl[sdt] %>% length > 1) & intersect == FALSE) return(ivfdtl[sdt] %>% Reduce(union_vcf, .))
+             dt[, sample_id %>% .[1]] == sn
+
+            }) %>% unlist
+
+      # merge all data tables with matching sample names
+
+        if (ivfdtl[sdt] %>% length == 1)
+          return(ivfdtl[[sdt %>% which]])
+
+        if ((ivfdtl[sdt] %>% length > 1) & intersect == TRUE)
+          return(ivfdtl[sdt] %>% Reduce(merge_vcf, .))
+
+        if ((ivfdtl[sdt] %>% length > 1) & intersect == FALSE)
+          return(ivfdtl[sdt] %>% Reduce(union_vcf, .))
 
 
-  }) %>% data.table::rbindlist
+      }) %>% data.table::rbindlist(use.names = TRUE, fill = TRUE)
 
   # select protein coding variants without NA
-  sdt %<>% .[protein_coding == TRUE &
-            !protein_change %>% is.na &
-            !effect_type %>% is.na &
-            effect_type %like% "insertion|deletion|missense|frameshift"]
+  sdt %<>%
+    .[protein_coding == TRUE &
+    !protein_change %>% is.na &
+    !effect_type %>% is.na &
+     effect_type %like% "insertion|deletion|missense|frameshift"]
 
   return(sdt)
 
@@ -399,7 +456,7 @@ garnish_plot <- function(input){
 
   if (class(input)[1] == "character") input <- rio::import(input) %>% data.table::as.data.table
 
-  if (class(input)[1] != "list" & class(input)[1] != "data.table") stop("Input must be a full file path to a rio::import supported file type, a data.table object, or a list of data.tables (e.g. garnish_plot(list(dt1, dt2, dt3))")
+  if (class(input)[1] != "list" & class(input)[1] != "data.table") stop("Input must be a full file path to a rio::import-supported file type, a data.table object, or a list of data.tables (e.g. garnish_plot(list(dt1, dt2, dt3))")
 
   # set up theming
   ag_gg_theme <-

@@ -35,6 +35,13 @@ Advantages
 \item \code{garnish_jaffa}: process gene fusions from \href{https://github.com/Oshlack/JAFFA}{JAFFA}
 \item \code{garnish_predictions}: perform ensemble neoepitope prediction
 \item \code{garnish_summary}: summarize neoepitope prediction
+\item \code{garnish_plot}: generate summary plots for neoepitope prediction
+\item \code{list_mhc}: list all supported MHC alleles and appropriate syntax for use with \code{antigen.garnish}
 }
+}
+
+\section{Bug, issues, feedback}{
+
+Please report bugs and issues and provide feedback via \href{https://github.com/andrewrech/antigen.garnish/issues}{Github} or to \href{mailto:andrewrech@gmail.com}{andrewrech@gmail.com}.
 }
 

@@ -81,10 +81,12 @@ library(antigen.garnish)
   # extract variants
     antigen.garnish::garnish_variants %>%
 
-  # add space separated MHC types with antigen.garnish::list_mhc() compatible names
+  # add space separated MHC types
+  # see antigen.garnish::list_mhc() for nomenclature
+
       .[, MHC := c("HLA-A*02:01 HLA-DRB1*14:67",
                    "H-2-Kb H-2-IAd",
-                  "HLA-A*01:47 HLA-DRB1*03:08")] %>%
+                   "HLA-A*01:47 HLA-DRB1*03:08")] %>%
 
   # predict neoepitopes
     antigen.garnish::garnish_predictions %>%
@@ -93,6 +95,7 @@ library(antigen.garnish)
     antigen.garnish::garnish_summary %T>%
     print
 ```
+
 #### Predict neoepitopes from gene fusions
 
 ```r
