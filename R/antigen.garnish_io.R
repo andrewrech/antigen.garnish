@@ -275,8 +275,11 @@ garnish_variants <- function(vcfs, intersect = TRUE){
 
   # check that VCF is SnpEff-annotated
 
-    if (!vdt[, INFO %>%
-      stringr::str_detect(fixed("ANN=")) %>% all])
+    if (
+        vdt[, INFO %>% unique] %>% is.na ||
+        !vdt[, INFO %>%
+      stringr::str_detect(fixed("ANN=")) %>% all]
+      )
       stop(paste0("\nInput file \n", vcfs[ivf], "\nis missing INFO SnpEff annotations"))
 
     if (vcf@gt %>% length > 0) vdt <- cbind(vdt, vcf@gt %>% data.table::as.data.table)
