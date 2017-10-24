@@ -627,7 +627,7 @@ mcMap(function(x, y) (x %>% as.integer):(y %>% as.integer) %>%
 #'
 #' Perform ensemble neoepitope prediction on a data table of missense mutations, insertions, deletions or gene fusions using netMHC, mhcflurry, and mhcnuggets.
 #' See `list_mhc` for compatible MHC allele syntax.  Multiple MHC alleles for a single sample_id should be space separated.  See example.
-#' 
+#'
 #' @param path Path to input table ([acceptable formats](https://cran.r-project.org/web/packages/rio/vignettes/rio.html#supported_file_formats)).
 #' @param dt Data table. Input data table from `garnish_variants` or `garnish_jaffa`, or a data table in one of these forms:
 #'
@@ -793,6 +793,9 @@ garnish_predictions <- function(dt = NULL,
     dt <- rio::import(path) %>%
     data.table::as.data.table
 
+
+  input_type <- vector()
+
   # specify transcript vs. direct cDNA / mutant index input
     if (c("sample_id", "ensembl_transcript_id", "cDNA_change", "MHC") %chin%
             (dt %>% names) %>% all) input_type <- "transcript"
@@ -802,7 +805,10 @@ garnish_predictions <- function(dt = NULL,
             dt[, frameshift := FALSE]
 
 
-  if (!exists("input_type"))
+  if (!
+      (input_type == "transcript" ||
+        input_type == "peptide")
+      )
       stop("
 Input data table must be from
 garnish.variants or in
@@ -1022,8 +1028,11 @@ if (generate){
                 }
               }
 
-          if (dt$MHC %likef% "HLA" %>% any &
-              dt$MHC %likef% "H-2" %>% any)
+          if (
+              (dt$MHC %likef% "HLA" %>% any &
+                            dt$MHC %likef% "H-2" %>% any) ||
+              (dt$MHC == "all") %>% any
+              )
               {
                 pepv <- c(
                 "antigen.garnish_GRCm38_pep.RDS" %>%

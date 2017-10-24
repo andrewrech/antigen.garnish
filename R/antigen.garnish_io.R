@@ -278,7 +278,7 @@ garnish_variants <- function(vcfs, intersect = TRUE){
     if (
         vdt[, INFO %>% unique] %>% is.na ||
         !vdt[, INFO %>%
-      stringr::str_detect(fixed("ANN=")) %>% all]
+      stringr::str_detect(stringr::fixed("ANN=")) %>% all]
       )
       stop(paste0("\nInput file \n", vcfs[ivf], "\nis missing INFO SnpEff annotations"))
 
