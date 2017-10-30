@@ -508,7 +508,10 @@ garnish_plot <- function(input){
   lapply(input %>% seq_along, function(i){
 
     dt <- input[[i]]
-    dt <- data.table::copy(dt)
+    dt <- data.table::copy(dt) %>%
+      unique(by = c("pep_type",
+                    "MHC",
+                    "nmer"))
 
       if (!(c("nmer",
               "MHC",
