@@ -30,7 +30,7 @@ Remotes: andrewrech/dt.inflix,
                    tidyverse/magrittr,
                    Rdatatable/data.table,
                    Bioconductor/BiocInstaller,
-                   git::https://git.bioconductor.org/packages/ShortRead,
+                   git::https://git@git.bioconductor.org/packages/ShortRead,
                    Bioconductor/Biostrings,
                    Bioconductor-mirror/biomaRt
 RdMacros: Rdpack
