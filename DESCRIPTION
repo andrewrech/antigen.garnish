@@ -29,10 +29,10 @@ Imports: colorspace,
 Remotes: andrewrech/dt.inflix,
                    tidyverse/magrittr,
                    Rdatatable/data.table,
-                   github::Bioconductor/BiocInstaller,
-                   github::Bioconductor/ShortRead,
-                   github::Bioconductor/Biostrings,
-                   github::Bioconductor-mirror/biomaRt
+                   Bioconductor/BiocInstaller,
+                   Bioconductor/ShortRead,
+                   Bioconductor/Biostrings,
+                   Bioconductor-mirror/biomaRt
 RdMacros: Rdpack
 biocViews: 
 LazyLoad: yes
