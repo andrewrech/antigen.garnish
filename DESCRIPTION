@@ -30,9 +30,9 @@ Remotes: tidyverse/magrittr,
                    andrewrech/dt.inflix,
                    Rdatatable/data.table,
                    github::Bioconductor/BiocInstaller,
-                   github::Bioconductor/ShortRead,
-                   github::Bioconductor/Biostrings,
-                   github::Bioconductor-mirror/biomaRt
+                   bioc::release/ShortRead,
+                   bioc::release/Biostrings,
+                   bioc::release/biomaRt
 RdMacros: Rdpack
 biocViews: 
 LazyLoad: yes
