@@ -8,10 +8,7 @@ License: GPL-3
 Encoding: UTF-8
 LazyData: true
 RemoteUrl: http://neoepitopes.io
-Imports: biomaRt,
-                   Biostrings,
-                   ShortRead,
-                   colorspace,
+Imports: colorspace,
                    cowplot,
                    data.table,
                    dt.inflix,
