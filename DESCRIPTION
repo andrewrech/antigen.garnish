@@ -8,7 +8,10 @@ License: GPL-3
 Encoding: UTF-8
 LazyData: true
 RemoteUrl: http://neoepitopes.io
-Imports: colorspace,
+Imports: biomaRt,
+                   Biostrings,
+                   ShortRead,
+                   colorspace,
                    cowplot,
                    data.table,
                    dt.inflix,
@@ -28,11 +31,7 @@ Imports: colorspace,
                    zoo
 Remotes: tidyverse/magrittr,
                    andrewrech/dt.inflix,
-                   Rdatatable/data.table,
-                   github::Bioconductor/BiocInstaller,
-                   bioc::release/ShortRead,
-                   bioc::release/Biostrings,
-                   bioc::release/biomaRt
+                   Rdatatable/data.table
 RdMacros: Rdpack
 biocViews: 
 LazyLoad: yes
