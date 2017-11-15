@@ -31,7 +31,11 @@ Imports: biomaRt,
                    zoo
 Remotes: tidyverse/magrittr,
                    andrewrech/dt.inflix,
-                   Rdatatable/data.table
+                   Rdatatable/data.table,
+                   github::Bioconductor/BiocInstaller,
+                   github::Bioconductor/ShortRead,
+                   github::Bioconductor/Biostrings,
+                   github::Bioconductor-mirror/biomaRt
 RdMacros: Rdpack
 biocViews: 
 LazyLoad: yes
