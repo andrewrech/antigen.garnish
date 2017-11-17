@@ -14,7 +14,7 @@ r_check_args: ""
 cache: packages
 before_install:
     - sudo apt-get install -y libv8-3.14-dev ghostscript libgs-dev
-    - Rscript -e 'install.packages("devtools"); install.packages("testthat")'
+    - Rscript -e 'install.packages("devtools"); devtools::install_github("hadley/devtools"); install.packages("testthat")'
 sudo: true
 repos:
   CRAN: https://cloud.r-project.org

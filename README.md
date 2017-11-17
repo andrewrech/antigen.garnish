@@ -31,17 +31,19 @@ An R package for [neoepitope](http://science.sciencemag.org/content/348/6230/69)
 
 * Linux
 * R &ge; 3.4
+* python-pip
 
-### Install dependencies
-
-Install R (version 3.4), prediction tools, and dependencies on a Ubuntu [AMI](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/EC2_GetStarted.html) (Ubuntu Server 16.04 LTS (HVM) - ami-cd0f5cb6):
+### Install requirements
 
 ```sh
-cd "$HOME"
-sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys E298A3A825C0D65DFD57CBB651716619E084DAB9 &&
-sudo add-apt-repository 'deb [arch=amd64,i386] https://cran.rstudio.com/bin/linux/ubuntu xenial/'
-sudo apt-get update -y
-sudo apt-get install -y r-base python-pip libcurl4-gnutls-dev libssl-dev subversion libxml2-dev
+sudo apt-get install -y r-base python-pip
+```
+
+### Install `antigen.garnish`
+
+```sh
+curl http://get.rech.io/install.antigen.garnish.sh | sudo bash
+```
 
 sudo pip install scipy h5py mhcflurry
 mhcflurry-downloads fetch
@@ -50,7 +52,7 @@ wget "http://get.rech.io/antigen.garnish.tar.gz"
 tar -xvzf antigen.garnish.tar.gz
 ```
 
-Install antigen.garnish and dependencies from R:
+Install  and dependencies from R:
 
 ```r
 install.packages("devtools")
