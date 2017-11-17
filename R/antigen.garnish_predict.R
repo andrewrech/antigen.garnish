@@ -509,7 +509,8 @@ write_mhcnuggets_nmers <- function(dt, alleles){
             data.table::fwrite(dt[allele == i, peptide] %>%
                         data.table::as.data.table,
                         filename,
-                        col.names = FALSE)
+                        col.names = FALSE,
+                        quote = FALSE)
                         })
                       }
                   )
@@ -541,7 +542,8 @@ write_mhcnuggets_nmers <- function(dt, alleles){
             data.table::fwrite(dt[allele == i, peptide] %>%
                         data.table::as.data.table,
                         filename,
-                        col.names = FALSE)
+                        col.names = FALSE,
+                        quote = FALSE)
                         })
                       }
                   )
