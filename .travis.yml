@@ -5,14 +5,22 @@ r:
   - release
   - devel
   - 3.4.0
-install:
-- ./inst/extdata/install_travis.sh | sh
-script:
-- R CMD build .
-- R CMD check *tar.gz
+bioc_packages:
+  - Biostrings
+  - biomaRt
+  - ShortRead
+  - rhdf5
+  - tximport
+r_github_packages:
+  - tidyverse/magrittr
+  - Rdatatable/data.table
+  - pachterlab/sleuth
+  - Rdatatable/data.table
+  - r-lib/testthat
+  - rstudio/shiny
 env:
-  - MC_CORES=2 OMP_NUM_THREADS=2 DISPLAY=:1 PKG_CFLAGS="-O3 -Wall -pedantic"
-warnings_are_errors: false
+  - MC_CORES=2 OMP_NUM_THREADS=2 DISPLAY=:1
+warnings_are_errors: true
 r_check_args: ""
 cache: packages
 sudo: true

@@ -33,7 +33,7 @@ An R package for [neoepitope](http://science.sciencemag.org/content/348/6230/69)
 * R &ge; 3.4
 * python-pip
 
-### Install and test `antigen.garnish`
+### Install prediction tools and `antigen.garnish`
 
 ```sh
 curl -fsSL http://get.rech.io/install_antigen.garnish.sh | sh

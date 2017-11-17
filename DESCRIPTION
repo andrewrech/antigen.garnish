@@ -8,12 +8,10 @@ Encoding: UTF-8
 LazyData: true
 ByteCompile: true
 RemoteUrl: http://neoepitopes.io
-Imports: BiocInstaller,
-                   Biostrings,
+Imports: Biostrings,
                    biomaRt,
                    ShortRead,
                    colorspace,
-                   cowplot,
                    data.table,
                    dt.inflix,
                    ggplot2,

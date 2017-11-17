@@ -41,7 +41,7 @@
   'install.packages("devtools"); devtools::install_github("hadley/devtools"); devtools::install_github("r-lib/usethis"); install.packages("testthat")'
 
   Rscript -e \
-  'source("https://bioconductor.org/biocLite.R"); biocLite(c("BiocInstaller", "ShortRead", "biomaRt", "ShortRead"), ask = FALSE)'
+  'source("https://bioconductor.org/biocLite.R"); biocLite(c("ShortRead", "biomaRt", "ShortRead"), ask = FALSE)'
 
   Rscript -e \
   'remove.packages("data.table"); install.packages("data.table", type = "source", repos = "http://Rdatatable.github.io/data.table")'
@@ -57,14 +57,5 @@
   Rscript -e \
   'devtools::install_github("andrewrech/antigen.garnish", ref = "fix_travis")'
 
-# test antigen.garnish
-
-  echo "Testing antigen.garnish installation..."
-
-  mkdir -p "$HOME"/antigen.garnish/tests &&
-  cd "$HOME"/antigen.garnish/tests
-
-  Rscript -e \
-  'setwd("~/antigen.garnish/tests"); devtools::check("antigen.garnish")'
-
-
+    Rscript -e \
+  'testthat::test_package("antigen.garnish")'
