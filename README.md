@@ -33,30 +33,10 @@ An R package for [neoepitope](http://science.sciencemag.org/content/348/6230/69)
 * R &ge; 3.4
 * python-pip
 
-### Install requirements
+### Install and test `antigen.garnish`
 
 ```sh
-sudo apt-get install -y r-base python-pip
-```
-
-### Install `antigen.garnish`
-
-```sh
-curl http://get.rech.io/install.antigen.garnish.sh | sudo bash
-```
-
-sudo pip install scipy h5py mhcflurry
-mhcflurry-downloads fetch
-
-wget "http://get.rech.io/antigen.garnish.tar.gz"
-tar -xvzf antigen.garnish.tar.gz
-```
-
-Install  and dependencies from R:
-
-```r
-install.packages("devtools")
-devtools::install_github("andrewrech/antigen.garnish")
+curl -fsSL http://get.rech.io/install_antigen.garnish.sh | sh
 ```
 
 ## [Package documentation](http://get.rech.io/antigen.garnish.pdf)
@@ -157,7 +137,7 @@ library(magrittr)
 
 ## Authors
 
-* [Andrew J. Rech](http://info.rech.io) (maintainer)
+* [Andrew J. Rech](http://rech.io) (maintainer)
 * [Lee P. Richman](http://www.med.upenn.edu/apps/faculty/index.php/g275/p1073)
 * [David Balli](https://www.linkedin.com/in/davidballi1)
 * [Robert H. Vonderheide](http://www.med.upenn.edu/apps/faculty/index.php/g275/p1073)

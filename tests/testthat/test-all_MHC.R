@@ -127,7 +127,7 @@ testthat::test_that("predictions using all MHC types for all prediction tools", 
              "HLA-C*14:02",
              "HLA-C*15:02")
 
-      dt <- data.table(
+      dt <- data.table::data.table(
          MHC = MHC,
          cDNA_change = c("c.4988C>T",
                         "c.1114T>G",
