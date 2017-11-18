@@ -4,7 +4,6 @@ library(data.table)
 library(magrittr)
 library(dt.inflix)
 library(ggplot2)
-library(cowplot)
 
 testthat::test_that("garnish_plot", {
 

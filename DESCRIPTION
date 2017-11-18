@@ -1,18 +1,17 @@
 Package: antigen.garnish
-Title: Ensemble neoepitope prediction from DNA variants in R
 Version: 0.0.4
-Authors@R: 'Andrew J. Rech <andrewrech@gmail.com> [aut, cre]'
+Title: Ensemble neoepitope prediction from DNA variants in R
 Description: An R package for neoepitope analysis that takes human or murine DNA missense mutations, insertions, deletions, and gene fusions and performs neoepitope prediction. Input is a VCF file or table of peptides. Output is neoepitopes and a summary by sample.
-Depends: R (>= 3.4.0)
+Authors@R: 'Andrew J. Rech <andrewrech@gmail.com> [aut, cre]'
 License: GPL-3
 Encoding: UTF-8
 LazyData: true
+ByteCompile: true
 RemoteUrl: http://neoepitopes.io
-Imports: BiocInstaller,
-                   Biostrings,
+Imports: Biostrings,
                    biomaRt,
+                   ShortRead,
                    colorspace,
-                   cowplot,
                    data.table,
                    dt.inflix,
                    ggplot2,
@@ -20,7 +19,6 @@ Imports: BiocInstaller,
                    parallel,
                    Rdpack,
                    rio,
-                   ShortRead,
                    stats,
                    stringi,
                    stringr,
@@ -30,13 +28,7 @@ Imports: BiocInstaller,
                    uuid,
                    vcfR,
                    zoo
-Remotes: tidyverse/magrittr,
-                   andrewrech/dt.inflix,
-                   Rdatatable/data.table,
-                   bioc::release/BiocInstaller,
-                   bioc::release/Biostrings,
-                   bioc::release/biomaRt,
-                   bioc::release/ShortRead
+Depends: R (>= 3.4.0)
 RdMacros: Rdpack
 biocViews: 
 LazyLoad: yes

@@ -190,7 +190,7 @@ merge_predictions <- function(l, dt){
 
         # take average of mhcflurry, mhcnuggets, and best available netMHC tool
         cols <- cols <- dt %>% names %include% "(best_netMHC)|(mhcflurry_prediction$)|(mhcnuggets_pred_gru)|(mhcnuggets_pred_lstm)"
-        dt[, Consensus_scores :=  mean(as.numeric(.SD), na.rm = TRUE),
+        dt[, Consensus_scores := mean(as.numeric(.SD), na.rm = TRUE),
                                         by = 1:nrow(dt), .SDcols = cols]
 
         dt[, DAI := NA %>% as.numeric]
@@ -232,7 +232,7 @@ get_pred_commands <- function(dt){
   if (dt[, MHC %>% unique] %>%
       stringr::str_detect(" ") %>% any) dt %<>%
       tidyr::separate_rows("MHC", sep = " ")
-
+      dt <- copy(dt)
       dt[, class :=
             ifelse(MHC %>% stringr::str_detect("(HLA-[ABC]\\*)|(H-2-[A-Z][a-z])"),
             "I", "II")]
@@ -290,7 +290,8 @@ get_pred_commands <- function(dt){
     for (i in mf_dt[, allele %>% unique]){
       mf_dt[allele == i] %>%
       data.table::fwrite(paste0(
-            "mhcflurry_input_",  uuid::UUIDgenerate() %>% substr(1, 18), ".csv"))
+            "mhcflurry_input_",  uuid::UUIDgenerate() %>% substr(1, 18), ".csv"),
+            quote = FALSE, sep = ",")
     }
 
   # generate input for mhcnuggets predictions
@@ -510,6 +511,7 @@ write_mhcnuggets_nmers <- function(dt, alleles){
                         data.table::as.data.table,
                         filename,
                         col.names = FALSE,
+                        sep = ",",
                         quote = FALSE)
                         })
                       }
@@ -543,6 +545,7 @@ write_mhcnuggets_nmers <- function(dt, alleles){
                         data.table::as.data.table,
                         filename,
                         col.names = FALSE,
+                        sep = ",",
                         quote = FALSE)
                         })
                       }
@@ -587,7 +590,9 @@ write_netmhc_nmers <- function(dt, type){
         # write out unique peptides for MHC type, length
         data.table::fwrite(dtw[, .(nmer)] %>% unique,
                           filename,
-                          col.names = FALSE)
+                          col.names = FALSE,
+                          sep = ",",
+                          quote = FALSE)
 
         return(data.table::data.table(
                type = type,
