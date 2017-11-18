@@ -1,3 +1,5 @@
+# R for travis: see documentation at https://docs.travis-ci.com/user/languages/r
+
 language: r
 r:
   - bioc-devel
@@ -8,31 +10,28 @@ r:
 bioc_packages:
   - Biostrings
   - biomaRt
-  - ShortRead
-  - rhdf5
-  - tximport
 r_github_packages:
   - tidyverse/magrittr
   - Rdatatable/data.table
   - pachterlab/sleuth
-  - Rdatatable/data.table
   - r-lib/testthat
   - rstudio/shiny
+  - Bioconductor-mirror/ShortRead
+  - andrewrech/dt.inflix
+r_packages:
+  - covr
 env:
   - MC_CORES=2 OMP_NUM_THREADS=2 DISPLAY=:1
 warnings_are_errors: true
 r_check_args: ""
-cache: packages
 sudo: true
 repos:
   CRAN: https://cloud.r-project.org
-r_packages:
-  - covr
 after_success:
   - Rscript -e 'library(covr); codecov()'
-cache: packages
 notifications:
   email:
     on_success: always
     recipients:
       - andrewrech@gmail.com
+      - Leepr@upenn.edu

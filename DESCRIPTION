@@ -8,16 +8,15 @@ Encoding: UTF-8
 LazyData: true
 ByteCompile: true
 RemoteUrl: http://neoepitopes.io
-Imports: Biostrings,
-                   biomaRt,
+Imports: Rdpack,
                    ShortRead,
+                   biomaRt,
                    colorspace,
                    data.table,
                    dt.inflix,
                    ggplot2,
                    magrittr,
                    parallel,
-                   Rdpack,
                    rio,
                    stats,
                    stringi,
@@ -27,7 +26,8 @@ Imports: Biostrings,
                    utils,
                    uuid,
                    vcfR,
-                   zoo
+                   zoo,
+                   Biostrings
 Depends: R (>= 3.4.0)
 RdMacros: Rdpack
 biocViews: 
