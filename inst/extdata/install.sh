@@ -53,9 +53,8 @@
 
   echo "Installing antigen.garnish..."
 
-##### TODO remove fix_travis ref
   Rscript -e \
-  'devtools::install_github("andrewrech/antigen.garnish", ref = "fix_travis")'
+  'devtools::install_github("andrewrech/antigen.garnish", ref = "master")'
 
     Rscript -e \
   'testthat::test_package("antigen.garnish")'
