@@ -34,17 +34,17 @@
 
   echo "Installing dependencies..."
 
-  cd "$HOME"
+  cd "/usr/bin/local"
   curl -fsSL "http://get.rech.io/antigen.garnish.tar.gz" | tar -xvz
 
   Rscript -e \
-  'install.packages("devtools"); devtools::install_github("hadley/devtools"); devtools::install_github("r-lib/usethis"); install.packages("testthat")'
+  'install.packages("devtools", repos="http://cran.us.r-project.org"); devtools::install_github("hadley/devtools"); install.packages("testthat", repos="http://cran.us.r-project.org")'
 
   Rscript -e \
-  'source("https://bioconductor.org/biocLite.R"); biocLite(c("ShortRead", "biomaRt", "ShortRead"), ask = FALSE)'
+  'source("https://bioconductor.org/biocLite.R"); biocLite(c("ShortRead", "biomaRt", "Biostrings"), ask = FALSE)'
 
   Rscript -e \
-  'remove.packages("data.table"); install.packages("data.table", type = "source", repos = "http://Rdatatable.github.io/data.table")'
+  'install.packages("data.table", type = "source", repos = "http://Rdatatable.github.io/data.table")'
 
   Rscript -e \
   'devtools::install_github(c("tidyverse/magrittr", "andrewrech/dt.inflix"))'
@@ -54,7 +54,8 @@
   echo "Installing antigen.garnish..."
 
   Rscript -e \
-  'devtools::install_github("andrewrech/antigen.garnish", ref = "master")'
+  'devtools::(install_github)("andrewrech/antigen.garnish")'
 
+  echo "Testing antigen.garnish..."
     Rscript -e \
   'testthat::test_package("antigen.garnish")'
