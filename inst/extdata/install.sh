@@ -34,7 +34,7 @@
 
   echo "Installing dependencies..."
 
-  cd "/usr/bin/local"
+  cd "/usr/local/bin"
   curl -fsSL "http://get.rech.io/antigen.garnish.tar.gz" | tar -xvz
 
   Rscript -e \
