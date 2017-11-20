@@ -54,7 +54,7 @@
   echo "Installing antigen.garnish..."
 
   Rscript -e \
-  'devtools::(install_github)("andrewrech/antigen.garnish")'
+  'devtools::install_github("andrewrech/antigen.garnish@addblast")'
 
   echo "Testing antigen.garnish..."
     Rscript -e \
