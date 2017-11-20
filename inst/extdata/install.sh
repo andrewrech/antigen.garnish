@@ -38,6 +38,13 @@
   curl -fsSL "http://get.rech.io/antigen.garnish.tar.gz" | tar -xvz
   
   curl -fsSL "ftp://ftp.ncbi.nlm.nih.gov/blast/executables/blast+/LATEST/ncbi-blast-2.7.1+-x64-linux.tar.gz" | tar -xvz
+  
+  cd "ncbi-blast-2.7.1+/c++" 
+  ./configure
+  cd ReleaseMT/build
+  make all_r
+  
+  cd "/usr/bin/local"
 
   Rscript -e \
   'install.packages("devtools", repos="http://cran.us.r-project.org"); devtools::install_github("hadley/devtools"); install.packages("testthat", repos="http://cran.us.r-project.org")'
