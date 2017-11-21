@@ -38,10 +38,10 @@
   curl -fsSL "http://get.rech.io/antigen.garnish.tar.gz" | tar -xvz
 
   Rscript -e \
-  'install.packages("devtools", repos="http://cran.us.r-project.org"); devtools::install_github("hadley/devtools"); install.packages("testthat", repos="http://cran.us.r-project.org")'
+  'install.packages("devtools", repos = "http://cran.us.r-project.org"); devtools::install_github("hadley/devtools"); install.packages("testthat", repos = "http://cran.us.r-project.org")'
 
   Rscript -e \
-  'source("https://bioconductor.org/biocLite.R"); biocLite(c("ShortRead", "biomaRt", "Biostrings"), ask = FALSE)'
+  'source("https://bioconductor.org/biocLite.R"); biocLite(c("ShortRead", "biomaRt", "Biostrings"), suppressUpdates = TRUE, suppressAutoUpdate = TRUE, build_vignettes = FALSE)'
 
   Rscript -e \
   'install.packages("data.table", type = "source", repos = "http://Rdatatable.github.io/data.table")'
@@ -54,7 +54,7 @@
   echo "Installing antigen.garnish..."
 
   Rscript -e \
-  'devtools::(install_github)("andrewrech/antigen.garnish")'
+  'devtools::install_github("andrewrech/antigen.garnish")'
 
   echo "Testing antigen.garnish..."
     Rscript -e \
