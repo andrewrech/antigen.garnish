@@ -31,10 +31,12 @@
 
   echo "Installing dependencies..."
 
-  pip --disable-pip-version-check install scipy h5py mhcflurry
+  pip --disable-pip-version-check install scipy h5py mhcflurry biopython
   mhcflurry-downloads fetch
 
   sudo DEBIAN_FRONTEND=noninteractive apt-get -y install ncbi-blast+
+
+  sudo DEBIAN_FRONTEND=noninteractive apt-get -y install gnutls-bin
 
   cd "/usr/bin"
   sudo curl -fsSL "http://get.rech.io/antigen.garnish.tar.gz" | sudo tar -xvz
@@ -63,6 +65,6 @@
   'antigen.garnish::check_pred_tools()'
 
   echo "Testing antigen.garnish..."
-  
+
   Rscript -e \
   'testthat::test_package("antigen.garnish")'
