@@ -38,7 +38,7 @@
 
   DEBIAN_FRONTEND=noninteractive apt-get -y install gnutls-bin
 
-  cd "/usr/bin"
+  cd "/usr/local/bin"
   curl -fsSL "http://get.rech.io/antigen.garnish.tar.gz" | tar -xvz
 
   Rscript -e \
@@ -62,9 +62,4 @@
   'devtools::install_github("andrewrech/antigen.garnish@addblast")'
 
   Rscript -e \
-  'antigen.garnish::check_pred_tools()'
-
-  echo "Testing antigen.garnish..."
-
-  Rscript -e \
-  'testthat::test_package("antigen.garnish")'
+  'antigen.garnish::check_pred_tools(); message("Testing antigen.garnish..."); testthat::test_package("antigen.garnish")'
