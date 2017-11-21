@@ -34,12 +34,12 @@
   pip --disable-pip-version-check install scipy h5py mhcflurry biopython
   mhcflurry-downloads fetch
 
-  sudo DEBIAN_FRONTEND=noninteractive apt-get -y install ncbi-blast+
+  DEBIAN_FRONTEND=noninteractive apt-get -y install ncbi-blast+
 
-  sudo DEBIAN_FRONTEND=noninteractive apt-get -y install gnutls-bin
+  DEBIAN_FRONTEND=noninteractive apt-get -y install gnutls-bin
 
   cd "/usr/bin"
-  sudo curl -fsSL "http://get.rech.io/antigen.garnish.tar.gz" | sudo tar -xvz
+  curl -fsSL "http://get.rech.io/antigen.garnish.tar.gz" | tar -xvz
 
   Rscript -e \
   'install.packages("devtools", repos="http://cran.us.r-project.org"); devtools::install_github("hadley/devtools"); install.packages("testthat", repos="http://cran.us.r-project.org")'
