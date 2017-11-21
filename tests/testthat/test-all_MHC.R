@@ -1,4 +1,4 @@
-dtolibrary(testthat)
+library(testthat)
 library(antigen.garnish)
 library(data.table)
 library(magrittr)
