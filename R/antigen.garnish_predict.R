@@ -1,5 +1,140 @@
 
 
+## ---- make_BLAST_uuid
+#' Internal function to pair peptides with similar wild-type peptides using BLAST to calculate neoepitope amplitude.
+#'
+#' @param dti Data table of nmers.
+#'
+#' @export make_BLAST_uuid
+#' @md
+
+make_BLAST_uuid <- function(dti){
+
+  dt <- dti[pep_type != "wt" & !is.na(pep_type)]
+
+# blast first to get pairs for non-mutnfs peptides then run nature paper package
+
+  dt[MHC %like% "HLA", spc := "Hu"] %>%
+    .[MHC %like% "H-2", spc := "Ms"]
+
+  # generate fastas to query
+  parallel::mclapply(dt[, spc %>% unique], function(s){
+
+    dt <- dt[spc == s]
+
+  fa_v <- dt[, .SD %>% unique, .SDcols = c("nmer", "nmer_uuid")] %>% .[, nmer %>% unique]
+  names(fa_v) <- dt[, .SD %>% unique, .SDcols = c("nmer", "nmer_uuid")] %>% .[, nmer_uuid %>% unique]
+
+  AA <- Biostrings::AAStringSet(fa_v, use.names = TRUE)
+
+  Biostrings::writeXStringSet(AA, file = paste(s, "_nmer_fasta.fa", sep = ""), format = "fasta")
+
+  })
+
+  # run blastp-short
+  if (file.exists("Ms_nmer_fasta.fa"))
+  system(paste0(
+  "blastp -query Ms_nmer_fasta.fa -task blastp-short -db /usr/local/bin/mouse.bdb -out msblastpout.csv -num_threads ", parallel::detectCores(),
+  " -outfmt \"10 qseqid sseqid qseq qstart qend sseq sstart send length mismatch pident evalue bitscore\""
+  ))
+
+  if (file.exists("Hu_nmer_fasta.fa"))
+  system(paste0(
+  "blastp -query Hu_nmer_fasta.fa -task blastp-short -db /usr/local/bin/human.bdb -out hublastpout.csv -num_threads ", parallel::detectCores(),
+  " -outfmt \"10 qseqid sseqid qseq qstart qend sseq sstart send length mismatch pident evalue bitscore\""
+))
+
+  # read in CSV
+
+  blastdt <- list.files(pattern = "blastpout\\.csv")
+
+  blastdt <- lapply(blastdt, data.table::fread) %>%
+                data.table::rbindlist %>%
+                  data.table::setnames(names(.),
+                                      c("nmer_uuid", "ensembl_prot_id", "nmer",
+                                    "q_start", "q_stop", "WT.peptide", "s_start", "s_end",
+                                  "overlap_length", "mismatch_length", "pident", "evalue", "bitscore"))
+  # keep highest bitscore and mismatch can only be 1
+
+  blastdt <- blastdt[mismatch_length == 1]
+
+  blastdt[, highest := max(bitscore), by = "nmer_uuid"]
+
+  # exclude insertions or deletions
+
+  blastdt <- blastdt[highest == bitscore] %>%
+              .[!(nmer %like% "-")] %>%
+                .[, highest := NULL]
+
+  # keep longest alignment
+
+  blastdt <- blastdt[, best := max(overlap_length), by = "nmer_uuid"] %>%
+              .[best == overlap_length] %>%
+                .[, best := NULL]
+
+  # if two equally good matches, warn that one was picked arbitrarily
+
+  if (blastdt[, .SD %>% unique, by = "nmer_uuid", "WT.peptide"] %>%
+    .[, .N, by = "nmer_uuid"] %>% .[, N > 1 %>% any]){
+
+    l <- blastdt[, .SD %>% unique, .SDcols = c("nmer_uuid", "WT.peptide")] %>%
+        .[, .N, by = "nmer_uuid"] %>% .[N > 1, nmer_uuid %>% unique]
+
+    message(
+      paste0("More than one best match found for ", length(l), " records.
+      One matching wild-type peptide was chosen arbitrarily.
+      All such records with corresponding blast hits were saved to Multi_hits.csv in the working directory.")
+    )
+
+    blastdt[nmer_uuid %chin% l] %>% data.table::fwrite("Multi_hits.csv", quote = FALSE, row.names = FALSE, col.names = TRUE)
+
+    # now arbitrarily pick one match of multiple if applicable
+
+    bldtl <- blastdt[nmer_uuid %chin% l] %>% split(by = "nmer_uuid")
+
+    bldtl <- lapply(bldtl, function(b){
+
+      return(b[1])
+
+      }) %>% data.table::rbindlist
+
+    blastdt <- data.table::rbindlist(list(blastdt[!(nmer_uuid %chin% l)],
+                                          bldtl))
+
+    }
+
+    # lost ensembl_prot_id here but since WT nmer matches don't care for predictions and can blast later if needed
+
+    blastdt <- blastdt[, .SD %>% unique, .SDcols = c("nmer_uuid", "nmer", "WT.peptide")]
+
+    # this shouldn't happen but just in case, toss any WT.peptide diff length from input nmers
+
+    blastdt <- blastdt[nchar(nmer) == nchar(WT.peptide)]
+
+    blastdt[, blast_uuid := uuid::UUIDgenerate(), by = c("nmer_uuid", "WT.peptide")]
+
+    dti <- merge(dti, blastdt[, .SD, .SDcols = c("nmer_uuid", "nmer", "blast_uuid")], by = c("nmer_uuid", "nmer"), all.x = TRUE)
+
+    # to add WT.peptide back to table need nmer, nmer_i, nmer_l (nchar(nmer)), var_uuid, pep_type
+
+    vdt <- dti[, .SD %>% unique, .SDcols = c("nmer_uuid", "nmer", "nmer_i", "nmer_l", "var_uuid")]
+
+    vdt <- merge(vdt, blast_dt, by = c("nmer", "nmer_uuid"))
+
+    vdt %>% .[, nmer := NULL] %>% .[, nmer_uuid := NULL]
+
+    vdt <- vdt %>%
+            data.table::setnames("WT.peptide", "nmer") %>%
+              .[, nmer_uuid := uuid::UUIDgenerate(), by = c("nmer", "var_uuid")] %>%
+                  unique %>%
+                    .[, pep_type := "wt"]
+
+    dto <- data.table::rbindlist(dti, vdt, fill = TRUE)
+
+    return(dto)
+
+}
+
 
 ## ---- make_DAI_uuid
 #' Internal function to pair peptides from missense sites by a common UUID for DAI calculations
@@ -203,6 +338,12 @@ merge_predictions <- function(l, dt){
         dt[!dai_uuid %>% is.na,
         DAI := Consensus_scores[2] /
           Consensus_scores[1], by = dai_uuid]
+
+        data.table::setkey(dt, pep_type, blast_uuid)
+
+          dt[!blast_uuid %>% is.na,
+          BLAST_A := Consensus_scores[2] /
+            Consensus_scores[1], by = blast_uuid]
       return(dt)
     }
 
@@ -1110,6 +1251,8 @@ if (generate){
     # DAI cannot be calculated with peptide input
     if (input_type == "peptide")
       dt[, dai_uuid := NA %>% as.character]
+
+    dt %<>% make_BLAST_uuid
 
 }
 
