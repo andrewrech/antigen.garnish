@@ -38,8 +38,22 @@
 
   DEBIAN_FRONTEND=noninteractive apt-get -y install gnutls-bin
 
+  DEBIAN_FRONTEND=noninteractive apt-get -y install perlbrew
+
   cd "/usr/local/bin"
+
   curl -fsSL "http://get.rech.io/antigen.garnish.tar.gz" | tar -xvz
+
+  wget ftp://ftp.ensembl.org/pub/release-90/fasta/mus_musculus/pep/Mus_musculus.GRCm38.pep.all.fa.gz
+
+  gzip -d Mus_musculus.GRCm38.pep.all.fa.gz
+
+  wget ftp://ftp.ensembl.org/pub/release-90/fasta/homo_sapiens/pep/Homo_sapiens.GRCh38.pep.all.fa.gz
+
+  gzip -d Homo_sapiens.GRCh38.pep.all.fa.gz
+
+  makeblastdb -in Mus_musculus.GRCm38.pep.all.fa -input_type fasta -dbtype prot -out mouse.bdb
+  makeblastdb -in Homo_sapiens.GRCh38.pep.all.fa -input_type fasta -dbtype prot -out human.bdb
 
   Rscript -e \
   'install.packages("devtools", repos="http://cran.us.r-project.org"); devtools::install_github("hadley/devtools"); install.packages("testthat", repos="http://cran.us.r-project.org")'
