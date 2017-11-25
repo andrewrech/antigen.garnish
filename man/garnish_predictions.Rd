@@ -6,7 +6,7 @@
 \usage{
 garnish_predictions(dt = NULL, path = NULL, assemble = TRUE,
   generate = TRUE, predict = TRUE, humandb = "GRCh38",
-  mousedb = "GRCm38")
+  mousedb = "GRCm38", blast = FALSE)
 }
 \arguments{
 \item{dt}{Data table. Input data table from \code{garnish_variants} or \code{garnish_jaffa}, or a data table in one of these forms:
@@ -42,6 +42,8 @@ MHC                         <same as above>
 \item{humandb}{Character vector. One of "GRCh37" or "GRCh38".}
 
 \item{mousedb}{Character vector. One of "GRCm37" or "GRCm38".}
+
+\item{blast}{Logical. Run BLASTp to find wild-type peptide matches? Default is FALSE.}
 }
 \value{
 A data table of binding predictions including:
