@@ -70,7 +70,7 @@ testthat::test_that("garnish_predictions README example from VCF", {
                         garnish_predictions(blast = TRUE)
 
         testthat::expect_true(dt %>% nrow == 711)
-        testthat::expect_true(dt[, nmer %>% unique] == 552)
+        testthat::expect_true(dt[, nmer %>% unique %>% length] == 552)
         testthat::expect_true(file.exists("Multi_hits.csv"))
 
         if (file.exists("Multi_hits.csv")) file.remove("Multi_hits.csv")
