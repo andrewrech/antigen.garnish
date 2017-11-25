@@ -9,7 +9,7 @@
 #' @md
 
 make_BLAST_uuid <- function(dti){
-  
+
   on.exit({
     message("Removing temporary files")
     list.files(pattern = "_nmer_fasta\\.fa") %>% file.remove
@@ -80,7 +80,7 @@ make_BLAST_uuid <- function(dti){
   # if two equally good matches, warn that one was picked arbitrarily
 
   if (blastdt[, .SD %>% unique, by = c("nmer_uuid", "WT.peptide")] %>%
-    .[, .N, by = "nmer_uuid"] %>% .[, N > 1 %>% any]){
+    .[, .N, by = "nmer_uuid"] %>% .[, N > 1] %>% any){
 
     l <- blastdt[, .SD %>% unique, .SDcols = c("nmer_uuid", "WT.peptide")] %>%
         .[, .N, by = "nmer_uuid"] %>% .[N > 1, nmer_uuid %>% unique]
@@ -124,7 +124,7 @@ make_BLAST_uuid <- function(dti){
 
     vdt <- dti[, .SD %>% unique, .SDcols = c("nmer_uuid", "nmer", "nmer_i", "nmer_l", "var_uuid")]
 
-    vdt <- merge(vdt, blast_dt, by = c("nmer", "nmer_uuid"))
+    vdt <- merge(vdt, blastdt, by = c("nmer", "nmer_uuid"))
 
     vdt %>% .[, nmer := NULL] %>% .[, nmer_uuid := NULL]
 
