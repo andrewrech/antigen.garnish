@@ -339,11 +339,14 @@ merge_predictions <- function(l, dt){
         DAI := Consensus_scores[2] /
           Consensus_scores[1], by = dai_uuid]
 
-        data.table::setkey(dt, pep_type, blast_uuid)
+      if ("blast_uuid" %chin% names(dt)){
 
-        if ("blast_uuid" %chin% names(dt)) dt[!blast_uuid %>% is.na,
+         data.table::setkey(dt, pep_type, blast_uuid)
+
+         dt[!blast_uuid %>% is.na,
           BLAST_A := Consensus_scores[2] /
             Consensus_scores[1], by = blast_uuid]
+          }
 
       return(dt)
     }
