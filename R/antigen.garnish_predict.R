@@ -134,7 +134,7 @@ make_BLAST_uuid <- function(dti){
                   unique %>%
                     .[, pep_type := "wt"]
 
-    dto <- data.table::rbindlist(dti, vdt, fill = TRUE)
+    dto <- data.table::rbindlist(dti, vdt, fill = TRUE, use.names = TRUE)
 
     return(dto)
 
