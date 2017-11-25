@@ -341,9 +341,10 @@ merge_predictions <- function(l, dt){
 
         data.table::setkey(dt, pep_type, blast_uuid)
 
-          dt[!blast_uuid %>% is.na,
+        if ("blast_uuid" %chin% names(dt)) dt[!blast_uuid %>% is.na,
           BLAST_A := Consensus_scores[2] /
             Consensus_scores[1], by = blast_uuid]
+
       return(dt)
     }
 
@@ -808,6 +809,7 @@ mcMap(function(x, y) (x %>% as.integer):(y %>% as.integer) %>%
 #' @param predict Logical. Predict binding affinities?
 #' @param humandb Character vector. One of "GRCh37" or "GRCh38".
 #' @param mousedb Character vector. One of "GRCm37" or "GRCm38".
+#' @param blast Logical. Run BLASTp to find wild-type peptide matches? Default is FALSE.
 #' @return A data table of binding predictions including:
 #' * **cDNA_seq**: mutant cDNA sequence
 #' * **cDNA_locs**: starting index of mutant cDNA
@@ -926,7 +928,8 @@ garnish_predictions <- function(dt = NULL,
                                generate = TRUE,
                                predict = TRUE,
                                humandb = "GRCh38",
-                               mousedb = "GRCm38"){
+                               mousedb = "GRCm38",
+                               blast = FALSE){
 
   # remove temporary files on exit
   on.exit({
@@ -1252,7 +1255,7 @@ if (generate){
     if (input_type == "peptide")
       dt[, dai_uuid := NA %>% as.character]
 
-    dt %<>% make_BLAST_uuid
+  if (blast)  dt %<>% make_BLAST_uuid
 
 }
 
