@@ -122,7 +122,7 @@ make_BLAST_uuid <- function(dti){
 
     # to add WT.peptide back to table need nmer, nmer_i, nmer_l (nchar(nmer)), var_uuid, pep_type
 
-    vdt <- dti[, .SD %>% unique, .SDcols = c("nmer_uuid", "nmer", "nmer_i", "nmer_l", "var_uuid", "sample_id", "effect_type")]
+    vdt <- dti[, .SD %>% unique, .SDcols = c("nmer_uuid", "nmer", "nmer_i", "nmer_l", "var_uuid", "sample_id", "effect_type", "MHC")]
 
     vdt <- merge(vdt, blastdt, by = c("nmer", "nmer_uuid"))
 
