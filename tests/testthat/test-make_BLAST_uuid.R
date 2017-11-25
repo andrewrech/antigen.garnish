@@ -85,6 +85,6 @@ testthat::test_that("make_BLAST_uuid", {
      structure(c(8L, 10L), .Dim = 2L, .Dimnames = structure(list(. = c("mutnfs",
      "wt")), .Names = "."), class = "table"))
 
-     if (file.exits("Multi_hits.csv")) file.remove("Multi_hits.csv")
+     if (file.exists("Multi_hits.csv")) file.remove("Multi_hits.csv")
 
     })
