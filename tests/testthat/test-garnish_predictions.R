@@ -48,6 +48,35 @@ testthat::test_that("garnish_predictions README example from VCF", {
         %>% all)
     })
 
+    testthat::test_that("garnish_predictions README example from VCF with BLAST", {
+
+       if (!check_pred_tools() %>% unlist %>% all){
+        testthat::skip("Skipping run_netMHC because prediction tools are not in PATH")
+        }
+
+        if (length(system("which blastp", intern = TRUE)) != 1){
+         testthat::skip("Skipping make_BLAST_uuid because ncbiblast+ is not in PATH")
+         }
+
+        # load test data
+          dt <- "antigen.garnish_example.vcf" %T>%
+          utils::download.file("http://get.rech.io/antigen.garnish_example.vcf", .) %>%
+
+        # run test
+          garnish_variants %>%
+            .[, MHC := c("HLA-A*02:01 HLA-DRB1*14:67",
+                         "H-2-Kb H-2-IAd",
+                        "HLA-A*01:47 HLA-DRB1*03:08")] %>%
+                        garnish_predictions(blast = TRUE)
+
+        testthat::expect_true(dt %>% nrow == 711)
+        testthat::expect_true(dt[, nmer %>% unique] == 552)
+        testthat::expect_true(file.exists("Multi_hits.csv"))
+
+        if (file.exists("Multi_hits.csv")) file.remove("Multi_hits.csv")
+
+        })
+
 testthat::test_that("garnish_predictions from transcripts", {
 
    if (!check_pred_tools() %>% unlist %>% all){
