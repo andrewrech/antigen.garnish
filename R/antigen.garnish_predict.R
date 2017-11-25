@@ -29,8 +29,8 @@ make_BLAST_uuid <- function(dti){
 
   fa_v <- dt[, .SD %>% unique, .SDcols = c("nmer", "nmer_uuid")] %>%
            .[order(nmer)] %>% .[, nmer]
-  names(fa_v) <- dt[, .SD %>% unique, .SDcols = c("nmer", "nmer_uuid")] %>% .[order(nmer)]
-                  %>% .[, nmer_uuid]
+  names(fa_v) <- dt[, .SD %>% unique, .SDcols = c("nmer", "nmer_uuid")] %>% .[order(nmer)] %>%
+                  .[, nmer_uuid]
 
   AA <- Biostrings::AAStringSet(fa_v, use.names = TRUE)
 
