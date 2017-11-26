@@ -148,6 +148,10 @@ make_BLAST_uuid <- function(dti){
                     .[, pep_type := "wt"]
 
     dto <- data.table::rbindlist(list(dti, vdt), fill = TRUE, use.names = TRUE)
+  
+  # sanity check to make sure no '-' slipped through from blastp
+
+    dto <- dto[!nmer %like% "-"]
 
     return(dto)
 
