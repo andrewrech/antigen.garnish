@@ -958,7 +958,8 @@ garnish_predictions <- function(dt = NULL,
     dt <- rio::import(path) %>%
     data.table::as.data.table
 
-
+  if (!"MHC" %chin% names(dt)) stop("Input must include MHC alleles, see ?garnish_predictions"
+  
   input_type <- vector()
 
   # specify transcript vs. direct cDNA / mutant index input
