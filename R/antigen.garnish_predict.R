@@ -14,7 +14,12 @@ make_BLAST_uuid <- function(dti){
     message("Removing temporary files")
     list.files(pattern = "_nmer_fasta\\.fa") %>% file.remove
   })
-
+  
+  if (length(system("which blastp", intern = TRUE)) != 1){
+   message("Skipping BLAST because ncbiblast+ is not in PATH, please apt-get -y install ncbi-blast+")
+   return(dti)
+   }
+  
   dt <- dti[pep_type != "wt" & !is.na(pep_type)]
 
 # blast first to get pairs for non-mutnfs peptides then run nature paper package
@@ -39,6 +44,8 @@ make_BLAST_uuid <- function(dti){
   })
 
   # run blastp-short
+  message("Running blastp, this takes >1hr with ~14,000 unique peptides...")
+  
   if (file.exists("Ms_nmer_fasta.fa"))
   system(paste0(
   "blastp -query Ms_nmer_fasta.fa -task blastp-short -db /usr/local/bin/mouse.bdb -out msblastpout.csv -num_threads ", parallel::detectCores(),
