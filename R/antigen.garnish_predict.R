@@ -125,6 +125,8 @@ make_BLAST_uuid <- function(dti){
     # to add WT.peptide back to table need nmer, nmer_i, nmer_l (nchar(nmer)), var_uuid, pep_type
   
     if (!"var_uuid" %chin% names(dti)) dti[, var_uuid := NA %>% as.character]
+  
+    if (!"effect_type" %chin% names(dti)) dti[, effect_type := NA %>% as.character]
 
     vdt <- dti[, .SD %>% unique, .SDcols = c("nmer_uuid", "nmer", "nmer_i", "nmer_l", "var_uuid", "sample_id", "effect_type", "MHC")]
 
