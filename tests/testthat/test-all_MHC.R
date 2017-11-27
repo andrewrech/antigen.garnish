@@ -142,6 +142,6 @@ testthat::test_that("predictions using all MHC types for all prediction tools", 
       dto <- dt %>% garnish_predictions
 
     testthat::expect_true(dto %>% nrow > 14000)
-    testthat::expect_true(dto %>% length == 96)
+    testthat::expect_true(dto %>% length == 95)
 
     })
