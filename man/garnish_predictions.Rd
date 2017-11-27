@@ -66,6 +66,9 @@ A data table of binding predictions including:
 \item \strong{*_net}: netMHC prediction tool output
 \item \strong{mhcflurry_*}: mhcflurry_ prediction tool output
 \item \strong{mhcnuggets_*}: mhcnuggets_ prediction tool output
+\item \strong{Consensus_scores}: Average value of MHC binding affinity from all prediction tools that contributed output. 95% confidence intervals are given by \strong{Upper_CI}, \strong{Lower_CI}.
+\item \strong{DAI}: Differential agretopicty index, see \code{garnish_summary} for an explanation of DAI.
+\item \strong{BLAST_A}: Ratio of consensus binding affinity of mutant peptide / closest single AA mismatch from blastp results. Returned only if \code{blast = TRUE}.
 }
 
 as well as a transcript description:
