@@ -137,10 +137,8 @@ library(magrittr)
 
 ## Authors
 
-* [Andrew J. Rech](http://rech.io) (maintainer)
-* [Lee P. Richman](http://www.med.upenn.edu/apps/faculty/index.php/g275/p1073)
-* [David Balli](https://www.linkedin.com/in/davidballi1)
-* [Robert H. Vonderheide](http://www.med.upenn.edu/apps/faculty/index.php/g275/p1073)
+* [Lee P. Richman](http://www.med.upenn.edu/apps/faculty/index.php/g275/p1073) (maintainer)
+* [Andrew J. Rech](http://rech.io)
 
 ## Contributing
 
