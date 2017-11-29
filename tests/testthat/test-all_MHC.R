@@ -129,19 +129,16 @@ testthat::test_that("predictions using all MHC types for all prediction tools", 
 
       dt <- data.table::data.table(
          MHC = MHC,
-         cDNA_change = c("c.4988C>T",
-                        "c.1114T>G",
-                        "c.718T>A"),
+         cDNA_change = "c.4988C>T",
          ensembl_transcript_id =
-         c("ENSMUST00000128119",
-           "ENSMUST00000044250",
-           "ENSMUST00000018743"),
-         sample_id = c("test1", "test2"))
+         "ENSMUST00000128119",
+         sample_id = "test1")
 
     # run test
       dto <- dt %>% garnish_predictions
+      
 
-    testthat::expect_true(dto %>% nrow > 14000)
-    testthat::expect_true(dto %>% length == 95)
+    testthat::expect_true(
+        dto[!Consensus_scores %>% is.na, MHC %>% unique %>% length]  == 111)
 
     })
