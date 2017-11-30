@@ -103,6 +103,7 @@ run_netMHC <- function(dt){
 #' @md
 
 check_pred_tools <- function(){
+  
   default_path <- paste0(system('echo /usr/local/bin', intern = TRUE),
                   c(
                   "/antigen.garnish/netMHC/netMHC-4.0",

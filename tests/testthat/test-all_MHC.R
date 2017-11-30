@@ -136,7 +136,6 @@ testthat::test_that("predictions using all MHC types for all prediction tools", 
 
     # run test
       dto <- dt %>% garnish_predictions
-      
 
     testthat::expect_true(
         dto[!Consensus_scores %>% is.na, MHC %>% unique %>% length]  == 111)
