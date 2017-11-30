@@ -62,10 +62,16 @@ make_BLAST_uuid <- function(dti){
 
   blastdt <- list.files(pattern = "blastpout\\.csv")
 
-  if (length(blastdt) == 0){
+  if (length(blastdt) == 0 ||
+      all(file.info(blastdt)$size == 0)){
     message("Impressively, no WT matches found by blast, remember, mouse and human sequences only! Running with argument blast = FALSE.")
     return(dti)
   }
+
+  if (any(file.info(blastdt)$size == 0)) blastdt <- blastdt %>% file.info %>%
+                                                    data.table::as.data.table(keep.rownames = TRUE) %>%
+                                                      .[size != 0, rn]
+
 
   blastdt <- lapply(blastdt, data.table::fread) %>%
                 data.table::rbindlist %>%
@@ -184,7 +190,7 @@ make_BLAST_uuid <- function(dti){
 
   blastdt <- list.files(pattern = "iedbout\\.csv")
 
-  if (length(blastdt) == 0){
+  if (length(blastdt) == 0 || file.info(blastdt)$size == 0){
     message(paste("No IEDB matches found, returning BLAST against reference proteomes only...."))
     return(dto)
   }
