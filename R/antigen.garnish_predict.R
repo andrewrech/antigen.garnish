@@ -74,7 +74,7 @@ make_BLAST_uuid <- function(dti){
                                     "q_start", "q_stop", "WT.peptide", "s_start", "s_end",
                                   "overlap_length", "mismatch_length", "pident", "evalue", "bitscore"))
 
-  if (nrow(blastdt %>% data.table::fread) == 0){
+  if (nrow(blastdt) == 0){
     message("Impressively, no WT matches found by blast, remember, mouse and human sequences only! Running with argument blast = FALSE.")
     return(dti)
   }
