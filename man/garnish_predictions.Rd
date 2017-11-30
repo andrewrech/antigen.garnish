@@ -43,7 +43,7 @@ MHC                         <same as above>
 
 \item{mousedb}{Character vector. One of "GRCm37" or "GRCm38".}
 
-\item{blast}{Logical. Run BLASTp to find wild-type peptide matches? Default is FALSE.}
+\item{blast}{Logical. Run BLASTp to find wild-type peptide and known IEDB matches? Default is FALSE.}
 }
 \value{
 A data table of binding predictions including:

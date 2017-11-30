@@ -62,8 +62,8 @@ make_BLAST_uuid <- function(dti){
 
   blastdt <- list.files(pattern = "blastpout\\.csv")
 
-  if (length(blastdt) == 0 || nrow(blastdt %>% data.table::fread) == 0){
-    message("Impressively, no WT matches found by blast, remember, mouse and human sequences only! Skipping IEDB blasting.")
+  if (length(blastdt) == 0){
+    message("Impressively, no WT matches found by blast, remember, mouse and human sequences only! Running with argument blast = FALSE.")
     return(dti)
   }
 
@@ -73,6 +73,11 @@ make_BLAST_uuid <- function(dti){
                                       c("nmer_uuid", "ensembl_prot_id", "nmer",
                                     "q_start", "q_stop", "WT.peptide", "s_start", "s_end",
                                   "overlap_length", "mismatch_length", "pident", "evalue", "bitscore"))
+
+  if (nrow(blastdt %>% data.table::fread) == 0){
+    message("Impressively, no WT matches found by blast, remember, mouse and human sequences only! Running with argument blast = FALSE.")
+    return(dti)
+  }
   # keep highest bitscore and mismatch can only be 1
 
   blastdt <- blastdt[mismatch_length == 1]
@@ -179,6 +184,11 @@ make_BLAST_uuid <- function(dti){
 
   blastdt <- list.files(pattern = "iedbout\\.csv")
 
+  if (length(blastdt) == 0){
+    message(paste("No IEDB matches found, returning BLAST against reference proteomes only...."))
+    return(dto)
+  }
+
   blastdt <- blastdt %>% data.table::fread %>%
                   data.table::setnames(names(.),
                                       c("nmer_uuid", "IEDB_anno", "nmer",
@@ -189,7 +199,7 @@ make_BLAST_uuid <- function(dti){
   blastdt <- blastdt[mismatch_length < 3 & nchar(nmer) > 7 & nchar(WT.peptide) > 7]
 
   if (nrow(blastdt) == 0){
-    message(paste("No IEDB matches found....   ¯\\_(ツ)_/¯"))
+    message(paste("No IEDB matches found, returning BLAST against reference proteomes only...."))
     return(dto)
   }
 
@@ -971,7 +981,7 @@ mcMap(function(x, y) (x %>% as.integer):(y %>% as.integer) %>%
 #' @param predict Logical. Predict binding affinities?
 #' @param humandb Character vector. One of "GRCh37" or "GRCh38".
 #' @param mousedb Character vector. One of "GRCm37" or "GRCm38".
-#' @param blast Logical. Run BLASTp to find wild-type peptide matches? Default is FALSE.
+#' @param blast Logical. Run BLASTp to find wild-type peptide and known IEDB matches? Default is FALSE.
 #' @return A data table of binding predictions including:
 #' * **cDNA_seq**: mutant cDNA sequence
 #' * **cDNA_locs**: starting index of mutant cDNA
