@@ -6,7 +6,7 @@
 \usage{
 garnish_predictions(dt = NULL, path = NULL, assemble = TRUE,
   generate = TRUE, predict = TRUE, humandb = "GRCh38",
-  mousedb = "GRCm38")
+  mousedb = "GRCm38", blast = FALSE)
 }
 \arguments{
 \item{dt}{Data table. Input data table from \code{garnish_variants} or \code{garnish_jaffa}, or a data table in one of these forms:
@@ -42,6 +42,8 @@ MHC                         <same as above>
 \item{humandb}{Character vector. One of "GRCh37" or "GRCh38".}
 
 \item{mousedb}{Character vector. One of "GRCm37" or "GRCm38".}
+
+\item{blast}{Logical. Run BLASTp to find wild-type peptide matches? Default is FALSE.}
 }
 \value{
 A data table of binding predictions including:
@@ -64,6 +66,9 @@ A data table of binding predictions including:
 \item \strong{*_net}: netMHC prediction tool output
 \item \strong{mhcflurry_*}: mhcflurry_ prediction tool output
 \item \strong{mhcnuggets_*}: mhcnuggets_ prediction tool output
+\item \strong{Consensus_scores}: Average value of MHC binding affinity from all prediction tools that contributed output. 95% confidence intervals are given by \strong{Upper_CI}, \strong{Lower_CI}.
+\item \strong{DAI}: Differential agretopicty index, see \code{garnish_summary} for an explanation of DAI.
+\item \strong{BLAST_A}: Ratio of consensus binding affinity of mutant peptide / closest single AA mismatch from blastp results. Returned only if \code{blast = TRUE}.
 }
 
 as well as a transcript description:

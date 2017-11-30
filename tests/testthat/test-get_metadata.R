@@ -25,7 +25,6 @@ testthat::test_that("get_metadata", {
           "transcript_start",
           "transcript_end",
           "transcript_length",
-          "refseq_mrna",
           "coding",
           "peptide")
 )
