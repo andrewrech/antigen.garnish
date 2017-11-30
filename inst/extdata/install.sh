@@ -41,7 +41,7 @@
   DEBIAN_FRONTEND=noninteractive apt-get -y install perlbrew
 
   cd "/usr/local/bin"
-  
+
   curl -fsSL "http://get.rech.io/antigen.garnish.tar.gz" | tar -xvz
 
   wget ftp://ftp.ensembl.org/pub/release-90/fasta/mus_musculus/pep/Mus_musculus.GRCm38.pep.all.fa.gz
@@ -76,11 +76,7 @@
   echo "Installing antigen.garnish..."
 
   Rscript -e \
-<<<<<<< HEAD
-  'devtools::install_github("andrewrech/antigen.garnish")'
-=======
-  'devtools::install_github("andrewrech/antigen.garnish@addblast")'
->>>>>>> iedb
+  'devtools::install_github("andrewrech/antigen.garnish@iedb")'
 
   Rscript -e \
   'antigen.garnish::check_pred_tools(); message("Testing antigen.garnish..."); testthat::test_package("antigen.garnish")'
