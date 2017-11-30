@@ -52,14 +52,17 @@
 
   gzip -d Homo_sapiens.GRCh38.pep.all.fa.gz
 
+  wget "http://get.rech.io/iedb.fasta"
+
   makeblastdb -in Mus_musculus.GRCm38.pep.all.fa -input_type fasta -dbtype prot -out mouse.bdb
   makeblastdb -in Homo_sapiens.GRCh38.pep.all.fa -input_type fasta -dbtype prot -out human.bdb
+  makeblastdb -in iedb.fasta -input_type fasta -dbtype prot -out iedb.bdb
 
   Rscript -e \
-  'install.packages("devtools", repos = "http://cran.us.r-project.org"); devtools::install_github("hadley/devtools"); install.packages("testthat", repos = "http://cran.us.r-project.org")'
+  'install.packages("devtools", repos="http://cran.us.r-project.org"); devtools::install_github("hadley/devtools"); install.packages("testthat", repos="http://cran.us.r-project.org")'
 
   Rscript -e \
-  'source("https://bioconductor.org/biocLite.R"); biocLite(c("ShortRead", "biomaRt", "Biostrings"), suppressUpdates = TRUE, suppressAutoUpdate = TRUE, build_vignettes = FALSE)'
+  'source("https://bioconductor.org/biocLite.R"); biocLite(c("ShortRead", "biomaRt", "Biostrings"), ask = FALSE)'
 
   Rscript -e \
   'install.packages("data.table", type = "source", repos = "http://Rdatatable.github.io/data.table")'
@@ -73,11 +76,7 @@
   echo "Installing antigen.garnish..."
 
   Rscript -e \
-<<<<<<< HEAD
   'devtools::install_github("andrewrech/antigen.garnish@addblast")'
-=======
-  'devtools::install_github("andrewrech/antigen.garnish")'
->>>>>>> master
 
   Rscript -e \
   'antigen.garnish::check_pred_tools(); message("Testing antigen.garnish..."); testthat::test_package("antigen.garnish")'

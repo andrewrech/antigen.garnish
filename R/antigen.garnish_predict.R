@@ -12,14 +12,14 @@ make_BLAST_uuid <- function(dti){
 
   on.exit({
     message("Removing temporary files")
-    list.files(pattern = "_nmer_fasta\\.fa") %>% file.remove
+    list.files(pattern = "(_nmer_fasta\\.fa)|(iedb_query.fa)") %>% file.remove
   })
-  
+
   if (length(system("which blastp", intern = TRUE)) != 1){
    message("Skipping BLAST because ncbiblast+ is not in PATH, please apt-get -y install ncbi-blast+")
    return(dti)
    }
-  
+
   dt <- dti[pep_type != "wt" & !is.na(pep_type)]
 
 # blast first to get pairs for non-mutnfs peptides then run nature paper package
@@ -43,9 +43,9 @@ make_BLAST_uuid <- function(dti){
 
   })
 
-  # run blastp-short
+  # run blastp-short for near matches
   message("Running blastp, this takes >1hr with ~14,000 unique peptides...")
-  
+
   if (file.exists("Ms_nmer_fasta.fa"))
   system(paste0(
   "blastp -query Ms_nmer_fasta.fa -task blastp-short -db /usr/local/bin/mouse.bdb -out msblastpout.csv -num_threads ", parallel::detectCores(),
@@ -62,6 +62,11 @@ make_BLAST_uuid <- function(dti){
 
   blastdt <- list.files(pattern = "blastpout\\.csv")
 
+  if (length(blastdt) == 0 || nrow(blastdt %>% data.table::fread) == 0){
+    message("Impressively, no WT matches found by blast, remember, mouse and human sequences only! Skipping IEDB blasting.")
+    return(dti)
+  }
+
   blastdt <- lapply(blastdt, data.table::fread) %>%
                 data.table::rbindlist %>%
                   data.table::setnames(names(.),
@@ -71,6 +76,11 @@ make_BLAST_uuid <- function(dti){
   # keep highest bitscore and mismatch can only be 1
 
   blastdt <- blastdt[mismatch_length == 1]
+
+  if (nrow(blastdt) == 0){
+    message("No single amino acid WT matches found by blastp returning as though function called with blast = FALSE")
+    return(dti)
+  }
 
   blastdt[, highest := max(bitscore), by = "nmer_uuid"]
 
@@ -130,9 +140,9 @@ make_BLAST_uuid <- function(dti){
     dti <- merge(dti, blastdt[, .SD, .SDcols = c("nmer_uuid", "nmer", "blast_uuid")], by = c("nmer_uuid", "nmer"), all.x = TRUE)
 
     # to add WT.peptide back to table need nmer, nmer_i, nmer_l (nchar(nmer)), var_uuid, pep_type
-  
+
     if (!"var_uuid" %chin% names(dti)) dti[, var_uuid := NA %>% as.character]
-  
+
     if (!"effect_type" %chin% names(dti)) dti[, effect_type := NA %>% as.character]
 
     vdt <- dti[, .SD %>% unique, .SDcols = c("nmer_uuid", "nmer", "nmer_i", "nmer_l", "var_uuid", "sample_id", "effect_type", "MHC")]
@@ -148,10 +158,128 @@ make_BLAST_uuid <- function(dti){
                     .[, pep_type := "wt"]
 
     dto <- data.table::rbindlist(list(dti, vdt), fill = TRUE, use.names = TRUE)
-  
+
   # sanity check to make sure no '-' slipped through from blastp
 
     dto <- dto[!nmer %like% "-"]
+
+  # run blastp-short for iedb matches
+  message("Running blastp for iedb matches with up to 1 indel or 2 residue mismatch...")
+
+  if (file.exists("Ms_nmer_fasta.fa") & file.exists("Hu_nmer_fasta.fa"))
+          system("cat Ms_nmer_fasta.fa Hu_nmer_fasta.fa > iedb_query.fa")
+
+  if (list.files(pattern = "nmer_fasta") %>% length == 1)
+      file.copy(list.files(pattern = "nmer_fasta"), to = "iedb_query.fa")
+
+  system(paste0(
+  "blastp -query iedb_query.fa -task blastp-short -db /usr/local/bin/iedb.bdb -out iedbout.csv -num_threads ", parallel::detectCores(),
+  " -outfmt \"10 qseqid sseqid qseq qstart qend sseq sstart send length mismatch pident evalue bitscore\""
+  ))
+
+  blastdt <- list.files(pattern = "iedbout\\.csv")
+
+  blastdt <- blastdt %>% data.table::fread %>%
+                  data.table::setnames(names(.),
+                                      c("nmer_uuid", "IEDB_anno", "nmer",
+                                    "q_start", "q_stop", "WT.peptide", "s_start", "s_end",
+                                  "overlap_length", "mismatch_length", "pident", "evalue", "bitscore"))
+  # keep highest bitscore and mismatch can only be up to 2
+
+  blastdt <- blastdt[mismatch_length < 3 & nchar(nmer) > 7 & nchar(WT.peptide) > 7]
+
+  if (nrow(blastdt) == 0){
+    message(paste("No IEDB matches found....   ¯\\_(ツ)_/¯"))
+    return(dto)
+  }
+
+  blastdt[, highest := max(bitscore), by = "nmer_uuid"]
+
+  # exclude insertions or deletions
+
+  blastdt <- blastdt[highest == bitscore] %>%
+              .[!(nmer %like% "-")] %>%
+                .[, highest := NULL]
+
+  # keep longest alignment
+
+  blastdt <- blastdt[, best := max(overlap_length), by = "nmer_uuid"] %>%
+              .[best == overlap_length] %>%
+                .[, best := NULL]
+
+  # if two equally good matches, warn that one was picked arbitrarily
+
+  if (blastdt[, .SD %>% unique, by = c("nmer_uuid", "WT.peptide")] %>%
+    .[, .N, by = "nmer_uuid"] %>% .[, N > 1] %>% any){
+
+    l <- blastdt[, .SD %>% unique, .SDcols = c("nmer_uuid", "WT.peptide")] %>%
+        .[, .N, by = "nmer_uuid"] %>% .[N > 1, nmer_uuid %>% unique]
+
+    message(
+      paste0("More than one best match found for ", length(l), " records.
+      One matching wild-type peptide was chosen arbitrarily.
+      All such records with corresponding blast hits were saved to iedb_degen_hits.csv in the working directory.")
+    )
+
+    blastdt[nmer_uuid %chin% l] %>% data.table::fwrite("iedb_degen_hits.csv", quote = FALSE, row.names = FALSE, col.names = TRUE)
+
+    # now arbitrarily pick one match of multiple if applicable
+
+    bldtl <- blastdt[nmer_uuid %chin% l] %>% split(by = "nmer_uuid")
+
+    bldtl <- lapply(bldtl, function(b){
+
+      return(b[1])
+
+      }) %>% data.table::rbindlist
+
+    blastdt <- data.table::rbindlist(list(blastdt[!(nmer_uuid %chin% l)],
+                                          bldtl))
+
+    }
+
+    # get full IEDB ref here
+
+    fa <- Biostrings::readAAStringSet("/usr/local/bin/iedb.fasta")
+
+    f <- fa %>% data.table::as.data.table %>% .[, x]
+
+    names(f) <- fa@ranges@NAMES
+
+    blastdt[, IEDB_anno := parallel::mclapply(IEDB_anno, function(i){
+
+      mv <- f[which(stringr::str_detect(pattern = stringr::fixed(i), names(f)))]
+      mv <- mv[which(stringr::str_detect(pattern = stringr::fixed(WT.peptide), mv))]
+      return(paste(names(mv), WT.peptide, sep = "|"))
+
+    }), by = 1:nrow(blastdt)]
+
+    blastdt <- blastdt[, .SD %>% unique, .SDcols = c("nmer_uuid", "nmer", "WT.peptide", "IEDB_anno")]
+
+    blastdt[, iedb_uuid := uuid::UUIDgenerate(), by = c("nmer_uuid", "WT.peptide", "IEDB_anno")]
+
+    dto <- merge(dto, blastdt[, .SD, .SDcols = c("nmer_uuid", "iedb_uuid", "IEDB_anno")], by = c("nmer_uuid"), all.x = TRUE)
+
+    # to add WT.peptide back to table need nmer, nmer_i, nmer_l (nchar(nmer)), var_uuid, effect_type
+
+    vdt <- dto[, .SD %>% unique, .SDcols = c("nmer_uuid", "nmer_i", "nmer_l", "var_uuid", "sample_id", "effect_type", "MHC")]
+
+    vdt <- merge(vdt, blastdt, by = "nmer_uuid")
+
+    vdt %>% .[, nmer := NULL] %>% .[, nmer_uuid := NULL]
+
+    vdt <- vdt %>%
+            data.table::setnames("WT.peptide", "nmer") %>%
+              .[, nmer_uuid := uuid::UUIDgenerate(), by = c("nmer", "var_uuid")] %>%
+                  unique %>%
+                    .[, pep_type := "wt"]
+
+    dto <- data.table::rbindlist(list(dto, vdt), fill = TRUE, use.names = TRUE)
+
+  # sanity check to make sure no '-' slipped through from blastp
+
+    dto <- dto[!nmer %like% "-"]
+
 
     return(dto)
 
@@ -369,6 +497,15 @@ merge_predictions <- function(l, dt){
           BLAST_A := Consensus_scores[2] /
             Consensus_scores[1], by = blast_uuid]
           }
+
+      if ("iedb_uuid" %chin% names(dt)){
+
+          data.table::setkey(dt, pep_type, iedb_uuid)
+
+          dt[!iedb_uuid %>% is.na,
+          IEDB_A := Consensus_scores[2] /
+            Consensus_scores[1], by = iedb_uuid]
+            }
 
       return(dt)
     }
@@ -854,6 +991,9 @@ mcMap(function(x, y) (x %>% as.integer):(y %>% as.integer) %>%
 #' * **\*_net**: netMHC prediction tool output
 #' * **mhcflurry_\***: mhcflurry_ prediction tool output
 #' * **mhcnuggets_\***: mhcnuggets_ prediction tool output
+#' * **Consensus_scores**: Average value of MHC binding affinity from all prediction tools that contributed output. 95% confidence intervals are given by **Upper_CI**, **Lower_CI**.
+#' * **DAI**: Differential agretopicty index, see `garnish_summary` for an explanation of DAI.
+#' * **BLAST_A**: Ratio of consensus binding affinity of mutant peptide / closest single AA mismatch from blastp results. Returned only if `blast = TRUE`.
 #'
 #' as well as a transcript description:
 #' * description
@@ -970,7 +1110,7 @@ garnish_predictions <- function(dt = NULL,
     data.table::as.data.table
 
   if (!"MHC" %chin% names(dt)) stop("Input must include MHC alleles, see ?garnish_predictions")
-  
+
   input_type <- vector()
 
   # specify transcript vs. direct cDNA / mutant index input
