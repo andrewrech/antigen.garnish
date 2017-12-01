@@ -271,11 +271,11 @@ make_BLAST_uuid <- function(dti){
 
     }), by = 1:nrow(blastdt)]
 
-    blastdt <- blastdt[, .SD %>% unique, .SDcols = c("nmer_uuid", "nmer", "WT.peptide", "IEDB_anno")]
+    blastdt <- blastdt[, .SD %>% unique, .SDcols = c("nmer_uuid", "nmer", "WT.peptide", "IEDB_anno", "pident")]
 
     blastdt[, iedb_uuid := uuid::UUIDgenerate(), by = c("nmer_uuid", "WT.peptide", "IEDB_anno")]
 
-    dto <- merge(dto, blastdt[, .SD, .SDcols = c("nmer_uuid", "iedb_uuid", "IEDB_anno")], by = c("nmer_uuid"), all.x = TRUE)
+    dto <- merge(dto, blastdt[, .SD, .SDcols = c("nmer_uuid", "iedb_uuid", "IEDB_anno", "pident")], by = c("nmer_uuid"), all.x = TRUE)
 
     # to add WT.peptide back to table need nmer, nmer_i, nmer_l (nchar(nmer)), var_uuid, effect_type
 
@@ -295,7 +295,7 @@ make_BLAST_uuid <- function(dti){
 
   # sanity check to make sure no '-' slipped through from blastp
 
-    dto <- dto[!nmer %like% "-"]
+    dto <- dto[!(nmer %like% "-")]
 
 
     return(dto)
