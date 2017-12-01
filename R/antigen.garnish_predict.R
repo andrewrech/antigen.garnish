@@ -44,7 +44,7 @@ make_BLAST_uuid <- function(dti){
   })
 
   # run blastp-short for near matches
-  message("Running blastp, this takes >1hr with ~14,000 unique peptides...")
+  message("Running blastp for single AA substitutions, this takes >1hr with ~14,000 unique peptides...")
 
   if (file.exists("Ms_nmer_fasta.fa"))
   system(paste0(
@@ -84,9 +84,12 @@ make_BLAST_uuid <- function(dti){
     message("Impressively, no WT matches found by blast, remember, mouse and human sequences only! Running with argument blast = FALSE.")
     return(dti)
   }
-  # keep highest bitscore and mismatch can only be 1
 
-  blastdt <- blastdt[mismatch_length == 1]
+  # keep 1 AA substitutions only
+
+  blastdt <- blastdt[, nmer := nmer %>% stringr::str_replace_all(pattern = "-", replacement = "")] %>%
+                .[, WT.peptide := WT.peptide %>% stringr::str_replace_all(pattern = "-", replacement = "")] %>%
+                  .[nchar(nmer) == nchar(WT.peptide) & mismatch_length == 1]
 
   if (nrow(blastdt) == 0){
     message("No single amino acid WT matches found by blastp returning as though function called with blast = FALSE")
@@ -98,7 +101,6 @@ make_BLAST_uuid <- function(dti){
   # exclude insertions or deletions
 
   blastdt <- blastdt[highest == bitscore] %>%
-              .[!(nmer %like% "-")] %>%
                 .[, highest := NULL]
 
   # keep longest alignment
@@ -142,10 +144,6 @@ make_BLAST_uuid <- function(dti){
 
     blastdt <- blastdt[, .SD %>% unique, .SDcols = c("nmer_uuid", "nmer", "WT.peptide")]
 
-    # this shouldn't happen but just in case, toss any WT.peptide diff length from input nmers
-
-    blastdt <- blastdt[nchar(nmer) == nchar(WT.peptide)]
-
     blastdt[, blast_uuid := uuid::UUIDgenerate(), by = c("nmer_uuid", "WT.peptide")]
 
     dti <- merge(dti, blastdt[, .SD, .SDcols = c("nmer_uuid", "nmer", "blast_uuid")], by = c("nmer_uuid", "nmer"), all.x = TRUE)
@@ -175,7 +173,7 @@ make_BLAST_uuid <- function(dti){
     dto <- dto[!nmer %like% "-"]
 
   # run blastp-short for iedb matches
-  message("Running blastp for iedb matches with up to 1 indel or 2 residue mismatch...")
+  message("Running blastp for iedb matches of >= 66.67% homology...")
 
   if (file.exists("Ms_nmer_fasta.fa") & file.exists("Hu_nmer_fasta.fa"))
           system("cat Ms_nmer_fasta.fa Hu_nmer_fasta.fa > iedb_query.fa")
@@ -200,9 +198,12 @@ make_BLAST_uuid <- function(dti){
                                       c("nmer_uuid", "IEDB_anno", "nmer",
                                     "q_start", "q_stop", "WT.peptide", "s_start", "s_end",
                                   "overlap_length", "mismatch_length", "pident", "evalue", "bitscore"))
-  # keep highest bitscore and mismatch can only be up to 2
 
-  blastdt <- blastdt[mismatch_length < 3 & nchar(nmer) > 7 & nchar(WT.peptide) > 7]
+  # keep highest bitscore and 66.67% identical match
+
+  blastdt <- blastdt[, nmer := nmer %>% stringr::str_replace_all(pattern = "-", replacement = "")] %>%
+                .[, WT.peptide := WT.peptide %>% stringr::str_replace_all(pattern = "-", replacement = "")] %>%
+                .[nchar(nmer) > 7 & nchar(WT.peptide) > 7 & pident >= 66.6]
 
   if (nrow(blastdt) == 0){
     message(paste("No IEDB matches found, returning BLAST against reference proteomes only...."))
