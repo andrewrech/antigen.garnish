@@ -69,7 +69,7 @@ testthat::test_that("garnish_predictions README example from VCF", {
                         "HLA-A*01:47 HLA-DRB1*03:08")] %>%
                         garnish_predictions(blast = TRUE)
 
-        testthat::expect_true(dt %>% nrow == 711)
+        testthat::expect_true(dt %>% nrow == 712)
         testthat::expect_true(dt[, nmer %>% unique %>% length] == 552)
         testthat::expect_true(file.exists("Multi_hits.csv"))
 
