@@ -12,7 +12,7 @@ make_BLAST_uuid <- function(dti){
 
   on.exit({
     message("Removing temporary files")
-    list.files(pattern = "(_nmer_fasta\\.fa)|(iedb_query.fa)|(blastpout)|(iedbout)") %>% file.remove
+    list.files(pattern = "(_nmer_fasta\\.fa)|(iedb_query.fa)") %>% file.remove
   })
 
   if (length(system("which blastp", intern = TRUE)) != 1){
