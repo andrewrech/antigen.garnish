@@ -47,6 +47,7 @@ curl -fsSL http://get.rech.io/install_antigen.garnish.sh | sudo sh
 * `garnish_summary`: summarize neoepitope prediction
 * `garnish_plot`: generate summary plots for neoepitope prediction
 * `list_mhc`: list all supported MHC alleles and appropriate syntax for use with `antigen.garnish`
+* `garnish_fitness`: apply [Luksza et al. **Nature** 2017](https://www.ncbi.nlm.nih.gov/pubmed/29132144) neoantigen fitness model to `garnish predictions` output.
 
 ### Examples
 
@@ -75,6 +76,9 @@ library(antigen.garnish)
 
   # summarize predictions
     antigen.garnish::garnish_summary %T>%
+    
+  # apply fitness model from Luksza et al.
+    antigen.garnish::garnish_fitness %>%
     print
 ```
 
