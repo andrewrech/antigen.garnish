@@ -184,7 +184,7 @@ garnish_fitness <- function(dt,
 
   dir.create("Output")
 
-  py_path <- system.file("src", package = "antigen.garnish") %>% file.path(., "main.py")
+  py_path <- system.file(package = "antigen.garnish") %>% file.path(., "src/main.py")
 
   system(
     paste(
