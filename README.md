@@ -65,21 +65,26 @@ library(antigen.garnish)
     antigen.garnish::garnish_variants %>%
 
   # add space separated MHC types
-  # see antigen.garnish::list_mhc() for nomenclature
+  # see antigen.garnish::list_mhc() for nomenclature of supported alleles
 
       .[, MHC := c("HLA-A*02:01 HLA-DRB1*14:67",
                    "H-2-Kb H-2-IAd",
                    "HLA-A*01:47 HLA-DRB1*03:08")] %>%
 
   # predict neoepitopes
-    antigen.garnish::garnish_predictions %>%
+    antigen.garnish::garnish_predictions
 
   # summarize predictions
-    antigen.garnish::garnish_summary %T>%
+    dt %>%
+      antigen.garnish::garnish_summary %T>%
+        print
+
+  # generate summary graphs
+    dt %>% garnish_plot
 
   # apply fitness model from Luksza et al.
-    antigen.garnish::garnish_fitness %>%
-    print
+    dt %>% garnish_fitness
+
 ```
 
 #### Predict neoepitopes from gene fusions

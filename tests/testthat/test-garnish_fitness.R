@@ -11,7 +11,7 @@ testthat::test_that("garnish_fitness", {
      }
 
     dt <- data.table::fread("http://get.rech.io/antigen.garnish_example_output.txt") %>%
-            leepR::garnish_fitness
+            garnish_fitness
 
     testthat::expect_true(dt[!is.na(A)] %>% nrow == 32)
     testthat::expect_true(dt[, nmer %>% unique %>% length] == 308)
