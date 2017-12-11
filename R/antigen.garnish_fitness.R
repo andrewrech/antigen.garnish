@@ -33,7 +33,6 @@
 #'
 #' @import data.table
 #' @import dt.inflix
-#' @import antigen.garnish
 #'
 #' @references Luksza, M, Riaz, N, Makarov, V, Balachandran VP, et al. A neoantigen fitness model predicts tumour response to checkpoint blockade immunotherapy **Nature** 2017
 #'
