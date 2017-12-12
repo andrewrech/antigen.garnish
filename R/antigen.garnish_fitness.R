@@ -49,6 +49,8 @@ garnish_fitness <- function(dt,
                 system("rm -rf fitness_model/")
                               })
 
+  if (dir.exists("Output")) system("sudo rm -rf Output/")
+
   # check input
   if (class(dt)[1] == "character") dt <- rio::import(dt) %>% data.table::as.data.table
 
@@ -110,6 +112,8 @@ garnish_fitness <- function(dt,
 
   # Their code only handles 9 AAs
   dti <- dti[nchar(WT.Peptide) == 9 & nchar(MT.Peptide) == 9]
+
+  if (nrow(dti) == 0) stop("No variants compatible for fitness modeling (mutant and wt 9mers needed).")
 
   dti <- dti[, ID := link_uuid, by = 1:nrow(dti)]
 
@@ -193,6 +197,8 @@ garnish_fitness <- function(dt,
   )
 
   #curate output
+  if (!file.exists("Output/neoantigen_fitness_model_output.txt")) stop("Python call did not yield output file.")
+
   dto <- "Output/neoantigen_fitness_model_output.txt" %>% data.table::fread
 
   dto[Excluded == FALSE, max(NeoantigenRecognitionPotential), by = Sample] %>% print

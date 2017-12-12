@@ -147,7 +147,8 @@ garnish_jaffa <- function(path, db, fasta_path){
 
     mart <- biomaRt::useMart(biomart = "ENSEMBL_MART_ENSEMBL",
                              dataset = bmds,
-                             host = host)
+                             host = host,
+                            ensemblRedirect = FALSE)
 
     gn <- c(dt[, gene_1], dt[, gene_2]) %>% unique
 
