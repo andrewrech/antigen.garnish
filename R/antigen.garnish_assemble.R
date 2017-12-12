@@ -109,7 +109,7 @@ get_metadata <- function(dt,
       mart <- biomaRt::useMart(biomart = "ENSEMBL_MART_ENSEMBL",
                                                  dataset = i,
                                                  host = host,
-                                               ensemblRedirect = TRUE)
+                                               ensemblRedirect = FALSE)
 
     if (i == "mmusculus_gene_ensembl"){
         trn <- dt[, ensembl_transcript_id %include% "ENSMUST" %>%
