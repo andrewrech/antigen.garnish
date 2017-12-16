@@ -2,31 +2,28 @@
 % Please edit documentation in R/antigen.garnish_fitness.R
 \name{garnish_fitness}
 \alias{garnish_fitness}
-\title{Run neoantigen fitness model}
+\title{Generate neoepitope fitness model}
 \usage{
 garnish_fitness(dt, a = 26, k = 4.86936)
 }
 \arguments{
-\item{dt}{A data table created by \code{garnish_predictions}, to include fitness predictions for non-missense variants, the function must have been called with the argument \code{blast = TRUE}.}
+\item{dt}{Data table output from \code{garnish_predictions}.}
 
-\item{a}{Fitness model parameter, see references. \code{a} represents the horizontal displacement of the binding curve when determining TCR recognition probability of a neoantigen compared to an IEDB near match. Default is 26 as suggested by authors.}
+\item{a}{Fitness model parameter. Binding curve horizontal displacement used to determine TCR recognition probability of a peptide compared to an IEDB near match.}
 
-\item{k}{Fitness model paramater, see references. \code{k} sets the steepness of the binding curve at \code{a}.  Yea, I don't get it either. Default is 4.86936 as suggested by authors.}
+\item{k}{Fitness model parameter. Steepness of the binding curve at \code{a}}
 }
 \value{
-Returns the input data table with additional columns:
+A data table with additional columns:
 \itemize{
 \item \strong{ResidueChangeClass}: mutant cDNA sequence
 \item \strong{A}: \code{A} component of fitness model, differential MHC affinity of mutant and closest wt peptide, similar to \code{BLAST_A}.
 \item \strong{R}: TCR recognition probability, determined by comparison to known epitopes in the IEDB.
-\item \strong{NeoantigenRecognitionPotential}: Product of A and R, the maximum value per sample is the domninant neoepitope.
+\item \strong{NeoantigenRecognitionPotential}: Product of A and R, the maximum value per sample is the dominant neoepitope.
 }
 }
 \description{
-Implement neoantigen fitness model from \href{https://www.ncbi.nlm.nih.gov/pubmed/29132144}{Luksza et al. Nature 2017}.
-}
-\details{
-Source code for this function adapted from example code provided in supplementary data file 7 at this \href{https://images.nature.com/original/nature-assets/nature/journal/v551/n7681/extref/nature24473-s9.zip}{mirror}.
+Implements the neoepitopes fitness model of \href{https://www.ncbi.nlm.nih.gov/pubmed/29132144}{Luksza et al. Nature 2017}.
 }
 \examples{
 \dontrun{
@@ -46,5 +43,5 @@ garnish_variants \%>\%
 
 }
 \references{
-Luksza, M, Riaz, N, Makarov, V, Balachandran VP, et al. A neoantigen fitness model predicts tumour response to checkpoint blockade immunotherapy \strong{Nature} 2017
+Luksza, M, Riaz, N, Makarov, V, Balachandran VP, et al. A neoepitopes fitness model predicts tumour response to checkpoint blockade immunotherapy \strong{Nature} 2017
 }

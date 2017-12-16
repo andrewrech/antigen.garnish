@@ -10,14 +10,16 @@ testthat::test_that("garnish_fitness", {
      testthat::skip("Skipping garnish_fitness because ncbiblast+ is not in PATH")
      }
 
-    dt <- data.table::fread("http://get.rech.io/antigen.garnish_example_output.txt") %>%
-            garnish_fitness
+    # load test data
+        dt <- data.table::fread("http://get.rech.io/antigen.garnish_example_output.txt") %>%
+                garnish_fitness
 
-    testthat::expect_true(dt[!is.na(A)] %>% nrow == 32)
-    testthat::expect_true(dt[, nmer %>% unique %>% length] == 308)
-    testthat::expect_true(dt[, NeoantigenRecognitionPotential %>% na.omit %>%
-                            mean %>% signif(digits = 3)] == 0.167)
+    # run test
+        testthat::expect_true(dt[!is.na(A)] %>% nrow == 32)
+        testthat::expect_true(dt[, nmer %>% unique %>% length] == 308)
+        testthat::expect_true(dt[, NeoantigenRecognitionPotential %>% na.omit %>%
+                                mean %>% signif(digits = 3)] == 0.167)
 
-    if (file.exists("Output/")) unlink("Output", recursive = TRUE, force = TRUE)
+     if (file.exists("Output/")) unlink("Output", recursive = TRUE, force = TRUE)
 
     })

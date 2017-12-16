@@ -47,7 +47,6 @@ curl -fsSL http://get.rech.io/install_iedb_branch.sh | sudo sh
 * `garnish_summary`: summarize neoepitope prediction
 * `garnish_plot`: generate summary plots for neoepitope prediction
 * `list_mhc`: list all supported MHC alleles and appropriate syntax for use with `antigen.garnish`
-* `garnish_fitness`: apply [Luksza et al. **Nature** 2017](https://www.ncbi.nlm.nih.gov/pubmed/29132144) neoantigen fitness model to `garnish predictions` output.
 
 ### Examples
 
@@ -146,7 +145,9 @@ library(magrittr)
 
 ## Authors
 
-* [Lee P. Richman](http://www.med.upenn.edu/apps/faculty/index.php/g275/p1073) (maintainer)
+* [Lee P. Richman](http://www.med.upenn.edu/apps/faculty/index.php/g275/p1073)
+* [David Balli](https://www.linkedin.com/in/davidballi1)
+* [Robert H. Vonderheide](https://www.med.upenn.edu/apps/faculty/index.php/g20000320/p1073)
 * [Andrew J. Rech](http://rech.io)
 
 ## Contributing

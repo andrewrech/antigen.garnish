@@ -50,13 +50,18 @@ testthat::test_that("garnish_predictions README example from VCF", {
 
     testthat::test_that("garnish_predictions README example from VCF with BLAST", {
 
+      on.exit({
+        if (file.exists("all_blastp_matches.csv"))
+          file.remove("all_blastp_matches.csv")
+      }, add = TRUE)
+
        if (!check_pred_tools() %>% unlist %>% all){
         testthat::skip("Skipping run_netMHC because prediction tools are not in PATH")
         }
 
-        if (length(system("which blastp", intern = TRUE)) != 1){
-         testthat::skip("Skipping make_BLAST_uuid because ncbiblast+ is not in PATH")
-         }
+       if (length(system("which blastp", intern = TRUE)) != 1){
+        testthat::skip("Skipping make_BLAST_uuid because ncbiblast+ is not in PATH")
+        }
 
         # load test data
           dt <- "antigen.garnish_example.vcf" %T>%
@@ -71,9 +76,7 @@ testthat::test_that("garnish_predictions README example from VCF", {
 
         testthat::expect_true(dt %>% nrow == 712)
         testthat::expect_true(dt[, nmer %>% unique %>% length] == 552)
-        testthat::expect_true(file.exists("Multi_hits.csv"))
-
-        if (file.exists("Multi_hits.csv")) file.remove("Multi_hits.csv")
+        testthat::expect_true(file.exists("all_blastp_matches.csv"))
 
         })
 

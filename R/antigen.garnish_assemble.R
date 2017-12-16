@@ -127,10 +127,6 @@ get_metadata <- function(dt,
    if (trn %>% length >= 1){
 
     # obtain transcript metadata
-
-    # LPR - I have to take ref_seq mrna out because there are refseq mRNA that are deprecated with ensembl_transcript_ids
-    # I have definitely had to remove it before.  Does it need to be in the package for anything specific?
-    # Keeping it in causes the "allow cartesian" warning message to appear in the downstream merge with my 4662 VCFs.
       var_dt <- biomaRt::getBM(attributes = c("ensembl_transcript_id",
                     "external_gene_name", "ensembl_gene_id", "description", "chromosome_name",
                     "start_position", "end_position", "transcript_start", "transcript_end",
