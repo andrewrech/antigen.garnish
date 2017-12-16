@@ -75,9 +75,9 @@ get_metadata <- function(dt,
   # set genome host
   if (!humandb %chin% c("GRCh37", "GRCh38")) stop("humandb set incorrectly")
   if (!mousedb %chin% c("GRCm37", "GRCm38")) stop("mousedb set incorrectly")
-  if (humandb == "GRCh38") hhost <- "ensembl.org"
+  if (humandb == "GRCh38") hhost <- "http://Aug2017.archive.ensembl.org"
   if (humandb == "GRCh37") hhost <- "grch37.ensembl.org"
-  if (mousedb == "GRCm38") mhost <- "ensembl.org"
+  if (mousedb == "GRCm38") mhost <- "http://Aug2017.archive.ensembl.org"
   if (mousedb == "GRCm37") mhost <- "may2012.archive.ensembl.org"
 
     # remove version suffix
@@ -108,7 +108,8 @@ get_metadata <- function(dt,
 
       mart <- biomaRt::useMart(biomart = "ENSEMBL_MART_ENSEMBL",
                                                  dataset = i,
-                                                 host = host)
+                                                 host = host,
+                                               ensemblRedirect = FALSE)
 
     if (i == "mmusculus_gene_ensembl"){
         trn <- dt[, ensembl_transcript_id %include% "ENSMUST" %>%
@@ -126,10 +127,14 @@ get_metadata <- function(dt,
    if (trn %>% length >= 1){
 
     # obtain transcript metadata
+
+    # LPR - I have to take ref_seq mrna out because there are refseq mRNA that are deprecated with ensembl_transcript_ids
+    # I have definitely had to remove it before.  Does it need to be in the package for anything specific?
+    # Keeping it in causes the "allow cartesian" warning message to appear in the downstream merge with my 4662 VCFs.
       var_dt <- biomaRt::getBM(attributes = c("ensembl_transcript_id",
                     "external_gene_name", "ensembl_gene_id", "description", "chromosome_name",
                     "start_position", "end_position", "transcript_start", "transcript_end",
-                    "transcript_length", "refseq_mrna"),
+                    "transcript_length"),
                          filters = c("ensembl_transcript_id"),
                          values = list(trn),
                          mart = mart) %>%
@@ -365,4 +370,3 @@ parallel::mclapply(v, function(p){
 
         }) %>% unlist
   }
-
