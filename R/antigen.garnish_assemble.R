@@ -77,8 +77,8 @@ get_metadata <- function(dt,
   if (!mousedb %chin% c("GRCm37", "GRCm38")) stop("mousedb set incorrectly")
   if (humandb == "GRCh38") hhost <- "http://Aug2017.archive.ensembl.org"
   if (humandb == "GRCh37") hhost <- "grch37.ensembl.org"
-  if (mousedb == "GRCm38") mhost <- "ensembl.org"
-  if (mousedb == "GRCm37") mhost <- "http://Aug2017.archive.ensembl.org"
+  if (mousedb == "GRCm38") mhost <- "http://Aug2017.archive.ensembl.org"
+  if (mousedb == "GRCm37") mhost <- "may2012.archive.ensembl.org"
 
     # remove version suffix
     dt[, ensembl_transcript_id :=
