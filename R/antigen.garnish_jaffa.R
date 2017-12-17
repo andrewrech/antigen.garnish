@@ -26,7 +26,7 @@
 #'library(magrittr)
 #'library(antigen.garnish)
 #'
-#'  # load some test jaffa output data
+#'  # load example jaffa output
 #'    path <- "antigen.garnish_jaffa_results.csv" %T>%
 #'      utils::download.file("http://get.rech.io/antigen.garnish_jaffa_results.csv", .)
 #'    fasta_path <- "antigen.garnish_jaffa_results.fasta" %T>%
@@ -59,9 +59,9 @@ garnish_jaffa <- function(path, db, fasta_path){
     if (!file.exists(fasta_path)) stop("fasta_path does not exist")
     if (!file.exists(path)) stop("path file does not exist")
 
-    if (db == "GRCh38") host <- "ensembl.org"
+    if (db == "GRCh38") host <- "http://Aug2017.archive.ensembl.org"
     if (db == "GRCh37") host <- "grch37.ensembl.org"
-    if (db == "GRCm38") host <- "ensembl.org"
+    if (db == "GRCm38") host <- "http://Aug2017.archive.ensembl.org"
     if (db == "GRCm37") host <- "may2012.archive.ensembl.org"
 
     dt <- data.table::fread(path) %>%
@@ -147,7 +147,8 @@ garnish_jaffa <- function(path, db, fasta_path){
 
     mart <- biomaRt::useMart(biomart = "ENSEMBL_MART_ENSEMBL",
                              dataset = bmds,
-                             host = host)
+                             host = host,
+                            ensemblRedirect = FALSE)
 
     gn <- c(dt[, gene_1], dt[, gene_2]) %>% unique
 

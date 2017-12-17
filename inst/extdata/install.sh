@@ -13,41 +13,44 @@
   fi
 
   if [ ! -x `which tar` ]; then
-  echo "No suitable tar program found."
-  exit 1
-  fi
+    echo "No suitable tar program found."
+    exit 1
+    fi
 
   if [ ! -x `which Rscript` ]; then
-  echo "No suitable Rscript program found."
-  exit 1
-  fi
+    echo "No suitable Rscript program found."
+    exit 1
+    fi
 
   if [ ! -x `which pip` ]; then
-  echo "No suitable pip program found."
-  exit 1
-  fi
+    echo "No suitable pip program found."
+    exit 1
+    fi
 
 # install dependencies
 
-  pip --disable-pip-version-check install scipy h5py mhcflurry
-  mhcflurry-downloads fetch
-
   echo "Installing dependencies..."
 
-  cd "/usr/local/bin"
+    pip --disable-pip-version-check install scipy h5py mhcflurry biopython
+    mhcflurry-downloads fetch
+
+  cd ~
   curl -fsSL "http://get.rech.io/antigen.garnish.tar.gz" | tar -xvz
+  chmod 777 -R ./antigen.garnish
+  mv ./antigen.garnish/ncbi-blast-2.7.1+/bin/* /usr/local/bin
 
   Rscript -e \
   'install.packages("devtools", repos = "http://cran.us.r-project.org"); devtools::install_github("hadley/devtools"); install.packages("testthat", repos = "http://cran.us.r-project.org")'
 
   Rscript -e \
-  'source("https://bioconductor.org/biocLite.R"); biocLite(c("ShortRead", "biomaRt", "Biostrings"), suppressUpdates = TRUE, suppressAutoUpdate = TRUE, build_vignettes = FALSE)'
+  'source("https://bioconductor.org/biocLite.R"); biocLite(c("ShortRead", "biomaRt", "Biostrings"), suppressUpdates = TRUE, suppressAutoUpdate = TRUE)'
 
   Rscript -e \
   'install.packages("data.table", type = "source", repos = "http://Rdatatable.github.io/data.table")'
 
   Rscript -e \
   'devtools::install_github(c("tidyverse/magrittr", "andrewrech/dt.inflix"))'
+
 
 # install antigen.garnish
 
@@ -56,6 +59,5 @@
   Rscript -e \
   'devtools::install_github("andrewrech/antigen.garnish")'
 
-  echo "Testing antigen.garnish..."
-    Rscript -e \
-  'testthat::test_package("antigen.garnish")'
+  Rscript -e \
+  'antigen.garnish::check_pred_tools(); message("Testing antigen.garnish..."); testthat::test_package("antigen.garnish")'

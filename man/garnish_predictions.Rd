@@ -5,8 +5,8 @@
 \title{Perform neoepitope prediction.}
 \usage{
 garnish_predictions(dt = NULL, path = NULL, assemble = TRUE,
-  generate = TRUE, predict = TRUE, humandb = "GRCh38",
-  mousedb = "GRCm38")
+  generate = TRUE, predict = TRUE, blast = fitness, fitness = TRUE,
+  humandb = "GRCh38", mousedb = "GRCm38")
 }
 \arguments{
 \item{dt}{Data table. Input data table from \code{garnish_variants} or \code{garnish_jaffa}, or a data table in one of these forms:
@@ -39,6 +39,10 @@ MHC                         <same as above>
 
 \item{predict}{Logical. Predict binding affinities?}
 
+\item{blast}{Logical. Run BLASTp to find wild-type peptide and known IEDB matches?}
+
+\item{fitness}{Logical. Run model of \href{https://www.ncbi.nlm.nih.gov/pubmed/29132144}{Luksza et al. Nature 2017} to predict neoepitope fitness?}
+
 \item{humandb}{Character vector. One of "GRCh37" or "GRCh38".}
 
 \item{mousedb}{Character vector. One of "GRCm37" or "GRCm38".}
@@ -64,9 +68,20 @@ A data table of binding predictions including:
 \item \strong{*_net}: netMHC prediction tool output
 \item \strong{mhcflurry_*}: mhcflurry_ prediction tool output
 \item \strong{mhcnuggets_*}: mhcnuggets_ prediction tool output
+\item \strong{Consensus_scores}: Average value of MHC binding affinity from all prediction tools that contributed output. 95\% confidence intervals are given by \strong{Upper_CI}, \strong{Lower_CI}.
+\item \strong{DAI}: Differential agretopicty index, see \code{garnish_summary} for an explanation of DAI.
+\item \strong{BLAST_A}: Ratio of consensus binding affinity of mutant peptide / closest single AA mismatch from blastp results. Returned only if \code{blast = TRUE}.
 }
 
-as well as a transcript description:
+fitness model information \href{https://www.ncbi.nlm.nih.gov/pubmed/29132144}{Luksza et al. Nature 2017}:
+\itemize{
+\item \strong{ResidueChangeClass}: mutant cDNA sequence
+\item \strong{A}: Component of the fitness model. Differential MHC affinity of mutant and closest wt peptide, similar to \code{BLAST_A}.
+\item \strong{R}: TCR recognition probability, determined by comparison to known epitopes in the IEDB.
+\item \strong{NeoantigenRecognitionPotential}: Product of A and R. The peptide with the highest value per sample is the dominant neoepitope.
+}
+
+transcript description:
 \itemize{
 \item description
 \item start_position
@@ -159,6 +174,10 @@ library(antigen.garnish)
      dt <- antigen.garnish::garnish_predictions(path = path) \%T>\%
      str
 }
+
+}
+\references{
+Luksza, M, Riaz, N, Makarov, V, Balachandran VP, et al. 2017. A neoepitope fitness model predicts tumour response to checkpoint blockade immunotherapy. Nature. 23;551(7681):512-516
 }
 \seealso{
 \code{\link{garnish_summary}}

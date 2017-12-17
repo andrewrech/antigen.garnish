@@ -1,6 +1,6 @@
 #' \pkg{antigen.garnish}: ensemble neoepitope prediction from DNA variants in R.
 #'
-#' [antigen.garnish](http://neoepitopes.io) is an R package for [neoepitope](http://science.sciencemag.org/content/348/6230/69) analysis that takes human or murine DNA missense mutations, insertions, deletions, and gene fusions and performs neoepitope prediction. Input is a VCF file or table of peptides. Output is neoepitopes and a summary by sample.
+#' [antigen.garnish](http://neoepitopes.io) is an R package for [neoepitope](http://science.sciencemag.org/content/348/6230/69) analysis that takes human or murine DNA missense mutations, insertions, deletions, and gene fusions and performs neoepitope prediction. Input is a VCF file or table of peptides. Output is neoepitopes and a summary of neoepitope load and fitness by sample.
 #'
 #'Advantages
 #'
@@ -10,6 +10,7 @@
 #'1. **Thoroughness**:
 #'    - missense mutations, insertions, deletions, and gene fusions
 #'    - ensemble MHC class I/II binding prediction using [mhcflurry](https://github.com/hammerlab/mhcflurry), [mhcnuggets](https://github.com/KarchinLab/mhcnuggets), [netMHC](http://www.cbs.dtu.dk/services/NetMHC/), [netMHCII](http://www.cbs.dtu.dk/services/NetMHCII/), [netMHCpan](http://www.cbs.dtu.dk/services/NetMHCpan/) and [netMHCIIpan](http://www.cbs.dtu.dk/services/NetMHCIIpan/i).
+#'    - filter against all known normal proteins and rank by fitness
 #'1. **Speed**:
 #'    - produce all possible 8-15-mer peptides from 10,000 variants in under 1 minute on a normal laptop
 #'    - on an Amazon Web Services `m4.16xlarge` EC2 instance, 20,000 consensus predictions using 100+ MHC types in under 5 minutes
@@ -19,7 +20,7 @@
 #'* `garnish_predictions`: perform ensemble neoepitope prediction
 #'* `garnish_summary`: summarize neoepitope prediction
 #'* `garnish_plot`: generate summary plots for neoepitope prediction
-#'* `list_mhc`: list all supported MHC alleles and appropriate syntax for use with `antigen.garnish`
+#'* `list_mhc`: list all supported MHC allele syntax
 #' @section Bug, issues, feedback:
 #' Please report bugs and issues and provide feedback via [Github](https://github.com/andrewrech/antigen.garnish/issues) or to [andrewrech\@gmail.com](mailto:andrewrech\@gmail.com).
 #' @docType package
