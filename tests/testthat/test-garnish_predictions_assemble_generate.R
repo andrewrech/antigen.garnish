@@ -39,7 +39,7 @@ testthat::test_that("garnish_predictions_assemble_generate", {
         MHC = c("HLA-A*02:01 HLA-DRB1*14:67", "HLA-A*02:01 HLA-DRB1*14:67", "HLA-A*03:01 HLA-DRB1*03:01"))
 
   # run test
-    dto <- garnish_predictions(dt, predict = FALSE)
+    dto <- garnish_predictions(dt, predict = FALSE, blast = FALSE, fitness = FALSE)
 
   testthat::expect_equal(dto %>% nrow, 551)
   testthat::expect_equal(dto %>% length, 53)

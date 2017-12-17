@@ -18,7 +18,7 @@ system.file("extdata",
 
 
 ## ---- detect_mhc
-#' Replace MHC with matching type in prediction tool format
+#' Replace MHC with matching prediction tool MHC syntax
 #'
 #' @param x Vector of HLA types named for program to convert to.
 #' @param alleles Data table of 2 columns, 1. formatted allele names 2. prediction tool name (e.g. mhcflurry, mhcnuggets, netMHC).

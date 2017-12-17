@@ -11,10 +11,10 @@ garnish_fitness(dt, a = 26, k = 4.86936)
 
 \item{a}{Fitness model parameter. Binding curve horizontal displacement used to determine TCR recognition probability of a peptide compared to an IEDB near match.}
 
-\item{k}{Fitness model parameter. Steepness of the binding curve at \code{a}}
+\item{k}{Fitness model parameter. Steepness of the binding curve at \code{a}.}
 }
 \value{
-A data table with additional columns:
+A data table with added fitness model parameters columns:
 \itemize{
 \item \strong{ResidueChangeClass}: mutant cDNA sequence
 \item \strong{A}: \code{A} component of fitness model, differential MHC affinity of mutant and closest wt peptide, similar to \code{BLAST_A}.
@@ -24,24 +24,4 @@ A data table with additional columns:
 }
 \description{
 Implements the neoepitopes fitness model of \href{https://www.ncbi.nlm.nih.gov/pubmed/29132144}{Luksza et al. Nature 2017}.
-}
-\examples{
-\dontrun{
-library(antigen.garnish)
-library(leepR)
-
-dt <- "antigen.garnish_example.vcf" \%T>\%
-utils::download.file("http://get.rech.io/antigen.garnish_example.vcf", .) \%>\%
-garnish_variants \%>\%
- .[, MHC := c("HLA-A*02:01 HLA-DRB1*14:67",
-              "H-2-Kb H-2-IAd",
-           "HLA-A*01:47 HLA-DRB1*03:08")] \%>\%
-             garnish_predictions(blast = TRUE) \%>\%
-               garnish_fitness
-
-}
-
-}
-\references{
-Luksza, M, Riaz, N, Makarov, V, Balachandran VP, et al. A neoepitopes fitness model predicts tumour response to checkpoint blockade immunotherapy \strong{Nature} 2017
 }

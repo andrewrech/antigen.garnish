@@ -74,16 +74,14 @@ testthat::test_that("make_BLAST_uuid", {
     dto <- make_BLAST_uuid(dti) %>% .[order(nmer)]
 
   # run test
-   testthat::expect_equal(dto[!is.na(blast_uuid), nmer],
-                        c("ENYWRKAY",
-                          "ENYWRKSY",
-                          "NYWRKAYE",
-                          "NYWRKSYE"))
+       testthat::expect_equal(dto[!is.na(blast_uuid), nmer],
+                            c("ENYWRKAY",
+                              "ENYWRKSY",
+                              "NYWRKAYE",
+                              "NYWRKSYE"))
 
-   testthat::expect_equal(dto[, pep_type %>% table],
-     structure(c(8L, 10L), .Dim = 2L, .Dimnames = structure(list(. = c("mutnfs",
-     "wt")), .Names = "."), class = "table"))
-
-     if (file.exists("all_blastp_matches.csv")) file.remove("all_blastp_matches.csv")
+       testthat::expect_equal(dto[, pep_type %>% table],
+         structure(c(8L, 10L), .Dim = 2L, .Dimnames = structure(list(. = c("mutnfs",
+         "wt")), .Names = "."), class = "table"))
 
     })

@@ -26,7 +26,7 @@
 #'library(magrittr)
 #'library(antigen.garnish)
 #'
-#'  # load some test jaffa output data
+#'  # load example jaffa output
 #'    path <- "antigen.garnish_jaffa_results.csv" %T>%
 #'      utils::download.file("http://get.rech.io/antigen.garnish_jaffa_results.csv", .)
 #'    fasta_path <- "antigen.garnish_jaffa_results.fasta" %T>%

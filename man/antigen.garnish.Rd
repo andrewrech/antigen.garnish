@@ -6,7 +6,7 @@
 \alias{antigen.garnish-package}
 \title{\pkg{antigen.garnish}: ensemble neoepitope prediction from DNA variants in R.}
 \description{
-\href{http://neoepitopes.io}{antigen.garnish} is an R package for \href{http://science.sciencemag.org/content/348/6230/69}{neoepitope} analysis that takes human or murine DNA missense mutations, insertions, deletions, and gene fusions and performs neoepitope prediction. Input is a VCF file or table of peptides. Output is neoepitopes and a summary by sample.
+\href{http://neoepitopes.io}{antigen.garnish} is an R package for \href{http://science.sciencemag.org/content/348/6230/69}{neoepitope} analysis that takes human or murine DNA missense mutations, insertions, deletions, and gene fusions and performs neoepitope prediction. Input is a VCF file or table of peptides. Output is neoepitopes and a summary of neoepitope load and fitness by sample.
 }
 \details{
 Advantages
@@ -20,6 +20,7 @@ Advantages
 \itemize{
 \item missense mutations, insertions, deletions, and gene fusions
 \item ensemble MHC class I/II binding prediction using \href{https://github.com/hammerlab/mhcflurry}{mhcflurry}, \href{https://github.com/KarchinLab/mhcnuggets}{mhcnuggets}, \href{http://www.cbs.dtu.dk/services/NetMHC/}{netMHC}, \href{http://www.cbs.dtu.dk/services/NetMHCII/}{netMHCII}, \href{http://www.cbs.dtu.dk/services/NetMHCpan/}{netMHCpan} and \href{http://www.cbs.dtu.dk/services/NetMHCIIpan/i}{netMHCIIpan}.
+\item filter against all known normal proteins and rank by fitness
 }
 \item \strong{Speed}:
 \itemize{
@@ -36,7 +37,7 @@ Advantages
 \item \code{garnish_predictions}: perform ensemble neoepitope prediction
 \item \code{garnish_summary}: summarize neoepitope prediction
 \item \code{garnish_plot}: generate summary plots for neoepitope prediction
-\item \code{list_mhc}: list all supported MHC alleles and appropriate syntax for use with \code{antigen.garnish}
+\item \code{list_mhc}: list all supported MHC allele syntax
 }
 }
 

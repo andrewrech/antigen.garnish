@@ -10,9 +10,12 @@
 
 make_BLAST_uuid <- function(dti){
 
-  if (length(system("which blastp", intern = TRUE)) < 1){
-   message("Skipping BLAST because ncbiblast+ is not in PATH")
-   return(dti)
+
+if (suppressWarnings(system('which netMHCpan 2> /dev/null', intern = TRUE)) %>%
+          length == 0){
+            message("Skipping BLAST because ncbiblast+ is not in PATH")
+          return(dti)
+
    }
 
   dt <- dti[pep_type != "wt" & !is.na(pep_type)]
@@ -116,44 +119,9 @@ make_BLAST_uuid <- function(dti){
                 .[best == overlap_length] %>%
                 .[, best := NULL]
 
-# function to remove to deduplicate blast matches
-
-  dedup_bl <- function(blastdt, type){
-
-  # if two equally good matches, warn that one was picked arbitrarily
-
-  if (blastdt[, .SD %>% unique, by = c("nmer_uuid", "WT.peptide")] %>%
-    .[, .N, by = "nmer_uuid"] %>% .[, N > 1] %>% any){
-
-    l <- blastdt[, .SD %>% unique, .SDcols = c("nmer_uuid", "WT.peptide")] %>%
-        .[, .N, by = "nmer_uuid"] %>% .[N > 1, nmer_uuid %>% unique]
-
-
-    blastdt %>%
-      data.table::fwrite(
-        paste0("all_", type, "_matches.csv"),
-                          quote = FALSE,
-                          row.names = FALSE,
-                          col.names = TRUE)
-
-    # now arbitrarily pick one match of multiple if applicable
-
-    bldtl <- blastdt[nmer_uuid %chin% l] %>% split(by = "nmer_uuid")
-    bldtl <- lapply(bldtl, function(b){
-
-      return(b[1])
-
-      }) %>% data.table::rbindlist
-
-    blastdt <- data.table::rbindlist(list(blastdt[!(nmer_uuid %chin% l)],
-                                          bldtl))
-
-    }
-
-    return(blastdt)
-  }
-
-    blastdt %<>% dedup_bl("blastp")
+  # dedupe
+    blastdt %>% data.table::setkey(nmer_uuid, pident)
+    blastdt %<>% unique(by = c("nmer_uuid", "pident"))
 
     blastdt <- blastdt[, .SD %>% unique, .SDcols = c("nmer_uuid", "nmer", "WT.peptide")]
     blastdt[, blast_uuid := uuid::UUIDgenerate(), by = c("nmer_uuid", "WT.peptide")]
@@ -234,20 +202,19 @@ make_BLAST_uuid <- function(dti){
 
     blastdt[, highest := max(bitscore), by = "nmer_uuid"]
 
-  # exclude insertions or deletions
-    ##### TODO why exclude there?
-
   blastdt <- blastdt[highest == bitscore] %>%
               .[!(nmer %like% "-")] %>%
                 .[, highest := NULL]
 
   # keep longest alignment
 
-  blastdt <- blastdt[, best := max(overlap_length), by = "nmer_uuid"] %>%
+   blastdt <- blastdt[, best := max(overlap_length), by = "nmer_uuid"] %>%
               .[best == overlap_length] %>%
                 .[, best := NULL]
 
-  dedup_bl %<>% dedup_bl("iedb")
+  # dedupe
+    blastdt %>% data.table::setkey(nmer_uuid, pident)
+    blastdt %<>% unique(by = c("nmer_uuid", "pident"))
 
   # get full IEDB ref here
 
@@ -987,9 +954,10 @@ mcMap(function(x, y) (x %>% as.integer):(y %>% as.integer) %>%
 #' @param assemble Logical. Assemble data table?
 #' @param generate Logical. Generate peptides?
 #' @param predict Logical. Predict binding affinities?
+#' @param blast Logical. Run BLASTp to find wild-type peptide and known IEDB matches?
+#' @param fitness Logical. Run model of [Luksza et al. *Nature* 2017](https://www.ncbi.nlm.nih.gov/pubmed/29132144) to predict neoepitope fitness?
 #' @param humandb Character vector. One of "GRCh37" or "GRCh38".
 #' @param mousedb Character vector. One of "GRCm37" or "GRCm38".
-#' @param blast Logical. Run BLASTp to find wild-type peptide and known IEDB matches? Default is FALSE.
 #' @return A data table of binding predictions including:
 #' * **cDNA_seq**: mutant cDNA sequence
 #' * **cDNA_locs**: starting index of mutant cDNA
@@ -1009,11 +977,17 @@ mcMap(function(x, y) (x %>% as.integer):(y %>% as.integer) %>%
 #' * **\*_net**: netMHC prediction tool output
 #' * **mhcflurry_\***: mhcflurry_ prediction tool output
 #' * **mhcnuggets_\***: mhcnuggets_ prediction tool output
-#' * **Consensus_scores**: Average value of MHC binding affinity from all prediction tools that contributed output. 95% confidence intervals are given by **Upper_CI**, **Lower_CI**.
+#' * **Consensus_scores**: Average value of MHC binding affinity from all prediction tools that contributed output. 95\% confidence intervals are given by **Upper_CI**, **Lower_CI**.
 #' * **DAI**: Differential agretopicty index, see `garnish_summary` for an explanation of DAI.
 #' * **BLAST_A**: Ratio of consensus binding affinity of mutant peptide / closest single AA mismatch from blastp results. Returned only if `blast = TRUE`.
 #'
-#' as well as a transcript description:
+#' fitness model information [Luksza et al. *Nature* 2017](https://www.ncbi.nlm.nih.gov/pubmed/29132144):
+#' * **ResidueChangeClass**: mutant cDNA sequence
+#' * **A**: Component of the fitness model. Differential MHC affinity of mutant and closest wt peptide, similar to `BLAST_A`.
+#' * **R**: TCR recognition probability, determined by comparison to known epitopes in the IEDB.
+#' * **NeoantigenRecognitionPotential**: Product of A and R. The peptide with the highest value per sample is the dominant neoepitope.
+#'
+#' transcript description:
 #' * description
 #' * start_position
 #' * end_position
@@ -1102,6 +1076,9 @@ mcMap(function(x, y) (x %>% as.integer):(y %>% as.integer) %>%
 #'      dt <- antigen.garnish::garnish_predictions(path = path) %T>%
 #'      str
 #' }
+#'
+#' #' @references Luksza, M, Riaz, N, Makarov, V, Balachandran VP, et al. A neoepitopes fitness model predicts tumour response to checkpoint blockade immunotherapy **Nature** 2017
+#'
 #' @export garnish_predictions
 #' @md
 
@@ -1110,11 +1087,11 @@ garnish_predictions <- function(dt = NULL,
                                assemble = TRUE,
                                generate = TRUE,
                                predict = TRUE,
+                               blast = fitness,
+                               fitness = TRUE,
                                humandb = "GRCh38",
-                               mousedb = "GRCm38",
-                               blast = FALSE){
+                               mousedb = "GRCm38"){
 
-  # remove temporary files _nmer_fasta\\.fa)|(iedb_query.fa)
   on.exit({
     message("Removing temporary files")
     list.files(pattern = "_nmer_fasta\\.fa)|iedb_query.fanetMHC|mhcflurry|mhcnuggets).*_[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}\\.csv") %>% file.remove
@@ -1127,7 +1104,7 @@ garnish_predictions <- function(dt = NULL,
     dt <- rio::import(path) %>%
     data.table::as.data.table
 
-  if ("data.table" %chin% class(dt))
+  if (!"data.table" %chin% class(dt))
     stop("Input must be a data table.")
 
   if (!"MHC" %chin% names(dt)) stop("Input must include MHC alleles, see ?garnish_predictions")
@@ -1176,6 +1153,9 @@ dt with peptide:
                                  7 13 14
      MHC                         <same as above>
       ")
+
+if (fitness == TRUE & blast == FALSE)
+    message("Setting blast = TRUE")
 
 if (assemble & input_type == "transcript"){
 
@@ -1442,7 +1422,8 @@ if (generate){
     if (input_type == "peptide")
       dt[, dai_uuid := NA %>% as.character]
 
-  if (blast)  dt %<>% make_BLAST_uuid
+  if (blast)
+    dt %<>% make_BLAST_uuid
 
 }
 
@@ -1484,8 +1465,8 @@ if (predict){
       }
 
    }
-
-   dt %<>% garnish_fitness
+   if (fitness)
+     dt %<>% garnish_fitness
    return(dt)
 
 }

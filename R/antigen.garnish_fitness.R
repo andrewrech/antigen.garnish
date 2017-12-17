@@ -5,34 +5,13 @@
 #'
 #' @param dt Data table output from `garnish_predictions`.
 #' @param a Fitness model parameter. Binding curve horizontal displacement used to determine TCR recognition probability of a peptide compared to an IEDB near match.
-#' @param k Fitness model parameter. Steepness of the binding curve at `a`
+#' @param k Fitness model parameter. Steepness of the binding curve at `a`.
 #'
-#' @return A data table with additional columns:
+#' @return A data table with added fitness model parameters columns:
 #' * **ResidueChangeClass**: mutant cDNA sequence
 #' * **A**: `A` component of fitness model, differential MHC affinity of mutant and closest wt peptide, similar to `BLAST_A`.
 #' * **R**: TCR recognition probability, determined by comparison to known epitopes in the IEDB.
 #' * **NeoantigenRecognitionPotential**: Product of A and R, the maximum value per sample is the dominant neoepitope.
-#'
-#' @examples
-#'\dontrun{
-#'library(antigen.garnish)
-#'library(leepR)
-#'
-#' dt <- "antigen.garnish_example.vcf" %T>%
-#' utils::download.file("http://get.rech.io/antigen.garnish_example.vcf", .) %>%
-#' garnish_variants %>%
-#'  .[, MHC := c("HLA-A*02:01 HLA-DRB1*14:67",
-#'               "H-2-Kb H-2-IAd",
-#'            "HLA-A*01:47 HLA-DRB1*03:08")] %>%
-#'              garnish_predictions(blast = TRUE) %>%
-#'                garnish_fitness
-#'
-#'}
-#'
-#' @import data.table
-#' @import dt.inflix
-#'
-#' @references Luksza, M, Riaz, N, Makarov, V, Balachandran VP, et al. A neoepitopes fitness model predicts tumour response to checkpoint blockade immunotherapy **Nature** 2017
 #'
 #' @export garnish_fitness
 #' @md
@@ -49,7 +28,7 @@ garnish_fitness <- function(dt,
 
   # check input
 
-    if ("data.table" %chin% class(dt))
+    if (!"data.table" %chin% class(dt))
       stop("Input must be a data table.")
 
     if(!(c("var_uuid",
@@ -257,7 +236,7 @@ the following columns:
         aa_2 <- dti[, MT.Peptide]
         names(aa_2) <- dti[, label_mut]
         aa <- Biostrings::AAStringSet(c(aa, aa_2), use.names = TRUE)
-        filename <- paste0("fitness_model/neoepitopes_", dti[, Sample %>% unique], ".fasta")
+        filename <- paste0("fitness_model/neoantigens_", dti[, Sample %>% unique], ".fasta")
         aa %>% Biostrings::writeXStringSet(filename)
 
     # run blastp on fasta
@@ -279,37 +258,36 @@ the following columns:
     paste("python",
           py_path,
           "neoepitopes.txt",
-          "fitness_model",
+          "./fitness_model",
           a,
           k,
-          "neoepitopes_fitness_model_output.txt"
+          "neoantigens_fitness_model_output.txt"
     )
   )
 
   # curate output
-  if (!file.exists("neoepitopes_fitness_model_output.txt")) {
+  if (!file.exists("neoantigens_fitness_model_output.txt")) {
     warning("garnish_fitness did not return output.")
     return(dt)
   }
 
-  dto <- "neoepitopes_fitness_model_output.txt" %>% data.table::fread
+  dto <- "neoantigens_fitness_model_output.txt" %>% data.table::fread
 
   dto %>% data.table::setnames(c("Mutation", "Sample"),
                                c("var_uuid", "sample_id"))
   dto %<>% melt(measure.vars = c("WildtypePeptide", "MutantPeptide"),
                 value.name = "nmer")
 
-  # remove existing columns
-    dt[, .SD := NULL,
-         .SDcols = c(
-                     "ResidueChangeClass",
-                     "A",
-                     "R",
-                     "NeoantigenRecognitionPotential"
-                    )]
+  # remove output columns before merging if they already exist
+  for (col in c("ResidueChangeClass",
+                "A",
+                "R",
+                "NeoantigenRecognitionPotential"
+                    ))
+    suppressWarnings(set(dt, j = col, value = NULL))
 
   dto[, var_uuid := var_uuid %>%
-        stringr::str_replace_all(stingr::fixed("_"), replacement = "-")]
+        stringr::str_replace_all(stringr::fixed("_"), replacement = "-")]
 
   dt <- merge(dt, dto[Excluded == FALSE, .SD %>% unique,
           .SDcols = c("var_uuid",

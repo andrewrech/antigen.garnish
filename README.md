@@ -10,7 +10,7 @@ Ensemble neoepitope prediction from DNA variants in R.
 
 ## Description
 
-An R package for [neoepitope](http://science.sciencemag.org/content/348/6230/69) analysis that takes human or murine DNA missense mutations, insertions, deletions, and gene fusions and performs neoepitope prediction. Input is a VCF file or table of peptides. Output is neoepitopes and a summary by sample. [More information.](http://antigen-garnish-presentation.s3-website-us-east-1.amazonaws.com)
+An R package for [neoepitope](http://science.sciencemag.org/content/348/6230/69) analysis that takes human or murine DNA missense mutations, insertions, deletions, and gene fusions and performs neoepitope prediction. Input is a VCF file or table of peptides. Output is neoepitopes and a summary of neoepitope load and fitness by sample. [More information.](http://antigen-garnish-presentation.s3-website-us-east-1.amazonaws.com)
 
 ### Advantages
 
@@ -19,8 +19,8 @@ An R package for [neoepitope](http://science.sciencemag.org/content/348/6230/69)
     - summarized neoepitopes for each sample
 1. **Thoroughness**:
     - missense mutations, insertions, deletions, and gene fusions
-    - ensemble MHC class I/II binding prediction using [mhcflurry](https://github.com/hammerlab/mhcflurry), [mhcnuggets](https://github.com/KarchinLab/mhcnuggets), [netMHC](http://www.cbs.dtu.dk/services/NetMHC/), [netMHCII](http://www.cbs.dtu.dk/services/NetMHCII/), [netMHCpan](http://www.cbs.dtu.dk/services/NetMHCpan/) and [netMHCIIpan](http://www.cbs.dtu.dk/services/NetMHCIIpan/i).
-    - filter against all known normal proteins
+    - ensemble MHC class I/II binding prediction using [mhcflurry](https://github.com/hammerlab/mhcflurry), [mhcnuggets](https://github.com/KarchinLab/mhcnuggets), [netMHC](http://www.cbs.dtu.dk/services/NetMHC/), [netMHCII](http://www.cbs.dtu.dk/services/NetMHCII/), [netMHCpan](http://www.cbs.dtu.dk/services/NetMHCpan/) and [netMHCIIpan](http://www.cbs.dtu.dk/services/NetMHCIIpan/i)
+    - filter against all known normal proteins and rank by fitness
 1. **Speed**:
     - produce all possible 8-15-mer peptides from 10,000 variants in under 1 minute on a normal laptop
     - on an Amazon Web Services `m4.16xlarge` EC2 instance, 20,000 consensus predictions using 100+ MHC types in under 5 minutes
@@ -46,7 +46,7 @@ curl -fsSL http://get.rech.io/install_iedb_branch.sh | sudo sh
 * `garnish_predictions`: perform ensemble neoepitope prediction
 * `garnish_summary`: summarize neoepitope prediction
 * `garnish_plot`: generate summary plots for neoepitope prediction
-* `list_mhc`: list all supported MHC alleles and appropriate syntax for use with `antigen.garnish`
+* `list_mhc`: list all supported MHC allele syntax
 
 ### Examples
 
@@ -92,7 +92,7 @@ library(antigen.garnish)
 library(magrittr)
 library(antigen.garnish)
 
-  # load some test jaffa output data
+  # load example jaffa output
     path <- "antigen.garnish_jaffa_results.csv" %T>%
       utils::download.file("http://get.rech.io/antigen.garnish_jaffa_results.csv", .)
     fasta_path <- "antigen.garnish_jaffa_results.fasta" %T>%

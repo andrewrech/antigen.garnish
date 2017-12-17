@@ -36,6 +36,7 @@
 
   cd ~
   curl -fsSL "http://get.rech.io/antigen.garnish.tar.gz" | tar -xvz
+  chmod 777 -R ./antigen.garnish
   mv ./antigen.garnish/ncbi-blast-2.7.1+/bin/* /usr/local/bin
 
   Rscript -e \
