@@ -1,7 +1,7 @@
 ## ---- garnish_fitness
 #' Generate neoepitope fitness model
 #'
-#' Implements the neoepitopes fitness model of [Luksza et al. *Nature* 2017](https://www.ncbi.nlm.nih.gov/pubmed/29132144).
+#' Implements the neoepitope fitness model of [Luksza et al. *Nature* 2017](https://www.ncbi.nlm.nih.gov/pubmed/29132144).
 #'
 #' @param dt Data table output from `garnish_predictions`.
 #' @param a Fitness model parameter. Binding curve horizontal displacement used to determine TCR recognition probability of a peptide compared to an IEDB near match.

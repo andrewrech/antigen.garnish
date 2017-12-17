@@ -11,7 +11,7 @@
 make_BLAST_uuid <- function(dti){
 
 
-if (suppressWarnings(system('which netMHCpan 2> /dev/null', intern = TRUE)) %>%
+if (suppressWarnings(system('which blastp 2> /dev/null', intern = TRUE)) %>%
           length == 0){
             message("Skipping BLAST because ncbiblast+ is not in PATH")
           return(dti)
@@ -69,7 +69,7 @@ if (suppressWarnings(system('which netMHCpan 2> /dev/null', intern = TRUE)) %>%
 
     if (any(file.info(blastdt)$size == 0))
       blastdt <- blastdt %>% file.info %>%
-        dtiata.table::as.data.table(keep.rownames = TRUE) %>%
+        data.table::as.data.table(keep.rownames = TRUE) %>%
           .[size != 0, rn]
 
 
@@ -1077,7 +1077,8 @@ mcMap(function(x, y) (x %>% as.integer):(y %>% as.integer) %>%
 #'      str
 #' }
 #'
-#' #' @references Luksza, M, Riaz, N, Makarov, V, Balachandran VP, et al. A neoepitopes fitness model predicts tumour response to checkpoint blockade immunotherapy **Nature** 2017
+#' @references
+#' Luksza, M, Riaz, N, Makarov, V, Balachandran VP, et al. 2017. A neoepitope fitness model predicts tumour response to checkpoint blockade immunotherapy. Nature. 23;551(7681):512-516
 #'
 #' @export garnish_predictions
 #' @md

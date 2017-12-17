@@ -99,8 +99,8 @@ testthat::test_that("garnish_predictions README example from VCF without BLAST, 
                         "HLA-A*01:47 HLA-DRB1*03:08")] %>%
                         garnish_predictions
 
-        testthat::expect_true(dt %>% nrow == 551)
-        testthat::expect_true(dt[, nmer %>% unique %>% length] == 551)
+        testthat::expect_true(dt %>% nrow == 713)
+        testthat::expect_true(dt[, nmer %>% unique %>% length] == 552)
 
         })
 
@@ -226,23 +226,4 @@ testthat::test_that("garnish_predictions peptide", {
                          42)
   testthat::expect_equal(dto %>% nrow,
                          168)
-    })
-
-testthat::test_that("garnish_predictions warning on missing prediction tools", {
-
-   if (check_pred_tools() %>% unlist %>% all){
-    testthat::skip("Skipping test for warning on missing pred tools because prediction tools are in PATH")
-    }
-   # load test data
-      data.table::data.table(
-      sample_id = "test",
-      pep_mut = "ATGACTGAATATAAACTTGTGGTA",
-      mutant_index = "7 13 14",
-      MHC = "H-2-Kb"
-                           ) %>%
-   # run test
-    {
-      testthat::expect_warning(garnish_predictions(.))
-    }
-
     })

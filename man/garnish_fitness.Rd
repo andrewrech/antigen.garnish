@@ -23,5 +23,5 @@ A data table with added fitness model parameters columns:
 }
 }
 \description{
-Implements the neoepitopes fitness model of \href{https://www.ncbi.nlm.nih.gov/pubmed/29132144}{Luksza et al. Nature 2017}.
+Implements the neoepitope fitness model of \href{https://www.ncbi.nlm.nih.gov/pubmed/29132144}{Luksza et al. Nature 2017}.
 }

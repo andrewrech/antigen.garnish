@@ -175,8 +175,9 @@ library(antigen.garnish)
      str
 }
 
-#' @references Luksza, M, Riaz, N, Makarov, V, Balachandran VP, et al. A neoepitopes fitness model predicts tumour response to checkpoint blockade immunotherapy **Nature** 2017
-
+}
+\references{
+Luksza, M, Riaz, N, Makarov, V, Balachandran VP, et al. 2017. A neoepitope fitness model predicts tumour response to checkpoint blockade immunotherapy. Nature. 23;551(7681):512-516
 }
 \seealso{
 \code{\link{garnish_summary}}
