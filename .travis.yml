@@ -11,6 +11,7 @@ bioc_packages:
   - Biostrings
   - biomaRt
 r_github_packages:
+  - hadley/devtools
   - tidyverse/magrittr
   - Rdatatable/data.table
   - pachterlab/sleuth
