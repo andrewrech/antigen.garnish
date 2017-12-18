@@ -75,9 +75,9 @@ get_metadata <- function(dt,
   # set genome host
   if (!humandb %chin% c("GRCh37", "GRCh38")) stop("humandb set incorrectly")
   if (!mousedb %chin% c("GRCm37", "GRCm38")) stop("mousedb set incorrectly")
-  if (humandb == "GRCh38") hhost <- "www.ensembl.org"
+  if (humandb == "GRCh38") hhost <- "aug2017.archive.ensembl.org"
   if (humandb == "GRCh37") hhost <- "grch37.ensembl.org"
-  if (mousedb == "GRCm38") mhost <- "www.ensembl.org"
+  if (mousedb == "GRCm38") mhost <- "feb2014.archive.ensembl.org"
   if (mousedb == "GRCm37") mhost <- "may2012.archive.ensembl.org"
 
     # remove version suffix
@@ -103,8 +103,19 @@ get_metadata <- function(dt,
 
     var_dt <- lapply(bmds, function(i){
 
-      if (i == "hsapiens_gene_ensembl") host <- hhost
-      if (i == "mmusculus_gene_ensembl") host <- mhost
+      if (i == "hsapiens_gene_ensembl") {
+        host <- hhost
+        ensembl_attr = c("ensembl_transcript_id",
+                "external_gene_name", "ensembl_gene_id", "description", "chromosome_name",
+                "start_position", "end_position", "transcript_start", "transcript_end")
+      }
+
+      if (i == "mmusculus_gene_ensembl") {
+        host <- mhost
+        ensembl_attr = c("ensembl_transcript_id",
+                    "external_gene_id", "ensembl_gene_id", "description", "chromosome_name",
+                    "start_position", "end_position", "transcript_start", "transcript_end")
+      }
 
       mart <- biomaRt::useMart(biomart = "ENSEMBL_MART_ENSEMBL",
                                                  dataset = i,
@@ -127,14 +138,14 @@ get_metadata <- function(dt,
    if (trn %>% length >= 1){
 
     # obtain transcript metadata
-      var_dt <- biomaRt::getBM(attributes = c("ensembl_transcript_id",
-                    "external_gene_name", "ensembl_gene_id", "description", "chromosome_name",
-                    "start_position", "end_position", "transcript_start", "transcript_end",
-                    "transcript_length"),
+      var_dt <- biomaRt::getBM(attributes = ensembl_attr,
                          filters = c("ensembl_transcript_id"),
                          values = list(trn),
                          mart = mart) %>%
             data.table::as.data.table
+
+   if (i == "mmusculus_gene_ensembl")
+    var_dt %>% data.table::setnames("external_gene_id", "external_gene_name")
 
       # obtain transcript cDNA and peptide sequences
 
