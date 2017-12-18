@@ -112,10 +112,13 @@ library(antigen.garnish)
 
 #### Automated testing
 
-```r
-library(testthat)
+```sh
 
-testthat::test_package("antigen.garnish")
+  cd ~/antigen.garnish
+
+  Rscript --vanilla -e \
+    'devtools::check(pkg = "./antigen.garnish")'
+
 ```
 
 #### How are peptides generated?

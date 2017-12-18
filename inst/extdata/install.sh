@@ -39,16 +39,16 @@
   chmod 777 -R ./antigen.garnish
   mv ./antigen.garnish/ncbi-blast-2.7.1+/bin/* /usr/local/bin
 
-  Rscript -e \
+  Rscript -e --vanilla \
   'install.packages("devtools", repos = "http://cran.us.r-project.org"); devtools::install_github("hadley/devtools"); install.packages("testthat", repos = "http://cran.us.r-project.org")'
 
-  Rscript -e \
+  Rscript -e --vanilla \
   'source("https://bioconductor.org/biocLite.R"); biocLite(c("ShortRead", "biomaRt", "Biostrings"), suppressUpdates = TRUE, suppressAutoUpdate = TRUE)'
 
-  Rscript -e \
+  Rscript -e --vanilla \
   'install.packages("data.table", type = "source", repos = "http://Rdatatable.github.io/data.table")'
 
-  Rscript -e \
+  Rscript -e --vanilla \
   'devtools::install_github(c("tidyverse/magrittr", "andrewrech/dt.inflix"))'
 
 
@@ -56,8 +56,5 @@
 
   echo "Installing antigen.garnish..."
 
-  Rscript -e \
+  Rscript -e --vanilla \
   'devtools::install_github("andrewrech/antigen.garnish")'
-
-  Rscript -e \
-  'antigen.garnish::check_pred_tools(); message("Testing antigen.garnish..."); testthat::test_package("antigen.garnish")'
