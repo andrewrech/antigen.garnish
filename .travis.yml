@@ -7,10 +7,11 @@ r:
   - release
   - devel
   - 3.4.0
+r_packages:
+  - devtools
 bioc_packages:
   - Biostrings
   - biomaRt
-before: R -e 'install.packages("devtools"); devtools::install_github("hadley/devtools")'
 r_github_packages:
   - tidyverse/magrittr
   - Rdatatable/data.table

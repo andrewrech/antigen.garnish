@@ -36,7 +36,7 @@ An R package for [neoepitope](http://science.sciencemag.org/content/348/6230/69)
 ### Install prediction tools and `antigen.garnish`
 
 ```sh
-curl -fsSL http://get.rech.io/install_iedb_branch.sh | sudo sh
+curl -fsSL http://get.rech.io/install_antigen.garnish.sh | sudo sh
 ```
 
 ## [Package documentation](http://get.rech.io/antigen.garnish.pdf)
@@ -52,8 +52,7 @@ curl -fsSL http://get.rech.io/install_iedb_branch.sh | sudo sh
 
 #### Predict neoepitopes from missense mutations, insertions, and deletions
 
-```r
-library(magrittr)
+ library(magrittr)
 library(antigen.garnish)
 
   # download an example VCF
