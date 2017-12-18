@@ -1,5 +1,4 @@
-[![Build Status](https://travis-ci.org/andrewrech/antigen.garnish.svg?branch=master)](https://travis-ci.org/andrewrech/antigen.garnish) [![codecov.io](https://codecov.io/github/andrewrech/antigen.garnish/coverage.svg?branch=master)](https://codecov.io/github/andrewrech/antigen.garnish?branch=master) ![](https://img.shields.io/badge/version-0.0.5-blue.svg)
-
+[![codecov.io](https://codecov.io/github/andrewrech/antigen.garnish/coverage.svg?branch=master)](https://codecov.io/github/andrewrech/antigen.garnish?branch=master) ![](https://img.shields.io/badge/version-0.0.5-blue.svg)
 
 
 # antigen.garnish
@@ -52,7 +51,9 @@ curl -fsSL http://get.rech.io/install_antigen.garnish.sh | sudo sh
 
 #### Predict neoepitopes from missense mutations, insertions, and deletions
 
- library(magrittr)
+```r
+
+library(magrittr)
 library(antigen.garnish)
 
   # download an example VCF
