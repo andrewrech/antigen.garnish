@@ -10,8 +10,8 @@ r:
 bioc_packages:
   - Biostrings
   - biomaRt
+before: R -e 'install.packages("devtools"); devtools::install_github("hadley/devtools")'
 r_github_packages:
-  - hadley/devtools
   - tidyverse/magrittr
   - Rdatatable/data.table
   - pachterlab/sleuth
