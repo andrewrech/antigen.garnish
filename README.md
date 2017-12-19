@@ -1,4 +1,4 @@
-[![Build Status](http://get.rech.io/antigen.garnish_status.svg)](http://get.rech.io/antigen.garnish_status.txt") [![codecov.io](https://codecov.io/github/andrewrech/antigen.garnish/coverage.svg?branch=master)](https://codecov.io/github/andrewrech/antigen.garnish?branch=master) ![](https://img.shields.io/badge/version-0.0.5-blue.svg)
+[![Build Status](http://get.rech.io/antigen.garnish_status.svg)](http://get.rech.io/antigen.garnish_status.txt) [![codecov.io](https://codecov.io/github/andrewrech/antigen.garnish/coverage.svg?branch=master)](https://codecov.io/github/andrewrech/antigen.garnish?branch=master) ![](https://img.shields.io/badge/version-0.0.5-blue.svg)
 
 
 # antigen.garnish
