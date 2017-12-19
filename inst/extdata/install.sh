@@ -53,7 +53,6 @@
   Rscript --vanilla -e \
   'devtools::install_github(c("tidyverse/magrittr", "andrewrech/dt.inflix"))'
 
-
 # install antigen.garnish
 
   echo "Installing antigen.garnish..."
