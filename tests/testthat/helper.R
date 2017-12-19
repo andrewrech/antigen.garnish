@@ -1,7 +1,7 @@
 
 # load antigen.garnish test helper functions
 
-  skip_pred_tools <- function() {
+skip_pred_tools <- function() {
 
          if (!check_pred_tools() %>% unlist %>% all){
           testthat::skip("Skipping run_netMHC because prediction tools are not in PATH")
@@ -12,7 +12,7 @@
           testthat::skip("Skipping garnish_predictions README example from VCF without fitness because ncbiblast+ is not in PATH")
         }
 
-  test_runner <- function(fn){
+test_runner <- function(fn){
     cdir <- getwd()
     temp_dir <- uuid::UUIDgenerate()
     dir.create(temp_dir)

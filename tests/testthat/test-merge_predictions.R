@@ -11,8 +11,7 @@ testthat::test_that("merge_predictions", {
     "antigen.garnish_example_mhcnuggets_output_lstm_HLA-A0201_2d23d1d7-5622-4930.csv"
                 )
 
-
-    lapply(output, function(i){
+lapply(output, function(i){
           i %>%
               {utils::download.file(paste0("http://get.rech.io/", .), .)}
         })

@@ -100,14 +100,16 @@ garnish_jaffa <- function(path, db, fasta_path){
                                 uuid::UUIDgenerate) %>% unlist]
 
   # split up gene fusion components
-    unfuse_genes <- function(col){
 
-      dtl <- parallel::mclapply(1:length(col), function(i){
+unfuse_genes <- function(col){
+
+dtl <- parallel::mclapply(1:length(col), function(i){
                strsplit(col[i], split = ":", fixed = TRUE) %>% unlist
                })
 
-      gene_1 <- lapply(dtl, function(x){x[1]}) %>% unlist
-      gene_2 <- lapply(dtl, function(x){x[2]}) %>% unlist
+gene_1 <- lapply(dtl, function(x){x[1]}) %>% unlist
+
+gene_2 <- lapply(dtl, function(x){x[2]}) %>% unlist
 
       return(list(gene_1, gene_2))
      }
@@ -181,7 +183,8 @@ garnish_jaffa <- function(path, db, fasta_path){
       trn <- var_dt[, ensembl_transcript_id %>% unique]
 
   # obtain coding and wt sequences
-    seqdtl <- lapply(c("coding", "peptide"), function(j){
+
+seqdtl <- lapply(c("coding", "peptide"), function(j){
 
     dt <- biomaRt::getSequence(type = "ensembl_transcript_id",
                                id = trn,
@@ -219,7 +222,7 @@ garnish_jaffa <- function(path, db, fasta_path){
   # collapse transcripts to then separate rows after
     tx_dt <- var_dt[, c("ensembl_gene_id", "ensembl_transcript_id")] %>% unique
 
-    tx_dt <- parallel::mclapply(tx_dt[, ensembl_gene_id %>% unique], function(i){
+tx_dt <- parallel::mclapply(tx_dt[, ensembl_gene_id %>% unique], function(i){
       row <- tx_dt[ensembl_gene_id == i] %>%
             .[, txs := .[, ensembl_transcript_id] %>%
                 paste0(collapse = ";")] %>%
@@ -263,11 +266,13 @@ garnish_jaffa <- function(path, db, fasta_path){
 
   # grep appropriate read/contig pattern
   # remove transcript ids that could not have produced read
-    dt <- dt[, keep := parallel::mclapply(1:nrow(dt), function(i){
+
+dt <- dt[, keep := parallel::mclapply(1:nrow(dt), function(i){
                   grepl(pattern = contig_1[i], x = coding_wt_1[i],
                         fixed = TRUE)
                   }) %>% unlist][keep == TRUE]
-    dt <- dt[, keep := parallel::mclapply(1:nrow(dt), function(i){
+
+dt <- dt[, keep := parallel::mclapply(1:nrow(dt), function(i){
                   grepl(pattern = contig_2[i], x = coding_wt_2[i],
                         fixed = TRUE)
                     }) %>% unlist][keep == TRUE]

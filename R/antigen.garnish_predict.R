@@ -1,5 +1,6 @@
 
 
+
 ## ---- make_BLAST_uuid
 #' Internal function to categorize mutant and wild-type peptides by similarity using `BLAST` to calculate neoepitope amplitude.
 #'
@@ -26,7 +27,8 @@ if (suppressWarnings(system('which blastp 2> /dev/null', intern = TRUE)) %>%
       .[MHC %like% "H-2", spc := "Ms"]
 
   # generate fastas to query
-  parallel::mclapply(dt[, spc %>% unique], function(s){
+
+parallel::mclapply(dt[, spc %>% unique], function(s){
 
     dt <- dt[spc == s]
 
@@ -221,7 +223,8 @@ if (suppressWarnings(system('which blastp 2> /dev/null', intern = TRUE)) %>%
     fa <- Biostrings::readAAStringSet("~/antigen.garnish/iedb.fasta")
     f <- fa %>% data.table::as.data.table %>% .[, x]
     names(f) <- fa@ranges@NAMES
-    blastdt[, IEDB_anno := parallel::mclapply(IEDB_anno, function(i){
+
+blastdt[, IEDB_anno := parallel::mclapply(IEDB_anno, function(i){
 
       mv <- f[which(stringr::str_detect(pattern = stringr::fixed(i), names(f)))]
       mv <- mv[which(stringr::str_detect(pattern = stringr::fixed(WT.peptide), mv))]
@@ -269,6 +272,7 @@ if (suppressWarnings(system('which blastp 2> /dev/null', intern = TRUE)) %>%
     return(dto)
 
 }
+
 
 
 ## ---- make_DAI_uuid
@@ -348,7 +352,8 @@ merge_predictions <- function(l, dt){
       message("Merging output")
 
       # merge netMHC by program type
-        progl <- lapply(l %>% seq_along, function(dti){
+
+progl <- lapply(l %>% seq_along, function(dti){
           l[[dti]]$command[1] %>% stringr::str_extract("net[A-Za-z]+")
           })
 
@@ -366,7 +371,8 @@ merge_predictions <- function(l, dt){
 
         f_flurry <- list.files(pattern = "mhcflurry_output.*csv")
         if (f_flurry %>% length > 0){
-              fdt <- lapply(f_flurry, function(x){
+
+fdt <- lapply(f_flurry, function(x){
                   if (
                       suppressWarnings(data.table::fread(x) %>% nrow > 0)
                       ){
@@ -387,7 +393,8 @@ merge_predictions <- function(l, dt){
         f_mhcnuggets <- list.files(pattern = "mhcnuggets_output.*csv")
 
         if (f_mhcnuggets %>% length > 0){
-                  nugdt <- lapply(f_mhcnuggets, function(x){
+
+nugdt <- lapply(f_mhcnuggets, function(x){
                           if (
                               suppressWarnings(data.table::fread(x)) %>% nrow > 0
                               ){
@@ -788,7 +795,7 @@ write_mhcnuggets_nmers <- function(dt, alleles){
            for (i in mnug_dt[, allele %>% unique]){
             breakpoints <- ((mnug_dt[allele == i] %>% nrow)/100) %>% ceiling
 
-      parallel::mclapply(mnug_dt[allele == i] %>% split(1:breakpoints), function(dt){
+parallel::mclapply(mnug_dt[allele == i] %>% split(1:breakpoints), function(dt){
 
             filename <- paste0("mhcnuggets_input_gru_",
                                i,
@@ -822,7 +829,7 @@ write_mhcnuggets_nmers <- function(dt, alleles){
            for (i in mnug_dt[, allele %>% unique]){
             breakpoints <- ((mnug_dt[allele == i] %>% nrow)/100) %>% ceiling
 
-       parallel::mclapply(mnug_dt[allele == i] %>% split(1:breakpoints), function(dt){
+parallel::mclapply(mnug_dt[allele == i] %>% split(1:breakpoints), function(dt){
 
             filename <- paste0("mhcnuggets_input_lstm_",
                                i,
@@ -861,7 +868,7 @@ write_netmhc_nmers <- function(dt, type){
     combs <- data.table::CJ(dt[, get(type)] %>% unique,
                             dt[, nmer_l] %>% unique)
 
-  dto <- parallel::mclapply(1:nrow(combs), function(i){
+dto <- parallel::mclapply(1:nrow(combs), function(i){
 
       dts <- dt[get(type) == combs$V1[i] & nmer_l == combs$V2[i]] %>%
       unique
@@ -870,7 +877,8 @@ write_netmhc_nmers <- function(dt, type){
       chunks <- ((dts %>% nrow)/100) %>% ceiling
 
   suppressWarnings(
-  dto <- parallel::mclapply(dts %>% split(1:chunks), function(dtw){
+
+dto <- parallel::mclapply(dts %>% split(1:chunks), function(dtw){
 
         filename <- paste0(type, "_",
                     uuid::UUIDgenerate() %>% substr(1, 18), ".csv")
@@ -1374,7 +1382,7 @@ if (generate){
 
            # return vector of matched nmers to drop
 
-             mv <- parallel::mclapply(nmv %>% seq_along, function(x){
+mv <- parallel::mclapply(nmv %>% seq_along, function(x){
                 ifelse(
                        stringi::stri_detect_fixed(pepv, nmv[x]) %>% any,
                        return(nmv[x]),
@@ -1445,18 +1453,18 @@ if (predict){
 
       cols <- dt %>% names %include% "(best_netMHC)|(mhcflurry_prediction$)|(mhcnuggets_pred_gru)|(mhcnuggets_pred_lstm)"
 
-      confi <- function(dt){
+confi <- function(dt){
 
-        dtl <- parallel::mclapply(1:nrow(dt), function(i){
+dtl <- parallel::mclapply(1:nrow(dt), function(i){
 
           if (dt[i ,] %>% unlist %>% na.omit %>% unique %>% length <= 1){
             return(list(NA, NA))}
             t.test(dt[i ,])$conf.int[1:2] %>% as.list
                           })
 
-        lo <- lapply(dtl, function(x){x[[1]]}) %>% unlist
+lo <- lapply(dtl, function(x){x[[1]]}) %>% unlist
 
-        up <- lapply(dtl, function(x){x[[2]]}) %>% unlist
+up <- lapply(dtl, function(x){x[[2]]}) %>% unlist
         return(list(lo, up))
                             }
 
@@ -1501,14 +1509,14 @@ make_nmers <- function(dt){
     message("Generating nmers")
     nmer_dt <- parallel::mclapply(1:nrow(dt),
 
-     function(n){
+function(n){
 
 
      ## --- Write peptide fragments
 
       # for every peptide length
 
-      nmer_dt <- lapply((15:8), function(pl){
+nmer_dt <- lapply((15:8), function(pl){
 
         mut_frag_t <- dt$pep_base[n] %>% strsplit("",
                             fixed = TRUE) %>% unlist
@@ -1541,7 +1549,7 @@ make_nmers <- function(dt){
                       partial = FALSE,
                       align = "left") %>%
 
-        apply(1, function(pmr){
+apply(1, function(pmr){
         paste(pmr, sep = "", collapse = "")
         })
 

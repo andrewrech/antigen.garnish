@@ -13,7 +13,8 @@
       "Ms_nmer_fasta.fa",
       "msblastpout.csv",
       "antigen.garnish_test_input.xlsx",
-      "neoantigens_fitness_model_output.txt"), function(i){
+
+"neoantigens_fitness_model_output.txt"), function(i){
 
         if (file.exists(i))
           file.remove(i)

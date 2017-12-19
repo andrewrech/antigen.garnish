@@ -189,7 +189,7 @@ the following columns:
       v <- dti[, ID %>% unique]
       names(v) <- seq_along(v)
 
-        dti[, ID := ID %>% (function(id){
+dti[, ID := ID %>% (function(id){
           id <- names(v[which(id == v)])
         }), by = "ID"]
 
@@ -227,7 +227,7 @@ the following columns:
 
       dir.create("fitness_model", showWarnings = FALSE)
 
-      lapply(dtl %>% seq_along, function(i){
+lapply(dtl %>% seq_along, function(i){
         dti <- data.table::copy(dtl[[i]])
         dti[, label_wt := paste(Sample, "WT", ID, MUTATION_ID, sep = "|")]
         dti[, label_mut := paste(Sample, "MUT", ID, MUTATION_ID, sep = "|")]

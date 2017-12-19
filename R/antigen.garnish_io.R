@@ -95,7 +95,7 @@ garnish_summary <- function(dt){
 
 # function to sum top values of a numeric vector
 
-  sum_top_v <- function(x, value = 3){
+sum_top_v <- function(x, value = 3){
 
         x %<>% sort %>% rev
         return(sum(x[1:value]))
@@ -103,7 +103,7 @@ garnish_summary <- function(dt){
 
   dt %>% data.table::setkey(sample_id)
 
-  dtn <- parallel::mclapply(dt[, sample_id %>% unique], function(id){
+dtn <- parallel::mclapply(dt[, sample_id %>% unique], function(id){
 
     dt <- dt[sample_id == id]
 
@@ -177,7 +177,8 @@ garnish_summary <- function(dt){
 
 # get variant level statistics if available
   if (c("ensembl_transcript_id", "var_uuid") %chin% (dt %>% names) %>% all) {
-    dtnv <- parallel::mclapply(dt[, sample_id %>% unique], function(id){
+
+dtnv <- parallel::mclapply(dt[, sample_id %>% unique], function(id){
 
       dt <- dt[sample_id == id]
 
@@ -244,7 +245,7 @@ garnish_variants <- function(vcfs, intersect = TRUE){
 
   message("Loading VCFs")
 
-  ivfdtl <- parallel::mclapply(vcfs %>% seq_along, function(ivf){
+ivfdtl <- parallel::mclapply(vcfs %>% seq_along, function(ivf){
 
   # load dt
       vcf <-  vcfR::read.vcfR(vcfs[ivf], verbose = TRUE)
@@ -306,7 +307,7 @@ garnish_variants <- function(vcfs, intersect = TRUE){
     return(vdt)
     })
 
-    rename_vcf_fields <- function(dt1, dt2) {
+rename_vcf_fields <- function(dt1, dt2) {
 
        # a function to rename VCF INFO and
         # FORMAT fields for merging
@@ -324,8 +325,7 @@ garnish_variants <- function(vcfs, intersect = TRUE){
         }
     }
 
-
-  merge_vcf <- function(dt, dt2){
+merge_vcf <- function(dt, dt2){
 
     # a function to intersect annotated variants
       # across VCFs using SnpEff
@@ -343,7 +343,7 @@ garnish_variants <- function(vcfs, intersect = TRUE){
 
   }
 
-  union_vcf <- function(dt, dt2){
+union_vcf <- function(dt, dt2){
 
     # a function to take the union of annotated variants
       # across VCFs using SnpEff
@@ -375,18 +375,19 @@ garnish_variants <- function(vcfs, intersect = TRUE){
 
   }
 
-      sample_ids <- lapply(ivfdtl, function(dt){
+sample_ids <- lapply(ivfdtl, function(dt){
                     dt$sample_id %>% unique
                       }) %>% unique
 
     # return an intersected data table of variants
 
       sdt <- parallel::mclapply(sample_ids, ##### TODO
-                                function(sn){
+
+function(sn){
 
         # find data tables with matching sample names
 
-          sdt <- lapply(ivfdtl, function(dt){
+sdt <- lapply(ivfdtl, function(dt){
 
              dt[, sample_id %>% .[1]] == sn
 
@@ -505,7 +506,7 @@ garnish_plot <- function(input){
 
   if(class(input)[1] != "list") input <- list(input)
 
-  lapply(input %>% seq_along, function(i){
+lapply(input %>% seq_along, function(i){
 
     dt <- input[[i]]
     dt <- data.table::copy(dt) %>%
@@ -557,11 +558,11 @@ garnish_plot <- function(input){
 
   # function to fill in missing combinations of factors to graph dt with an even bars per sample_id
 
-    gdt <- dt %>% (function(dt){
+gdt <- dt %>% (function(dt){
 
       ns <- dt[, sample_id %>% unique %>% length]
 
-      type <- lapply(dt[, type %>% unique], function(x){
+type <- lapply(dt[, type %>% unique], function(x){
         replicate(ns * 2, x)
       }) %>% unlist
 
@@ -619,7 +620,8 @@ garnish_plot <- function(input){
       gg_dt <- dt_pl[, .N, by = c("sample_id", "MHC", "binding")]
 
     # function to fill in missing combinations of factors to graph dt with even bars per sample_id
-      gdt <- dt_pl %>% (function(dt){
+
+gdt <- dt_pl %>% (function(dt){
 
         ns <- dt[, sample_id %>% unique %>% length]
 
@@ -674,7 +676,8 @@ garnish_plot <- function(input){
       gg_dt <- dt_pl[, .N, by = c("sample_id", "MHC", "binding")]
 
       # function to fill in missing combinations of factors to graph dt with even bars per sample_id
-      gdt <- dt_pl %>% (function(dt){
+
+gdt <- dt_pl %>% (function(dt){
 
         ns <- dt[, sample_id %>% unique %>% length]
 

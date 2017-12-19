@@ -1,6 +1,6 @@
 testthat::test_that("prediction output", {
 
-    convert.aa <- function(x){
+convert.aa <- function(x){
           sn <- names(Biostrings::AMINO_ACID_CODE)
           x <- Biostrings::AMINO_ACID_CODE[which(sn == x)]
           unlist(x)
@@ -23,7 +23,7 @@ testthat::test_that("prediction output", {
 
     DAIdt <- dt[!is.na(dt$DAI)][pep_type != "wt"]
 
-    DAIdt[, n.aa.mismatch := lapply(1:nrow(DAIdt), function(i){
+DAIdt[, n.aa.mismatch := lapply(1:nrow(DAIdt), function(i){
           x <- pep_mut[i] %>%
           strsplit(split = "",
                             fixed = TRUE) %>% unlist
@@ -44,7 +44,7 @@ testthat::test_that("prediction output", {
 
   # test that pep_mut matches SnpEff protein change call for missense
 
-    DAIdt[, new_aa_pep := lapply(1:nrow(DAIdt), function(i){
+DAIdt[, new_aa_pep := lapply(1:nrow(DAIdt), function(i){
           x <- pep_mut[i] %>%
           strsplit(split = "",
                             fixed = TRUE) %>% unlist
@@ -56,7 +56,7 @@ testthat::test_that("prediction output", {
           return(x[nAA])
         }) %>% unlist]
 
-    DAIdt[, old_aa_pep := lapply(1:nrow(DAIdt), function(i){
+DAIdt[, old_aa_pep := lapply(1:nrow(DAIdt), function(i){
           x <- pep_mut[i] %>%
           strsplit(split = "",
                             fixed = TRUE) %>% unlist
@@ -88,7 +88,7 @@ testthat::test_that("prediction output", {
 
     # getting missense AA change
 
-      DAIdt[, new_aa_pep := lapply(1:nrow(DAIdt), function(i){
+DAIdt[, new_aa_pep := lapply(1:nrow(DAIdt), function(i){
               x <- pep_mut[i] %>%
               strsplit(split = "",
                                 fixed = TRUE) %>% unlist
@@ -100,7 +100,7 @@ testthat::test_that("prediction output", {
               return(x[nAA])
             }) %>% unlist]
 
-      DAIdt[, old_aa_pep := lapply(1:nrow(DAIdt), function(i){
+DAIdt[, old_aa_pep := lapply(1:nrow(DAIdt), function(i){
               x <- pep_mut[i] %>%
               strsplit(split = "",
                                 fixed = TRUE) %>% unlist
@@ -114,7 +114,7 @@ testthat::test_that("prediction output", {
 
     # deriving wt from mutant peptide
 
-      DAIdt[, pep_wt2 := lapply(1:nrow(DAIdt), function(i){
+DAIdt[, pep_wt2 := lapply(1:nrow(DAIdt), function(i){
             x <- pep_mut[i] %>%
             strsplit(split = "",
                               fixed = TRUE) %>% unlist
@@ -131,7 +131,7 @@ testthat::test_that("prediction output", {
 
     # deriving mutant from wt peptide
 
-      DAIdt[, pep_mut2 := lapply(1:nrow(DAIdt), function(i){
+DAIdt[, pep_mut2 := lapply(1:nrow(DAIdt), function(i){
              x <- pep_wt[i] %>%
              strsplit(split = "",
                                fixed = TRUE) %>% unlist

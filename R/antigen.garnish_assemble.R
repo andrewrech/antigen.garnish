@@ -102,7 +102,7 @@ get_metadata <- function(dt,
 
     message("Obtaining cDNA and peptide sequences using biomaRt")
 
-    var_dt <- lapply(bmds, function(i){
+var_dt <- lapply(bmds, function(i){
 
       if (i == "hsapiens_gene_ensembl") {
         host <- hhost
@@ -150,7 +150,7 @@ get_metadata <- function(dt,
 
       # obtain transcript cDNA and peptide sequences
 
-        seqdtl <- lapply(c("coding", "peptide"), function(j){
+seqdtl <- lapply(c("coding", "peptide"), function(j){
          biomaRt::getSequence(type = "ensembl_transcript_id",
                      id = trn,
                      seqType = j,

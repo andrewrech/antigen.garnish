@@ -13,7 +13,7 @@ run_mhcflurry <- function(){
 
     list.files(pattern = "mhcflurry_input.*csv") %>%
 
-  mclapply(., function(x){
+mclapply(., function(x){
       paste0("mhcflurry-predict ", x, " > ", x %>%
             stringr::str_replace("input", "output")) %>%
       system
@@ -35,7 +35,7 @@ run_mhcnuggets <- function(){
   if (gruf %>% length > 1)
     message("Running mhcnuggets with -m gru")
 
-  parallel::mclapply(gruf, function(x){
+parallel::mclapply(gruf, function(x){
         paste0("python $(which predict.py) -m gru -w $(dirname $(which predict.py))/../saves/production/mhcnuggets/",
                stringr::str_extract(string = x, pattern = "(?<=_)H.*(?=_)"), ".h5 -p ", x,
                " > ",
@@ -50,7 +50,7 @@ run_mhcnuggets <- function(){
   if (lf %>% length > 1)
   message("Running mhcnuggets with -m lstm")
 
-  parallel::mclapply(lf, function(x){
+parallel::mclapply(lf, function(x){
         paste0("python $(which predict.py) -m lstm -w $(dirname $(which predict.py))/../saves/production/mhcnuggets_beta/",
                stringr::str_extract(string = x, pattern = "(?<=_)H.*(?=_)"), ".h5 -p ", x,
                " > ",
@@ -80,7 +80,7 @@ run_netMHC <- function(dt){
   esl <- parallel::mclapply(
          dt[, command],
 
-  function(command){
+function(command){
           # run command
            es <- try(system(command, intern = TRUE))
           # if error, return empty dt

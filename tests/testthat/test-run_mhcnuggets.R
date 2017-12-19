@@ -13,7 +13,7 @@ testthat::test_that("run_mhcnuggets", {
       "antigen.garnish_example_mhcnuggets_input_lstm_HLA-A0201_e4c2872d-c055-4a93.csv"
       )
 
-    lapply(input, function(i){
+lapply(input, function(i){
       i %>%
       {utils::download.file(paste0("http://get.rech.io/", .), .)}
       })

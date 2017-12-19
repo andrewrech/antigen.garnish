@@ -67,7 +67,8 @@ testthat::test_that("write_mhcnuggets_nmers", {
         out %>% length, 2)
 
       testthat::expect_equal(
-        out %>% lapply(., function(x){
+
+out %>% lapply(., function(x){
           x %>% fread(header = FALSE)
         }) %>% unlist %>% length, 6)
 
