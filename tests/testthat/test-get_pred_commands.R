@@ -1,9 +1,3 @@
-library(testthat)
-library(antigen.garnish)
-library(data.table)
-library(magrittr)
-library(dt.inflix)
-
 testthat::test_that("get_pred_commands", {
 
   list.files(pattern = "(netMHC|nuggets|flurry).*-.*-.*\\.csv") %>% file.remove

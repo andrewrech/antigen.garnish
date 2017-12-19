@@ -1,9 +1,3 @@
-library(testthat)
-library(antigen.garnish)
-library(data.table)
-library(magrittr)
-library(dt.inflix)
-
 testthat::test_that("garnish_fitness", {
 
   if (suppressWarnings(system('which blastp 2> /dev/null', intern = TRUE)) %>%

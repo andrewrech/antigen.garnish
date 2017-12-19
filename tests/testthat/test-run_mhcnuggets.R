@@ -1,18 +1,9 @@
-library(testthat)
-library(antigen.garnish)
-library(data.table)
-library(magrittr)
-library(dt.inflix)
-
 testthat::test_that("run_mhcnuggets", {
 
   list.files(pattern = "mhcnuggets.*csv") %>% file.remove
   on.exit(list.files(pattern = "mhcnuggets_.*csv") %>% file.remove)
 
-   if (!check_pred_tools() %>% unlist %>% all){
-    testthat::skip("Skipping run_mhcnuggets because prediction tools are not in PATH")
-     }
-
+  skip_pred_tools()
 
   # load test data
     input <- c(

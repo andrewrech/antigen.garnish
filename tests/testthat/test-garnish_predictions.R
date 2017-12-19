@@ -1,229 +1,117 @@
-library(testthat)
-library(antigen.garnish)
-library(data.table)
-library(magrittr)
-library(dt.inflix)
+README <- function(){
 
-testthat::test_that("garnish_predictions README example from VCF without BLAST, without fitness", {
+  testthat::test_that("garnish_predictions strict README example", {
+  skip_pred_tools()
 
-   if (!check_pred_tools() %>% unlist %>% all){
-    testthat::skip("Skipping run_netMHC because prediction tools are not in PATH")
-    }
+      # load test data
+        dt <- "antigen.garnish_example.vcf" %T>%
+        utils::download.file("http://get.rech.io/antigen.garnish_example.vcf", .) %>%
+
+      # run test
+        garnish_variants %>%
+          .[, MHC := c("HLA-A*02:01 HLA-DRB1*14:67",
+                       "H-2-Kb H-2-IAd",
+                      "HLA-A*01:47 HLA-DRB1*03:08")] %>%
+                      garnish_predictions
+
+      testthat::expect_true(dt %>% nrow == 713)
+      testthat::expect_true(dt[, nmer %>% unique %>% length] == 552)
+    })
+}
+
+transcripts <- function(){
+
+  testthat::test_that("garnish_predictions from transcripts, diverse MHC", {
+  skip_pred_tools()
+
+  # load test data
+    dt <- data.table::data.table(
+         sample_id = "test",
+         ensembl_transcript_id =
+         c("ENSMUST00000128119",
+           "ENSMUST00000044250",
+           "ENSMUST00000018743"),
+         cDNA_change = c("c.4988C>T",
+                         "c.1114T>G",
+                         "c.718T>A"),
+         MHC = c("HLA-A*02:01 HLA-DRB1*14:67",
+                 "H-2-Kb H-2-IAd",
+                 "HLA-C*14:02")) %>%
+    # run test
+      garnish_predictions(blast = FALSE,
+                          fitness = FALSE)
+
+    testthat::expect_equal(dt$cDNA_change %>% unique %>% length, 3)
+    testthat::expect_equal(dt$MHC %>% unique %>% sort,
+        c("H-2-IAd",
+          "H-2-Kb",
+          "HLA-A*02:01",
+          "HLA-C*14:02",
+          "HLA-DRB1*14:67"))
+    })
+}
+
+Excel <- function(){
+  testthat::test_that("garnish_predictions from Excel file", {
 
     # load test data
-      dt <- "antigen.garnish_example.vcf" %T>%
-      utils::download.file("http://get.rech.io/antigen.garnish_example.vcf", .) %>%
+      path <- "antigen.garnish_test_input.xlsx" %T>%
+        utils::download.file("http://get.rech.io/antigen.garnish_test_input.xlsx", .)
 
     # run test
-      garnish_variants %>%
-        .[, MHC := c("HLA-A*02:01 HLA-DRB1*14:67",
-                     "H-2-Kb H-2-IAd",
-                    "HLA-A*01:47 HLA-DRB1*03:08")] %>%
-      garnish_predictions(blast = FALSE, fitness = FALSE) %>%
-      garnish_summary
-
-    testthat::expect_true(dt %>% nrow == 1)
-    testthat::expect_true((dt %>% names) %chin%
-      c("sample_id",
-        "priority_neos_class_I",
-        "priority_neos_class_II",
-        "classic_neos_class_I",
-        "classic_neos_class_II",
-        "classic_top_score_class_I",
-        "classic_top_score_class_II",
-        "alt_neos_class_I",
-        "alt_neos_class_II",
-        "alt_top_score_class_I",
-        "alt_top_score_class_II",
-        "fs_neos_class_I",
-        "fs_neos_class_II",
-        "fusion_neos_class_I",
-        "fusion_neos_class_II",
-        "mhc_binders_class_I",
-        "mhc_binders_class_II",
-        "predictions",
-        "nmers",
-        "variants",
-        "transcripts")
-        %>% all)
-    })
+    dt <- garnish_predictions(path = path,
+                              predict = FALSE,
+                              blast = FALSE,
+                              fitness = FALSE)
 
 
-    testthat::test_that("garnish_predictions README example from VCF without fitness", {
+    testthat::expect_equal(dt %>% nrow, 551)
+    testthat::expect_equal(
+      dt[, nmer %>%
+           nchar %>%
+           unique] %>% sort,
+      8:15)
 
-       if (!check_pred_tools() %>% unlist %>% all){
-        testthat::skip("Skipping run_netMHC because prediction tools are not in PATH")
-        }
+  })
+}
 
-       if (suppressWarnings(system('which blastp 2> /dev/null', intern = TRUE)) %>%
-        length == 0)
-        testthat::skip("Skipping garnish_predictions README example from VCF without fitness because ncbiblast+ is not in PATH")
+jaffa <- function(){
+  testthat::test_that("test predict from jaffa input", {
 
+  skip_pred_tools()
 
-        # load test data
-          dt <- "antigen.garnish_example.vcf" %T>%
-          utils::download.file("http://get.rech.io/antigen.garnish_example.vcf", .) %>%
+    # load test data
+      dt <- data.table::fread("http://get.rech.io/antigen.garnish_example_input_jaffa.csv")
 
-        # run test
-          garnish_variants %>%
-            .[, MHC := c("HLA-A*02:01 HLA-DRB1*14:67",
-                         "H-2-Kb H-2-IAd",
-                        "HLA-A*01:47 HLA-DRB1*03:08")] %>%
-                        garnish_predictions(fitness = FALSE)
+      dt[, MHC := "H-2-Kb"]
 
-        testthat::expect_true(dt %>% nrow == 551)
-        testthat::expect_true(dt[, nmer %>% unique %>% length] == 551)
+    # run test
+      dt <- garnish_predictions(dt, blast = FALSE, fitness = FALSE)
 
-        })
+    testthat::expect_equal(dt %>% nrow, 1071)
 
+     })
+}
 
-    testthat::test_that("garnish_predictions README example", {
-
-       if (!check_pred_tools() %>% unlist %>% all){
-        testthat::skip("Skipping run_netMHC because prediction tools are not in PATH")
-        }
-
-       if (suppressWarnings(system('which blastp 2> /dev/null', intern = TRUE)) %>%
-        length == 0)
-        testthat::skip("Skipping garnish_predictions README example from VCF without fitness because ncbiblast+ is not in PATH")
-
-
-        # load test data
-          dt <- "antigen.garnish_example.vcf" %T>%
-          utils::download.file("http://get.rech.io/antigen.garnish_example.vcf", .) %>%
-
-        # run test
-          garnish_variants %>%
-            .[, MHC := c("HLA-A*02:01 HLA-DRB1*14:67",
-                         "H-2-Kb H-2-IAd",
-                        "HLA-A*01:47 HLA-DRB1*03:08")] %>%
-                        garnish_predictions
-
-        testthat::expect_true(dt %>% nrow == 713)
-        testthat::expect_true(dt[, nmer %>% unique %>% length] == 552)
-
-        })
-
-testthat::test_that("garnish_predictions from transcripts", {
-
-   if (!check_pred_tools() %>% unlist %>% all){
-    testthat::skip("Skipping run_netMHC because prediction tools are not in PATH")
-    }
+peptides <- function(){
+  testthat::test_that("garnish_predictions assemble from peptides", {
 
     # load test data
       dt <- data.table::data.table(
-           sample_id = "test",
-           ensembl_transcript_id =
-           c("ENSMUST00000128119",
-             "ENSMUST00000044250",
-             "ENSMUST00000018743"),
-           cDNA_change = c("c.4988C>T",
-                           "c.1114T>G",
-                           "c.718T>A"),
-           MHC = c("HLA-A*02:01 HLA-DRB1*14:67",
-                   "H-2-Kb H-2-IAd",
-                   "HLA-A*01:47 HLA-DRB1*03:08")) %>%
-      # run test
-        garnish_predictions(blast = FALSE,
-                            fitness = FALSE)
+              sample_id = "test",
+              pep_mut = "AAVMILKWTFRAKINGDEHKRDEF",
+              mutant_index = c("7 13 14",  "all", NA),
+              MHC = c("H-2-Kb")
+                                   )
+    # run test data
+      dto <- garnish_predictions(dt,
+                                 predict = FALSE,
+                                 blast = FALSE,
+                                 fitness = FALSE)
 
-      testthat::expect_equal(dt %>% nrow, 551)
-      testthat::expect_equal(dt$MHC %>% unique %>% sort,
-          c("H-2-IAd",
-            "H-2-Kb",
-            "HLA-A*01:47",
-            "HLA-A*02:01",
-            "HLA-DRB1*03:08",
-            "HLA-DRB1*14:67"))
-        testthat::expect_equal(
-              dt[, nmer %>%
-              nchar %>%
-              unique] %>% sort,
-              8:15)
+    testthat::expect_equal(dto$nmer %>% unique %>% length,
+                           109)
+      })
+  }
 
-    })
-
-testthat::test_that("garnish_predictions from Excel file", {
-
-  # load test data
-    path <- "antigen.garnish_test_input.xlsx" %T>%
-      utils::download.file("http://get.rech.io/antigen.garnish_test_input.xlsx", .)
-
-  # run test
-  dt <- garnish_predictions(path = path,
-                            predict = FALSE,
-                            blast = FALSE,
-                            fitness = FALSE)
-
-
-  testthat::expect_equal(dt %>% nrow, 551)
-  testthat::expect_equal(
-    dt[, nmer %>%
-         nchar %>%
-         unique] %>% sort,
-    8:15)
-
-})
-
-testthat::test_that("test predict from jaffa input", {
-
-  if (!check_pred_tools() %>% unlist %>% all){
-   testthat::skip("Skipping run_netMHC because prediction tools are not in PATH")
-   }
-
-  # load test data
-    dt <- data.table::fread("http://get.rech.io/antigen.garnish_example_input_jaffa.csv")
-
-    dt[, MHC := "H-2-Kb"]
-
-  # run test
-    dt <- garnish_predictions(dt, blast = FALSE, fitness = FALSE)
-
-  testthat::expect_equal(dt %>% class %>% .[1], "data.table")
-  testthat::expect_equal(dt %>% nrow, 1071)
-  testthat::expect_equal(dt[, nmer %>% unique %>% length], 140)
-
-   })
-
-testthat::test_that("garnish_predictions assemble from peptides", {
-
-  # load test data
-    dt <- data.table::data.table(
-            sample_id = "test",
-            pep_mut = "AAVMILKWTFRAKINGDEHKRDEF",
-            mutant_index = c("7 13 14",  "all", NA),
-            MHC = c("H-2-Kb HLA-A*02:01")
-                                 )
-  # run test data
-    dto <- garnish_predictions(dt,
-                               predict = FALSE,
-                               blast = FALSE,
-                               fitness = FALSE)
-
-  testthat::expect_equal(dto %>% length,
-                         13)
-  testthat::expect_equal(dto %>% nrow,
-                         880)
-    })
-
-testthat::test_that("garnish_predictions peptide", {
-
-   if (!check_pred_tools() %>% unlist %>% all){
-    testthat::skip("Skipping run_netMHC because prediction tools are not in PATH")
-    }
-
-  # load test data
-    dt <- data.table::data.table(
-            sample_id = "test",
-            pep_mut = "AAVMILKWTFRAKINGDEHKRDEF",
-            mutant_index = "7 13 14",
-            MHC = "H-2-Kb"
-                                 )
-  # run test
-   dto <- garnish_predictions(dt, blast = FALSE, fitness = FALSE)
-
-  testthat::expect_equal(dto %>% length,
-                         42)
-  testthat::expect_equal(dto %>% nrow,
-                         168)
-    })
+parallel::mclapply(list(README, transcripts, Excel, jaffa, peptides), test_runner)

@@ -1,17 +1,9 @@
-library(testthat)
-library(antigen.garnish)
-library(data.table)
-library(magrittr)
-library(dt.inflix)
-
 testthat::test_that("run_netMHC", {
-
-   if (!check_pred_tools() %>% unlist %>% all){
-    testthat::skip("Skipping run_netMHC because prediction tools are not in PATH")
-      }
 
   list.files(pattern = "netMHC.*csv") %>% file.remove
   on.exit(list.files(pattern = "netMHC_.*csv") %>% file.remove)
+
+  skip_pred_tools()
 
   # load test data
     dt <- structure(

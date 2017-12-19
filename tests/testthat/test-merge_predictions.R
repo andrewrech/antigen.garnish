@@ -1,9 +1,3 @@
-library(testthat)
-library(antigen.garnish)
-library(data.table)
-library(magrittr)
-library(dt.inflix)
-
 testthat::test_that("merge_predictions", {
 
   list.files(pattern = "antigen.garnish.*_output.*csv") %>% file.remove

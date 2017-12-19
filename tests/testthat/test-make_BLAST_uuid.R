@@ -1,9 +1,3 @@
-library(testthat)
-library(antigen.garnish)
-library(data.table)
-library(magrittr)
-library(dt.inflix)
-
 testthat::test_that("make_BLAST_uuid", {
 
   if (length(system("which blastp", intern = TRUE)) != 1){

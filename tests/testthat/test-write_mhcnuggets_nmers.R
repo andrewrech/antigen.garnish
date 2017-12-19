@@ -1,9 +1,3 @@
-library(testthat)
-library(antigen.garnish)
-library(data.table)
-library(magrittr)
-library(dt.inflix)
-
 testthat::test_that("write_mhcnuggets_nmers", {
 
   list.files(pattern = "mhcnuggets_input_.*csv") %>% file.remove

@@ -1,10 +1,3 @@
-library(testthat)
-library(antigen.garnish)
-library(data.table)
-library(magrittr)
-library(dt.inflix)
-library(Biostrings)
-
 testthat::test_that("prediction output", {
 
     convert.aa <- function(x){

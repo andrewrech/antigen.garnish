@@ -152,10 +152,16 @@ garnish_jaffa <- function(path, db, fasta_path){
 
     gn <- c(dt[, gene_1], dt[, gene_2]) %>% unique
 
+  if (bmds == "hsapiens_gene_ensembl")
+   query_n <- "external_gene_name"
+
+  if (bmds == "mmusculus_gene_ensembl")
+   query_n <- "mgi_symbol"
+
   # obtain transcript metadata
     var_dt <- biomaRt::getBM(
                attributes = c("ensembl_transcript_id",
-                              "external_gene_name",
+                              query_n,
                               "ensembl_gene_id",
                               "description",
                               "chromosome_name",
@@ -163,12 +169,14 @@ garnish_jaffa <- function(path, db, fasta_path){
                               "end_position",
                               "transcript_start",
                               "transcript_end",
-                              "transcript_length",
                               "refseq_mrna"),
-                             filters = "external_gene_name",
+                             filters = query_n,
                              values = list(gn),
                              mart = mart) %>%
       data.table::as.data.table
+
+ if (bmds == "mmusculus_gene_ensembl")
+  var_dt %>% data.table::setnames("mgi_symbol", "external_gene_name")
 
       trn <- var_dt[, ensembl_transcript_id %>% unique]
 

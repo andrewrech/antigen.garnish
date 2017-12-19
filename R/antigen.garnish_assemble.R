@@ -75,6 +75,7 @@ get_metadata <- function(dt,
   # set genome host
   if (!humandb %chin% c("GRCh37", "GRCh38")) stop("humandb set incorrectly")
   if (!mousedb %chin% c("GRCm37", "GRCm38")) stop("mousedb set incorrectly")
+
   if (humandb == "GRCh38") hhost <- "aug2017.archive.ensembl.org"
   if (humandb == "GRCh37") hhost <- "grch37.ensembl.org"
   if (mousedb == "GRCm38") mhost <- "feb2014.archive.ensembl.org"
@@ -113,7 +114,7 @@ get_metadata <- function(dt,
       if (i == "mmusculus_gene_ensembl") {
         host <- mhost
         ensembl_attr = c("ensembl_transcript_id",
-                    "external_gene_id", "ensembl_gene_id", "description", "chromosome_name",
+                    "mgi_symbol", "ensembl_gene_id", "description", "chromosome_name",
                     "start_position", "end_position", "transcript_start", "transcript_end")
       }
 
@@ -145,7 +146,7 @@ get_metadata <- function(dt,
             data.table::as.data.table
 
    if (i == "mmusculus_gene_ensembl")
-    var_dt %>% data.table::setnames("external_gene_id", "external_gene_name")
+    var_dt %>% data.table::setnames("mgi_symbol", "external_gene_name")
 
       # obtain transcript cDNA and peptide sequences
 

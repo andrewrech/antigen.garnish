@@ -1,9 +1,3 @@
-library(testthat)
-library(antigen.garnish)
-library(data.table)
-library(magrittr)
-library(dt.inflix)
-
 testthat::test_that("get_metadata", {
 
   # load test data
@@ -34,8 +28,8 @@ testthat::test_that("get_metadata", {
                                         "ENSMUST00000044250",
                                         "ENST00000256078")) %>%
   # run tets
-   get_metadata(humandb = "GRCh38",
-                mousedb = "GRCm38")
+   get_metadata(humandb = "GRCh37",
+                mousedb = "GRCm37")
 
  testthat::expect_equal(dto %>% names,
         c("ensembl_transcript_id",
