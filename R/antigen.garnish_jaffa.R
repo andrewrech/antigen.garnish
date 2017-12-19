@@ -59,9 +59,9 @@ garnish_jaffa <- function(path, db, fasta_path){
     if (!file.exists(fasta_path)) stop("fasta_path does not exist")
     if (!file.exists(path)) stop("path file does not exist")
 
-    if (db == "GRCh38") host <- "www.ensembl.org"
+    if (db == "GRCh38") host <- "aug2017.archive.ensembl.org"
     if (db == "GRCh37") host <- "grch37.ensembl.org"
-    if (db == "GRCm38") host <- "www.ensembl.org"
+    if (db == "GRCm38") host <- "feb2014.archive.ensembl.org"
     if (db == "GRCm37") host <- "may2012.archive.ensembl.org"
 
     dt <- data.table::fread(path) %>%
