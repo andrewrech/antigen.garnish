@@ -14,13 +14,14 @@
 
   test_runner <- function(fn){
     cdir <- getwd()
-
     temp_dir <- uuid::UUIDgenerate()
     dir.create(temp_dir)
     setwd(temp_dir)
     fn()
     on.exit({
               setwd(cdir)
-              unlink(temp_dir, force = TRUE)
+              unlink(paste0(cdir, "/", temp_dir),
+                     force = TRUE,
+                     recursive = TRUE)
               })
   }

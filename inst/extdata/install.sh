@@ -37,18 +37,20 @@
   cd ~
   curl -fsSL "http://get.rech.io/antigen.garnish.tar.gz" | tar -xvz
   chmod 777 -R ./antigen.garnish
+  chown `whoami` ./antigen.garnish
+  echo `whoami`
   mv ./antigen.garnish/ncbi-blast-2.7.1+/bin/* /usr/local/bin
 
-  Rscript -e --vanilla \
+  Rscript --vanilla -e \
   'install.packages("devtools", repos = "http://cran.us.r-project.org"); devtools::install_github("hadley/devtools"); install.packages("testthat", repos = "http://cran.us.r-project.org")'
 
-  Rscript -e --vanilla \
+  Rscript --vanilla -e \
   'source("https://bioconductor.org/biocLite.R"); biocLite(c("ShortRead", "biomaRt", "Biostrings"), suppressUpdates = TRUE, suppressAutoUpdate = TRUE)'
 
-  Rscript -e --vanilla \
+  Rscript --vanilla -e \
   'install.packages("data.table", type = "source", repos = "http://Rdatatable.github.io/data.table")'
 
-  Rscript -e --vanilla \
+  Rscript --vanilla -e \
   'devtools::install_github(c("tidyverse/magrittr", "andrewrech/dt.inflix"))'
 
 
@@ -56,5 +58,5 @@
 
   echo "Installing antigen.garnish..."
 
-  Rscript -e --vanilla \
+  Rscript --vanilla -e \
   'devtools::install_github("andrewrech/antigen.garnish")'
