@@ -24,7 +24,6 @@ testthat::test_that("get_metadata", {
           "end_position",
           "transcript_start",
           "transcript_end",
-          "transcript_length",
           "coding",
           "peptide")
 )
@@ -48,7 +47,6 @@ testthat::test_that("get_metadata", {
           "end_position",
           "transcript_start",
           "transcript_end",
-          "transcript_length",
           "coding",
           "peptide")
 )
