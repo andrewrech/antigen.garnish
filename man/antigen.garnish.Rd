@@ -20,7 +20,7 @@ Advantages
 \itemize{
 \item missense mutations, insertions, deletions, and gene fusions
 \item ensemble MHC class I/II binding prediction using \href{https://github.com/hammerlab/mhcflurry}{mhcflurry}, \href{https://github.com/KarchinLab/mhcnuggets}{mhcnuggets}, \href{http://www.cbs.dtu.dk/services/NetMHC/}{netMHC}, \href{http://www.cbs.dtu.dk/services/NetMHCII/}{netMHCII}, \href{http://www.cbs.dtu.dk/services/NetMHCpan/}{netMHCpan} and \href{http://www.cbs.dtu.dk/services/NetMHCIIpan/i}{netMHCIIpan}.
-\item filter against all known normal proteins and rank by fitness
+\item filter against all known normal proteins/immunogenic epitopes and then rank by fitness
 }
 \item \strong{Speed}:
 \itemize{
@@ -32,11 +32,11 @@ Advantages
 \section{Manifest}{
 
 \itemize{
-\item \code{garnish_variants}: process VCF variants from \href{http://snpeff.sourceforge.net/}{SnpEff}
+\item \code{garnish_variants}: process missense / indel VCF variants from \href{http://snpeff.sourceforge.net/}{SnpEff}
 \item \code{garnish_jaffa}: process gene fusions from \href{https://github.com/Oshlack/JAFFA}{JAFFA}
 \item \code{garnish_predictions}: perform ensemble neoepitope prediction
-\item \code{garnish_summary}: summarize neoepitope prediction
-\item \code{garnish_plot}: generate summary plots for neoepitope prediction
+\item \code{garnish_summary}: summarize and rank results
+\item \code{garnish_plot}: generate summary plots
 \item \code{list_mhc}: list all supported MHC allele syntax
 }
 }

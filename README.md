@@ -1,4 +1,4 @@
-[![Build Status](http://get.rech.io/antigen.garnish_status.svg)](http://get.rech.io/antigen.garnish_status.txt) [![codecov.io](https://codecov.io/github/andrewrech/antigen.garnish/coverage.svg?branch=master)](https://codecov.io/github/andrewrech/antigen.garnish?branch=master) ![](https://img.shields.io/badge/version-0.0.5-blue.svg)
+[![Build Status](http://get.rech.io/antigen.garnish_status.svg)](http://get.rech.io/antigen.garnish_status.html) [![codecov.io](https://codecov.io/github/andrewrech/antigen.garnish/coverage.svg?branch=master)](https://codecov.io/github/andrewrech/antigen.garnish?branch=master) ![](https://img.shields.io/badge/version-0.0.5-blue.svg)
 
 
 # antigen.garnish
@@ -19,10 +19,10 @@ An R package for [neoepitope](http://science.sciencemag.org/content/348/6230/69)
 1. **Thoroughness**:
     - missense mutations, insertions, deletions, and gene fusions
     - ensemble MHC class I/II binding prediction using [mhcflurry](https://github.com/hammerlab/mhcflurry), [mhcnuggets](https://github.com/KarchinLab/mhcnuggets), [netMHC](http://www.cbs.dtu.dk/services/NetMHC/), [netMHCII](http://www.cbs.dtu.dk/services/NetMHCII/), [netMHCpan](http://www.cbs.dtu.dk/services/NetMHCpan/) and [netMHCIIpan](http://www.cbs.dtu.dk/services/NetMHCIIpan/i)
-    - filter against all known normal proteins and rank by fitness
+    - filter against all known normal proteins/immunogenic epitopes and then rank by fitness
 1. **Speed**:
     - produce all possible 8-15-mer peptides from 10,000 variants in under 1 minute on a normal laptop
-    - on an Amazon Web Services `m4.16xlarge` EC2 instance, 20,000 consensus predictions using 100+ MHC types in under 5 minutes
+    - on an Amazon Web Services `c5.8xlarge` EC2 instance, 20,000 consensus predictions using 100+ MHC types in under 5 minutes
 
 ## Installation
 
@@ -40,11 +40,11 @@ curl -fsSL http://get.rech.io/install_antigen.garnish.sh | sudo sh
 
 ## [Package documentation](http://get.rech.io/antigen.garnish.pdf)
 
-* `garnish_variants`: process VCF variants from [SnpEff](http://snpeff.sourceforge.net/)
+* `garnish_variants`: process missense / indel VCF variants from [SnpEff](http://snpeff.sourceforge.net/)
 * `garnish_jaffa`: process gene fusions from [JAFFA](https://github.com/Oshlack/JAFFA)
 * `garnish_predictions`: perform ensemble neoepitope prediction
-* `garnish_summary`: summarize neoepitope prediction
-* `garnish_plot`: generate summary plots for neoepitope prediction
+* `garnish_summary`: summarize and rank results
+* `garnish_plot`: generate summary plots
 * `list_mhc`: list all supported MHC allele syntax
 
 ### Examples
@@ -112,12 +112,9 @@ library(antigen.garnish)
 
 #### Automated testing
 
-```sh
-
-  cd ~/antigen.garnish
-
-  Rscript --vanilla -e \
-    'devtools::check(pkg = "./antigen.garnish")'
+```r
+  library(testthat)
+  testthat::test_package("antigen.garnish")
 
 ```
 
