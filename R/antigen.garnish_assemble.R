@@ -107,7 +107,7 @@ var_dt <- lapply(bmds, function(i){
       if (i == "hsapiens_gene_ensembl") {
         host <- hhost
         ensembl_attr = c("ensembl_transcript_id",
-                "external_gene_name", "ensembl_gene_id", "description", "chromosome_name",
+                "hgnc_symbol", "ensembl_gene_id", "description", "chromosome_name",
                 "start_position", "end_position", "transcript_start", "transcript_end")
       }
 
@@ -147,6 +147,9 @@ var_dt <- lapply(bmds, function(i){
 
    if (i == "mmusculus_gene_ensembl")
     var_dt %>% data.table::setnames("mgi_symbol", "external_gene_name")
+
+    if (i == "hsapiens_gene_ensembl")
+     var_dt %>% data.table::setnames("hgnc_symbol", "external_gene_name")
 
       # obtain transcript cDNA and peptide sequences
 

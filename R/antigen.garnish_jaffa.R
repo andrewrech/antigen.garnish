@@ -155,7 +155,7 @@ gene_2 <- lapply(dtl, function(x){x[2]}) %>% unlist
     gn <- c(dt[, gene_1], dt[, gene_2]) %>% unique
 
   if (bmds == "hsapiens_gene_ensembl")
-   query_n <- "external_gene_name"
+   query_n <- "hgnc_symbol"
 
   if (bmds == "mmusculus_gene_ensembl")
    query_n <- "mgi_symbol"
@@ -179,6 +179,9 @@ gene_2 <- lapply(dtl, function(x){x[2]}) %>% unlist
 
  if (bmds == "mmusculus_gene_ensembl")
   var_dt %>% data.table::setnames("mgi_symbol", "external_gene_name")
+
+  if (bmds == "hsapiens_gene_ensembl")
+   var_dt %>% data.table::setnames("hgnc_symbol", "external_gene_name")
 
       trn <- var_dt[, ensembl_transcript_id %>% unique]
 
