@@ -11,21 +11,21 @@
 \details{
 Advantages
 \enumerate{
-\item \strong{Simplicity}:
-\itemize{
-\item VCF or table input
-\item summarized neoepitopes for each sample
-}
 \item \strong{Thoroughness}:
 \itemize{
 \item missense mutations, insertions, deletions, and gene fusions
-\item ensemble MHC class I/II binding prediction using \href{https://github.com/hammerlab/mhcflurry}{mhcflurry}, \href{https://github.com/KarchinLab/mhcnuggets}{mhcnuggets}, \href{http://www.cbs.dtu.dk/services/NetMHC/}{netMHC}, \href{http://www.cbs.dtu.dk/services/NetMHCII/}{netMHCII}, \href{http://www.cbs.dtu.dk/services/NetMHCpan/}{netMHCpan} and \href{http://www.cbs.dtu.dk/services/NetMHCIIpan/i}{netMHCIIpan}.
-\item filter against all known normal proteins/immunogenic epitopes and then rank by fitness
+\item human and mouse
+\item ensemble MHC class I/II binding prediction using \href{https://github.com/hammerlab/mhcflurry}{mhcflurry}, \href{https://github.com/KarchinLab/mhcnuggets}{mhcnuggets}, \href{http://www.cbs.dtu.dk/services/NetMHC/}{netMHC}, \href{http://www.cbs.dtu.dk/services/NetMHCII/}{netMHCII}, \href{http://www.cbs.dtu.dk/services/NetMHCpan/}{netMHCpan} and \href{http://www.cbs.dtu.dk/services/NetMHCIIpan/i}{netMHCIIpan}
+\item rank by dissimilarity to the normal peptidome / similarity to known immunogenic antigens
 }
-\item \strong{Speed}:
+\item \strong{Speed and simplicity}:
 \itemize{
-\item produce all possible 8-15-mer peptides from 10,000 variants in under 1 minute on a normal laptop
-\item on an Amazon Web Services \code{m4.16xlarge} EC2 instance, 20,000 consensus predictions using 100+ MHC types in under 5 minutes
+\item 1000 variants are ranked in a single step in less than five minutes
+}
+\item \strong{Integration with R/Bioconductor}
+\itemize{
+\item upstream/VCF processing
+\item exploratory data analysis, visualization
 }
 }
 }

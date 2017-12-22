@@ -35,7 +35,7 @@
     mhcflurry-downloads fetch
 
   cd ~
-  curl -fsSL "http://get.rech.io/antigen.garnish.tar.gz" | tar -xvz
+  curl -fsSL "http://get.rech.io/antigen.garnish.jaffa.tar.gz" | tar -xvz
   chmod 777 -R ./antigen.garnish
   chown `whoami` ./antigen.garnish
   mv ./antigen.garnish/ncbi-blast-2.7.1+/bin/* /usr/local/bin
@@ -57,4 +57,4 @@
   echo "Installing antigen.garnish..."
 
   Rscript --vanilla -e \
-  'devtools::install_github("andrewrech/antigen.garnish")'
+  'devtools::install_github("andrewrech/antigen.garnish@updates_LPR")'
