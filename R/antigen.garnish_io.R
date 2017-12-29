@@ -37,13 +37,14 @@
 #' * **classic_neos**: classically defined neoepitopes (CDNs); defined as mutant `nmers` predicted to bind MHC with high affinity (< 50nM \eqn{IC_{50}})
 #' * **classic_top_score**: sum of the top three mutant `nmer` affinity scores (see below)
 #' * **alt_neos**: alternatively defined neoepitopes (ADNs); defined as mutant `nmers` predicted to bind MHC with greatly improved affinity relative to non-mutated counterparts (10x for MHC class I and 4x for MHC class II) (see below)
-#' * **alt_top_score**: sum of the top three mutant `nmer` differential agretopicity indices; differential agretopicity index (DAI) is the ratio of MHC binding affinity between mutant and wt peptide (see below)
-#' * **priority_neos**: mutant peptides that meet both ADN and CDN criteria, or that meet CDN criteria and are derived from frameshift mutations
+#' * **alt_top_score**: sum of the top three mutant `nmer` differential agretopicity indices; differential agretopicity index (DAI) is the ratio of MHC binding affinity between mutant and wt peptide (see below). If the peptide is fusion- or frameshift-derived, the binding affinity of the closest wt peptide determined by BLAST is used to calculate DAI.
+#' * **priority_neos**: mutant peptides that meet both ADN and CDN criteria, and if applicable, have a NeoantigenRecognitionPotential of >= 1.
 #' * **fs_neos**: mutant `nmers` derived from frameshift variants predicted to bind MHC with < 500nM \eqn{IC_{50}}
 #' * **fusion_neos**: mutant `nmers` derived from fusion variants predicted to bind MHC with < 500nM \eqn{IC_{50}}
 #' * **nmers**: total mutant `nmers` created
 #' * **predictions**: wt and mutant predictions performed
 #' * **mhc_binders**: `nmers` predicted to at least minimally bind MHC (< 5000nM \eqn{IC_{50}})
+#' * **fitness_scores**: Sum of the top 3 NeoantigenRecognitionPotentials per sample. See `?garnish_fitness`.
 #' * **variants**: total genomic variants evaluated
 #' * **transcripts**: total transcripts evaluated
 #'
@@ -98,6 +99,10 @@ garnish_summary <- function(dt){
 sum_top_v <- function(x, value = 3){
 
         x %<>% sort %>% rev
+
+        # added this in case 3 fitness scores not available, would also be useful in a sample with less than 3 nmers I guess.
+        if (length(x) < value) value <- length(x)
+
         return(sum(x[1:value]))
       }
 
@@ -109,6 +114,8 @@ dtn <- parallel::mclapply(dt[, sample_id %>% unique], function(id){
 
     if (!("fusion_uuid" %chin% names(dt)) %>% any) dt[, fusion_uuid := NA]
     if (!("effect_type" %chin% names(dt)) %>% any) dt[, effect_type := NA]
+
+    if (blast_uuid %chin% names(dt)) dt[is.na(dai_uuid) & !is.na(blast_uuid), DAI := BLAST_A]
 
       return(
           data.table::data.table(
@@ -129,26 +136,26 @@ dtn <- parallel::mclapply(dt[, sample_id %>% unique], function(id){
                                       data.table::as.data.table %>%  nrow,
           classic_top_score_class_I = dt[class == "I" &
                                       pep_type == "mutnfs" &
-                                      Consensus_scores < 5000, (1/Consensus_scores) %>% sum_top_v],
+                                      Consensus_scores < 1000, (1/Consensus_scores) %>% sum_top_v],
           classic_top_score_class_II = dt[class == "II" &
                                       pep_type == "mutnfs" &
-                                      Consensus_scores < 5000, (1/Consensus_scores) %>% sum_top_v],
+                                      Consensus_scores < 1000, (1/Consensus_scores) %>% sum_top_v],
           alt_neos_class_I = dt[class == "I" &
-                                      pep_type == "mutnfs" &
-                                      Consensus_scores < 5000 &
+                                      !is.na(DAI) &
+                                      Consensus_scores < 1000 &
                                       DAI > 10] %>%
                                       data.table::as.data.table %>% nrow,
           alt_neos_class_II = dt[class == "II" &
-                                      pep_type == "mutnfs" &
-                                      Consensus_scores < 5000 &
+                                      !is.na(DAI) &
+                                      Consensus_scores < 1000 &
                                       DAI > 10] %>%
                                       data.table::as.data.table %>%  nrow,
           alt_top_score_class_I = dt[class == "I" &
-                                      pep_type == "mutnfs" &
-                                      Consensus_scores < 5000, DAI %>% sum_top_v],
+                                      !is.na(DAI) &
+                                      Consensus_scores < 1000, DAI %>% sum_top_v],
           alt_top_score_class_II = dt[class == "II" &
-                                      pep_type == "mutnfs" &
-                                      Consensus_scores < 5000, DAI %>% sum_top_v],
+                                      !is.na(DAI) &
+                                      Consensus_scores < 1000, DAI %>% sum_top_v],
           fs_neos_class_I = dt[class == "I" &
                                       effect_type %like% "frameshift" &
                                       Consensus_scores < 1000] %>%
@@ -166,16 +173,43 @@ dtn <- parallel::mclapply(dt[, sample_id %>% unique], function(id){
                                       Consensus_scores < 1000]  %>%
                                       data.table::as.data.table %>% nrow,
           mhc_binders_class_I = dt[class == "I" &
-                                      Consensus_scores < 5000] %>% nrow,
+                                      Consensus_scores < 1000] %>% nrow,
           mhc_binders_class_II = dt[class == "II" &
-                                      Consensus_scores < 5000] %>% nrow,
+                                      Consensus_scores < 1000] %>% nrow,
           predictions = dt[pep_type %like% "mut"] %>% nrow,
           nmers = dt[pep_type %like% "mut", nmer %>% unique] %>% length
           ))
 
     }) %>% data.table::rbindlist
 
-# get variant level statistics if available
+# get fitness scores if available
+
+if (NeoantigenRecognitionPotential %chin% names(dt)){
+
+for (i in dt[, sample_id %>% unique]){
+
+  dt[class == "I" & !is.na(NeoantigenRecognitionPotential) & sample_id == i,
+                      fitness_scores_class_I :=
+                        NeoantigenRecognitionPotential %>% sum_top_v]
+
+  dt[class == "II" & !is.na(NeoantigenRecognitionPotential) & sample_id == i,
+                      fitness_scores_class_II :=
+                        NeoantigenRecognitionPotential %>% sum_top_v]
+
+  dt[class == "I" &  DAI > 10 & Consensus_scores < 50 &
+      (NeoantigenRecognitionPotential >= 1 | nchar(nmer) != 9) &
+      sample_id == i,
+        priority_neos_class_I := nmer_uuid %>% length]
+
+  dt[class == "II" &  DAI > 10 & Consensus_scores < 50 &
+      (NeoantigenRecognitionPotential >= 1 | nchar(nmer) != 9) &
+        sample_id == i,
+          priority_neos_class_II := nmer_uuid %>% length]
+
+  }
+
+}
+
   if (c("ensembl_transcript_id", "var_uuid") %chin% (dt %>% names) %>% all) {
 
 dtnv <- parallel::mclapply(dt[, sample_id %>% unique], function(id){
@@ -381,7 +415,7 @@ sample_ids <- lapply(ivfdtl, function(dt){
 
     # return an intersected data table of variants
 
-      sdt <- parallel::mclapply(sample_ids, ##### TODO
+      sdt <- parallel::mclapply(sample_ids,
 
 function(sn){
 
@@ -527,11 +561,13 @@ lapply(input %>% seq_along, function(i){
     # create and filter data table
     dt <- dt[pep_type != "wt"] %>% unique
 
+    dt[is.na(dai_uuid) & !is.na(blast_uuid), DAI := BLAST_A]
+
   # add ADN, CDN, priority classification to table
-    dt <- dt %>% .[Consensus_scores < 5000] %>%
+    dt <- dt %>% .[Consensus_scores < 1000] %>%
       .[pep_type == "mutnfs" & Consensus_scores < 50, type := "CDN"] %>%
-      .[pep_type == "mutnfs" & DAI > 10, type := "ADN"] %>%
-      .[pep_type == "mutnfs" & Consensus_scores < 50 & DAI > 10, type := "priority"] %>%
+      .[!is.na(DAI) & DAI > 10, type := "ADN"] %>%
+      .[Consensus_scores < 50 & DAI > 10, type := "priority"] %>%
       .[frameshift == TRUE & Consensus_scores < 1000, type := "frameshift"]
 
   # check if fusions present in input dt
@@ -539,6 +575,11 @@ lapply(input %>% seq_along, function(i){
       dt[!is.na(fusion_uuid) & fusion_uuid != "" &
          Consensus_scores < 1000,
          type := "fusion"]
+
+    if ("NeoantigenRecognitionPotential" %chin% names(dt))
+      dt[Consensus_scores < 50 & DAI > 10 &
+          (NeoantigenRecognitionPotential >= 1 | nchar(nmer) != 9),
+            type := "priority"]
 
     dt <- dt[!is.na(type)]
 
@@ -723,4 +764,3 @@ gdt <- dt_pl %>% (function(dt){
   })
   return(NULL)
   }
-
