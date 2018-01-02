@@ -115,7 +115,7 @@ dtn <- parallel::mclapply(dt[, sample_id %>% unique], function(id){
     if (!("fusion_uuid" %chin% names(dt)) %>% any) dt[, fusion_uuid := NA]
     if (!("effect_type" %chin% names(dt)) %>% any) dt[, effect_type := NA]
 
-    if (blast_uuid %chin% names(dt)) dt[is.na(dai_uuid) & !is.na(blast_uuid), DAI := BLAST_A]
+    if ("blast_uuid" %chin% names(dt)) dt[is.na(dai_uuid) & !is.na(blast_uuid), DAI := BLAST_A]
 
       return(
           data.table::data.table(
@@ -184,7 +184,7 @@ dtn <- parallel::mclapply(dt[, sample_id %>% unique], function(id){
 
 # get fitness scores if available
 
-if (NeoantigenRecognitionPotential %chin% names(dt)){
+if ("NeoantigenRecognitionPotential" %chin% names(dt)){
 
 for (i in dt[, sample_id %>% unique]){
 
