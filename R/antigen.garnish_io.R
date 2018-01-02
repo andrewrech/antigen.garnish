@@ -188,23 +188,29 @@ if ("NeoantigenRecognitionPotential" %chin% names(dt)){
 
 for (i in dt[, sample_id %>% unique]){
 
-  dt[class == "I" & !is.na(NeoantigenRecognitionPotential) & sample_id == i,
-                      fitness_scores_class_I :=
-                        NeoantigenRecognitionPotential %>% sum_top_v]
+  dtn[sample_id == i,
+    fitness_scores_class_I :=
+        dt[class == "I" & !is.na(NeoantigenRecognitionPotential) & sample_id == i,
+          NeoantigenRecognitionPotential %>% sum_top_v]]
 
-  dt[class == "II" & !is.na(NeoantigenRecognitionPotential) & sample_id == i,
-                      fitness_scores_class_II :=
-                        NeoantigenRecognitionPotential %>% sum_top_v]
+  dtn[sample_id == i,
+    fitness_scores_class_II :=
+      dt[class == "II" & !is.na(NeoantigenRecognitionPotential) & sample_id == i,
+        NeoantigenRecognitionPotential %>% sum_top_v]]
 
-  dt[class == "I" &  DAI > 10 & Consensus_scores < 50 &
-      (NeoantigenRecognitionPotential >= 1 | nchar(nmer) != 9) &
+  dtn[sample_id == i,
+    priority_neos_class_I :=
+      dt[class == "I" &  DAI > 10 & Consensus_scores < 50 &
+      (nchar(nmer) != 9 || NeoantigenRecognitionPotential >= 1) &
       sample_id == i,
-        priority_neos_class_I := nmer_uuid %>% length]
+        nmer_uuid %>% length]]
 
-  dt[class == "II" &  DAI > 10 & Consensus_scores < 50 &
-      (NeoantigenRecognitionPotential >= 1 | nchar(nmer) != 9) &
-        sample_id == i,
-          priority_neos_class_II := nmer_uuid %>% length]
+  dtn[sample_id == i,
+    priority_neos_class_II :=
+      dt[class == "II" &  DAI > 10 & Consensus_scores < 50 &
+        (nchar(nmer) != 9 || NeoantigenRecognitionPotential >= 1) &
+          sample_id == i,
+            nmer_uuid %>% length]]
 
   }
 
