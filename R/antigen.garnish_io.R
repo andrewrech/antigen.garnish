@@ -767,6 +767,63 @@ gdt <- dt_pl %>% (function(dt){
                       stringr::str_replace_all("[_]+", "_"),
                       ".pdf"), height = 6, width = 9)
     }
+
+
+
   })
+
+  score_dt <- dt %>% garnish_summary
+
+  cols <- c("sample_id", names(score_dt) %include% "score")
+
+  score_dt <- score_dt[, .SD, .SDcols = cols]
+
+  score_dt %<>% data.table::melt(id.vars = "sample_id")
+
+  score_dt[, MHC := "MHC Class I"] %>%
+    .[variable %like% "class_II", MHC := "MHC Class II"] %>%
+      .[, variable := variable %>%
+        stringr::str_extract("^.*(?=(_class_))")]
+  
+  if (score_dt %>% stats::na.omit %>% nrow < 1) return(NULL)
+
+  score_dt[is.na(value), value := 0]
+  
+  score_dt <- score_dt[!(MHC == "MHC Class II" & variable == "fitness_scores")]
+  
+  # shorten names for display if needed
+  if (any(score_dt[, sample_id %>% unique %>% nchar] > 7)){
+    
+    for (i in score_dt[nchar(sample_id) > 7, sample_id %>% unique] %>% seq_along){
+      
+      score_dt[sample_id == score_dt[nchar(sample_id) > 7, sample_id %>% unique][i],
+            sample_id := sample_id %>%
+              substr(1, 7) %>% paste0(., "_", i)]
+    }
+  }
+  
+
+  g <- ggplot2::ggplot(score_dt, ggplot2::aes(x = sample_id, y = value)) +
+        ggplot2::geom_col(ggplot2::aes(fill = variable), col = "black", position = "dodge") +
+          ggplot2::facet_wrap(~variable + MHC, scales = "free", nrow = 2) +
+            ggplot2::scale_fill_manual(values = ag_colors[1:3]) +
+              ag_gg_theme +
+              ggplot2::theme(legend.position = "bottom", legend.title = ggplot2::element_blank()) +
+              ggplot2::theme(strip.text.x = ggplot2::element_text(size = ggplot2::rel(2))) +
+              ggplot2::ylab("peptides") +
+              ggplot2::xlab("") +
+              ggplot2::ggtitle(paste0("ag_scores_summary"))
+  
+  ggplot2::ggsave(plot = g,
+                  paste0("antigen.garnish_scores_summary_",
+                         format(Sys.time(), "%d/%m/%y %H:%M:%OS") %>%
+                           stringr::str_replace_all("[^A-Za-z0-9]", "_") %>%
+                           stringr::str_replace_all("[_]+", "_"),
+                         ".pdf"), height = 6, width = 9)
+
+
+  })
+
   return(NULL)
+
   }
