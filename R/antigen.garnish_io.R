@@ -807,6 +807,7 @@ gdt <- dt_pl %>% (function(dt){
       }
     }
 
+    if (nrow(score_dt[variable == "classic_top_score"]) != 0){
 
     g <- ggplot2::ggplot(score_dt[variable == "classic_top_score"], ggplot2::aes(x = sample_id, y = value)) +
         ggplot2::geom_col(ggplot2::aes(fill = variable), col = "black", position = "dodge") +
@@ -826,6 +827,10 @@ gdt <- dt_pl %>% (function(dt){
                            stringr::str_replace_all("[_]+", "_"),
                          ".pdf"), height = 6, width = 9)
 
+    }
+
+    if (nrow(score_dt[variable == "alt_top_score"]) != 0){
+
     g <- ggplot2::ggplot(score_dt[variable == "alt_top_score"], ggplot2::aes(x = sample_id, y = value)) +
         ggplot2::geom_col(ggplot2::aes(fill = variable), col = "black", position = "dodge") +
           ggplot2::facet_wrap(~MHC) +
@@ -844,6 +849,10 @@ gdt <- dt_pl %>% (function(dt){
                            stringr::str_replace_all("[_]+", "_"),
                          ".pdf"), height = 6, width = 9)
 
+    }
+
+    if (nrow(score_dt[variable == "fitness_scores"]) != 0){
+
     g <- ggplot2::ggplot(score_dt[variable == "fitness_scores"], ggplot2::aes(x = sample_id, y = value)) +
         ggplot2::geom_col(ggplot2::aes(fill = variable), col = "black", position = "dodge") +
           ggplot2::facet_wrap(~MHC) +
@@ -861,9 +870,10 @@ gdt <- dt_pl %>% (function(dt){
               stringr::str_replace_all("[^A-Za-z0-9]", "_") %>%
               stringr::str_replace_all("[_]+", "_"),
               ".pdf"), height = 6, width = 9)
+    }
 
-            })
+  })
 
   return(NULL)
 
-  }
+}
