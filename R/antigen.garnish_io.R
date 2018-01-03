@@ -777,7 +777,7 @@ gdt <- dt_pl %>% (function(dt){
 
   lapply(input %>% seq_along, function(i){
 
-    score_dt <- input[][i]] %>% garnish_summary
+    score_dt <- input[[i]] %>% garnish_summary
 
     cols <- c("sample_id", names(score_dt) %include% "score")
 
@@ -861,7 +861,7 @@ gdt <- dt_pl %>% (function(dt){
               stringr::str_replace_all("[^A-Za-z0-9]", "_") %>%
               stringr::str_replace_all("[_]+", "_"),
               ".pdf"), height = 6, width = 9)
-              
+
             })
 
   return(NULL)
