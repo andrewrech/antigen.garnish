@@ -567,7 +567,10 @@ lapply(input %>% seq_along, function(i){
     # create and filter data table
     dt <- dt[pep_type != "wt"] %>% unique
 
-    dt[is.na(dai_uuid) & !is.na(blast_uuid), DAI := BLAST_A]
+    if (!"dai_uuid" %chin% names(dt)) dt[, DAI := NA %>% as.numeric]
+
+    if ("blast_uuid" %chin% names(dt))
+      dt[is.na(dai_uuid) & !is.na(blast_uuid), DAI := BLAST_A]
 
   # add ADN, CDN, priority classification to table
     dt <- dt %>% .[Consensus_scores < 1000] %>%
@@ -772,38 +775,40 @@ gdt <- dt_pl %>% (function(dt){
 
   })
 
-  score_dt <- input %>% garnish_summary
+  lapply(input %>% seq_along, function(i){
 
-  cols <- c("sample_id", names(score_dt) %include% "score")
+    score_dt <- input[][i]] %>% garnish_summary
 
-  score_dt <- score_dt[, .SD, .SDcols = cols]
+    cols <- c("sample_id", names(score_dt) %include% "score")
 
-  score_dt %<>% data.table::melt(id.vars = "sample_id")
+    score_dt <- score_dt[, .SD, .SDcols = cols]
 
-  score_dt[, MHC := "MHC Class I"] %>%
-    .[variable %like% "class_II", MHC := "MHC Class II"] %>%
-      .[, variable := variable %>%
-        stringr::str_extract("^.*(?=(_class_))")]
+    score_dt %<>% data.table::melt(id.vars = "sample_id")
 
-  if (score_dt %>% stats::na.omit %>% nrow < 1) return(NULL)
+    score_dt[, MHC := "MHC Class I"] %>%
+      .[variable %like% "class_II", MHC := "MHC Class II"] %>%
+        .[, variable := variable %>%
+          stringr::str_extract("^.*(?=(_class_))")]
 
-  score_dt[is.na(value), value := 0]
+    if (score_dt %>% stats::na.omit %>% nrow < 1) return(NULL)
 
-  score_dt <- score_dt[!(MHC == "MHC Class II" & variable == "fitness_scores")]
+    score_dt[is.na(value), value := 0]
 
-  # shorten names for display if needed
-  if (any(score_dt[, sample_id %>% unique %>% nchar] > 7)) {
+    score_dt <- score_dt[!(MHC == "MHC Class II" & variable == "fitness_scores")]
+
+    # shorten names for display if needed
+    if (any(score_dt[, sample_id %>% unique %>% nchar] > 7)) {
 
     for (i in score_dt[nchar(sample_id) > 7, sample_id %>% unique] %>% seq_along) {
 
       score_dt[sample_id == score_dt[nchar(sample_id) > 7, sample_id %>% unique][i],
             sample_id := sample_id %>%
               substr(1, 7) %>% paste0(., "_", i)]
+      }
     }
-  }
 
 
-  g <- ggplot2::ggplot(score_dt[variable == "classic_top_score"], ggplot2::aes(x = sample_id, y = value)) +
+    g <- ggplot2::ggplot(score_dt[variable == "classic_top_score"], ggplot2::aes(x = sample_id, y = value)) +
         ggplot2::geom_col(ggplot2::aes(fill = variable), col = "black", position = "dodge") +
           ggplot2::facet_wrap(~MHC) +
             ggplot2::scale_fill_manual(values = ag_colors[1]) +
@@ -814,14 +819,14 @@ gdt <- dt_pl %>% (function(dt){
               ggplot2::xlab("") +
               ggplot2::ggtitle(paste0("ag_classic_top_scores"))
 
-  ggplot2::ggsave(plot = g,
+          ggplot2::ggsave(plot = g,
                   paste0("antigen.garnish_classic_scores_",
                          format(Sys.time(), "%d/%m/%y %H:%M:%OS") %>%
                            stringr::str_replace_all("[^A-Za-z0-9]", "_") %>%
                            stringr::str_replace_all("[_]+", "_"),
                          ".pdf"), height = 6, width = 9)
 
-  g <- ggplot2::ggplot(score_dt[variable == "alt_top_score"], ggplot2::aes(x = sample_id, y = value)) +
+    g <- ggplot2::ggplot(score_dt[variable == "alt_top_score"], ggplot2::aes(x = sample_id, y = value)) +
         ggplot2::geom_col(ggplot2::aes(fill = variable), col = "black", position = "dodge") +
           ggplot2::facet_wrap(~MHC) +
             ggplot2::scale_fill_manual(values = ag_colors[2]) +
@@ -832,14 +837,14 @@ gdt <- dt_pl %>% (function(dt){
               ggplot2::xlab("") +
               ggplot2::ggtitle(paste0("ag_alt_top_scores"))
 
-  ggplot2::ggsave(plot = g,
+      ggplot2::ggsave(plot = g,
                   paste0("antigen.garnish_alt_scores_",
                          format(Sys.time(), "%d/%m/%y %H:%M:%OS") %>%
                            stringr::str_replace_all("[^A-Za-z0-9]", "_") %>%
                            stringr::str_replace_all("[_]+", "_"),
                          ".pdf"), height = 6, width = 9)
 
-  g <- ggplot2::ggplot(score_dt[variable == "fitness_scores"], ggplot2::aes(x = sample_id, y = value)) +
+    g <- ggplot2::ggplot(score_dt[variable == "fitness_scores"], ggplot2::aes(x = sample_id, y = value)) +
         ggplot2::geom_col(ggplot2::aes(fill = variable), col = "black", position = "dodge") +
           ggplot2::facet_wrap(~MHC) +
             ggplot2::scale_fill_manual(values = ag_colors[3]) +
@@ -856,6 +861,8 @@ gdt <- dt_pl %>% (function(dt){
               stringr::str_replace_all("[^A-Za-z0-9]", "_") %>%
               stringr::str_replace_all("[_]+", "_"),
               ".pdf"), height = 6, width = 9)
+              
+            })
 
   return(NULL)
 
