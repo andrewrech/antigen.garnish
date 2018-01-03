@@ -803,19 +803,37 @@ gdt <- dt_pl %>% (function(dt){
   }
 
 
-  g <- ggplot2::ggplot(score_dt[variable != "fitness_scores"], ggplot2::aes(x = sample_id, y = value)) +
+  g <- ggplot2::ggplot(score_dt[variable == "classic_top_score"], ggplot2::aes(x = sample_id, y = value)) +
         ggplot2::geom_col(ggplot2::aes(fill = variable), col = "black", position = "dodge") +
-          ggplot2::facet_wrap(~variable + MHC, scales = "free", nrow = 2) +
-            ggplot2::scale_fill_manual(values = ag_colors) +
+          ggplot2::facet_wrap(~MHC) +
+            ggplot2::scale_fill_manual(values = ag_colors[1]) +
               ag_gg_theme +
               ggplot2::theme(legend.position = "none") +
               ggplot2::theme(strip.text.x = ggplot2::element_text(size = ggplot2::rel(2))) +
               ggplot2::ylab("peptides") +
               ggplot2::xlab("") +
-              ggplot2::ggtitle(paste0("ag_scores_summary"))
+              ggplot2::ggtitle(paste0("ag_classic_top_scores"))
 
   ggplot2::ggsave(plot = g,
-                  paste0("antigen.garnish_scores_summary_",
+                  paste0("antigen.garnish_classic_scores_",
+                         format(Sys.time(), "%d/%m/%y %H:%M:%OS") %>%
+                           stringr::str_replace_all("[^A-Za-z0-9]", "_") %>%
+                           stringr::str_replace_all("[_]+", "_"),
+                         ".pdf"), height = 6, width = 9)
+
+  g <- ggplot2::ggplot(score_dt[variable == "alt_top_score"], ggplot2::aes(x = sample_id, y = value)) +
+        ggplot2::geom_col(ggplot2::aes(fill = variable), col = "black", position = "dodge") +
+          ggplot2::facet_wrap(~MHC) +
+            ggplot2::scale_fill_manual(values = ag_colors[2]) +
+              ag_gg_theme +
+              ggplot2::theme(legend.position = "none") +
+              ggplot2::theme(strip.text.x = ggplot2::element_text(size = ggplot2::rel(2))) +
+              ggplot2::ylab("peptides") +
+              ggplot2::xlab("") +
+              ggplot2::ggtitle(paste0("ag_alt_top_scores"))
+
+  ggplot2::ggsave(plot = g,
+                  paste0("antigen.garnish_alt_scores_",
                          format(Sys.time(), "%d/%m/%y %H:%M:%OS") %>%
                            stringr::str_replace_all("[^A-Za-z0-9]", "_") %>%
                            stringr::str_replace_all("[_]+", "_"),
