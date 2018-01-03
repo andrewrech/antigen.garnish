@@ -772,7 +772,7 @@ gdt <- dt_pl %>% (function(dt){
 
   })
 
-  score_dt <- dt %>% garnish_summary
+  score_dt <- input %>% garnish_summary
 
   cols <- c("sample_id", names(score_dt) %include% "score")
 
