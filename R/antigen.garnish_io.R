@@ -803,12 +803,12 @@ gdt <- dt_pl %>% (function(dt){
   }
 
 
-  g <- ggplot2::ggplot(score_dt, ggplot2::aes(x = sample_id, y = value)) +
+  g <- ggplot2::ggplot(score_dt[variable != "fitness_scores"], ggplot2::aes(x = sample_id, y = value)) +
         ggplot2::geom_col(ggplot2::aes(fill = variable), col = "black", position = "dodge") +
           ggplot2::facet_wrap(~variable + MHC, scales = "free", nrow = 2) +
-            ggplot2::scale_fill_manual(values = ag_colors[1:3]) +
+            ggplot2::scale_fill_manual(values = ag_colors) +
               ag_gg_theme +
-              ggplot2::theme(legend.position = "bottom", legend.title = ggplot2::element_blank()) +
+              ggplot2::theme(legend.position = "none") +
               ggplot2::theme(strip.text.x = ggplot2::element_text(size = ggplot2::rel(2))) +
               ggplot2::ylab("peptides") +
               ggplot2::xlab("") +
@@ -821,6 +821,23 @@ gdt <- dt_pl %>% (function(dt){
                            stringr::str_replace_all("[_]+", "_"),
                          ".pdf"), height = 6, width = 9)
 
+  g <- ggplot2::ggplot(score_dt[variable == "fitness_scores"], ggplot2::aes(x = sample_id, y = value)) +
+        ggplot2::geom_col(ggplot2::aes(fill = variable), col = "black", position = "dodge") +
+          ggplot2::facet_wrap(~MHC) +
+            ggplot2::scale_fill_manual(values = ag_colors[3]) +
+              ag_gg_theme +
+              ggplot2::theme(legend.position = "none") +
+              ggplot2::theme(strip.text.x = ggplot2::element_text(size = ggplot2::rel(2))) +
+              ggplot2::ylab("peptides") +
+              ggplot2::xlab("") +
+              ggplot2::ggtitle(paste0("ag_fitness_scores"))
+
+        ggplot2::ggsave(plot = g,
+          paste0("antigen.garnish_fitness_summary_",
+            format(Sys.time(), "%d/%m/%y %H:%M:%OS") %>%
+              stringr::str_replace_all("[^A-Za-z0-9]", "_") %>%
+              stringr::str_replace_all("[_]+", "_"),
+              ".pdf"), height = 6, width = 9)
 
   return(NULL)
 
