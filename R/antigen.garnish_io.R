@@ -96,19 +96,22 @@ garnish_summary <- function(dt){
 
 # function to sum top values of a numeric vector
 
-sum_top_v <- function(x, value = 3){
+  sum_top_v <- function(x, value = 3){
 
-        x %<>% sort %>% rev
+      x %<>%
+        stats::na.omit %>%
+        sort %>%
+        rev
 
-        # added this in case 3 fitness scores not available, would also be useful in a sample with less than 3 nmers I guess.
-        if (length(x) < value) value <- length(x)
+      # added this in case 3 fitness scores not available, would also be useful in a sample with less than 3 nmers I guess.
+      if (length(x) < value) value <- length(x)
 
-        return(sum(x[1:value]))
-      }
+      return(sum(x[1:value], na.rm = TRUE))
+    }
 
   dt %>% data.table::setkey(sample_id)
 
-dtn <- parallel::mclapply(dt[, sample_id %>% unique], function(id){
+  dtn <- parallel::mclapply(dt[, sample_id %>% unique], function(id){
 
     dt <- dt[sample_id == id]
 
@@ -184,57 +187,57 @@ dtn <- parallel::mclapply(dt[, sample_id %>% unique], function(id){
 
 # get fitness scores if available
 
-if ("NeoantigenRecognitionPotential" %chin% names(dt)){
+  if ("NeoantigenRecognitionPotential" %chin% names(dt)){
 
-for (i in dt[, sample_id %>% unique]){
+    for (i in dt[, sample_id %>% unique]){
 
-  dtn[sample_id == i,
-    fitness_scores_class_I :=
-        dt[class == "I" & !is.na(NeoantigenRecognitionPotential) & sample_id == i,
-          NeoantigenRecognitionPotential %>% sum_top_v]]
+      dtn[sample_id == i,
+        fitness_scores_class_I :=
+            dt[class == "I" & !is.na(NeoantigenRecognitionPotential) & sample_id == i,
+              NeoantigenRecognitionPotential %>% sum_top_v]]
 
-  dtn[sample_id == i,
-    fitness_scores_class_II :=
-      dt[class == "II" & !is.na(NeoantigenRecognitionPotential) & sample_id == i,
-        NeoantigenRecognitionPotential %>% sum_top_v]]
+      dtn[sample_id == i,
+        fitness_scores_class_II :=
+          dt[class == "II" & !is.na(NeoantigenRecognitionPotential) & sample_id == i,
+            NeoantigenRecognitionPotential %>% sum_top_v]]
 
-  dtn[sample_id == i,
-    priority_neos_class_I :=
-      dt[class == "I" &  DAI > 10 & Consensus_scores < 50 &
-      (nchar(nmer) != 9 || NeoantigenRecognitionPotential >= 1) &
-      sample_id == i,
-        nmer_uuid %>% length]]
-
-  dtn[sample_id == i,
-    priority_neos_class_II :=
-      dt[class == "II" &  DAI > 10 & Consensus_scores < 50 &
-        (nchar(nmer) != 9 || NeoantigenRecognitionPotential >= 1) &
+      dtn[sample_id == i,
+        priority_neos_class_I :=
+          dt[class == "I" &  DAI > 10 & Consensus_scores < 50 &
+          (nchar(nmer) != 9 || NeoantigenRecognitionPotential >= 1) &
           sample_id == i,
             nmer_uuid %>% length]]
 
-  }
+      dtn[sample_id == i,
+        priority_neos_class_II :=
+          dt[class == "II" &  DAI > 10 & Consensus_scores < 50 &
+            (nchar(nmer) != 9 || NeoantigenRecognitionPotential >= 1) &
+              sample_id == i,
+                nmer_uuid %>% length]]
 
-}
+      }
+
+  }
 
   if (c("ensembl_transcript_id", "var_uuid") %chin% (dt %>% names) %>% all) {
 
-dtnv <- parallel::mclapply(dt[, sample_id %>% unique], function(id){
+  dtnv <- parallel::mclapply(dt[, sample_id %>% unique], function(id){
 
-      dt <- dt[sample_id == id]
+        dt <- dt[sample_id == id]
 
-        return(
-            data.table::data.table(
-            sample_id = id,
-            variants = dt[, var_uuid %>% unique] %>% length,
-            transcripts = dt[ensembl_transcript_id %>% unique] %>% nrow
-            ))
+          return(
+              data.table::data.table(
+              sample_id = id,
+              variants = dt[, var_uuid %>% unique] %>% length,
+              transcripts = dt[ensembl_transcript_id %>% unique] %>% nrow
+              ))
 
-      }) %>% data.table::rbindlist
+        }) %>% data.table::rbindlist
 
-      dtn <- merge(dtn, dtnv, by = "sample_id", all = TRUE)
-  }
+        dtn <- merge(dtn, dtnv, by = "sample_id", all = TRUE)
+    }
 
-  return(dtn)
+    return(dtn)
 }
 
 
@@ -496,36 +499,59 @@ sdt <- lapply(ivfdtl, function(dt){
 garnish_plot <- function(input){
 
   # check input
-  if (class(input)[1] == "list" & class(input[[1]])[1] != "data.table") stop("Input must be a path to a rio::import-supported file type, a data.table, or a list of data tables (e.g. garnish_plot(list(dt1, dt2, dt3))")
+  if (class(input)[1] == "list" & class(input[[1]])[1] != "data.table")
+    stop("Input must be a path to a rio::import-supported file type, a data.table, or a list of data tables (e.g. garnish_plot(list(dt1, dt2, dt3))")
 
-  if (class(input)[1] == "character") input <- rio::import(input) %>% data.table::as.data.table
+  if (class(input)[1] == "character")
+    input <- rio::import(input) %>% data.table::as.data.table
 
-  if (class(input)[1] != "list" & class(input)[1] != "data.table") stop("Input must be a full file path to a rio::import-supported file type, a data.table object, or a list of data.tables (e.g. garnish_plot(list(dt1, dt2, dt3))")
+  if (class(input)[1] != "list" & class(input)[1] != "data.table")
+    stop("Input must be a full file path to a rio::import-supported file type, a data.table object, or a list of data.tables (e.g. garnish_plot(list(dt1, dt2, dt3))")
 
   # set up theming
   ag_gg_theme <-
-    ggplot2::theme(line = ggplot2::element_line(colour = "#000000")) +
-    ggplot2::theme(axis.line = ggplot2::element_line(color="black")) +
-    ggplot2::theme(plot.title = ggplot2::element_text(size = ggplot2::rel(2*1.2),
+    ggplot2::theme(
+      line = ggplot2::element_line(colour = "#000000")) +
+    ggplot2::theme(
+      axis.line = ggplot2::element_line(color="black")) +
+    ggplot2::theme(
+      plot.title = ggplot2::element_text(size = ggplot2::rel(2*1.2),
           colour = "#000000", lineheight = 0.9, face = "bold", vjust = 0)) +
-    ggplot2::theme(axis.title.x = ggplot2::element_text(colour = "#000000",
+    ggplot2::theme(
+      axis.title.x = ggplot2::element_text(colour = "#000000",
           size = ggplot2::rel(2*1.425), face = "bold")) +
-    ggplot2::theme(axis.title.y = ggplot2::element_text(colour = "#000000",
+    ggplot2::theme(
+      axis.title.y = ggplot2::element_text(colour = "#000000",
           size = ggplot2::rel(2*1.425), face = "bold", angle = 90, vjust = 0)) +
-    ggplot2::theme(axis.text.x = ggplot2::element_text(colour = "#000000",
+    ggplot2::theme(
+      axis.text.x = ggplot2::element_text(colour = "#000000",
           size = ggplot2::rel(2*1.425), face = "bold", angle = 30, hjust = 0.9, vjust = 0.92)) +
-    ggplot2::theme(axis.text.y = ggplot2::element_text(colour = "#000000",
+    ggplot2::theme(
+      axis.text.y = ggplot2::element_text(colour = "#000000",
           size = ggplot2::rel(2*1.425), face = "bold", hjust = 0.9, vjust = 0.92, angle = 30)) +
-    ggplot2::theme(legend.text = ggplot2::element_text(colour = "#000000",
+    ggplot2::theme(
+      legend.text = ggplot2::element_text(colour = "#000000",
           size = ggplot2::rel(2*1))) +
-    ggplot2::theme(strip.background = ggplot2::element_rect(fill = "#eeeeee")) +
-    ggplot2::theme(strip.text = ggplot2::element_text(face = "bold")) +
-    ggplot2::theme(legend.key = ggplot2::element_blank()) +
-    ggplot2::theme(legend.background = ggplot2::element_rect(fill = "transparent", colour = NA)) +
-    ggplot2::theme(panel.grid = ggplot2::element_blank()) +
-    ggplot2::theme(panel.background = ggplot2::element_rect(fill = "transparent", colour = NA)) +
-    ggplot2::theme(plot.background = ggplot2::element_rect(fill = "transparent", colour = NA)) +
-    ggplot2::theme(plot.margin=grid::unit(c(0, 0, 0, 0 ), "cm"))
+    ggplot2::theme(
+      strip.background = ggplot2::element_rect(fill = "#eeeeee")) +
+    ggplot2::theme(
+      strip.text = ggplot2::element_text(face = "bold")) +
+    ggplot2::theme(
+      legend.key = ggplot2::element_blank()) +
+    ggplot2::theme(
+      legend.background = ggplot2::element_rect(fill = "transparent", colour = NA)) +
+    ggplot2::theme(
+      panel.grid = ggplot2::element_blank()) +
+    ggplot2::theme(
+      panel.background = ggplot2::element_rect(fill = "transparent", colour = NA)) +
+    ggplot2::theme(
+      plot.background = ggplot2::element_rect(fill = "transparent", colour = NA)) +
+    ggplot2::theme(
+      plot.margin=grid::unit(c(0, 0, 0, 0 ), "cm")) +
+    ggplot2::xlab("") +
+    ggplot2::ylab("peptides") +
+    ggplot2::theme(
+      strip.text.x = ggplot2::element_text(size = ggplot2::rel(2)))
 
   ag_colors <-   c("#ff80ab",
                    "#b388ff",
@@ -546,7 +572,46 @@ garnish_plot <- function(input){
 
   if(class(input)[1] != "list") input <- list(input)
 
-lapply(input %>% seq_along, function(i){
+  # function to shorten names for display
+
+    gplot_names <- function(gg_dt){
+
+      if (any(gg_dt[, sample_id %>% unique %>% nchar] > 7)){
+
+        for (i in gg_dt[nchar(sample_id) > 7, sample_id %>% unique] %>% seq_along){
+
+          gg_dt[sample_id == gg_dt[nchar(sample_id) > 7, sample_id %>% unique][i],
+                sample_id := sample_id %>%
+                  substr(1, 7) %>% paste0(., "_", i)]
+        }
+      }
+
+    return(gplot_names)
+
+    }
+
+  # function to fill in missing combinations of factors
+  # to graph dt with even bars per sample_id
+
+    gplot_missing_combn <- function(dt){
+
+      ns <- dt[, sample_id %>% unique %>% length]
+
+      type <- lapply(dt[, type %>% unique], function(x){
+               replicate(ns * 2, x)
+               }) %>% unlist
+
+      gdt <- data.table(sample_id = dt[, sample_id %>% unique],
+                        MHC = c(replicate(ns, "MHC Class I"),
+                                replicate(ns, "MHC Class II")),
+                        type = type,
+                        N = 0) %>% unique
+      return(gdt)
+
+        }
+
+
+  lapply(input %>% seq_along, function(i){
 
     dt <- input[[i]]
     dt <- data.table::copy(dt) %>%
@@ -606,37 +671,14 @@ lapply(input %>% seq_along, function(i){
 
     gg_dt <- dt[, .N, by = c("sample_id", "MHC", "type")]
 
-  # function to fill in missing combinations of factors to graph dt with an even bars per sample_id
+  gdt <- dt %>% gplot_missing_combn
 
-gdt <- dt %>% (function(dt){
-
-      ns <- dt[, sample_id %>% unique %>% length]
-
-type <- lapply(dt[, type %>% unique], function(x){
-        replicate(ns * 2, x)
-      }) %>% unlist
-
-      gdt <- data.table(sample_id = dt[, sample_id %>% unique],
-                        MHC = c(replicate(ns, "MHC Class I"), replicate(ns, "MHC Class II")),
-                        type = type,
-                        N = 0) %>% unique
-      return(gdt)
-    })
-
-    gg_dt <- merge(gg_dt, gdt, by = intersect(names(gg_dt), names(gdt)), all = TRUE) %>%
-      .[, N := max(N), by = c("sample_id", "type", "MHC")] %>% unique
+  gg_dt <- merge(gg_dt, gdt, by = intersect(names(gg_dt), names(gdt)), all = TRUE) %>%
+        .[, N := max(N), by = c("sample_id", "type", "MHC")] %>% unique
 
   # shorten names for display
 
-    if (any(gg_dt[, sample_id %>% unique %>% nchar] > 7)){
-
-      for (i in gg_dt[nchar(sample_id) > 7, sample_id %>% unique] %>% seq_along){
-
-        gg_dt[sample_id == gg_dt[nchar(sample_id) > 7, sample_id %>% unique][i],
-              sample_id := sample_id %>%
-                substr(1, 7) %>% paste0(., "_", i)]
-      }
-    }
+    gg_dt %<>% gplot_names
 
   # make first summary plot, neo class by sample_id and MHC
 
@@ -646,12 +688,9 @@ type <- lapply(dt[, type %>% unique], function(x){
             ag_gg_theme +
             ggplot2::theme(legend.position = "bottom", legend.title = ggplot2::element_blank()) +
             ggplot2::scale_fill_manual(values = ag_colors) +
-            ggplot2::theme(strip.text.x = ggplot2::element_text(size = ggplot2::rel(2))) +
-            ggplot2::ylab("peptides") +
-            ggplot2::xlab("") +
             ggplot2::ggtitle(paste0("antigen.garnish summary"))
 
-           ggplot2::ggsave(plot = g,
+            ggplot2::ggsave(plot = g,
                   paste0("antigen.garnish_Neoepitopes_summary_",
                     format(Sys.time(), "%d/%m/%y %H:%M:%OS") %>%
                     stringr::str_replace_all("[^A-Za-z0-9]", "_") %>%
@@ -659,41 +698,24 @@ type <- lapply(dt[, type %>% unique], function(x){
                     ".pdf")
                   , height = 6, width = 9)
 
-    if (nrow(dt[frameshift == TRUE]) > 0){
+  if (nrow(dt[frameshift == TRUE]) > 0){
 
-      dt_pl <- dt[frameshift == TRUE]
+    dt_pl <- dt[frameshift == TRUE]
 
-      dt_pl[, binding := "<1000nM"] %>%
-        .[Consensus_scores < 500, binding := "<500nM"] %>%
-          .[Consensus_scores < 50, binding := "<50nM"]
+    dt_pl[, binding := "<1000nM"] %>%
+      .[Consensus_scores < 500, binding := "<500nM"] %>%
+        .[Consensus_scores < 50, binding := "<50nM"]
 
-      gg_dt <- dt_pl[, .N, by = c("sample_id", "MHC", "binding")]
+    gg_dt <- dt_pl[, .N, by = c("sample_id", "MHC", "binding")]
 
-    # function to fill in missing combinations of factors to graph dt with even bars per sample_id
+    gdt <- dt_pl %>% gplot_missing_combn
 
-gdt <- dt_pl %>% (function(dt){
+    gg_dt <- merge(gg_dt, gdt, by = intersect(names(gg_dt), names(gdt)), all = TRUE) %>%
+      .[, N := max(N), by = c("sample_id", "binding", "MHC")] %>% unique
 
-        ns <- dt[, sample_id %>% unique %>% length]
+    # shorten names for display if needed
 
-        gdt <- data.table(sample_id = dt[, sample_id %>% unique],
-                          MHC = c(replicate(ns, "MHC Class I"), replicate(ns, "MHC Class II")),
-                          binding = c(replicate(ns * 2, "<50nM"), replicate(ns * 2, "<500nM"), replicate(ns * 2, "<1000nM")),
-                          N = 0) %>% unique
-      })
-
-      gg_dt <- merge(gg_dt, gdt, by = intersect(names(gg_dt), names(gdt)), all = TRUE) %>%
-        .[, N := max(N), by = c("sample_id", "binding", "MHC")] %>% unique
-
-      # shorten names for display if needed
-       if (any(gg_dt[, sample_id %>% unique %>% nchar] > 7)){
-
-        for (i in gg_dt[nchar(sample_id) > 7, sample_id %>% unique] %>% seq_along){
-
-          gg_dt[sample_id == gg_dt[nchar(sample_id) > 7, sample_id %>% unique][i],
-                sample_id := sample_id %>%
-                  substr(1, 7) %>% paste0(., "_", i)]
-        }
-       }
+     gg_dt %<>% gplot_names
 
     # make frameshift summary plot, binding affinity by sample_id and MHC
       g <- ggplot2::ggplot(gg_dt, ggplot2::aes(x = sample_id, y = N)) +
@@ -702,175 +724,139 @@ gdt <- dt_pl %>% (function(dt){
               ag_gg_theme +
               ggplot2::theme(legend.position = "bottom", legend.title = ggplot2::element_blank()) +
               ggplot2::scale_fill_manual(values = ag_colors[1:3]) +
-              ggplot2::theme(strip.text.x = ggplot2::element_text(size = ggplot2::rel(2))) +
-              ggplot2::ylab("peptides") +
-              ggplot2::xlab("") +
               ggplot2::ggtitle(paste0("Frameshift neoepitopes"))
 
-    ggplot2::ggsave(plot = g, paste0("antigen.garnish_Frameshift_summary_",
-                      format(Sys.time(), "%d/%m/%y %H:%M:%OS") %>%
-                      stringr::str_replace_all("[^A-Za-z0-9]", "_") %>%
-                      stringr::str_replace_all("[_]+", "_"),
-                      ".pdf"), height = 6, width = 9)
+      ggplot2::ggsave(plot = g, paste0("antigen.garnish_Frameshift_summary_",
+                        format(Sys.time(), "%d/%m/%y %H:%M:%OS") %>%
+                        stringr::str_replace_all("[^A-Za-z0-9]", "_") %>%
+                        stringr::str_replace_all("[_]+", "_"),
+                        ".pdf"), height = 6, width = 9)
 
-    }
+      }
 
-    if ("fusion" %chin% dt[, type %>% unique]%>% any){
+  if ("fusion" %chin% dt[, type %>% unique]%>% any){
 
-      dt_pl <- dt[type == "fusion"]
+    dt_pl <- dt[type == "fusion"]
 
-      dt_pl[, binding := "<1000nM"] %>%
-        .[Consensus_scores < 500, binding := "<500nM"] %>%
-        .[Consensus_scores < 50, binding := "<50nM"]
+    dt_pl[, binding := "<1000nM"] %>%
+      .[Consensus_scores < 500, binding := "<500nM"] %>%
+      .[Consensus_scores < 50, binding := "<50nM"]
 
-      gg_dt <- dt_pl[, .N, by = c("sample_id", "MHC", "binding")]
+    gg_dt <- dt_pl[, .N, by = c("sample_id", "MHC", "binding")]
 
-      # function to fill in missing combinations of factors to graph dt with even bars per sample_id
+    gdt <- dt_pl %>% gplot_missing_combn
 
-gdt <- dt_pl %>% (function(dt){
+        gg_dt <- merge(gg_dt, gdt, by = intersect(names(gg_dt), names(gdt)), all = TRUE) %>%
+          .[, N := max(N), by = c("sample_id", "binding", "MHC")] %>% unique
 
-        ns <- dt[, sample_id %>% unique %>% length]
+        # shorten names for display if needed
+        if (any(gg_dt[, sample_id %>% unique %>% nchar] > 7)){
 
-        gdt <- data.table(sample_id = dt[, sample_id %>% unique],
-                          MHC = c(replicate(ns, "MHC Class I"), replicate(ns, "MHC Class II")),
-                          binding = c(replicate(ns * 2, "<50nM"), replicate(ns * 2, "<500nM"), replicate(ns * 2, "<1000nM")),
-                          N = 0) %>% unique
-      })
+          for (i in gg_dt[nchar(sample_id) > 7, sample_id %>% unique] %>% seq_along){
 
-      gg_dt <- merge(gg_dt, gdt, by = intersect(names(gg_dt), names(gdt)), all = TRUE) %>%
-        .[, N := max(N), by = c("sample_id", "binding", "MHC")] %>% unique
-
-      # shorten names for display if needed
-      if (any(gg_dt[, sample_id %>% unique %>% nchar] > 7)){
-
-        for (i in gg_dt[nchar(sample_id) > 7, sample_id %>% unique] %>% seq_along){
-
-          gg_dt[sample_id == gg_dt[nchar(sample_id) > 7, sample_id %>% unique][i],
-                sample_id := sample_id %>%
-                  substr(1, 7) %>% paste0(., "_", i)]
+            gg_dt[sample_id == gg_dt[nchar(sample_id) > 7, sample_id %>% unique][i],
+                  sample_id := sample_id %>%
+                    substr(1, 7) %>% paste0(., "_", i)]
+          }
         }
-      }
 
-      # make fusions summary plot, binding affinity by sample_id and MHC
-      g <- ggplot2::ggplot(gg_dt, ggplot2::aes(x = sample_id, y = N)) +
-              ggplot2::geom_col(ggplot2::aes(fill = binding), col = "black", position = "dodge") +
-              ggplot2::facet_wrap(~MHC) +
-              ag_gg_theme +
-              ggplot2::theme(legend.position = "bottom", legend.title = ggplot2::element_blank()) +
-              ggplot2::scale_fill_manual(values = ag_colors[1:3]) +
-              ggplot2::theme(strip.text.x = ggplot2::element_text(size = ggplot2::rel(2))) +
-              ggplot2::ylab("peptides") +
-              ggplot2::xlab("") +
-              ggplot2::ggtitle(paste0("Fusion neoepitopes"))
-
-      ggplot2::ggsave(plot = g,
-                      paste0("antigen.garnish_Fusions_summary_",
-                      format(Sys.time(), "%d/%m/%y %H:%M:%OS") %>%
-                      stringr::str_replace_all("[^A-Za-z0-9]", "_") %>%
-                      stringr::str_replace_all("[_]+", "_"),
-                      ".pdf"), height = 6, width = 9)
-    }
-
-
-
-  })
-
-  lapply(input %>% seq_along, function(i){
-
-    score_dt <- input[[i]] %>% garnish_summary
-
-    cols <- c("sample_id", names(score_dt) %include% "score")
-
-    score_dt <- score_dt[, .SD, .SDcols = cols]
-
-    score_dt %<>% data.table::melt(id.vars = "sample_id")
-
-    score_dt[, MHC := "MHC Class I"] %>%
-      .[variable %like% "class_II", MHC := "MHC Class II"] %>%
-        .[, variable := variable %>%
-          stringr::str_extract("^.*(?=(_class_))")]
-
-    if (score_dt %>% stats::na.omit %>% nrow < 1) return(NULL)
-
-    score_dt[is.na(value), value := 0]
-
-    score_dt <- score_dt[!(MHC == "MHC Class II" & variable == "fitness_scores")]
-
-    # shorten names for display if needed
-    if (any(score_dt[, sample_id %>% unique %>% nchar] > 7)) {
-
-    for (i in score_dt[nchar(sample_id) > 7, sample_id %>% unique] %>% seq_along) {
-
-      score_dt[sample_id == score_dt[nchar(sample_id) > 7, sample_id %>% unique][i],
-            sample_id := sample_id %>%
-              substr(1, 7) %>% paste0(., "_", i)]
-      }
-    }
-
-    if (nrow(score_dt[variable == "classic_top_score"]) != 0){
-
-    g <- ggplot2::ggplot(score_dt[variable == "classic_top_score"], ggplot2::aes(x = sample_id, y = value)) +
-        ggplot2::geom_col(ggplot2::aes(fill = variable), col = "black", position = "dodge") +
-          ggplot2::facet_wrap(~MHC) +
-            ggplot2::scale_fill_manual(values = ag_colors[1]) +
-              ag_gg_theme +
-              ggplot2::theme(legend.position = "none") +
-              ggplot2::theme(strip.text.x = ggplot2::element_text(size = ggplot2::rel(2))) +
-              ggplot2::ylab("peptides") +
-              ggplot2::xlab("") +
-              ggplot2::ggtitle(paste0("ag_classic_top_scores"))
-
-          ggplot2::ggsave(plot = g,
-                  paste0("antigen.garnish_classic_scores_",
-                         format(Sys.time(), "%d/%m/%y %H:%M:%OS") %>%
-                           stringr::str_replace_all("[^A-Za-z0-9]", "_") %>%
-                           stringr::str_replace_all("[_]+", "_"),
-                         ".pdf"), height = 6, width = 9)
-
-    }
-
-    if (nrow(score_dt[variable == "alt_top_score"]) != 0){
-
-    g <- ggplot2::ggplot(score_dt[variable == "alt_top_score"], ggplot2::aes(x = sample_id, y = value)) +
-        ggplot2::geom_col(ggplot2::aes(fill = variable), col = "black", position = "dodge") +
-          ggplot2::facet_wrap(~MHC) +
-            ggplot2::scale_fill_manual(values = ag_colors[2]) +
-              ag_gg_theme +
-              ggplot2::theme(legend.position = "none") +
-              ggplot2::theme(strip.text.x = ggplot2::element_text(size = ggplot2::rel(2))) +
-              ggplot2::ylab("peptides") +
-              ggplot2::xlab("") +
-              ggplot2::ggtitle(paste0("ag_alt_top_scores"))
-
-      ggplot2::ggsave(plot = g,
-                  paste0("antigen.garnish_alt_scores_",
-                         format(Sys.time(), "%d/%m/%y %H:%M:%OS") %>%
-                           stringr::str_replace_all("[^A-Za-z0-9]", "_") %>%
-                           stringr::str_replace_all("[_]+", "_"),
-                         ".pdf"), height = 6, width = 9)
-
-    }
-
-    if (nrow(score_dt[variable == "fitness_scores"]) != 0){
-
-    g <- ggplot2::ggplot(score_dt[variable == "fitness_scores"], ggplot2::aes(x = sample_id, y = value)) +
-        ggplot2::geom_col(ggplot2::aes(fill = variable), col = "black", position = "dodge") +
-          ggplot2::facet_wrap(~MHC) +
-            ggplot2::scale_fill_manual(values = ag_colors[3]) +
-              ag_gg_theme +
-              ggplot2::theme(legend.position = "none") +
-              ggplot2::theme(strip.text.x = ggplot2::element_text(size = ggplot2::rel(2))) +
-              ggplot2::ylab("peptides") +
-              ggplot2::xlab("") +
-              ggplot2::ggtitle(paste0("ag_fitness_scores"))
+        # make fusions summary plot, binding affinity by sample_id and MHC
+        g <- ggplot2::ggplot(gg_dt, ggplot2::aes(x = sample_id, y = N)) +
+                ggplot2::geom_col(ggplot2::aes(fill = binding), col = "black", position = "dodge") +
+                ggplot2::facet_wrap(~MHC) +
+                ag_gg_theme +
+                ggplot2::theme(legend.position = "bottom", legend.title = ggplot2::element_blank()) +
+                ggplot2::scale_fill_manual(values = ag_colors[1:3]) +
+                ggplot2::ggtitle(paste0("Fusion neoepitopes"))
 
         ggplot2::ggsave(plot = g,
-          paste0("antigen.garnish_fitness_summary_",
+                        paste0("antigen.garnish_Fusions_summary_",
+                        format(Sys.time(), "%d/%m/%y %H:%M:%OS") %>%
+                        stringr::str_replace_all("[^A-Za-z0-9]", "_") %>%
+                        stringr::str_replace_all("[_]+", "_"),
+                        ".pdf"), height = 6, width = 9)
+      }
+
+    })
+
+    lapply(input %>% seq_along, function(i){
+
+      score_dt <- input[[i]] %>% garnish_summary
+      cols <- c("sample_id", names(score_dt) %include% "score")
+      score_dt <- score_dt[, .SD, .SDcols = cols]
+      score_dt %<>% data.table::melt(id.vars = "sample_id")
+
+      score_dt[, MHC := "MHC Class I"] %>%
+        .[variable %like% "class_II", MHC := "MHC Class II"] %>%
+          .[, variable := variable %>%
+            stringr::str_extract("^.*(?=(_class_))")]
+
+      if (score_dt %>% stats::na.omit %>% nrow < 1) return(NULL)
+
+      score_dt[is.na(value), value := 0]
+
+      score_dt <- score_dt[!(MHC == "MHC Class II" & variable == "fitness_scores")]
+
+      # shorten names for display if needed
+
+        gg_dt %<>% gplot_names
+
+      if (nrow(score_dt[variable == "classic_top_score"]) != 0){
+
+      g <- ggplot2::ggplot(score_dt[variable == "classic_top_score"],
+                           ggplot2::aes(x = sample_id, y = value)) +
+           ggplot2::geom_col(ggplot2::aes(fill = variable), col = "black", position = "dodge") +
+           ggplot2::facet_wrap(~MHC) +
+           ggplot2::scale_fill_manual(values = ag_colors[1]) +
+           ag_gg_theme +
+           ggplot2::theme(legend.position = "none") +
+           ggplot2::ggtitle(paste0("ag_classic_top_scores"))
+
+        ggplot2::ggsave(plot = g,
+          paste0("antigen.garnish_classic_scores_",
+          format(Sys.time(), "%d/%m/%y %H:%M:%OS") %>%
+          stringr::str_replace_all("[^A-Za-z0-9]", "_") %>%
+          stringr::str_replace_all("[_]+", "_"),
+          ".pdf"), height = 6, width = 9)
+
+      }
+
+      if (nrow(score_dt[variable == "alt_top_score"]) != 0){
+
+      g <- ggplot2::ggplot(score_dt[variable == "alt_top_score"], ggplot2::aes(x = sample_id, y = value)) +
+           ggplot2::geom_col(ggplot2::aes(fill = variable), col = "black", position = "dodge") +
+           ggplot2::facet_wrap(~MHC) +
+           ggplot2::scale_fill_manual(values = ag_colors[2]) +
+           ag_gg_theme +
+           ggplot2::theme(legend.position = "none") +
+           ggplot2::ggtitle(paste0("ag_alt_top_scores"))
+
+        ggplot2::ggsave(plot = g,
+          paste0("antigen.garnish_alt_scores_",
+          format(Sys.time(), "%d/%m/%y %H:%M:%OS") %>%
+          stringr::str_replace_all("[^A-Za-z0-9]", "_") %>%
+          stringr::str_replace_all("[_]+", "_"),
+          ".pdf"), height = 6, width = 9)
+
+      }
+
+      if (nrow(score_dt[variable == "fitness_scores"]) != 0){
+
+      g <- ggplot2::ggplot(score_dt[variable == "fitness_scores"], ggplot2::aes(x = sample_id, y = value)) +
+           ggplot2::geom_col(ggplot2::aes(fill = variable), col = "black", position = "dodge") +
+           ggplot2::facet_wrap(~MHC) +
+           ggplot2::scale_fill_manual(values = ag_colors[3]) +
+           ag_gg_theme +
+           ggplot2::theme(legend.position = "none") +
+           ggplot2::ggtitle(paste0("ag_fitness_scores"))
+
+          ggplot2::ggsave(plot = g,
+            paste0("antigen.garnish_fitness_summary_",
             format(Sys.time(), "%d/%m/%y %H:%M:%OS") %>%
-              stringr::str_replace_all("[^A-Za-z0-9]", "_") %>%
-              stringr::str_replace_all("[_]+", "_"),
-              ".pdf"), height = 6, width = 9)
-    }
+            stringr::str_replace_all("[^A-Za-z0-9]", "_") %>%
+            stringr::str_replace_all("[_]+", "_"),
+            ".pdf"), height = 6, width = 9)
+      }
 
   })
 
