@@ -508,71 +508,71 @@ garnish_plot <- function(input){
   if (class(input)[1] != "list" & class(input)[1] != "data.table")
     stop("Input must be a full file path to a rio::import-supported file type, a data.table object, or a list of data.tables (e.g. garnish_plot(list(dt1, dt2, dt3))")
 
-  # set up theming
-  gplot_theme <-
-    ggplot2::theme(
-      line = ggplot2::element_line(colour = "#000000")) +
-    ggplot2::theme(
-      axis.line = ggplot2::element_line(color="black")) +
-    ggplot2::theme(
-      plot.title = ggplot2::element_text(size = ggplot2::rel(2*1.2),
-          colour = "#000000", lineheight = 0.9, face = "bold", vjust = 0)) +
-    ggplot2::theme(
-      axis.title.x = ggplot2::element_text(colour = "#000000",
-          size = ggplot2::rel(2*1.425), face = "bold")) +
-    ggplot2::theme(
-      axis.title.y = ggplot2::element_text(colour = "#000000",
-          size = ggplot2::rel(2*1.425), face = "bold", angle = 90, vjust = 0)) +
-    ggplot2::theme(
-      axis.text.x = ggplot2::element_text(colour = "#000000",
-          size = ggplot2::rel(2*1.425), face = "bold", angle = 30, hjust = 0.9, vjust = 0.92)) +
-    ggplot2::theme(
-      axis.text.y = ggplot2::element_text(colour = "#000000",
-          size = ggplot2::rel(2*1.425), face = "bold", hjust = 0.9, vjust = 0.92, angle = 30)) +
-    ggplot2::theme(
-      legend.text = ggplot2::element_text(colour = "#000000",
-          size = ggplot2::rel(2*1))) +
-    ggplot2::theme(
-      strip.background = ggplot2::element_rect(fill = "#eeeeee")) +
-    ggplot2::theme(
-      strip.text = ggplot2::element_text(face = "bold")) +
-    ggplot2::theme(
-      legend.key = ggplot2::element_blank()) +
-    ggplot2::theme(
-      legend.background = ggplot2::element_rect(fill = "transparent", colour = NA)) +
-    ggplot2::theme(
-      panel.grid = ggplot2::element_blank()) +
-    ggplot2::theme(
-      panel.background = ggplot2::element_rect(fill = "transparent", colour = NA)) +
-    ggplot2::theme(
-      plot.background = ggplot2::element_rect(fill = "transparent", colour = NA)) +
-    ggplot2::theme(
-      plot.margin=grid::unit(c(0, 0, 0, 0 ), "cm")) +
-    ggplot2::xlab("") +
-    ggplot2::ylab("peptides") +
-    ggplot2::theme(
-      strip.text.x = ggplot2::element_text(size = ggplot2::rel(2)))
+  # set up graphing
+      gplot_theme <-
+        ggplot2::theme(
+          line = ggplot2::element_line(colour = "#000000")) +
+        ggplot2::theme(
+          axis.line = ggplot2::element_line(color="black")) +
+        ggplot2::theme(
+          plot.title = ggplot2::element_text(size = ggplot2::rel(2*1.2),
+              colour = "#000000", lineheight = 0.9, face = "bold", vjust = 0)) +
+        ggplot2::theme(
+          axis.title.x = ggplot2::element_text(colour = "#000000",
+              size = ggplot2::rel(2*1.425), face = "bold")) +
+        ggplot2::theme(
+          axis.title.y = ggplot2::element_text(colour = "#000000",
+              size = ggplot2::rel(2*1.425), face = "bold", angle = 90, vjust = 0)) +
+        ggplot2::theme(
+          axis.text.x = ggplot2::element_text(colour = "#000000",
+              size = ggplot2::rel(2*1.425), face = "bold", angle = 30, hjust = 0.9, vjust = 0.92)) +
+        ggplot2::theme(
+          axis.text.y = ggplot2::element_text(colour = "#000000",
+              size = ggplot2::rel(2*1.425), face = "bold", hjust = 0.9, vjust = 0.92, angle = 30)) +
+        ggplot2::theme(
+          legend.text = ggplot2::element_text(colour = "#000000",
+              size = ggplot2::rel(2*1))) +
+        ggplot2::theme(
+          strip.background = ggplot2::element_rect(fill = "#eeeeee")) +
+        ggplot2::theme(
+          strip.text = ggplot2::element_text(face = "bold")) +
+        ggplot2::theme(
+          legend.key = ggplot2::element_blank()) +
+        ggplot2::theme(
+          legend.background = ggplot2::element_rect(fill = "transparent", colour = NA)) +
+        ggplot2::theme(
+          panel.grid = ggplot2::element_blank()) +
+        ggplot2::theme(
+          panel.background = ggplot2::element_rect(fill = "transparent", colour = NA)) +
+        ggplot2::theme(
+          plot.background = ggplot2::element_rect(fill = "transparent", colour = NA)) +
+        ggplot2::theme(
+          plot.margin=grid::unit(c(0, 0, 0, 0 ), "cm")) +
+        ggplot2::xlab("") +
+        ggplot2::ylab("peptides") +
+        ggplot2::theme(
+          strip.text.x = ggplot2::element_text(size = ggplot2::rel(2)))
 
-  gplot_col <-   c("#ff80ab",
-                   "#b388ff",
-                   "#82b1ff",
-                   "#ff9e80",
-                   "#a7ffeb",
-                   "#f4ff81",
-                   "#b9f6ca",
-                   "#ffe57f",
-                   "#ff8a80",
-                   "#ea80fc",
-                   "#8c9eff",
-                   "#80d8ff",
-                   "#84ffff",
-                   "#ccff90",
-                   "#ffff8d",
-                   "#ffd180")
+      gplot_col <-   c("#ff80ab",
+                       "#b388ff",
+                       "#82b1ff",
+                       "#ff9e80",
+                       "#a7ffeb",
+                       "#f4ff81",
+                       "#b9f6ca",
+                       "#ffe57f",
+                       "#ff8a80",
+                       "#ea80fc",
+                       "#8c9eff",
+                       "#80d8ff",
+                       "#84ffff",
+                       "#ccff90",
+                       "#ffff8d",
+                       "#ffd180")
 
-  gplot_fn <- format(Sys.time(), "%d/%m/%y %H:%M:%OS") %>%
-                stringr::str_replace_all("[^A-Za-z0-9]", "_") %>%
-                stringr::str_replace_all("[_]+", "_")
+      gplot_fn <- format(Sys.time(), "%d/%m/%y %H:%M:%OS") %>%
+                    stringr::str_replace_all("[^A-Za-z0-9]", "_") %>%
+                    stringr::str_replace_all("[_]+", "_")
 
   if(class(input)[1] != "list") input <- list(input)
 
@@ -628,10 +628,9 @@ garnish_plot <- function(input){
               "sample_id",
               "DAI",
               "frameshift",
-              "Consensus_scores") %chin% names(dt)) %>% any){
+              "Consensus_scores") %chin% names(dt)) %>% any)
+        stop("'sample_id', 'nmer', 'MHC', 'frameshift', 'DAI', and 'Consensus_scores' columns are required in all inputs.")
 
-        stop(paste0("'sample_id', 'nmer', 'MHC', 'frameshift', 'DAI', and 'Consensus_scores' columns are required in all inputs."))
-        }
 
     # create and filter data table
     dt <- dt[pep_type != "wt"] %>% unique
@@ -687,10 +686,12 @@ garnish_plot <- function(input){
   # make first summary plot, neo class by sample_id and MHC
 
    g <- ggplot2::ggplot(gg_dt, ggplot2::aes(x = sample_id, y = N)) +
-            ggplot2::geom_col(ggplot2::aes(fill = type), col = "black", position = "dodge") +
+            ggplot2::geom_col(ggplot2::aes(fill = type),
+                              col = "black", position = "dodge") +
             ggplot2::facet_wrap(~MHC) +
             gplot_theme +
-            ggplot2::theme(legend.position = "bottom", legend.title = ggplot2::element_blank()) +
+            ggplot2::theme(legend.position = "bottom",
+                           legend.title = ggplot2::element_blank()) +
             ggplot2::scale_fill_manual(values = gplot_col) +
             ggplot2::ggtitle(paste0("antigen.garnish summary"))
 
@@ -706,7 +707,7 @@ garnish_plot <- function(input){
 
     dt_pl[, binding := "<1000nM"] %>%
       .[Consensus_scores < 500, binding := "<500nM"] %>%
-        .[Consensus_scores < 50, binding := "<50nM"]
+      .[Consensus_scores < 50, binding := "<50nM"]
 
     gg_dt <- dt_pl[, .N, by = c("sample_id", "MHC", "binding")]
 
@@ -719,10 +720,12 @@ garnish_plot <- function(input){
 
     # make frameshift summary plot, binding affinity by sample_id and MHC
       g <- ggplot2::ggplot(gg_dt, ggplot2::aes(x = sample_id, y = N)) +
-              ggplot2::geom_col(ggplot2::aes(fill = binding), col = "black", position = "dodge") +
+              ggplot2::geom_col(ggplot2::aes(fill = binding),
+                                col = "black", position = "dodge") +
               ggplot2::facet_wrap(~MHC) +
               gplot_theme +
-              ggplot2::theme(legend.position = "bottom", legend.title = ggplot2::element_blank()) +
+              ggplot2::theme(legend.position = "bottom",
+                             legend.title = ggplot2::element_blank()) +
               ggplot2::scale_fill_manual(values = gplot_col[1:3]) +
               ggplot2::ggtitle(paste0("Frameshift neoepitopes"))
 
@@ -751,10 +754,12 @@ garnish_plot <- function(input){
 
     # make fusions summary plot, binding affinity by sample_id and MHC
       g <- ggplot2::ggplot(gg_dt, ggplot2::aes(x = sample_id, y = N)) +
-              ggplot2::geom_col(ggplot2::aes(fill = binding), col = "black", position = "dodge") +
+              ggplot2::geom_col(ggplot2::aes(fill = binding),
+                                col = "black", position = "dodge") +
               ggplot2::facet_wrap(~MHC) +
               gplot_theme +
-              ggplot2::theme(legend.position = "bottom", legend.title = ggplot2::element_blank()) +
+              ggplot2::theme(legend.position = "bottom",
+                             legend.title = ggplot2::element_blank()) +
               ggplot2::scale_fill_manual(values = gplot_col[1:3]) +
               ggplot2::ggtitle(paste0("Fusion neoepitopes"))
 
