@@ -783,7 +783,7 @@ gdt <- dt_pl %>% (function(dt){
 
     score_dt <- score_dt[, .SD, .SDcols = cols]
 
-    score_dt %<>% data.table::melt(id.vars = "sample_id")
+    score_dt %<>% data.table::melt(id.vars = "sample_id", measure.vars = names(score_dt) %include% "score")
 
     score_dt[, MHC := "MHC Class I"] %>%
       .[variable %like% "class_II", MHC := "MHC Class II"] %>%
