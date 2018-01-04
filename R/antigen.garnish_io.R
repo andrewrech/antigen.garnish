@@ -548,10 +548,10 @@ garnish_plot <- function(input){
           plot.background = ggplot2::element_rect(fill = "transparent", colour = NA)) +
         ggplot2::theme(
           plot.margin=grid::unit(c(0, 0, 0, 0 ), "cm")) +
-        ggplot2::xlab("") +
-        ggplot2::ylab("peptides") +
         ggplot2::theme(
           strip.text.x = ggplot2::element_text(size = ggplot2::rel(2)))
+      
+      gplot_labs <- ggplot2::labs(x = "", y = "peptides")
 
       gplot_col <-   c("#ff80ab",
                        "#b388ff",
@@ -590,7 +590,7 @@ garnish_plot <- function(input){
         }
       }
 
-    return(gplot_names)
+    return(gg_dt)
 
     }
 
@@ -690,6 +690,7 @@ garnish_plot <- function(input){
                               col = "black", position = "dodge") +
             ggplot2::facet_wrap(~MHC) +
             gplot_theme +
+            gplot_labs +
             ggplot2::theme(legend.position = "bottom",
                            legend.title = ggplot2::element_blank()) +
             ggplot2::scale_fill_manual(values = gplot_col) +
@@ -724,6 +725,7 @@ garnish_plot <- function(input){
                                 col = "black", position = "dodge") +
               ggplot2::facet_wrap(~MHC) +
               gplot_theme +
+              gplot_labs +
               ggplot2::theme(legend.position = "bottom",
                              legend.title = ggplot2::element_blank()) +
               ggplot2::scale_fill_manual(values = gplot_col[1:3]) +
@@ -758,6 +760,7 @@ garnish_plot <- function(input){
                                 col = "black", position = "dodge") +
               ggplot2::facet_wrap(~MHC) +
               gplot_theme +
+              gplot_labs +
               ggplot2::theme(legend.position = "bottom",
                              legend.title = ggplot2::element_blank()) +
               ggplot2::scale_fill_manual(values = gplot_col[1:3]) +
@@ -776,7 +779,8 @@ garnish_plot <- function(input){
       score_dt <- input[[i]] %>% garnish_summary
       cols <- c("sample_id", names(score_dt) %include% "score")
       score_dt <- score_dt[, .SD, .SDcols = cols]
-      score_dt %<>% data.table::melt(id.vars = "sample_id")
+      score_dt %<>% data.table::melt(id.vars = "sample_id",
+                                     measure.vars = names(score_dt) %include% "score")
 
       score_dt[, MHC := "MHC Class I"] %>%
         .[variable %like% "class_II", MHC := "MHC Class II"] %>%
@@ -785,11 +789,9 @@ garnish_plot <- function(input){
 
       if (score_dt %>% stats::na.omit %>% nrow < 1) return(NULL)
 
-      score_dt %<>% data.table::melt(id.vars = "sample_id", measure.vars = names(score_dt) %include% "score")
-
       score_dt <- score_dt[!(MHC == "MHC Class II" & variable == "fitness_scores")]
 
-      gg_dt %<>% gplot_names
+      score_dt %<>% gplot_names
 
       if (nrow(score_dt[variable == "classic_top_score"]) != 0){
 
@@ -799,6 +801,7 @@ garnish_plot <- function(input){
            ggplot2::facet_wrap(~MHC) +
            ggplot2::scale_fill_manual(values = gplot_col[1]) +
            gplot_theme +
+           ggplot2::labs(x = "", y = "Score") +
            ggplot2::theme(legend.position = "none") +
            ggplot2::ggtitle(paste0("ag_classic_top_scores"))
 
@@ -816,6 +819,7 @@ garnish_plot <- function(input){
            ggplot2::facet_wrap(~MHC) +
            ggplot2::scale_fill_manual(values = gplot_col[2]) +
            gplot_theme +
+           ggplot2::labs(x = "", y = "Score") +
            ggplot2::theme(legend.position = "none") +
            ggplot2::ggtitle(paste0("ag_alt_top_scores"))
 
@@ -833,6 +837,7 @@ garnish_plot <- function(input){
            ggplot2::facet_wrap(~MHC) +
            ggplot2::scale_fill_manual(values = gplot_col[3]) +
            gplot_theme +
+           ggplot2::labs(x = "", y = "Score") +
            ggplot2::theme(legend.position = "none") +
            ggplot2::ggtitle(paste0("ag_fitness_scores"))
 
