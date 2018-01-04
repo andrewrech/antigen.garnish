@@ -509,7 +509,7 @@ garnish_plot <- function(input){
     stop("Input must be a full file path to a rio::import-supported file type, a data.table object, or a list of data.tables (e.g. garnish_plot(list(dt1, dt2, dt3))")
 
   # set up theming
-  ag_gg_theme <-
+  gplot_theme <-
     ggplot2::theme(
       line = ggplot2::element_line(colour = "#000000")) +
     ggplot2::theme(
@@ -553,7 +553,7 @@ garnish_plot <- function(input){
     ggplot2::theme(
       strip.text.x = ggplot2::element_text(size = ggplot2::rel(2)))
 
-  ag_colors <-   c("#ff80ab",
+  gplot_col <-   c("#ff80ab",
                    "#b388ff",
                    "#82b1ff",
                    "#ff9e80",
@@ -569,6 +569,10 @@ garnish_plot <- function(input){
                    "#ccff90",
                    "#ffff8d",
                    "#ffd180")
+
+  gplot_fn <- format(Sys.time(), "%d/%m/%y %H:%M:%OS") %>%
+                stringr::str_replace_all("[^A-Za-z0-9]", "_") %>%
+                stringr::str_replace_all("[_]+", "_")
 
   if(class(input)[1] != "list") input <- list(input)
 
@@ -685,16 +689,14 @@ garnish_plot <- function(input){
    g <- ggplot2::ggplot(gg_dt, ggplot2::aes(x = sample_id, y = N)) +
             ggplot2::geom_col(ggplot2::aes(fill = type), col = "black", position = "dodge") +
             ggplot2::facet_wrap(~MHC) +
-            ag_gg_theme +
+            gplot_theme +
             ggplot2::theme(legend.position = "bottom", legend.title = ggplot2::element_blank()) +
-            ggplot2::scale_fill_manual(values = ag_colors) +
+            ggplot2::scale_fill_manual(values = gplot_col) +
             ggplot2::ggtitle(paste0("antigen.garnish summary"))
 
             ggplot2::ggsave(plot = g,
                   paste0("antigen.garnish_Neoepitopes_summary_",
-                    format(Sys.time(), "%d/%m/%y %H:%M:%OS") %>%
-                    stringr::str_replace_all("[^A-Za-z0-9]", "_") %>%
-                    stringr::str_replace_all("[_]+", "_"),
+                    gplot_fn,
                     ".pdf")
                   , height = 6, width = 9)
 
@@ -713,23 +715,19 @@ garnish_plot <- function(input){
     gg_dt <- merge(gg_dt, gdt, by = intersect(names(gg_dt), names(gdt)), all = TRUE) %>%
       .[, N := max(N), by = c("sample_id", "binding", "MHC")] %>% unique
 
-    # shorten names for display if needed
-
-     gg_dt %<>% gplot_names
+    gg_dt %<>% gplot_names
 
     # make frameshift summary plot, binding affinity by sample_id and MHC
       g <- ggplot2::ggplot(gg_dt, ggplot2::aes(x = sample_id, y = N)) +
               ggplot2::geom_col(ggplot2::aes(fill = binding), col = "black", position = "dodge") +
               ggplot2::facet_wrap(~MHC) +
-              ag_gg_theme +
+              gplot_theme +
               ggplot2::theme(legend.position = "bottom", legend.title = ggplot2::element_blank()) +
-              ggplot2::scale_fill_manual(values = ag_colors[1:3]) +
+              ggplot2::scale_fill_manual(values = gplot_col[1:3]) +
               ggplot2::ggtitle(paste0("Frameshift neoepitopes"))
 
       ggplot2::ggsave(plot = g, paste0("antigen.garnish_Frameshift_summary_",
-                        format(Sys.time(), "%d/%m/%y %H:%M:%OS") %>%
-                        stringr::str_replace_all("[^A-Za-z0-9]", "_") %>%
-                        stringr::str_replace_all("[_]+", "_"),
+                        gplot_fn,
                         ".pdf"), height = 6, width = 9)
 
       }
@@ -746,35 +744,24 @@ garnish_plot <- function(input){
 
     gdt <- dt_pl %>% gplot_missing_combn
 
-        gg_dt <- merge(gg_dt, gdt, by = intersect(names(gg_dt), names(gdt)), all = TRUE) %>%
-          .[, N := max(N), by = c("sample_id", "binding", "MHC")] %>% unique
+    gg_dt <- merge(gg_dt, gdt, by = intersect(names(gg_dt), names(gdt)), all = TRUE) %>%
+      .[, N := max(N), by = c("sample_id", "binding", "MHC")] %>% unique
 
-        # shorten names for display if needed
-        if (any(gg_dt[, sample_id %>% unique %>% nchar] > 7)){
+    gg_dt %<>% gplot_names
 
-          for (i in gg_dt[nchar(sample_id) > 7, sample_id %>% unique] %>% seq_along){
+    # make fusions summary plot, binding affinity by sample_id and MHC
+      g <- ggplot2::ggplot(gg_dt, ggplot2::aes(x = sample_id, y = N)) +
+              ggplot2::geom_col(ggplot2::aes(fill = binding), col = "black", position = "dodge") +
+              ggplot2::facet_wrap(~MHC) +
+              gplot_theme +
+              ggplot2::theme(legend.position = "bottom", legend.title = ggplot2::element_blank()) +
+              ggplot2::scale_fill_manual(values = gplot_col[1:3]) +
+              ggplot2::ggtitle(paste0("Fusion neoepitopes"))
 
-            gg_dt[sample_id == gg_dt[nchar(sample_id) > 7, sample_id %>% unique][i],
-                  sample_id := sample_id %>%
-                    substr(1, 7) %>% paste0(., "_", i)]
-          }
-        }
-
-        # make fusions summary plot, binding affinity by sample_id and MHC
-        g <- ggplot2::ggplot(gg_dt, ggplot2::aes(x = sample_id, y = N)) +
-                ggplot2::geom_col(ggplot2::aes(fill = binding), col = "black", position = "dodge") +
-                ggplot2::facet_wrap(~MHC) +
-                ag_gg_theme +
-                ggplot2::theme(legend.position = "bottom", legend.title = ggplot2::element_blank()) +
-                ggplot2::scale_fill_manual(values = ag_colors[1:3]) +
-                ggplot2::ggtitle(paste0("Fusion neoepitopes"))
-
-        ggplot2::ggsave(plot = g,
-                        paste0("antigen.garnish_Fusions_summary_",
-                        format(Sys.time(), "%d/%m/%y %H:%M:%OS") %>%
-                        stringr::str_replace_all("[^A-Za-z0-9]", "_") %>%
-                        stringr::str_replace_all("[_]+", "_"),
-                        ".pdf"), height = 6, width = 9)
+      ggplot2::ggsave(plot = g,
+                      paste0("antigen.garnish_Fusions_summary_",
+                      gplot_fn,
+                      ".pdf"), height = 6, width = 9)
       }
 
     })
@@ -797,9 +784,7 @@ garnish_plot <- function(input){
 
       score_dt <- score_dt[!(MHC == "MHC Class II" & variable == "fitness_scores")]
 
-      # shorten names for display if needed
-
-        gg_dt %<>% gplot_names
+      gg_dt %<>% gplot_names
 
       if (nrow(score_dt[variable == "classic_top_score"]) != 0){
 
@@ -807,17 +792,15 @@ garnish_plot <- function(input){
                            ggplot2::aes(x = sample_id, y = value)) +
            ggplot2::geom_col(ggplot2::aes(fill = variable), col = "black", position = "dodge") +
            ggplot2::facet_wrap(~MHC) +
-           ggplot2::scale_fill_manual(values = ag_colors[1]) +
-           ag_gg_theme +
+           ggplot2::scale_fill_manual(values = gplot_col[1]) +
+           gplot_theme +
            ggplot2::theme(legend.position = "none") +
            ggplot2::ggtitle(paste0("ag_classic_top_scores"))
 
-        ggplot2::ggsave(plot = g,
-          paste0("antigen.garnish_classic_scores_",
-          format(Sys.time(), "%d/%m/%y %H:%M:%OS") %>%
-          stringr::str_replace_all("[^A-Za-z0-9]", "_") %>%
-          stringr::str_replace_all("[_]+", "_"),
-          ".pdf"), height = 6, width = 9)
+      ggplot2::ggsave(plot = g,
+        paste0("antigen.garnish_classic_scores_",
+        gplot_fn,
+        ".pdf"), height = 6, width = 9)
 
       }
 
@@ -826,17 +809,15 @@ garnish_plot <- function(input){
       g <- ggplot2::ggplot(score_dt[variable == "alt_top_score"], ggplot2::aes(x = sample_id, y = value)) +
            ggplot2::geom_col(ggplot2::aes(fill = variable), col = "black", position = "dodge") +
            ggplot2::facet_wrap(~MHC) +
-           ggplot2::scale_fill_manual(values = ag_colors[2]) +
-           ag_gg_theme +
+           ggplot2::scale_fill_manual(values = gplot_col[2]) +
+           gplot_theme +
            ggplot2::theme(legend.position = "none") +
            ggplot2::ggtitle(paste0("ag_alt_top_scores"))
 
-        ggplot2::ggsave(plot = g,
-          paste0("antigen.garnish_alt_scores_",
-          format(Sys.time(), "%d/%m/%y %H:%M:%OS") %>%
-          stringr::str_replace_all("[^A-Za-z0-9]", "_") %>%
-          stringr::str_replace_all("[_]+", "_"),
-          ".pdf"), height = 6, width = 9)
+      ggplot2::ggsave(plot = g,
+        paste0("antigen.garnish_alt_scores_",
+        gplot_fn,
+        ".pdf"), height = 6, width = 9)
 
       }
 
@@ -845,17 +826,15 @@ garnish_plot <- function(input){
       g <- ggplot2::ggplot(score_dt[variable == "fitness_scores"], ggplot2::aes(x = sample_id, y = value)) +
            ggplot2::geom_col(ggplot2::aes(fill = variable), col = "black", position = "dodge") +
            ggplot2::facet_wrap(~MHC) +
-           ggplot2::scale_fill_manual(values = ag_colors[3]) +
-           ag_gg_theme +
+           ggplot2::scale_fill_manual(values = gplot_col[3]) +
+           gplot_theme +
            ggplot2::theme(legend.position = "none") +
            ggplot2::ggtitle(paste0("ag_fitness_scores"))
 
-          ggplot2::ggsave(plot = g,
-            paste0("antigen.garnish_fitness_summary_",
-            format(Sys.time(), "%d/%m/%y %H:%M:%OS") %>%
-            stringr::str_replace_all("[^A-Za-z0-9]", "_") %>%
-            stringr::str_replace_all("[_]+", "_"),
-            ".pdf"), height = 6, width = 9)
+      ggplot2::ggsave(plot = g,
+        paste0("antigen.garnish_fitness_summary_",
+        gplot_fn,
+        ".pdf"), height = 6, width = 9)
       }
 
   })
