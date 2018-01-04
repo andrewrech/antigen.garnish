@@ -793,7 +793,7 @@ garnish_plot <- function(input){
 
       if (score_dt %>% stats::na.omit %>% nrow < 1) return(NULL)
 
-      score_dt[is.na(value), value := 0]
+      score_dt %<>% data.table::melt(id.vars = "sample_id", measure.vars = names(score_dt) %include% "score")
 
       score_dt <- score_dt[!(MHC == "MHC Class II" & variable == "fitness_scores")]
 
