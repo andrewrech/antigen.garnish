@@ -13,16 +13,16 @@ An R package for [neoepitope](http://science.sciencemag.org/content/348/6230/69)
 
 ### Advantages
 
-1. **Simplicity**:
-    - VCF or table input
-    - summarized neoepitopes for each sample
 1. **Thoroughness**:
     - missense mutations, insertions, deletions, and gene fusions
+    - human and mouse
     - ensemble MHC class I/II binding prediction using [mhcflurry](https://github.com/hammerlab/mhcflurry), [mhcnuggets](https://github.com/KarchinLab/mhcnuggets), [netMHC](http://www.cbs.dtu.dk/services/NetMHC/), [netMHCII](http://www.cbs.dtu.dk/services/NetMHCII/), [netMHCpan](http://www.cbs.dtu.dk/services/NetMHCpan/) and [netMHCIIpan](http://www.cbs.dtu.dk/services/NetMHCIIpan/i)
-    - filter against all known normal proteins/immunogenic epitopes and then rank by fitness
-1. **Speed**:
-    - produce all possible 8-15-mer peptides from 10,000 variants in under 1 minute on a normal laptop
-    - on an Amazon Web Services `c5.8xlarge` EC2 instance, 20,000 consensus predictions using 100+ MHC types in under 5 minutes
+    - rank by dissimilarity to the normal peptidome / similarity to known immunogenic antigens
+1. **Speed and simplicity**:
+    - 1000 variants are ranked in a single step in less than five minutes
+1. **Integration with R/Bioconductor**
+    - upstream/VCF processing
+    - exploratory data analysis, visualization
 
 ## Installation
 
@@ -61,21 +61,21 @@ library(antigen.garnish)
     utils::download.file("http://get.rech.io/antigen.garnish_example.vcf", .) %>%
 
   # extract variants
-    antigen.garnish::garnish_variants %>%
+    garnish_variants %>%
 
   # add space separated MHC types
-  # see antigen.garnish::list_mhc() for nomenclature of supported alleles
+  # see list_mhc() for nomenclature of supported alleles
 
       .[, MHC := c("HLA-A*02:01 HLA-DRB1*14:67",
                    "H-2-Kb H-2-IAd",
                    "HLA-A*01:47 HLA-DRB1*03:08")] %>%
 
   # predict neoepitopes
-    antigen.garnish::garnish_predictions
+    garnish_predictions
 
   # summarize predictions
     dt %>%
-      antigen.garnish::garnish_summary %T>%
+      garnish_summary %T>%
         print
 
   # generate summary graphs
@@ -95,16 +95,16 @@ library(antigen.garnish)
       utils::download.file("http://get.rech.io/antigen.garnish_jaffa_results.fasta", .)
 
   # get predictions
-    dt <- antigen.garnish::garnish_jaffa(path, db = "GRCm38", fasta_path) %>%
+    dt <- garnish_jaffa(path, db = "GRCm38", fasta_path) %>%
 
-  # add MHC info with antigen.garnish::list_mhc() compatible names
+  # add MHC info with list_mhc() compatible names
     .[, MHC := "H-2-Kb"] %>%
 
   # get predictions
-    antigen.garnish::garnish_predictions %>%
+    garnish_predictions %>%
 
   # summarize predictions
-    antigen.garnish::garnish_summary %T>%
+    garnish_summary %T>%
     print
 ```
 
@@ -121,7 +121,7 @@ library(antigen.garnish)
 #### How are peptides generated?
 
 ```r
-library(magrittr)
+  library(magrittr)
 
   # generate a fake peptide
     dt <- data.table::data.table(
@@ -134,7 +134,7 @@ library(magrittr)
                     "back_truncate",
                     "end")) %>%
   # create nmers
-    antigen.garnish::make_nmers %T>% print
+    make_nmers %T>% print
 ```
 
 ## Bugs

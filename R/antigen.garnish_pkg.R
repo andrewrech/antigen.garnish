@@ -4,16 +4,16 @@
 #'
 #'Advantages
 #'
-#'1. **Simplicity**:
-#'    - VCF or table input
-#'    - summarized neoepitopes for each sample
 #'1. **Thoroughness**:
 #'    - missense mutations, insertions, deletions, and gene fusions
-#'    - ensemble MHC class I/II binding prediction using [mhcflurry](https://github.com/hammerlab/mhcflurry), [mhcnuggets](https://github.com/KarchinLab/mhcnuggets), [netMHC](http://www.cbs.dtu.dk/services/NetMHC/), [netMHCII](http://www.cbs.dtu.dk/services/NetMHCII/), [netMHCpan](http://www.cbs.dtu.dk/services/NetMHCpan/) and [netMHCIIpan](http://www.cbs.dtu.dk/services/NetMHCIIpan/i).
-#'    - filter against all known normal proteins/immunogenic epitopes and then rank by fitness
-#'1. **Speed**:
-#'    - produce all possible 8-15-mer peptides from 10,000 variants in under 1 minute on a normal laptop
-#'    - on an Amazon Web Services `m4.16xlarge` EC2 instance, 20,000 consensus predictions using 100+ MHC types in under 5 minutes
+#'    - human and mouse
+#'    - ensemble MHC class I/II binding prediction using [mhcflurry](https://github.com/hammerlab/mhcflurry), [mhcnuggets](https://github.com/KarchinLab/mhcnuggets), [netMHC](http://www.cbs.dtu.dk/services/NetMHC/), [netMHCII](http://www.cbs.dtu.dk/services/NetMHCII/), [netMHCpan](http://www.cbs.dtu.dk/services/NetMHCpan/) and [netMHCIIpan](http://www.cbs.dtu.dk/services/NetMHCIIpan/i)
+#'    - rank by dissimilarity to the normal peptidome / similarity to known immunogenic antigens
+#'1. **Speed and simplicity**:
+#'    - 1000 variants are ranked in a single step in less than five minutes
+#'1. **Integration with R/Bioconductor**
+#'    - upstream/VCF processing
+#'    - exploratory data analysis, visualization
 #' @section Manifest:
 #'* `garnish_variants`: process missense / indel VCF variants from [SnpEff](http://snpeff.sourceforge.net/)
 #'* `garnish_jaffa`: process gene fusions from [JAFFA](https://github.com/Oshlack/JAFFA)

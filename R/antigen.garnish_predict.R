@@ -1104,6 +1104,11 @@ garnish_predictions <- function(dt = NULL,
   on.exit({
     message("Removing temporary files")
     list.files(pattern = "_nmer_fasta\\.fa)|iedb_query.fanetMHC|mhcflurry|mhcnuggets).*_[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}\\.csv") %>% file.remove
+    try(
+    utils::download.file("http://get.rech.io/antigen.garnish.usage.txt",
+                         destfile = "/dev/null",
+                         quiet = TRUE),
+    silent = TRUE)
   })
 
   if (missing(dt) & missing(path)) stop("dt and path are missing.")
