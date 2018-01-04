@@ -12,3 +12,4 @@ testthat::test_that("garnish_plot", {
     testthat::expect_equal(list.files(pattern = "antigen.garnish.*score.*\\.pdf") %>% length, 2)
 
 })
+
