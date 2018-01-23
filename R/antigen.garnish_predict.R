@@ -1182,6 +1182,13 @@ if (assemble & input_type == "transcript"){
     # translate protein sequences
     dt[, pep_wt := coding %>% translate_cDNA]
     dt[, pep_mut := coding_mut %>% translate_cDNA]
+
+    message(paste(nrow(dt[is.na(pep_wt) | is.na(pep_mut)]),
+                "mutants could not be translated and were dropped."))
+
+    dt <- dt[!is.na(pep_wt) & !is.na(pep_mut)]
+
+
     dt[, frameshift := FALSE]
 
     dt[, cDNA_delta := ((coding_mut %>% nchar) - (coding %>% nchar)) / 3 ]
@@ -1197,6 +1204,10 @@ if (assemble & input_type == "transcript"){
     dt %<>% .[peptide == pep_wt]
 
     # remove stop codons
+    # if first character is * then returns character(0) which has length zero unlike NA, so length not preserved with unlist in upcoming for loop
+    # fix with:
+    dt %<>% .[!stringr::str_detect(pep_mut, "^\\*")]
+
     for (i in dt %>% names %include% "^pep"){
       set(dt, j = i, value = dt[, get(i) %>%
                                 stringr::str_extract_all("^[^\\*]+") %>%
