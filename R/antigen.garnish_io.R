@@ -85,7 +85,8 @@ garnish_summary <- function(dt){
     data.table::copy %>%
     unique(by = c("pep_type",
                   "MHC",
-                  "nmer"))
+                  "nmer",
+                  "sample_id"))
 
   # set NA DAI to 0 to filter Inf and -Inf
     dt[, DAI := DAI %>% as.numeric]
