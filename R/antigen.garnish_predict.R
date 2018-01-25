@@ -1490,8 +1490,20 @@ up <- lapply(dtl, function(x){x[[2]]}) %>% unlist
       }
 
    }
-   if (fitness)
+   
+   if (fitness){
+
      dt %<>% garnish_fitness
+
+     #now redo NeoantigenRecognitionPotential by BLAST_A because it does nmer by MHC
+     dt[!is.na(R) & !is.na(DAI),
+          NeoantigenRecognitionPotential := DAI * R]
+
+     dt[!is.na(R) & !is.na(BLAST_A) & is.na(DAI),
+          NeoantigenRecognitionPotential := BLAST_A * R]
+
+   }
+
    return(dt)
 
 }
