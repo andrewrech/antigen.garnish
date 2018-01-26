@@ -146,6 +146,10 @@ library(antigen.garnish)
 * [Robert H. Vonderheide](https://www.med.upenn.edu/apps/faculty/index.php/g20000320/p1073)
 * [Andrew J. Rech](http://rech.io)
 
+## Citation
+
+Rech AJ, Balli D, Stanger BZ, Vonderheide RH. Tumor immunity and survival as a function of alternative neoepitopes in human cancer. Cancer Immunology Research, 2018 Jan 16. pii: canimm.0559.2017. [29339376](https://www.ncbi.nlm.nih.gov/pubmed/29339376)
+
 ## Contributing
 
 We welcome contributions and feedback via Github or [email](mailto:andrewrech@gmail.com).
