@@ -45,7 +45,7 @@ class Neoantigen(object):
         Constructor
         '''
         pparams=params
-        n=nl
+        n=int(nl)
         if len(params)==9:
             pparams.append("1")
         [nid,mid,sample,wtPeptide,mtPeptide,allele,wtScore,mtScore,HLA,chopscore]=params
