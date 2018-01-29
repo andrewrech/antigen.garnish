@@ -7,7 +7,7 @@ from Aligner import Aligner
 
 from Neoantigen import Neoantigen
 
-def readNeoantigens(neofilename):
+def readNeoantigens(neofilename, nmerl):
     neoantigens={}
     nl=nmerl
     f=open(neofilename)
