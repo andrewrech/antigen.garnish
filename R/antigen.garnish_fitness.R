@@ -176,7 +176,7 @@ the following columns:
 
   # loop over nmer lengths
 
-dt <- lapply(8:15, function(nmerl){
+dtlo <- lapply(8:15, function(nmerl){
 
     dti <- dti[nchar(WT.Peptide) == nmerl & nchar(MT.Peptide) == nmerl]
 
@@ -186,7 +186,7 @@ dt <- lapply(8:15, function(nmerl){
     }
 
     # drop 8mers because python scripts check anchor residues at 2 and 9 and want to avoid errors
-    if (nmerl == 8) return(dti)
+    if (nmerl == 8) return(NULL)
 
     dti <- dti[, ID := link_uuid, by = 1:nrow(dti)]
 
@@ -306,8 +306,10 @@ dt <- lapply(8:15, function(nmerl){
 
     return(dt)
 
-  }) %>% data.table::rbindlist
+  }) %>% data.table::rbindlist %>%
+          list(., dt[nchar(nmer) == 8]) %>%
+            data.table::rbindlist
 
-  return(dt)
+  return(dtlo)
 
 }
