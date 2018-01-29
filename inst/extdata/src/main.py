@@ -13,6 +13,7 @@ def readNeoantigens(neofilename):
     header=f.readline()
     htab=header.strip().split("\t")
     hdict={}
+    nl=nmerl
     for i in range(0,len(htab)):
         hdict[htab[i]]=i
 
