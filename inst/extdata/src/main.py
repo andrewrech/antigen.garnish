@@ -13,7 +13,6 @@ def readNeoantigens(neofilename):
     header=f.readline()
     htab=header.strip().split("\t")
     hdict={}
-    nl=nmerl
     for i in range(0,len(htab)):
         hdict[htab[i]]=i
 
@@ -48,7 +47,6 @@ def main(argv):
     a=float(argv[3])
     k=float(argv[4])
     outfile=sys.argv[5]
-    nmerl=float(argv[6])
 
     [neoantigens,samples]=readNeoantigens(neofile)
     #Compute TCR-recognition probabilities for all neoantigens

@@ -263,8 +263,7 @@ lapply(dtl %>% seq_along, function(i){
           "./fitness_model",
           a,
           k,
-          "neoantigens_fitness_model_output.txt",
-          nmerl
+          "neoantigens_fitness_model_output.txt"
     )
   )
 
