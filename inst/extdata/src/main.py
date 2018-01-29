@@ -47,6 +47,8 @@ def main(argv):
     a=float(argv[3])
     k=float(argv[4])
     outfile=sys.argv[5]
+    global nmerl
+    nmerl=float(argv[6])
 
     [neoantigens,samples]=readNeoantigens(neofile)
     #Compute TCR-recognition probabilities for all neoantigens
