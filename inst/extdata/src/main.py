@@ -9,6 +9,7 @@ from Neoantigen import Neoantigen
 
 def readNeoantigens(neofilename):
     neoantigens={}
+    nl=nmerl
     f=open(neofilename)
     header=f.readline()
     htab=header.strip().split("\t")
@@ -23,7 +24,7 @@ def readNeoantigens(neofilename):
         if nparams[7]=="NA":
             line=f.readline()
             continue
-        neoantigen=Neoantigen(nparams)
+        neoantigen=Neoantigen(nparams, nl)
         neoantigens[neoantigen.id]=neoantigen
         neoantigen.setA()
         line=f.readline()
@@ -47,10 +48,9 @@ def main(argv):
     a=float(argv[3])
     k=float(argv[4])
     outfile=sys.argv[5]
-    global nmerl
     nmerl=float(argv[6])
 
-    [neoantigens,samples]=readNeoantigens(neofile)
+    [neoantigens,samples]=readNeoantigens(neofile, nmerl)
     #Compute TCR-recognition probabilities for all neoantigens
     aligner=Aligner()
     for sample in samples:
