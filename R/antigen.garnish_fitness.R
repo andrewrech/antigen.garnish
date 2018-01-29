@@ -230,7 +230,7 @@ dt <- lapply(8:15, function(nmerl){
 
       dtl <- dti %>% split(by = "Sample")
 
-      dn <- paste("fitness_model_", nmerl, sep = 0)
+      dn <- paste("fitness_model_", nmerl, sep = "")
 
       dir.create(dn, showWarnings = FALSE)
 
