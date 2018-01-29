@@ -176,14 +176,17 @@ the following columns:
 
   # loop over nmer lengths
 
-  dt <- lapply(8:15, function(nmerl){
+dt <- lapply(8:15, function(nmerl){
 
     dti <- dti[nchar(WT.Peptide) == nmerl & nchar(MT.Peptide) == nmerl]
 
     if (nrow(dti) == 0) {
       warning(paste("No ", nmerl, "mers compatible for fitness modeling.", sep = ""))
-      return(dt)
+      return(NULL)
     }
+
+    # drop 8mers because python scripts check anchor residues at 2 and 9 and want to avoid errors
+    if (nmerl == 8) return(dti)
 
     dti <- dti[, ID := link_uuid, by = 1:nrow(dti)]
 
@@ -191,22 +194,22 @@ the following columns:
       v <- dti[, ID %>% unique]
       names(v) <- seq_along(v)
 
-dti[, ID := ID %>% (function(id){
+      dti[, ID := ID %>% (function(id){
           id <- names(v[which(id == v)])
         }), by = "ID"]
 
-  for (col in c("MT.Allele",
+      for (col in c("MT.Allele",
                 "MUTATION_ID",
                 "Sample"))
-  data.table::set(dti, j = col,
+      data.table::set(dti, j = col,
                   value = dti[[eval(col)]] %>%
                   stringr::str_replace_all(stringr::fixed("-"), replacement = "_"))
 
-  dti[, HLA := paste(MT.Allele %>%
+      dti[, HLA := paste(MT.Allele %>%
                       unique, collapse = " "), by = Sample]
-  dti[, chop_score := 1]
-  dti[, .SD %>% unique,
-    .SDcols = c("ID",
+      dti[, chop_score := 1]
+      dti[, .SD %>% unique,
+      .SDcols = c("ID",
                 "MUTATION_ID",
                 "Sample",
                 "WT.Peptide",
@@ -227,9 +230,11 @@ dti[, ID := ID %>% (function(id){
 
       dtl <- dti %>% split(by = "Sample")
 
-      dir.create("fitness_model", showWarnings = FALSE)
+      dn <- paste("fitness_model_", nmerl, sep = 0)
 
-lapply(dtl %>% seq_along, function(i){
+      dir.create(dn, showWarnings = FALSE)
+
+      lapply(dtl %>% seq_along, function(i){
         dti <- data.table::copy(dtl[[i]])
         dti[, label_wt := paste(Sample, "WT", ID, MUTATION_ID, sep = "|")]
         dti[, label_mut := paste(Sample, "MUT", ID, MUTATION_ID, sep = "|")]
@@ -238,7 +243,7 @@ lapply(dtl %>% seq_along, function(i){
         aa_2 <- dti[, MT.Peptide]
         names(aa_2) <- dti[, label_mut]
         aa <- Biostrings::AAStringSet(c(aa, aa_2), use.names = TRUE)
-        filename <- paste0("fitness_model/neoantigens_", dti[, Sample %>% unique], ".fasta")
+        filename <- paste0(dn, "/neoantigens_", dti[, Sample %>% unique], ".fasta")
         aa %>% Biostrings::writeXStringSet(filename)
 
     # run blastp on fasta
@@ -254,45 +259,39 @@ lapply(dtl %>% seq_along, function(i){
 
   # run pipeline
 
-  py_path <- system.file(package = "antigen.garnish") %>% file.path(., "extdata/src/main.py")
+    py_path <- system.file(package = "antigen.garnish") %>% file.path(., "extdata/src/main.py")
 
-  system(
+    on <- paste(nmerl, "_neoantigens_fitness_model_output.txt", sep = "")
+
+    system(
     paste("python",
           py_path,
           "neoepitopes.txt",
-          "./fitness_model",
+          dn,
           a,
           k,
-          "neoantigens_fitness_model_output.txt",
+          on,
           nmerl
     )
-  )
+    )
 
   # curate output
-  if (!file.exists("neoantigens_fitness_model_output.txt")) {
-    warning("garnish_fitness did not return output.")
-    return(dt)
-  }
+    if (!file.exists(on)) {
+    warning(paste("garnish_fitness did not return output for nmers of length", nmerl, sep = " "))
+    return(NULL)
+    }
 
-  dto <- "neoantigens_fitness_model_output.txt" %>% data.table::fread
+    dto <- on %>% data.table::fread
 
-  dto %>% data.table::setnames(c("Mutation", "Sample"),
+    dto %>% data.table::setnames(c("Mutation", "Sample"),
                                c("var_uuid", "sample_id"))
-  dto %<>% melt(measure.vars = c("WildtypePeptide", "MutantPeptide"),
+    dto %<>% melt(measure.vars = c("WildtypePeptide", "MutantPeptide"),
                 value.name = "nmer")
 
-  # remove output columns before merging if they already exist
-  for (col in c("ResidueChangeClass",
-                "A",
-                "R",
-                "NeoantigenRecognitionPotential"
-                    ))
-    suppressWarnings(set(dt, j = col, value = NULL))
-
-  dto[, var_uuid := var_uuid %>%
+    dto[, var_uuid := var_uuid %>%
         stringr::str_replace_all(stringr::fixed("_"), replacement = "-")]
 
-  dt <- merge(dt, dto[Excluded == FALSE, .SD %>% unique,
+    dt <- merge(dt[nchar(nmer) == nmerl], dto[Excluded == FALSE, .SD %>% unique,
           .SDcols = c("var_uuid",
                       "sample_id",
                       "ResidueChangeClass",
@@ -305,10 +304,10 @@ lapply(dtl %>% seq_along, function(i){
                              "sample_id",
                              "nmer"))
 
+    return(dt)
+
+  }) %>% data.table::rbindlist
+
   return(dt)
-
-}) %>% data.table::rbindlist
-
-return(dt)
 
 }
