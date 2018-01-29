@@ -1490,9 +1490,13 @@ up <- lapply(dtl, function(x){x[[2]]}) %>% unlist
       }
 
    }
-   
+
    if (fitness){
 
+     message("Running garnish_fitness...")
+
+     # temporary to check output
+     dt %>% data.table::fwrite("prefit_out.txt", sep = "\t", quote = FALSE, row.names = FALSE)
      dt %<>% garnish_fitness
 
      #now redo NeoantigenRecognitionPotential by BLAST_A because it does nmer by MHC

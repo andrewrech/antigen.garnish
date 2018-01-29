@@ -54,7 +54,7 @@ the following columns:
 
   # construct input table, defer to DAI calculations over BLAST results if it exists
 
-            dta <- dt[pep_type == "wt" & !is.na(dai_uuid), .SD %>% unique,
+            dta <- dt[pep_type == "wt" & !is.na(dai_uuid) & dai_uuid != "", .SD %>% unique,
                       .SDcols = c("nmer_uuid",
                                   "var_uuid",
                                   "sample_id",
@@ -77,7 +77,7 @@ the following columns:
                                    "WT.Score",
                                    "link_uuid"))
 
-            dtb <- dt[pep_type != "wt" & !is.na(dai_uuid), .SD %>% unique,
+            dtb <- dt[pep_type != "wt" & !is.na(dai_uuid) & dai_uuid != "", .SD %>% unique,
                       .SDcols = c("nmer_uuid",
                                   "var_uuid",
                                   "sample_id",
@@ -110,7 +110,8 @@ the following columns:
 
     if ("blast_uuid" %chin% names(dt)){
 
-      dta <-  dt[pep_type == "wt" & is.na(dai_uuid) & !is.na(blast_uuid), .SD %>% unique,
+      dta <-  dt[pep_type == "wt" & (is.na(dai_uuid) | dai_uuid == "") &
+                  !is.na(blast_uuid) & blast_uuid != "", .SD %>% unique,
                       .SDcols = c("nmer_uuid",
                                   "var_uuid",
                                   "sample_id",
@@ -133,7 +134,8 @@ the following columns:
                                   "WT.Score",
                                   "link_uuid"))
 
-             dtb <-  dt[pep_type != "wt" & is.na(dai_uuid) & !is.na(blast_uuid), .SD %>% unique,
+             dtb <-  dt[pep_type != "wt" & (is.na(dai_uuid) | dai_uuid == "") &
+                         !is.na(blast_uuid) & blast_uuid != "", .SD %>% unique,
                       .SDcols = c("nmer_uuid",
                                   "var_uuid",
                                   "sample_id",
