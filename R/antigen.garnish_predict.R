@@ -1499,6 +1499,7 @@ up <- lapply(dtl, function(x){x[[2]]}) %>% unlist
    if (fitness){
 
      message("Running garnish_fitness...")
+     message("N.B. fitness model will be run on nmers of all lengths, but original validation was for 9mers only.")
 
      dt %<>% garnish_fitness
 
