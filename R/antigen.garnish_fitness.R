@@ -174,12 +174,14 @@ the following columns:
                             "link_uuid"))
 }
 
-  # use only unique 9mers
+  # loop over nmer lengths
 
-    dti <- dti[nchar(WT.Peptide) == 9 & nchar(MT.Peptide) == 9]
+  dt <- lapply(8:15, function(nmerl){
+
+    dti <- dti[nchar(WT.Peptide) == nmerl & nchar(MT.Peptide) == nmerl]
 
     if (nrow(dti) == 0) {
-      warning("No 9mers compatible for fitness modeling.")
+      warning(paste("No ", nmerl, "mers compatible for fitness modeling.", sep = ""))
       return(dt)
     }
 
@@ -261,7 +263,8 @@ lapply(dtl %>% seq_along, function(i){
           "./fitness_model",
           a,
           k,
-          "neoantigens_fitness_model_output.txt"
+          "neoantigens_fitness_model_output.txt",
+          nmerl
     )
   )
 
@@ -303,5 +306,9 @@ lapply(dtl %>% seq_along, function(i){
                              "nmer"))
 
   return(dt)
+
+}) %>% data.table::rbindlist
+
+return(dt)
 
 }
