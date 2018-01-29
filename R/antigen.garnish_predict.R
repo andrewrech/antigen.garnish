@@ -11,6 +11,11 @@
 
 make_BLAST_uuid <- function(dti){
 
+  on.exit({
+        message("Removing temporary fasta files")
+        list.files(pattern = "(Ms|Hu)_nmer_fasta|iedb_query") %>% file.remove
+                            })
+
 
 if (suppressWarnings(system('which blastp 2> /dev/null', intern = TRUE)) %>%
           length == 0){
@@ -1495,8 +1500,6 @@ up <- lapply(dtl, function(x){x[[2]]}) %>% unlist
 
      message("Running garnish_fitness...")
 
-     # temporary to check output
-     dt %>% data.table::fwrite("prefit_out.txt", sep = "\t", quote = FALSE, row.names = FALSE)
      dt %<>% garnish_fitness
 
      #now redo NeoantigenRecognitionPotential by BLAST_A because it does nmer by MHC

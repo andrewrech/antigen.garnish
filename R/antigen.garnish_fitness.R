@@ -23,7 +23,7 @@ garnish_fitness <- function(dt,
     on.exit({
           message("Removing temporary files")
           list.files(pattern = "neoepitopes.txt") %>% file.remove
-          unlink("fitness_model", recursive = TRUE, force = TRUE)
+          unlink(list.files(pattern = "fitness_model_[0-9]+"), recursive = TRUE, force = TRUE)
                               })
 
   # check input
