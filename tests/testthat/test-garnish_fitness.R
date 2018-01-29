@@ -13,9 +13,12 @@ testthat::test_that("garnish_fitness", {
                 garnish_fitness
 
     # run test
-        testthat::expect_true(dt[!is.na(A)] %>% nrow == 32)
+        testthat::expect_true(dt[!is.na(A) & nchar(nmer) == 9] %>% nrow == 32)
+        testthat::expect_true(dt[!is.na(A)] %>% nrow == 252)
         testthat::expect_true(dt[, nmer %>% unique %>% length] == 308)
         testthat::expect_true(dt[, NeoantigenRecognitionPotential %>% na.omit %>%
+                                mean %>% signif(digits = 3)] == 0.155)
+        testthat::expect_true(dt[nchar(nmer) == 9, NeoantigenRecognitionPotential %>% na.omit %>%
                                 mean %>% signif(digits = 3)] == 0.167)
 
     })
