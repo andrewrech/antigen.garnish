@@ -12,7 +12,8 @@ testthat::test_that("garnish_summary", {
      testthat::expect_equal(ncol(dto), 21)
 
      dt <- data.table::fread("http://get.rech.io/antigen.garnish_example_output.txt") %>%
-      garnish_fitness
+      garnish_fitness %>%
+      .[, fitness_score := 5]
 
     dto2 <- garnish_summary(dt)
 
