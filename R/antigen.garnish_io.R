@@ -38,13 +38,13 @@
 #' * **classic_top_score**: sum of the top three mutant `nmer` affinity scores (see below)
 #' * **alt_neos**: alternatively defined neoepitopes (ADNs); defined as mutant `nmers` predicted to bind MHC with greatly improved affinity relative to non-mutated counterparts (10x for MHC class I and 4x for MHC class II) (see below)
 #' * **alt_top_score**: sum of the top three mutant `nmer` differential agretopicity indices; differential agretopicity index (DAI) is the ratio of MHC binding affinity between mutant and wt peptide (see below). If the peptide is fusion- or frameshift-derived, the binding affinity of the closest wt peptide determined by BLAST is used to calculate DAI.
-#' * **priority_neos**: mutant peptides that meet both ADN and CDN criteria, and if applicable, have a NeoantigenRecognitionPotential of >= 1.
+#' * **priority_neos**: mutant peptides that meet both ADN and CDN criteria, and if applicable, have a fitness_score of >= 1.
 #' * **fs_neos**: mutant `nmers` derived from frameshift variants predicted to bind MHC with < 500nM \eqn{IC_{50}}
 #' * **fusion_neos**: mutant `nmers` derived from fusion variants predicted to bind MHC with < 500nM \eqn{IC_{50}}
 #' * **nmers**: total mutant `nmers` created
 #' * **predictions**: wt and mutant predictions performed
 #' * **mhc_binders**: `nmers` predicted to at least minimally bind MHC (< 5000nM \eqn{IC_{50}})
-#' * **fitness_scores**: Sum of the top 3 NeoantigenRecognitionPotentials per sample. See `?garnish_fitness`.
+#' * **fitness_scores**: Sum of the top 3 fitness_score values per sample. See `?garnish_fitness`.
 #' * **variants**: total genomic variants evaluated
 #' * **transcripts**: total transcripts evaluated
 #'
@@ -188,31 +188,31 @@ garnish_summary <- function(dt){
 
 # get fitness scores if available
 
-  if ("NeoantigenRecognitionPotential" %chin% names(dt)){
+  if ("fitness_score" %chin% names(dt)){
 
     for (i in dt[, sample_id %>% unique]){
 
       dtn[sample_id == i,
         fitness_scores_class_I :=
-            dt[class == "I" & !is.na(NeoantigenRecognitionPotential) & sample_id == i,
-              NeoantigenRecognitionPotential %>% sum_top_v]]
+            dt[class == "I" & !is.na(fitness_score) & sample_id == i,
+              fitness_score %>% sum_top_v]]
 
       dtn[sample_id == i,
         fitness_scores_class_II :=
-          dt[class == "II" & !is.na(NeoantigenRecognitionPotential) & sample_id == i,
-            NeoantigenRecognitionPotential %>% sum_top_v]]
+          dt[class == "II" & !is.na(fitness_score) & sample_id == i,
+            fitness_score %>% sum_top_v]]
 
       dtn[sample_id == i,
         priority_neos_class_I :=
           dt[class == "I" &  DAI > 10 & Consensus_scores < 50 &
-          (nchar(nmer) != 9 || NeoantigenRecognitionPotential >= 1) &
+          (nchar(nmer) != 9 || fitness_score >= 1) &
           sample_id == i,
             nmer_uuid %>% length]]
 
       dtn[sample_id == i,
         priority_neos_class_II :=
           dt[class == "II" &  DAI > 10 & Consensus_scores < 50 &
-            (nchar(nmer) != 9 || NeoantigenRecognitionPotential >= 1) &
+            (nchar(nmer) != 9 || fitness_score >= 1) &
               sample_id == i,
                 nmer_uuid %>% length]]
 
@@ -304,6 +304,10 @@ ivfdtl <- parallel::mclapply(vcfs %>% seq_along, function(ivf){
                       sort %>%
                       paste(collapse = "_") %>%
                       stringr::str_replace("\\.bam", "")
+
+  # account for no bam names in header, as with VarScan
+      if (sample_id == "") sample_id <- basename(vcfs[ivf])
+
   # extract vcf type
       vcf_type <- vcf@meta %>%
         unlist %>%
@@ -551,7 +555,7 @@ garnish_plot <- function(input){
           plot.margin=grid::unit(c(0, 0, 0, 0 ), "cm")) +
         ggplot2::theme(
           strip.text.x = ggplot2::element_text(size = ggplot2::rel(2)))
-      
+
       gplot_labs <- ggplot2::labs(x = "", y = "peptides")
 
       gplot_col <-   c("#ff80ab",
@@ -654,9 +658,9 @@ garnish_plot <- function(input){
          Consensus_scores < 1000,
          type := "fusion"]
 
-    if ("NeoantigenRecognitionPotential" %chin% names(dt))
+    if ("fitness_score" %chin% names(dt))
       dt[Consensus_scores < 50 & DAI > 10 &
-          (NeoantigenRecognitionPotential >= 1 | nchar(nmer) != 9),
+          (fitness_score >= 1 | nchar(nmer) != 9),
             type := "priority"]
 
     dt <- dt[!is.na(type)]

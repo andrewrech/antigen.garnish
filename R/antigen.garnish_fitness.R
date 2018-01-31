@@ -7,11 +7,9 @@
 #' @param a Fitness model parameter. Binding curve horizontal displacement used to determine TCR recognition probability of a peptide compared to an IEDB near match.
 #' @param k Fitness model parameter. Steepness of the binding curve at `a`.
 #'
-#' @return A data table with added fitness model parameters columns:
+#' @return A data table with added fitness model parameter columns:
 #' * **ResidueChangeClass**: mutant cDNA sequence
-#' * **A**: `A` component of fitness model, differential MHC affinity of mutant and closest wt peptide, similar to `BLAST_A`.
 #' * **R**: TCR recognition probability, determined by comparison to known epitopes in the IEDB.
-#' * **NeoantigenRecognitionPotential**: Product of A and R, the maximum value per sample is the dominant neoepitope.
 #'
 #' @export garnish_fitness
 #' @md
@@ -23,6 +21,7 @@ garnish_fitness <- function(dt,
     on.exit({
           message("Removing temporary files")
           list.files(pattern = "neoepitopes.txt") %>% file.remove
+          list.files(pattern = "fitness_model_output.txt") %>% file.remove
           unlink(list.files(pattern = "fitness_model_[0-9]+"), recursive = TRUE, force = TRUE)
                               })
 
@@ -297,9 +296,7 @@ dtlo <- lapply(8:15, function(nmerl){
           .SDcols = c("var_uuid",
                       "sample_id",
                       "ResidueChangeClass",
-                      "A",
                       "R",
-                      "NeoantigenRecognitionPotential",
                       "nmer")],
                       all.x = TRUE,
                       by = c("var_uuid",

@@ -6,7 +6,7 @@
 \usage{
 garnish_predictions(dt = NULL, path = NULL, assemble = TRUE,
   generate = TRUE, predict = TRUE, blast = fitness, fitness = TRUE,
-  humandb = "GRCh38", mousedb = "GRCm38")
+  humandb = "GRCh38", mousedb = "GRCm38", save2wd = TRUE)
 }
 \arguments{
 \item{dt}{Data table. Input data table from \code{garnish_variants} or \code{garnish_jaffa}, or a data table in one of these forms:
@@ -46,6 +46,8 @@ MHC                         <same as above>
 \item{humandb}{Character vector. One of "GRCh37" or "GRCh38".}
 
 \item{mousedb}{Character vector. One of "GRCm37" or "GRCm38".}
+
+\item{save2wd}{Logical. Save a copy of garnish_predictions output to the working directory? Default is \code{TRUE}.}
 }
 \value{
 A data table of binding predictions including:
@@ -76,9 +78,9 @@ A data table of binding predictions including:
 fitness model information \href{https://www.ncbi.nlm.nih.gov/pubmed/29132144}{Luksza et al. Nature 2017}:
 \itemize{
 \item \strong{ResidueChangeClass}: mutant cDNA sequence
-\item \strong{A}: Component of the fitness model. Differential MHC affinity of mutant and closest wt peptide, similar to \code{BLAST_A}.
-\item \strong{R}: TCR recognition probability, determined by comparison to known epitopes in the IEDB.
-\item \strong{NeoantigenRecognitionPotential}: Product of A and R. The peptide with the highest value per sample is the dominant neoepitope.
+\item \strong{A}: Component of the fitness model. Differential MHC affinity of mutant and closest wt peptide, equivalent to DAI if available, otherwise uses BLAST_A.
+\item \strong{R}: TCR recognition probability, determined by comparison to known epitopes in the IEDB and amino acid properties.
+\item \strong{fitness_score}: Product of A and R. The peptide with the highest value per sample is the dominant neoepitope.
 }
 
 transcript description:
