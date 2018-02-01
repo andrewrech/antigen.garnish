@@ -6,7 +6,7 @@
 \usage{
 garnish_predictions(dt = NULL, path = NULL, assemble = TRUE,
   generate = TRUE, predict = TRUE, blast = fitness, fitness = TRUE,
-  humandb = "GRCh38", mousedb = "GRCm38", save2wd = TRUE)
+  humandb = "GRCh38", mousedb = "GRCm38", save2wd = FALSE)
 }
 \arguments{
 \item{dt}{Data table. Input data table from \code{garnish_variants} or \code{garnish_jaffa}, or a data table in one of these forms:
@@ -47,7 +47,7 @@ MHC                         <same as above>
 
 \item{mousedb}{Character vector. One of "GRCm37" or "GRCm38".}
 
-\item{save2wd}{Logical. Save a copy of garnish_predictions output to the working directory? Default is \code{TRUE}.}
+\item{save2wd}{Logical. Save a copy of garnish_predictions output to the working directory as "ag_output.txt"? Default is \code{FALSE}.}
 }
 \value{
 A data table of binding predictions including:

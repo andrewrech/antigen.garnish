@@ -971,7 +971,7 @@ mcMap(function(x, y) (x %>% as.integer):(y %>% as.integer) %>%
 #' @param fitness Logical. Run model of [Luksza et al. *Nature* 2017](https://www.ncbi.nlm.nih.gov/pubmed/29132144) to predict neoepitope fitness?
 #' @param humandb Character vector. One of "GRCh37" or "GRCh38".
 #' @param mousedb Character vector. One of "GRCm37" or "GRCm38".
-#' @param save2wd Logical. Save a copy of garnish_predictions output to the working directory? Default is `TRUE`.
+#' @param save2wd Logical. Save a copy of garnish_predictions output to the working directory as "ag_output.txt"? Default is `FALSE`.
 #' @return A data table of binding predictions including:
 #' * **cDNA_seq**: mutant cDNA sequence
 #' * **cDNA_locs**: starting index of mutant cDNA
@@ -1106,7 +1106,7 @@ garnish_predictions <- function(dt = NULL,
                                fitness = TRUE,
                                humandb = "GRCh38",
                                mousedb = "GRCm38",
-                               save2wd = TRUE){
+                               save2wd = FALSE){
 
   on.exit({
     message("Removing temporary files")
@@ -1515,10 +1515,18 @@ up <- lapply(dtl, function(x){x[[2]]}) %>% unlist
 
    }
 
-   if (save2wd) dt %>% data.table::fwrite("ag_output.txt",
+   if (save2wd){
+
+     gplot_fn <- format(Sys.time(), "%d/%m/%y %H:%M:%OS") %>%
+                   stringr::str_replace_all("[^A-Za-z0-9]", "_") %>%
+                   stringr::str_replace_all("[_]+", "_")
+
+     dt %>% data.table::fwrite(paste("ag_output_", gplot_fn, ".txt", sep = ""),
                                           sep = "\t",
                                           quote = FALSE,
                                           row.names = FALSE)
+
+      }
 
    return(dt)
 
