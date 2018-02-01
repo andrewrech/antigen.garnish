@@ -11,6 +11,11 @@
 
 make_BLAST_uuid <- function(dti){
 
+  on.exit({
+        message("Removing temporary fasta files")
+        list.files(pattern = "(Ms|Hu)_nmer_fasta|iedb_query") %>% file.remove
+                            })
+
 
 if (suppressWarnings(system('which blastp 2> /dev/null', intern = TRUE)) %>%
           length == 0){
@@ -966,6 +971,7 @@ mcMap(function(x, y) (x %>% as.integer):(y %>% as.integer) %>%
 #' @param fitness Logical. Run model of [Luksza et al. *Nature* 2017](https://www.ncbi.nlm.nih.gov/pubmed/29132144) to predict neoepitope fitness?
 #' @param humandb Character vector. One of "GRCh37" or "GRCh38".
 #' @param mousedb Character vector. One of "GRCm37" or "GRCm38".
+#' @param save2wd Logical. Save a copy of garnish_predictions output to the working directory? Default is `TRUE`.
 #' @return A data table of binding predictions including:
 #' * **cDNA_seq**: mutant cDNA sequence
 #' * **cDNA_locs**: starting index of mutant cDNA
@@ -991,9 +997,9 @@ mcMap(function(x, y) (x %>% as.integer):(y %>% as.integer) %>%
 #'
 #' fitness model information [Luksza et al. *Nature* 2017](https://www.ncbi.nlm.nih.gov/pubmed/29132144):
 #' * **ResidueChangeClass**: mutant cDNA sequence
-#' * **A**: Component of the fitness model. Differential MHC affinity of mutant and closest wt peptide, similar to `BLAST_A`.
-#' * **R**: TCR recognition probability, determined by comparison to known epitopes in the IEDB.
-#' * **NeoantigenRecognitionPotential**: Product of A and R. The peptide with the highest value per sample is the dominant neoepitope.
+#' * **A**: Component of the fitness model. Differential MHC affinity of mutant and closest wt peptide, equivalent to DAI if available, otherwise uses BLAST_A.
+#' * **R**: TCR recognition probability, determined by comparison to known epitopes in the IEDB and amino acid properties.
+#' * **fitness_score**: Product of A and R. The peptide with the highest value per sample is the dominant neoepitope.
 #'
 #' transcript description:
 #' * description
@@ -1099,11 +1105,12 @@ garnish_predictions <- function(dt = NULL,
                                blast = fitness,
                                fitness = TRUE,
                                humandb = "GRCh38",
-                               mousedb = "GRCm38"){
+                               mousedb = "GRCm38",
+                               save2wd = TRUE){
 
   on.exit({
     message("Removing temporary files")
-    list.files(pattern = "_nmer_fasta\\.fa)|iedb_query.fanetMHC|mhcflurry|mhcnuggets).*_[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}\\.csv") %>% file.remove
+    list.files(pattern = "(_nmer_fasta\\.fa)|(iedb_query.fa)|((netMHC|mhcflurry|mhcnuggets).*_[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}\\.csv)") %>% file.remove
     try(
     utils::download.file("http://get.rech.io/antigen.garnish.usage.txt",
                          destfile = "/dev/null",
@@ -1490,19 +1497,28 @@ up <- lapply(dtl, function(x){x[[2]]}) %>% unlist
       }
 
    }
-   
+
    if (fitness){
+
+     message("Running garnish_fitness...")
+     message("N.B. fitness model will be run on nmers of all lengths, but original validation was for 9mers only.")
 
      dt %<>% garnish_fitness
 
-     #now redo NeoantigenRecognitionPotential by BLAST_A because it does nmer by MHC
-     dt[!is.na(R) & !is.na(DAI),
-          NeoantigenRecognitionPotential := DAI * R]
+     #calculate fitness_score from R and best A (defer to DAI)
+     dt[!is.na(BLAST_A), A := BLAST_A]
 
-     dt[!is.na(R) & !is.na(BLAST_A) & is.na(DAI),
-          NeoantigenRecognitionPotential := BLAST_A * R]
+    if (DAI %chin% names(dt)) dt[!is.na(DAI), A := DAI]
+
+     dt[!is.na(R) & !is.na(A),
+          fitness_score := A * R]
 
    }
+
+   if (save2wd) dt %>% data.table::fwrite("ag_output.txt",
+                                          sep = "\t",
+                                          quote = FALSE,
+                                          row.names = FALSE)
 
    return(dt)
 

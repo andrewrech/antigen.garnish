@@ -14,12 +14,10 @@ garnish_fitness(dt, a = 26, k = 4.86936)
 \item{k}{Fitness model parameter. Steepness of the binding curve at \code{a}.}
 }
 \value{
-A data table with added fitness model parameters columns:
+A data table with added fitness model parameter columns:
 \itemize{
 \item \strong{ResidueChangeClass}: mutant cDNA sequence
-\item \strong{A}: \code{A} component of fitness model, differential MHC affinity of mutant and closest wt peptide, similar to \code{BLAST_A}.
 \item \strong{R}: TCR recognition probability, determined by comparison to known epitopes in the IEDB.
-\item \strong{NeoantigenRecognitionPotential}: Product of A and R, the maximum value per sample is the dominant neoepitope.
 }
 }
 \description{

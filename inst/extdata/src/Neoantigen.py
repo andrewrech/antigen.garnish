@@ -9,14 +9,14 @@ class Neoantigen(object):
     L=1. #default concentration of peptides
     M=1. #default concentration of mutant peptides
     W=1. #default concentration of wildtype peptides
-    
+
     WEPS=0.0003
     WTCAP=float("inf")
 
 
     HYDROPHOBIC_RESIDUES="AILMFWYV"
     WEIRD_RESIDUES="CGP"
-    
+
     AGGR="MAX"
     KDnormalize=1
     AGGRnum=float("inf")
@@ -39,12 +39,13 @@ class Neoantigen(object):
         return code
 
 
-        
-    def __init__(self, params):
+
+    def __init__(self, params, nl):
         '''
         Constructor
         '''
         pparams=params
+        n=int(nl)
         if len(params)==9:
             pparams.append("1")
         [nid,mid,sample,wtPeptide,mtPeptide,allele,wtScore,mtScore,HLA,chopscore]=params
@@ -56,15 +57,15 @@ class Neoantigen(object):
 
         [res1,res2]=filter(lambda el: el[0]!=el[1],zip(self.wtPeptide,self.mtPeptide))[0]
         self.residueChange=Neoantigen.residueChangeClass(res1, res2)
- 
-        self.position=filter(lambda el: el[1], map(lambda i: [i,self.mtPeptide[i]!=self.wtPeptide[i]],range(0,9)))
-        self.position=self.position[0][0]+1  
+
+        self.position=filter(lambda el: el[1], map(lambda i: [i,self.mtPeptide[i]!=self.wtPeptide[i]],range(0,n)))
+        self.position=self.position[0][0]+1
         self.allele=allele
         self.HLA=HLA
         self.chopscore=int(chopscore)
         self.potential=-1e10
         try:
-            self.wtkD=min(Neoantigen.WTCAP,float(wtScore))            
+            self.wtkD=min(Neoantigen.WTCAP,float(wtScore))
             self.kD=float(mtScore)
             self.setA()
         except:
@@ -74,7 +75,7 @@ class Neoantigen(object):
 
     def getSampleName(self):
         return self.sample
-            
+
     def correctWT(self):
         '''
         Corrects large wildtype kD dissociation constants
@@ -87,10 +88,10 @@ class Neoantigen(object):
         pru+=eps
         z=1+2*eps
         prb/=z
-        pru/=z        
+        pru/=z
         return pru/prb
 
-                                
+
     def getWeight(self):
         '''
         Returns 0 for neoantigens that mutated from a non-hydrophobic residues on position 2 or 9;
@@ -100,10 +101,10 @@ class Neoantigen(object):
         if self.residueChange[0]!="H" and (self.position==2 or self.position==9):
             w=0
         return w
-        
+
     def setA(self):
         '''
-        Computes MHC amplitude A 
+        Computes MHC amplitude A
         '''
         self.A=Neoantigen.M/self.kD*self.correctWT()
 
@@ -111,6 +112,4 @@ class Neoantigen(object):
         '''
         Return MHC amplitude A
         '''
-        return self.A 
-      
-            
+        return self.A
