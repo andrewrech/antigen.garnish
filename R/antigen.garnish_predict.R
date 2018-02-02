@@ -1508,7 +1508,7 @@ up <- lapply(dtl, function(x){x[[2]]}) %>% unlist
      #calculate fitness_score from R and best A (defer to DAI)
      dt[!is.na(BLAST_A), A := BLAST_A]
 
-    if (DAI %chin% names(dt)) dt[!is.na(DAI), A := DAI]
+    if ("DAI" %chin% names(dt)) dt[!is.na(DAI), A := DAI]
 
      dt[!is.na(R) & !is.na(A),
           fitness_score := A * R]
