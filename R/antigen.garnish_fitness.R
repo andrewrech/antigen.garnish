@@ -199,12 +199,12 @@ dtlo <- lapply(8:15, function(nmerl){
           id <- names(v[which(id == v)])
         }), by = "ID"]
 
-      for (col in c("MT.Allele",
-                "MUTATION_ID",
-                "Sample"))
-      data.table::set(dti, j = col,
-                  value = dti[[eval(col)]] %>%
-                  stringr::str_replace_all(stringr::fixed("-"), replacement = "_"))
+      # for (col in c("MT.Allele",
+      #           "MUTATION_ID",
+      #           "Sample"))
+      # data.table::set(dti, j = col,
+      #             value = dti[[eval(col)]] %>%
+      #             stringr::str_replace_all(stringr::fixed("-"), replacement = "_"))
 
       dti[, HLA := paste(MT.Allele %>%
                       unique, collapse = " "), by = Sample]
@@ -290,11 +290,11 @@ dtlo <- lapply(8:15, function(nmerl){
                 value.name = "nmer")
 
 
-    for (col in c("var_uuid",
-                  "sample_id"))
-      data.table::set(dto, j = col,
-                      value = dto[[eval(col)]] %>%
-                              stringr::str_replace_all(stringr::fixed("_"), replacement = "-"))
+    # for (col in c("var_uuid",
+    #               "sample_id"))
+    #   data.table::set(dto, j = col,
+    #                   value = dto[[eval(col)]] %>%
+    #                           stringr::str_replace_all(stringr::fixed("_"), replacement = "-"))
 
 
     dt <- merge(dt[nchar(nmer) == nmerl], dto[Excluded == FALSE, .SD %>% unique,
