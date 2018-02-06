@@ -289,8 +289,13 @@ dtlo <- lapply(8:15, function(nmerl){
     dto %<>% melt(measure.vars = c("WildtypePeptide", "MutantPeptide"),
                 value.name = "nmer")
 
-    dto[, var_uuid := var_uuid %>%
-        stringr::str_replace_all(stringr::fixed("_"), replacement = "-")]
+
+    for (col in c("var_uuid",
+                  "sample_id"))
+      data.table::set(dto, j = col,
+                      value = dto[[eval(col)]] %>%
+                              stringr::str_replace_all(stringr::fixed("_"), replacement = "-"))
+
 
     dt <- merge(dt[nchar(nmer) == nmerl], dto[Excluded == FALSE, .SD %>% unique,
           .SDcols = c("var_uuid",
