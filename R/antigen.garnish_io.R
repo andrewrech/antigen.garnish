@@ -456,7 +456,7 @@ sdt <- lapply(ivfdtl, function(dt){
 
           if (nrow(x) == 0){
 
-            message(paste("No variants from", sample_id, "intersect. Returning union."))
+            message(paste("No variants from", sn, "intersect. Returning union."))
 
             return(ivfdtl[sdt] %>% Reduce(union_vcf, .))
 
