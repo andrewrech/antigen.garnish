@@ -448,8 +448,22 @@ sdt <- lapply(ivfdtl, function(dt){
         if (ivfdtl[sdt] %>% length == 1)
           return(ivfdtl[[sdt %>% which]])
 
-        if ((ivfdtl[sdt] %>% length > 1) & intersect == TRUE)
-          return(ivfdtl[sdt] %>% Reduce(merge_vcf, .))
+        if ((ivfdtl[sdt] %>% length > 1) & intersect == TRUE) {
+
+          x <- ivfdtl[sdt] %>% Reduce(merge_vcf, .)
+
+          if (nrow(x) > 0) return(x)
+
+          if (nrow(x) == 0){
+
+            message(paste("No variants from", sample_id, "intersect. Returning union."))
+
+            return(ivfdtl[sdt] %>% Reduce(union_vcf, .))
+
+          }
+
+        }
+
 
         if ((ivfdtl[sdt] %>% length > 1) & intersect == FALSE)
           return(ivfdtl[sdt] %>% Reduce(union_vcf, .))
