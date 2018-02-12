@@ -429,6 +429,22 @@ sample_ids <- lapply(ivfdtl, function(dt){
                     dt$sample_id %>% unique
                       }) %>% unique
 
+    # drop vcfs that had no variants before intersect or union attempts to prevent .SDcols bugs
+    drop <- lapply(ivfdtl, function(x){
+
+      names(x) %>% length
+
+    }) %>% unlist
+
+    if ((drop == 1) %>% any){
+
+      message(paste(vcfs[which(drop == 1)], "returned no suitable variants and will be excluded from output.", sep = " "))
+
+      ivfdtl <- ivfdtl[which(drop != 1)]
+
+    }
+
+
     # return an intersected data table of variants
 
       sdt <- parallel::mclapply(sample_ids,
