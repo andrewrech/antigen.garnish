@@ -348,6 +348,8 @@ ivfdtl <- parallel::mclapply(vcfs %>% seq_along, function(ivf){
     vdt %<>% .[!se %likef% "WARNING_TRANSCRIPT_MULTIPLE_STOP_CODONS"]
     vdt %<>% .[!se %likef% "WARNING_TRANSCRIPT_NO_START_CODON"]
 
+    if (vdt %>% nrow < 1) return(data.table::data.table(sample_id = sample_id))
+
     # filter out NA
     vdt %<>% .[!ensembl_transcript_id %>% is.na &
                !cDNA_change %>% is.na]
