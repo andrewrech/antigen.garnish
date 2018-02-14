@@ -16,7 +16,7 @@ list_mhc <- function(){
                         .[, species := "human"] %>%
                         .[MHC %likef% "H-2", species := "mouse"] %>%
                         .[, class := "II"] %>%
-                        .[MHC %like% "(H-2-[A-Z][a-z])|(HLA-[ABC]\\*)", class := "I"]
+                        .[MHC %like% "(H-2-[A-Z][a-z])|(HLA-[ABCE]\\*)", class := "I"]
 
       return(dt)
 
