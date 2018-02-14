@@ -8,7 +8,7 @@
 #' @param k Fitness model parameter. Steepness of the binding curve at `a`.
 #'
 #' @return A data table with added fitness model parameter columns:
-#' * **ResidueChangeClass**: mutant cDNA sequence
+#' * **ResidueChangeClass**: Amino acid change class, eg hydrophobic to non-hydrophobic.
 #' * **R**: TCR recognition probability, determined by comparison to known epitopes in the IEDB.
 #'
 #' @export garnish_fitness

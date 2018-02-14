@@ -996,7 +996,7 @@ mcMap(function(x, y) (x %>% as.integer):(y %>% as.integer) %>%
 #' * **BLAST_A**: Ratio of consensus binding affinity of mutant peptide / closest single AA mismatch from blastp results. Returned only if `blast = TRUE`.
 #'
 #' fitness model information [Luksza et al. *Nature* 2017](https://www.ncbi.nlm.nih.gov/pubmed/29132144):
-#' * **ResidueChangeClass**: mutant cDNA sequence
+#' * **ResidueChangeClass**: Amino acid change class, eg hydrophobic to non-hydrophobic.
 #' * **A**: Component of the fitness model. Differential MHC affinity of mutant and closest wt peptide, equivalent to DAI if available, otherwise uses BLAST_A.
 #' * **R**: TCR recognition probability, determined by comparison to known epitopes in the IEDB and amino acid properties.
 #' * **fitness_score**: Product of A and R. The peptide with the highest value per sample is the dominant neoepitope.
@@ -1009,7 +1009,6 @@ mcMap(function(x, y) (x %>% as.integer):(y %>% as.integer) %>%
 #' * transcript_length
 #' * transcript_start
 #' * peptide
-#' * refseq_mrna
 #'
 #' @seealso \code{\link{garnish_summary}}
 #'

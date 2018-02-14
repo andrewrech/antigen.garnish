@@ -77,7 +77,7 @@ A data table of binding predictions including:
 
 fitness model information \href{https://www.ncbi.nlm.nih.gov/pubmed/29132144}{Luksza et al. Nature 2017}:
 \itemize{
-\item \strong{ResidueChangeClass}: mutant cDNA sequence
+\item \strong{ResidueChangeClass}: Amino acid change class, eg hydrophobic to non-hydrophobic.
 \item \strong{A}: Component of the fitness model. Differential MHC affinity of mutant and closest wt peptide, equivalent to DAI if available, otherwise uses BLAST_A.
 \item \strong{R}: TCR recognition probability, determined by comparison to known epitopes in the IEDB and amino acid properties.
 \item \strong{fitness_score}: Product of A and R. The peptide with the highest value per sample is the dominant neoepitope.
@@ -92,7 +92,6 @@ transcript description:
 \item transcript_length
 \item transcript_start
 \item peptide
-\item refseq_mrna
 }
 }
 \description{

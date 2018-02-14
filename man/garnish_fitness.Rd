@@ -16,7 +16,7 @@ garnish_fitness(dt, a = 26, k = 4.86936)
 \value{
 A data table with added fitness model parameter columns:
 \itemize{
-\item \strong{ResidueChangeClass}: mutant cDNA sequence
+\item \strong{ResidueChangeClass}: Amino acid change class, eg hydrophobic to non-hydrophobic.
 \item \strong{R}: TCR recognition probability, determined by comparison to known epitopes in the IEDB.
 }
 }
