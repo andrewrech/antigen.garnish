@@ -47,6 +47,8 @@ curl -fsSL http://get.rech.io/install_antigen.garnish.sh | sudo sh
 * `garnish_plot`: generate summary plots
 * `list_mhc`: list all supported MHC allele syntax
 
+### [Vignette](http://get.rech.io/antigen.garnish.pdf)
+
 ### Examples
 
 #### Predict neoepitopes from missense mutations, insertions, and deletions
