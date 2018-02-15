@@ -54,7 +54,6 @@ curl -fsSL http://get.rech.io/install_antigen.garnish.sh | sudo sh
 #### Predict neoepitopes from missense mutations, insertions, and deletions
 
 ```r
-
 library(magrittr)
 library(antigen.garnish)
 
