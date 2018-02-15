@@ -1,4 +1,4 @@
-[![Build Status](http://get.rech.io/antigen.garnish_status.svg)](http://get.rech.io/antigen.garnish_status.html) [![codecov.io](https://codecov.io/github/andrewrech/antigen.garnish/coverage.svg?branch=master)](https://codecov.io/github/andrewrech/antigen.garnish?branch=master) ![](https://img.shields.io/badge/version-0.0.5-blue.svg)
+[![Build Status](http://18.194.224.158:8080/buildStatus/icon?job=antigen.garnish)](http://18.194.224.158:8080/job/antigen.garnish/lastBuild/consoleFull) [![codecov.io](https://codecov.io/github/andrewrech/antigen.garnish/coverage.svg?branch=master)](https://codecov.io/github/andrewrech/antigen.garnish?branch=master) ![](https://img.shields.io/badge/version-0.0.5-blue.svg)
 
 
 # antigen.garnish
@@ -148,7 +148,7 @@ library(antigen.garnish)
 
 ## Citation
 
-Rech AJ, Balli D, Stanger BZ, Vonderheide RH. Tumor immunity and survival as a function of alternative neoepitopes in human cancer. Cancer Immunology Research, 2018 Jan 16. pii: canimm.0559.2017. [29339376](https://www.ncbi.nlm.nih.gov/pubmed/29339376)
+Rech AJ, Balli D, Stanger BZ, Vonderheide RH. Tumor immunity and survival as a function of alternative neoepitopes in human cancer. Cancer Immunology Research, 2018 Jan 16. pii: canimm.0559.2017. PMID: [29339376](https://www.ncbi.nlm.nih.gov/pubmed/29339376)
 
 ## Contributing
 
