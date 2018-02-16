@@ -352,7 +352,7 @@ geom_point(col = "dodgerblue") +
 geom_abline(intercept = 0,
             slope = 1, linetype = "dashed") +
 annotate("label", label = paste("r^2 = ", slm$adj.r.squared %>% signif(digits = 2), "\n",
-                                "p = ", pval, "\n", sep = ""),
+                                "p = ", pval, sep = ""),
                                 x = 1e-19, y = 1, fontface = "bold", size = 6) +
 custom_theme +
 scale_x_log10() + scale_y_log10() +
