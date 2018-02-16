@@ -322,10 +322,8 @@ mdt <- merge(
                                     "A", "R", "Consensus_scores")],
             by = c("sample_id", "nmer", "mutant_index", "ResidueChangeClass", "WildtypePeptide", "R"))
 
-# Lukza et al. output only includes highest fitness score per patient without MHC, so lets trim our output to take only the highest value regardless of MHC
-
-mdt <- mdt[, fitness_score := max(fitness_score),
-        by = c("nmer", "sample_id", "mutant_index", "ResidueChangeClass", "WildtypePeptide", "R")] %>% unique
+# model was designed for cutoff of 500nM
+mdt <- mdt[Consensus_scores < 500]
 
 # lets check the correlation with simple linear regression
 lm <- stats::lm(NeoantigenRecognitionPotential ~ fitness_score, mdt)
@@ -346,17 +344,22 @@ custom_theme <- ggplot2::theme_bw() + ggplot2::theme_classic() +
                 face = "bold"), axis.title.y = ggplot2::element_text(size = ggplot2::rel(0.6),
                 face = "bold"))
 
-ggplot(dt, aes(x = fitness_score, y = NeoantigenRecognitionPotential)) +
+pval <- slm$coefficients[2,4] %>% signif(digits = 3)
+if (pval == 0) pval <- "< 0.001"
+
+ggplot(mdt, aes(x = fitness_score, y = NeoantigenRecognitionPotential)) +
 geom_point(col = "dodgerblue") +
-geom_abline(intercept = slm$coefficients[1,1], slope = slm$coefficients[2,1], linetype = "dashed") +
-annotate("label", label = paste("r^2 = ", slm$adj.r.squared, "\n",
-                                "p = ", slm$coefficients[2,4], "\n", sep = ""),
-                                x = 6.75, y = 12, fontface = "bold", size = 6) +
+geom_abline(intercept = 0,
+            slope = 1, linetype = "dashed") +
+annotate("label", label = paste("r^2 = ", slm$adj.r.squared %>% signif(digits = 2), "\n",
+                                "p = ", pval, "\n", sep = ""),
+                                x = 1e-19, y = 1, fontface = "bold", size = 6) +
 custom_theme +
+scale_x_log10() + scale_y_log10() +
 ggtitle("antigen.garnish fitness_score comparison")
 
 ```
-Here is an example of correlation plot with 1,000 sampled rows:
+Here is the correlation plot without subsampling:
 ![](http://get.rech.io/ag_score_comp.png)
 
 ```{r cleanup, include = FALSE}
