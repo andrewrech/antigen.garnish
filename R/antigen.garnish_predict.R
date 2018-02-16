@@ -482,7 +482,7 @@ nugdt <- lapply(f_mhcnuggets, function(x){
         DAI := (Consensus_scores[2] /
           Consensus_scores[1]) *
           (1 / (1 + (0.0003 * Consensus_scores[2]))),
-          by = dai_uuid]
+          by = c("dai_uuid", "MHC")]
 
       if ("blast_uuid" %chin% names(dt)){
 
@@ -492,7 +492,7 @@ nugdt <- lapply(f_mhcnuggets, function(x){
           BLAST_A := (Consensus_scores[2] /
             Consensus_scores[1]) *
             (1 / (1 + (0.0003 * Consensus_scores[2]))),
-            by = blast_uuid]
+            by = c("blast_uuid", "MHC")]
           }
 
       if ("iedb_uuid" %chin% names(dt)){
@@ -501,7 +501,7 @@ nugdt <- lapply(f_mhcnuggets, function(x){
 
           dt[!iedb_uuid %>% is.na,
           IEDB_A := Consensus_scores[2] /
-            Consensus_scores[1], by = iedb_uuid]
+            Consensus_scores[1], by = c("iedb_uuid", "MHC")]
             }
 
       return(dt)
