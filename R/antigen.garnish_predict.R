@@ -11,6 +11,11 @@
 
 make_BLAST_uuid <- function(dti){
 
+  on.exit({
+        message("Removing temporary fasta files")
+        list.files(pattern = "(Ms|Hu)_nmer_fasta|iedb_query") %>% file.remove
+                            })
+
 
 if (suppressWarnings(system('which blastp 2> /dev/null', intern = TRUE)) %>%
           length == 0){
@@ -477,32 +482,32 @@ nugdt <- lapply(f_mhcnuggets, function(x){
         # dai_uuid is always length 2
         # calculate DAI by dividing
         # correct WT affinity per Lukza et al.
-
+        
         dt[!dai_uuid %>% is.na,
-        DAI := (Consensus_scores[2] /
-          Consensus_scores[1]) *
-          (1 / (1 + (0.0003 * Consensus_scores[2]))),
-          by = c("dai_uuid", "MHC")]
-
-      if ("blast_uuid" %chin% names(dt)){
-
-         data.table::setkey(dt, pep_type, blast_uuid)
-
-         dt[!blast_uuid %>% is.na,
-          BLAST_A := (Consensus_scores[2] /
-            Consensus_scores[1]) *
-            (1 / (1 + (0.0003 * Consensus_scores[2]))),
-            by = c("blast_uuid", "MHC")]
-          }
-
-      if ("iedb_uuid" %chin% names(dt)){
-
+           DAI := (Consensus_scores[2] /
+                     Consensus_scores[1]) *
+             (1 / (1 + (0.0003 * Consensus_scores[2]))),
+           by = c("dai_uuid", "MHC")]
+        
+        if ("blast_uuid" %chin% names(dt)){
+          
+          data.table::setkey(dt, pep_type, blast_uuid)
+          
+          dt[!blast_uuid %>% is.na,
+             BLAST_A := (Consensus_scores[2] /
+                           Consensus_scores[1]) *
+               (1 / (1 + (0.0003 * Consensus_scores[2]))),
+             by = c("blast_uuid", "MHC")]
+        }
+        
+        if ("iedb_uuid" %chin% names(dt)){
+          
           data.table::setkey(dt, pep_type, iedb_uuid)
-
+          
           dt[!iedb_uuid %>% is.na,
-          IEDB_A := Consensus_scores[2] /
-            Consensus_scores[1], by = c("iedb_uuid", "MHC")]
-            }
+             IEDB_A := Consensus_scores[2] /
+               Consensus_scores[1], by = c("iedb_uuid", "MHC")]
+        }
 
       return(dt)
     }
@@ -971,6 +976,7 @@ mcMap(function(x, y) (x %>% as.integer):(y %>% as.integer) %>%
 #' @param fitness Logical. Run model of [Luksza et al. *Nature* 2017](https://www.ncbi.nlm.nih.gov/pubmed/29132144) to predict neoepitope fitness?
 #' @param humandb Character vector. One of "GRCh37" or "GRCh38".
 #' @param mousedb Character vector. One of "GRCm37" or "GRCm38".
+#' @param save2wd Logical. Save a copy of garnish_predictions output to the working directory as "ag_output.txt"? Default is `FALSE`.
 #' @return A data table of binding predictions including:
 #' * **cDNA_seq**: mutant cDNA sequence
 #' * **cDNA_locs**: starting index of mutant cDNA
@@ -995,10 +1001,10 @@ mcMap(function(x, y) (x %>% as.integer):(y %>% as.integer) %>%
 #' * **BLAST_A**: Ratio of consensus binding affinity of mutant peptide / closest single AA mismatch from blastp results. Returned only if `blast = TRUE`.
 #'
 #' fitness model information [Luksza et al. *Nature* 2017](https://www.ncbi.nlm.nih.gov/pubmed/29132144):
-#' * **ResidueChangeClass**: mutant cDNA sequence
-#' * **A**: Component of the fitness model. Differential MHC affinity of mutant and closest wt peptide, similar to `BLAST_A`.
-#' * **R**: TCR recognition probability, determined by comparison to known epitopes in the IEDB.
-#' * **NeoantigenRecognitionPotential**: Product of A and R. The peptide with the highest value per sample is the dominant neoepitope.
+#' * **ResidueChangeClass**: Amino acid change class, eg hydrophobic to non-hydrophobic.
+#' * **A**: Component of the fitness model. Differential MHC affinity of mutant and closest wt peptide, equivalent to DAI if available, otherwise uses BLAST_A.
+#' * **R**: TCR recognition probability, determined by comparison to known epitopes in the IEDB and amino acid properties.
+#' * **fitness_score**: Product of A and R. The peptide with the highest value per sample is the dominant neoepitope.
 #'
 #' transcript description:
 #' * description
@@ -1008,7 +1014,6 @@ mcMap(function(x, y) (x %>% as.integer):(y %>% as.integer) %>%
 #' * transcript_length
 #' * transcript_start
 #' * peptide
-#' * refseq_mrna
 #'
 #' @seealso \code{\link{garnish_summary}}
 #'
@@ -1104,11 +1109,12 @@ garnish_predictions <- function(dt = NULL,
                                blast = fitness,
                                fitness = TRUE,
                                humandb = "GRCh38",
-                               mousedb = "GRCm38"){
+                               mousedb = "GRCm38",
+                               save2wd = FALSE){
 
   on.exit({
     message("Removing temporary files")
-    list.files(pattern = "_nmer_fasta\\.fa)|iedb_query.fanetMHC|mhcflurry|mhcnuggets).*_[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}\\.csv") %>% file.remove
+    list.files(pattern = "(_nmer_fasta\\.fa)|(iedb_query.fa)|((netMHC|mhcflurry|mhcnuggets).*_[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}\\.csv)") %>% file.remove
     try(
     utils::download.file("http://get.rech.io/antigen.garnish.usage.txt",
                          destfile = "/dev/null",
@@ -1187,6 +1193,13 @@ if (assemble & input_type == "transcript"){
     # translate protein sequences
     dt[, pep_wt := coding %>% translate_cDNA]
     dt[, pep_mut := coding_mut %>% translate_cDNA]
+
+    message(paste(nrow(dt[is.na(pep_wt) | is.na(pep_mut)]),
+                "mutants could not be translated and were dropped."))
+
+    dt <- dt[!is.na(pep_wt) & !is.na(pep_mut)]
+
+
     dt[, frameshift := FALSE]
 
     dt[, cDNA_delta := ((coding_mut %>% nchar) - (coding %>% nchar)) / 3 ]
@@ -1202,6 +1215,10 @@ if (assemble & input_type == "transcript"){
     dt %<>% .[peptide == pep_wt]
 
     # remove stop codons
+    # if first character is * then returns character(0) which has length zero unlike NA, so length not preserved with unlist in upcoming for loop
+    # fix with:
+    dt %<>% .[!stringr::str_detect(pep_mut, "^\\*")]
+
     for (i in dt %>% names %include% "^pep"){
       set(dt, j = i, value = dt[, get(i) %>%
                                 stringr::str_extract_all("^[^\\*]+") %>%
@@ -1484,18 +1501,36 @@ up <- lapply(dtl, function(x){x[[2]]}) %>% unlist
       }
 
    }
+
    if (fitness){
+
+     message("Running garnish_fitness...")
+     message("N.B. fitness model will be run on nmers of all lengths, but original validation was for 9mers only.")
 
      dt %<>% garnish_fitness
 
-     #now redo NeoantigenRecognitionPotential by BLAST_A because it does nmer by MHC
-     dt[!is.na(R) & !is.na(DAI),
-          NeoantigenRecognitionPotential := DAI * R]
+     #calculate fitness_score from R and best A (defer to DAI)
+     dt[!is.na(BLAST_A), A := BLAST_A]
 
-     dt[!is.na(R) & !is.na(BLAST_A) & is.na(DAI),
-          NeoantigenRecognitionPotential := BLAST_A * R]
+    if ("DAI" %chin% names(dt)) dt[!is.na(DAI), A := DAI]
+
+     dt[!is.na(R) & !is.na(A),
+          fitness_score := A * R]
 
    }
+
+   if (save2wd){
+
+     gplot_fn <- format(Sys.time(), "%d/%m/%y %H:%M:%OS") %>%
+                   stringr::str_replace_all("[^A-Za-z0-9]", "_") %>%
+                   stringr::str_replace_all("[_]+", "_")
+
+     dt %>% data.table::fwrite(paste("ag_output_", gplot_fn, ".txt", sep = ""),
+                                          sep = "\t",
+                                          quote = FALSE,
+                                          row.names = FALSE)
+
+      }
 
    return(dt)
 
