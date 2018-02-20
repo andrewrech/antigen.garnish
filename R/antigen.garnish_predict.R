@@ -1238,6 +1238,11 @@ if (assemble & input_type == "transcript"){
            } %>%
           which %>% .[1], by = 1:nrow(dt)]
           })
+  
+    # if pep_wt length < pep_mut ie stop lost variant, this returns NA so:
+    dt[is.na(mismatch_s) & nchar(pep_wt) < nchar(pep_mut),
+        mismatch_s := nchar(pep_wt) + 1]
+
 
     # remove rows with matching transcripts
       dt %<>% .[!pep_wt == pep_mut]
