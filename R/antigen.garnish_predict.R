@@ -482,28 +482,28 @@ nugdt <- lapply(f_mhcnuggets, function(x){
         # dai_uuid is always length 2
         # calculate DAI by dividing
         # correct WT affinity per Lukza et al.
-        
+
         dt[!dai_uuid %>% is.na,
            DAI := (Consensus_scores[2] /
                      Consensus_scores[1]) *
              (1 / (1 + (0.0003 * Consensus_scores[2]))),
            by = c("dai_uuid", "MHC")]
-        
+
         if ("blast_uuid" %chin% names(dt)){
-          
+
           data.table::setkey(dt, pep_type, blast_uuid)
-          
+
           dt[!blast_uuid %>% is.na,
              BLAST_A := (Consensus_scores[2] /
                            Consensus_scores[1]) *
                (1 / (1 + (0.0003 * Consensus_scores[2]))),
              by = c("blast_uuid", "MHC")]
         }
-        
+
         if ("iedb_uuid" %chin% names(dt)){
-          
+
           data.table::setkey(dt, pep_type, iedb_uuid)
-          
+
           dt[!iedb_uuid %>% is.na,
              IEDB_A := Consensus_scores[2] /
                Consensus_scores[1], by = c("iedb_uuid", "MHC")]
@@ -1243,6 +1243,11 @@ if (assemble & input_type == "transcript"){
            } %>%
           which %>% .[1], by = 1:nrow(dt)]
           })
+
+    # if pep_wt length < pep_mut ie stop lost variant, this returns NA so:
+
+    dt[is.na(mismatch_s) & nchar(pep_wt) < nchar(pep_mut),
+        mismatch_s := nchar(pep_wt) + 1]
 
     # remove rows with matching transcripts
       dt %<>% .[!pep_wt == pep_mut]
