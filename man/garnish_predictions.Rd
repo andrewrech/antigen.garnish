@@ -6,7 +6,8 @@
 \usage{
 garnish_predictions(dt = NULL, path = NULL, assemble = TRUE,
   generate = TRUE, predict = TRUE, blast = fitness, fitness = TRUE,
-  humandb = "GRCh38", mousedb = "GRCm38", save2wd = FALSE)
+  humandb = "GRCh38", mousedb = "GRCm38", save2wd = FALSE,
+  remove_wt = TRUE)
 }
 \arguments{
 \item{dt}{Data table. Input data table from \code{garnish_variants} or \code{garnish_jaffa}, or a data table in one of these forms:
@@ -48,6 +49,8 @@ MHC                         <same as above>
 \item{mousedb}{Character vector. One of "GRCm37" or "GRCm38".}
 
 \item{save2wd}{Logical. Save a copy of garnish_predictions output to the working directory as "ag_output.txt"? Default is \code{FALSE}.}
+
+\item{remove_wt}{Logical. Check all nmers peptides generated against wt peptidome and remove matches. Default is \code{TRUE}. If investigating wild-type sequences, set this to \code{FALSE}.}
 }
 \value{
 A data table of binding predictions including:

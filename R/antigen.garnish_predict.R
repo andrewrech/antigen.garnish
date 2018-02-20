@@ -977,6 +977,7 @@ mcMap(function(x, y) (x %>% as.integer):(y %>% as.integer) %>%
 #' @param humandb Character vector. One of "GRCh37" or "GRCh38".
 #' @param mousedb Character vector. One of "GRCm37" or "GRCm38".
 #' @param save2wd Logical. Save a copy of garnish_predictions output to the working directory as "ag_output.txt"? Default is `FALSE`.
+#' @param remove_wt Logical. Check all nmers peptides generated against wt peptidome and remove matches. Default is `TRUE`. If investigating wild-type sequences, set this to `FALSE`.
 #' @return A data table of binding predictions including:
 #' * **cDNA_seq**: mutant cDNA sequence
 #' * **cDNA_locs**: starting index of mutant cDNA
@@ -1110,7 +1111,8 @@ garnish_predictions <- function(dt = NULL,
                                fitness = TRUE,
                                humandb = "GRCh38",
                                mousedb = "GRCm38",
-                               save2wd = FALSE){
+                               save2wd = FALSE,
+                               remove_wt = TRUE){
 
   on.exit({
     message("Removing temporary files")
@@ -1366,6 +1368,8 @@ if (generate){
       # remove peptides present in global normal protein database
 
         # load global peptide database
+    if (remove_wt){
+
           if (dt$MHC %likef% "HLA" %>% any &
               !dt$MHC %likef% "H-2" %>% any)
               {
@@ -1429,6 +1433,8 @@ mv <- parallel::mclapply(nmv %>% seq_along, function(x){
           .[, drop := stringi::stri_detect_fixed(pattern = nmer, str = pep_gene_1)] %>%
                       .[drop == FALSE] %>%
                         .[, drop := NULL]
+
+  }
 
     # generation a uuid for each unique nmer
       suppressWarnings(dt[, nmer_uuid :=
