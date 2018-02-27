@@ -13,7 +13,9 @@ make_BLAST_uuid <- function(dti){
 
   on.exit({
         message("Removing temporary fasta files")
+        try(
         list.files(pattern = "(Ms|Hu)_nmer_fasta|iedb_query") %>% file.remove
+        )
                             })
 
 
@@ -1116,7 +1118,9 @@ garnish_predictions <- function(dt = NULL,
 
   on.exit({
     message("Removing temporary files")
-    list.files(pattern = "(_nmer_fasta\\.fa)|(iedb_query.fa)|((netMHC|mhcflurry|mhcnuggets).*_[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}\\.csv)") %>% file.remove
+    try(
+      list.files(pattern = "(_nmer_fasta\\.fa)|(iedb_query.fa)|((netMHC|mhcflurry|mhcnuggets).*_[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}\\.csv)") %>% file.remove
+    )
     try(
     utils::download.file("http://get.rech.io/antigen.garnish.usage.txt",
                          destfile = "/dev/null",
