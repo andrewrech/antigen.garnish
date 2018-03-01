@@ -285,6 +285,9 @@ dtlo <- lapply(8:15, function(nmerl){
 
     dto %>% data.table::setnames(c("Mutation", "Sample"),
                                c("var_uuid", "sample_id"))
+
+    dto[, R := max(R), by = c("MutantPeptide")]
+
     dto %<>% melt(measure.vars = c("WildtypePeptide", "MutantPeptide"),
                 value.name = "nmer")
 

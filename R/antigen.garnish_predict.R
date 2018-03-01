@@ -152,9 +152,9 @@ parallel::mclapply(dt[, spc %>% unique], function(s){
                 .[best == overlap_length] %>%
                 .[, best := NULL]
 
-  # dedupe
-    blastdt %>% data.table::setkey(nmer_uuid, pident)
-    blastdt %<>% unique(by = c("nmer_uuid", "pident"))
+  # dedupe but retain multiple equally good SW scoring matches by sequence (not by match source)
+    blastdt %>% data.table::setkey(nmer_uuid, WT.peptide)
+    blastdt %<>% unique(by = c("nmer_uuid", "WT.peptide"))
 
     blastdt <- blastdt[, .SD %>% unique, .SDcols = c("nmer_uuid", "nmer", "WT.peptide")]
     blastdt[, blast_uuid := uuid::UUIDgenerate(), by = c("nmer_uuid", "WT.peptide")]
@@ -233,7 +233,7 @@ parallel::mclapply(dt[, spc %>% unique], function(s){
 
     blastdt[, SW := SW_align(nmer, WT.peptide)]
 
-    plagiarizeR <- function(als,
+    modeleR <- function(als,
                             a=26,
                             k=4.86936){
 
@@ -253,8 +253,6 @@ parallel::mclapply(dt[, spc %>% unique], function(s){
 
       be <- -k * (a - als)
 
-      mbe <- max(be)
-
       lZ <- expo_sum(c(be, 0))
       lGb <- expo_sum(be)
 
@@ -264,7 +262,7 @@ parallel::mclapply(dt[, spc %>% unique], function(s){
 
     }
 
-    blastdt[, iedb_score := SW %>% plagiarizeR, by = "nmer_uuid"]
+    blastdt[, iedb_score := SW %>% modeleR, by = "nmer_uuid"]
 
     blastdt[, highest := max(iedb_score), by = "nmer_uuid"]
 
@@ -272,12 +270,11 @@ parallel::mclapply(dt[, spc %>% unique], function(s){
               .[!(nmer %like% "-")] %>%
                 .[, highest := NULL]
 
-  # dedupe
-  blastdt %>% data.table::setkey(nmer_uuid, iedb_score)
-  blastdt %<>% unique(by = c("nmer_uuid", "iedb_score"))
+  # dedupe but retain multiple equally good SW scoring matches by sequence (not by match source)
+  blastdt %>% data.table::setkey(nmer_uuid, WT.peptide)
+  blastdt %<>% unique(by = c("nmer_uuid", "WT.peptide"))
 
   # get full IEDB ref here
-
   fa <- Biostrings::readAAStringSet("~/antigen.garnish/iedb.fasta")
   f <- fa %>% data.table::as.data.table %>% .[, x]
   names(f) <- fa@ranges@NAMES
@@ -297,8 +294,7 @@ parallel::mclapply(dt[, spc %>% unique], function(s){
                                                      "iedb_score")]
 
   blastdt[, iedb_uuid := uuid::UUIDgenerate(), by = c("nmer_uuid",
-                                                        "WT.peptide",
-                                                        "IEDB_anno")]
+                                                        "WT.peptide")]
 
     dto <- merge(dto, blastdt[, .SD, .SDcols = c("nmer_uuid",
                                                  "iedb_uuid",
@@ -314,6 +310,8 @@ parallel::mclapply(dt[, spc %>% unique], function(s){
     vdt <- merge(vdt, blastdt, by = "nmer_uuid")
 
     vdt %>% .[, nmer := NULL] %>% .[, nmer_uuid := NULL]
+
+    vdt[, effect_type := "IEDB_source"]
 
     vdt <- vdt %>%
             data.table::setnames("WT.peptide", "nmer") %>%
@@ -543,6 +541,16 @@ nugdt <- lapply(f_mhcnuggets, function(x){
 
         if ("blast_uuid" %chin% names(dt)){
 
+          # keep blast match that will give most conservative BLAST_A value
+
+          dt[!is.na(blast_uuid) & pep_type == "wt",
+              match := Consensus_scores %>% as.numeric %>% min(na.rm = TRUE), by = "blast_uuid"] %>%
+                .[Consensus_scores == match, match := 0]
+
+          dt <- dt[is.na(match) | match == 0]
+
+          dt[, match := NULL]
+
           data.table::setkey(dt, pep_type, blast_uuid)
 
           dt[!blast_uuid %>% is.na,
@@ -554,11 +562,23 @@ nugdt <- lapply(f_mhcnuggets, function(x){
 
         if ("iedb_uuid" %chin% names(dt)){
 
+          # keep blast match that will give most conservative IEDB_A value
+
+          dt[!is.na(iedb_uuid) & effect_type == "IEDB_source",
+              match := Consensus_scores %>% as.numeric %>% min(na.rm = TRUE), by = "iedb_uuid"] %>%
+                .[Consensus_scores == match, match := 0]
+
+          dt <- dt[is.na(match) | match == 0]
+
+          dt[, match := NULL]
+
           data.table::setkey(dt, pep_type, iedb_uuid)
 
           dt[!iedb_uuid %>% is.na,
-             IEDB_A := Consensus_scores[2] /
-               Consensus_scores[1], by = c("iedb_uuid", "MHC")]
+             IEDB_A := (Consensus_scores[2] /
+                           Consensus_scores[1]) *
+               (1 / (1 + (0.0003 * Consensus_scores[2]))),
+             by = c("iedb_uuid", "MHC")]
         }
 
       return(dt)
@@ -1574,13 +1594,13 @@ up <- lapply(dtl, function(x){x[[2]]}) %>% unlist
 
      dt %<>% garnish_fitness
 
-     #calculate fitness_score from R and best A (defer to DAI)
-     dt[!is.na(BLAST_A), A := BLAST_A]
+     #calculate fitness_score from iedb_score and minimum amplitude
+     dt[!is.na(BLAST_A), min_DAI := BLAST_A]
 
-    if ("DAI" %chin% names(dt)) dt[!is.na(DAI), A := DAI]
+    if ("DAI" %chin% names(dt)) dt[!is.na(DAI), min_DAI := min(DAI, min_DAI, na.rm = TRUE)]
 
-     dt[!is.na(iedb_score) & !is.na(A),
-          fitness_score := A * iedb_score]
+     dt[!is.na(iedb_score) & !is.na(min_DAI),
+          fitness_score := min_DAI * iedb_score]
 
    }
 
