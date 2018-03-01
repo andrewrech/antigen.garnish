@@ -293,6 +293,7 @@ dtlo <- lapply(8:15, function(nmerl){
                       "sample_id",
                       "ResidueChangeClass",
                       "R",
+                      "NeoantigenRecognitionPotential",
                       "nmer")],
                       all.x = TRUE,
                       by = c("var_uuid",
