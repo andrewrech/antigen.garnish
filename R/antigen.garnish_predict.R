@@ -1595,11 +1595,13 @@ up <- lapply(dtl, function(x){x[[2]]}) %>% unlist
      dt %<>% garnish_fitness
 
      #calculate fitness_score from iedb_score and minimum amplitude
-     dt[!is.na(BLAST_A), min_DAI := BLAST_A]
+     if ("blast_uuid" %chin% names(dt))
+      dt[!is.na(BLAST_A), min_DAI := BLAST_A]
 
     if ("DAI" %chin% names(dt)) dt[!is.na(DAI), min_DAI := min(DAI, min_DAI, na.rm = TRUE)]
 
-     dt[!is.na(iedb_score) & !is.na(min_DAI),
+    if ("iedb_score" %chin% names(dt))
+      dt[!is.na(iedb_score) & !is.na(min_DAI),
           fitness_score := min_DAI * iedb_score]
 
    }
