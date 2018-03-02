@@ -195,7 +195,7 @@ parallel::mclapply(dt[, spc %>% unique], function(s){
         file.copy(list.files(pattern = "nmer_fasta"), to = "iedb_query.fa")
 
     system(paste0(
-    "blastp -query iedb_query.fa -task blastp-short -db ~/antigen.garnish/iedb.bdb -evalue 100000000  -gapopen 11 -gapextend 1 -out iedbout.csv -num_threads ", parallel::detectCores(),
+    "blastp -query iedb_query.fa -task blastp-short -db ~/antigen.garnish/iedb.bdb -evalue 100000000 -matrix BLOSUM62 -gapopen 11 -gapextend 1 -out iedbout.csv -num_threads ", parallel::detectCores(),
     " -outfmt '10 qseqid sseqid qseq qstart qend sseq sstart send length mismatch pident evalue bitscore'"
     ))
 
