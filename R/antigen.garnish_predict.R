@@ -223,8 +223,7 @@ parallel::mclapply(dt[, spc %>% unique], function(s){
                                         "bitscore"))
 
     blastdt <- blastdt[, nmer := nmer %>% stringr::str_replace_all(pattern = "-", replacement = "")] %>%
-                  .[, WT.peptide := WT.peptide %>% stringr::str_replace_all(pattern = "-", replacement = "")] %>%
-                  .[nchar(nmer) > 7]
+                  .[, WT.peptide := WT.peptide %>% stringr::str_replace_all(pattern = "-", replacement = "")]
 
     if (nrow(blastdt) == 0){
       message(paste("No IEDB matches found, returning BLAST against reference proteome(s) only...."))
@@ -264,12 +263,12 @@ parallel::mclapply(dt[, spc %>% unique], function(s){
 
     blastdt[, iedb_score := SW %>% modeleR, by = "nmer_uuid"]
 
-    blastdt[, highest := max(iedb_score), by = "nmer_uuid"]
+    blastdt[, highest := max(SW), by = "nmer_uuid"]
 
-    blastdt <- blastdt[highest == iedb_score] %>%
+    blastdt <- blastdt[highest == SW] %>%
               .[!(nmer %like% "-")] %>%
                 .[, highest := NULL] %>%
-                  .[nchar(WT.peptide) > 7]
+                  .[nchar(WT.peptide) > 7 & nchar(nmer) > 7]
 
   # dedupe but retain multiple equally good SW scoring matches by sequence (not by match source)
   blastdt %>% data.table::setkey(nmer_uuid, WT.peptide)
