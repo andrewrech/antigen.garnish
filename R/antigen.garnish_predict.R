@@ -108,7 +108,8 @@ parallel::mclapply(dt[, spc %>% unique], function(s){
                       stringr::str_replace_all(pattern = "-", replacement = "")] %>%
                .[, WT.peptide := WT.peptide %>%
                       stringr::str_replace_all(pattern = "-", replacement = "")] %>%
-                    .[nchar(nmer) == nchar(WT.peptide) & mismatch_length == 1]
+                    .[nchar(nmer) == nchar(WT.peptide) & mismatch_length == 1] %>%
+                      .[!is.na(nmer) & !is.na(WT.peptide)]
 
     if (nrow(blastdt) == 0){
         message("No WT similarity matches found by blast.")
@@ -223,7 +224,8 @@ parallel::mclapply(dt[, spc %>% unique], function(s){
                                         "bitscore"))
 
     blastdt <- blastdt[, nmer := nmer %>% stringr::str_replace_all(pattern = "-", replacement = "")] %>%
-                  .[, WT.peptide := WT.peptide %>% stringr::str_replace_all(pattern = "-", replacement = "")]
+                  .[, WT.peptide := WT.peptide %>% stringr::str_replace_all(pattern = "-", replacement = "")] %>%
+                    .[!is.na(nmer) & !is.na(WT.peptide)]
 
     if (nrow(blastdt) == 0){
       message(paste("No IEDB matches found, returning BLAST against reference proteome(s) only...."))
