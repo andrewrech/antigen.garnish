@@ -269,8 +269,41 @@ parallel::mclapply(dt[, spc %>% unique], function(s){
 
     blastdt <- blastdt[highest == SW] %>%
               .[!(nmer %like% "-")] %>%
-                .[, highest := NULL] %>%
-                  .[nchar(WT.peptide) > 7 & nchar(nmer) > 7]
+                .[, highest := NULL]
+
+    # account for IEDB matches but none long enough to pass to prediction
+    if (nrow(blastdt[nchar(WT.peptide) > 7 & nchar(nmer) > 7]) == 0){
+      message(paste("Only short (<8AA) IEDB matches found, returning iedb_score without passing to affinity prediction."))
+      return(
+        merge(dto,
+        blastdt[, .SD %>% unique, .SDcols = c("nmer_uuid", "iedb_score")],
+        by = "nmer_uuid",
+        all.x = TRUE)
+      )
+    }
+
+  # return iedb_score for short matches only before continuining
+
+  shortdt <- blastdt[nchar(WT.peptide) < 7 & nchar(nmer) > 7]
+
+  blastdt %<>% .[nchar(WT.peptide) > 7 & nchar(nmer) > 7]
+
+  if (nrow(shortdt) != 0) shortdt <- shortdt[!nmer_uuid %chin% blastdt[, nmer_uuid %>% unique]]
+
+  # add short matches only here. bank variable to account for downstream merge columns
+
+  shortmerge <- NULL
+
+  if (nrow(shortdt) != 0){
+
+    dto <- merge(dto,
+                shortdt[, .SD %>% unique, .SDcols = c("nmer_uuid", "iedb_score")],
+                                      by = "nmer_uuid",
+                                      all.x = TRUE)
+                                      
+    shortmerge <- "iedb_score"
+
+  }
 
   # dedupe but retain multiple equally good SW scoring matches by sequence (not by match source)
   blastdt %>% data.table::setkey(nmer_uuid, WT.peptide)
@@ -302,7 +335,7 @@ parallel::mclapply(dt[, spc %>% unique], function(s){
                                                  "iedb_uuid",
                                                  "IEDB_anno",
                                                  "iedb_score")],
-           by = c("nmer_uuid"),
+           by = c("nmer_uuid", shortmerge),
            all.x = TRUE)
 
     # to add WT.peptide (in this case IEDB epitope) back to table need nmer, nmer_i, nmer_l (nchar(nmer)), var_uuid, effect_type
