@@ -196,7 +196,9 @@ dtlo <- lapply(8:15, function(nmerl){
 
     db <- dti[, spc %>% unique]
 
-    if (db == "Ms") db <- "~/antigen.garnish/Mu_iedb.bdb"
+    dti[, spc := NULL]
+
+    if (db == "Ms") db <- "~/antigen.garnish/Mu_iedb.fasta"
     if (db == "Hu") db <- "~/antigen.garnish/iedb.bdb"
 
     if (nrow(dti) == 0) {

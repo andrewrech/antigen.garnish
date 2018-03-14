@@ -192,7 +192,7 @@ parallel::mclapply(dt[, spc %>% unique], function(s){
     if (file.exists("Ms_nmer_fasta.fa"))
 
       system(paste0(
-        "blastp -query Ms_nmer_fasta.fa -task blastp-short -db ~/antigen.garnish/Mu_iedb.bdb -evalue 100000000 -matrix BLOSUM62 -gapopen 11 -gapextend 1 -out iedbout_mu.csv -num_threads ", parallel::detectCores(),
+        "blastp -query Ms_nmer_fasta.fa -task blastp-short -db ~/antigen.garnish/Mu_iedb.fasta -evalue 100000000 -matrix BLOSUM62 -gapopen 11 -gapextend 1 -out iedbout_mu.csv -num_threads ", parallel::detectCores(),
         " -outfmt '10 qseqid sseqid qseq qstart qend sseq sstart send length mismatch pident evalue bitscore'"
       ))
 
@@ -1125,7 +1125,7 @@ mcMap(function(x, y) (x %>% as.integer):(y %>% as.integer) %>%
 #' * **ResidueChangeClass**: Amino acid change class, eg hydrophobic to non-hydrophobic.
 #' * **A**: Component of the fitness model. Differential MHC affinity of mutant and closest wt peptide, equivalent to DAI if available, otherwise uses BLAST_A.
 #' * **R**: TCR recognition probability, determined by comparison to known epitopes in the IEDB and amino acid properties.
-#' * **NeoantigenRecognitionPotential**: Product of A and R. 
+#' * **NeoantigenRecognitionPotential**: Product of A and R.
 #'
 #' transcript description:
 #' * description
