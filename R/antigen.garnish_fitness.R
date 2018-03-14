@@ -194,13 +194,6 @@ dtlo <- lapply(8:15, function(nmerl){
 
     dti <- dti[nchar(WT.Peptide) == nmerl & nchar(MT.Peptide) == nmerl]
 
-    db <- dti[, spc %>% unique]
-
-    dti[, spc := NULL]
-
-    if (db == "Ms") db <- "~/antigen.garnish/Mu_iedb.fasta"
-    if (db == "Hu") db <- "~/antigen.garnish/iedb.bdb"
-
     if (nrow(dti) == 0) {
       warning(paste("No ", nmerl, "mers compatible for fitness modeling.", sep = ""))
       return(NULL)
@@ -208,6 +201,13 @@ dtlo <- lapply(8:15, function(nmerl){
 
     # drop 8mers because python scripts check anchor residues at 2 and 9 and want to avoid errors
     if (nmerl == 8) return(NULL)
+
+    db <- dti[, spc %>% unique]
+
+    dti[, spc := NULL]
+
+    if (db == "Ms") db <- "~/antigen.garnish/Mu_iedb.fasta"
+    if (db == "Hu") db <- "~/antigen.garnish/iedb.bdb"
 
     dti <- dti[, ID := link_uuid, by = 1:nrow(dti)]
 
