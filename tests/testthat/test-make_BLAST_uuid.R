@@ -76,7 +76,7 @@ testthat::test_that("make_BLAST_uuid", {
                               "NYWRKSYE"))
 
        testthat::expect_equal(dto[, pep_type %>% table],
-         structure(c(8L, 10L), .Dim = 2L, .Dimnames = structure(list(. = c("mutnfs",
+         structure(c(8L, 12L), .Dim = 2L, .Dimnames = structure(list(. = c("mutnfs",
          "wt")), .Names = "."), class = "table"))
 
     })

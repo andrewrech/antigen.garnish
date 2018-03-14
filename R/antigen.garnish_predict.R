@@ -319,7 +319,10 @@ parallel::mclapply(dt[, spc %>% unique], function(s){
   blastdt %<>% unique(by = c("nmer_uuid", "WT.peptide"))
 
   # get full IEDB ref here
-  fa <- Biostrings::readAAStringSet("~/antigen.garnish/iedb.fasta")
+  if (file.exists("Hu_nmer_fasta.fa")) db <- "~/antigen.garnish/iedb.fasta"
+  if (file.exists("Ms_nmer_fasta.fa")) db <- "~/antigen.garnish/Mu_iedb.fasta"
+
+  fa <- Biostrings::readAAStringSet(db)
   f <- fa %>% data.table::as.data.table %>% .[, x]
   names(f) <- fa@ranges@NAMES
 
@@ -327,7 +330,7 @@ parallel::mclapply(dt[, spc %>% unique], function(s){
 
       mv <- f[which(stringr::str_detect(pattern = stringr::fixed(i), names(f)))]
       mv <- mv[which(stringr::str_detect(pattern = stringr::fixed(WT.peptide), mv))]
-      return(paste(names(mv), WT.peptide, sep = "|"))
+      return(paste(names(mv), WT.peptide, collapse = "|"))
 
     }), by = 1:nrow(blastdt)]
 
