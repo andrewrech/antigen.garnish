@@ -10,6 +10,7 @@
 #' @return A data table with added fitness model parameter columns:
 #' * **ResidueChangeClass**: Amino acid change class, eg hydrophobic to non-hydrophobic.
 #' * **R**: TCR recognition probability, determined by comparison to known epitopes in the IEDB.
+#' * **NeoantigenRecognitionPotential**: Neoantigen Recognition Potential calculated by the model. Original validation was limited to 9mers, class I, and human IEDB epitopes. The model will be applied to all peptides, class I and II.
 #'
 #' @export garnish_fitness
 #' @md
@@ -181,11 +182,22 @@ the following columns:
                             "link_uuid"))
 }
 
-  # loop over nmer lengths
+  # loop over nmer lengths and species
+  dti[MT.Allele %like% "H-2", spc := "Ms"] %>%
+    .[MT.Allele %like% "HLA", spc := "Hu"]
+
+  dtls <- dti %>% split(by = "spc")
+
+dtloo <- lapply(dtls, function(dti){
 
 dtlo <- lapply(8:15, function(nmerl){
 
     dti <- dti[nchar(WT.Peptide) == nmerl & nchar(MT.Peptide) == nmerl]
+
+    db <- dti[, spc %>% unique]
+
+    if (db == "Ms") db <- "~/antigen.garnish/Mu_iedb.bdb"
+    if (db == "Hu") db <- "~/antigen.garnish/iedb.bdb"
 
     if (nrow(dti) == 0) {
       warning(paste("No ", nmerl, "mers compatible for fitness modeling.", sep = ""))
@@ -232,7 +244,7 @@ dtlo <- lapply(8:15, function(nmerl){
 
       dn <- paste("fitness_model_", nmerl, sep = "")
 
-      dir.create(dn, showWarnings = FALSE)
+      if (!dir.exists(dn)) dir.create(dn, showWarnings = FALSE)
 
       lapply(dtl %>% seq_along, function(i){
         dti <- data.table::copy(dtl[[i]])
@@ -250,7 +262,7 @@ dtlo <- lapply(8:15, function(nmerl){
 
       system(
         paste(
-      "blastp -query", filename, "-db ~/antigen.garnish/iedb.bdb -num_threads", parallel::detectCores(), "-outfmt 5 -evalue 100000000 -gapopen 11 -gapextend 1 >",
+      "blastp -query", filename, "-db", db, "-num_threads", parallel::detectCores(), "-outfmt 5 -evalue 100000000 -gapopen 11 -gapextend 1 >",
       filename %>% stringr::str_replace("\\.fasta", replacement = "_iedb.xml"),
         sep = " ")
       )
@@ -310,5 +322,13 @@ dtlo <- lapply(8:15, function(nmerl){
             data.table::rbindlist(fill = TRUE)
 
   return(dtlo)
+
+  })
+
+  if (length(dtls) == 2) dtloo %<>% data.table::rbindlist
+
+  if (length(dtls) == 1) dtloo <- dtloo[[1]]
+
+  return(dtloo)
 
 }

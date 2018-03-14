@@ -74,8 +74,11 @@ A data table of binding predictions including:
 \item \strong{mhcflurry_*}: mhcflurry_ prediction tool output
 \item \strong{mhcnuggets_*}: mhcnuggets_ prediction tool output
 \item \strong{Consensus_scores}: Average value of MHC binding affinity from all prediction tools that contributed output. 95\% confidence intervals are given by \strong{Upper_CI}, \strong{Lower_CI}.
-\item \strong{DAI}: Differential agretopicty index, see \code{garnish_summary} for an explanation of DAI.
+\item \strong{DAI}: Differential agretopicty index of missense and corresponding wild-type peptide, see \code{garnish_summary} for an explanation of DAI.
 \item \strong{BLAST_A}: Ratio of consensus binding affinity of mutant peptide / closest single AA mismatch from blastp results. Returned only if \code{blast = TRUE}.
+\item \strong{iedb_score}: R implementation of TCR recognition probability for peptide through summing of alignments in IEDB for corresponding organism.
+\item \strong{min_DAI}: Minimum of BLAST_A and DAI values, to provide the most conservative \code{fitness_score} value.
+\item \strong{fitness_score}: Product of min_DAI and iedb_score. The peptide with the highest value per sample is the dominant neoepitope.
 }
 
 fitness model information \href{https://www.ncbi.nlm.nih.gov/pubmed/29132144}{Luksza et al. Nature 2017}:
@@ -83,7 +86,7 @@ fitness model information \href{https://www.ncbi.nlm.nih.gov/pubmed/29132144}{Lu
 \item \strong{ResidueChangeClass}: Amino acid change class, eg hydrophobic to non-hydrophobic.
 \item \strong{A}: Component of the fitness model. Differential MHC affinity of mutant and closest wt peptide, equivalent to DAI if available, otherwise uses BLAST_A.
 \item \strong{R}: TCR recognition probability, determined by comparison to known epitopes in the IEDB and amino acid properties.
-\item \strong{fitness_score}: Product of A and R. The peptide with the highest value per sample is the dominant neoepitope.
+\item \strong{NeoantigenRecognitionPotential}: Product of A and R.
 }
 
 transcript description:
@@ -99,7 +102,8 @@ transcript description:
 }
 \description{
 Perform ensemble neoepitope prediction on a data table of missense mutations, insertions, deletions or gene fusions using netMHC, mhcflurry, and mhcnuggets.
-See \code{list_mhc} for compatible MHC allele syntax.  Multiple MHC alleles for a single sample_id should be space separated.  See example.
+See \code{list_mhc} for compatible MHC allele syntax.  Multiple MHC alleles for a single sample_id should be space separated.
+Please keep \strong{murine and human alleles in separate rows}, this will not affect computational speed but will ensure the correct IEDB file is chosen.  See example.
 }
 \examples{
 \dontrun{

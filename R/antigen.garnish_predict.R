@@ -14,7 +14,7 @@ make_BLAST_uuid <- function(dti){
   on.exit({
         message("Removing temporary fasta files")
         try(
-        list.files(pattern = "(Ms|Hu)_nmer_fasta|iedb_query") %>% file.remove
+        list.files(pattern = "(Ms|Hu)_nmer_fasta|iedb_query|blastpout|iedbout") %>% file.remove
         )
                             })
 
@@ -30,8 +30,8 @@ if (suppressWarnings(system('which blastp 2> /dev/null', intern = TRUE)) %>%
 
   # blast first to get pairs for non-mutnfs peptides then run nature paper package
 
-    dt[MHC %like% "HLA", spc := "Hu"] %>%
-      .[MHC %like% "H-2", spc := "Ms"]
+    dt[MHC %like% "H-2", spc := "Ms"] %>%
+      .[MHC %like% "HLA", spc := "Hu"]
 
   # generate fastas to query
 
@@ -189,26 +189,35 @@ parallel::mclapply(dt[, spc %>% unique], function(s){
   # run blastp-short for iedb matches
     message("Running blastp for iedb homology...")
 
-    if (file.exists("Ms_nmer_fasta.fa") & file.exists("Hu_nmer_fasta.fa"))
-            system("cat Ms_nmer_fasta.fa Hu_nmer_fasta.fa > iedb_query.fa")
+    if (file.exists("Ms_nmer_fasta.fa"))
 
-    if (list.files(pattern = "nmer_fasta") %>% length == 1)
-        file.copy(list.files(pattern = "nmer_fasta"), to = "iedb_query.fa")
+      system(paste0(
+        "blastp -query Ms_nmer_fasta.fa -task blastp-short -db ~/antigen.garnish/Mu_iedb.bdb -evalue 100000000 -matrix BLOSUM62 -gapopen 11 -gapextend 1 -out iedbout_mu.csv -num_threads ", parallel::detectCores(),
+        " -outfmt '10 qseqid sseqid qseq qstart qend sseq sstart send length mismatch pident evalue bitscore'"
+      ))
 
-    system(paste0(
-    "blastp -query iedb_query.fa -task blastp-short -db ~/antigen.garnish/iedb.bdb -evalue 100000000 -matrix BLOSUM62 -gapopen 11 -gapextend 1 -out iedbout.csv -num_threads ", parallel::detectCores(),
-    " -outfmt '10 qseqid sseqid qseq qstart qend sseq sstart send length mismatch pident evalue bitscore'"
-    ))
+    if (file.exists("Hu_nmer_fasta.fa"))
 
-    blastdt <- list.files(pattern = "iedbout\\.csv")
+      system(paste0(
+        "blastp -query Hu_nmer_fasta.fa -task blastp-short -db ~/antigen.garnish/iedb.bdb -evalue 100000000 -matrix BLOSUM62 -gapopen 11 -gapextend 1 -out iedbout_hu.csv -num_threads ", parallel::detectCores(),
+        " -outfmt '10 qseqid sseqid qseq qstart qend sseq sstart send length mismatch pident evalue bitscore'"
+      ))
 
-    if (length(blastdt) == 0 || file.info(blastdt)$size == 0){
+    blastdt <- list.files(pattern = "iedbout(_mu)?\\.csv") %>%
+                  file.info %>%
+                    data.table::as.data.table(keep.rownames = TRUE) %>%
+                      .[size != 0, rn]
+
+    if (length(blastdt) == 0){
       message(paste("No IEDB matches found, returning BLAST against reference proteome(s) only...."))
       return(dto)
     }
 
-    blastdt <- blastdt %>% data.table::fread %>%
-                    data.table::setnames(names(.),
+    if (length(blastdt == 2)) blastdt <- lapply(blastdt, data.table::fread) %>% data.table::rbindlist
+
+    if (length(blastdt == 1)) blastdt <- blastdt %>% data.table::fread
+
+    blastdt %>% data.table::setnames(names(.),
                                         c("nmer_uuid",
                                         "IEDB_anno",
                                         "nmer",
@@ -300,7 +309,7 @@ parallel::mclapply(dt[, spc %>% unique], function(s){
                 shortdt[, .SD %>% unique, .SDcols = c("nmer_uuid", "iedb_score")],
                                       by = "nmer_uuid",
                                       all.x = TRUE)
-                                      
+
     shortmerge <- "iedb_score"
 
   }
@@ -1047,7 +1056,8 @@ mcMap(function(x, y) (x %>% as.integer):(y %>% as.integer) %>%
 #' Perform neoepitope prediction.
 #'
 #' Perform ensemble neoepitope prediction on a data table of missense mutations, insertions, deletions or gene fusions using netMHC, mhcflurry, and mhcnuggets.
-#' See `list_mhc` for compatible MHC allele syntax.  Multiple MHC alleles for a single sample_id should be space separated.  See example.
+#' See `list_mhc` for compatible MHC allele syntax.  Multiple MHC alleles for a single sample_id should be space separated.
+#' Please keep **murine and human alleles in separate rows**, this will not affect computational speed but will ensure the correct IEDB file is chosen.  See example.
 #'
 #' @param path Path to input table ([acceptable formats](https://cran.r-project.org/web/packages/rio/vignettes/rio.html#supported_file_formats)).
 #' @param dt Data table. Input data table from `garnish_variants` or `garnish_jaffa`, or a data table in one of these forms:
@@ -1105,14 +1115,17 @@ mcMap(function(x, y) (x %>% as.integer):(y %>% as.integer) %>%
 #' * **mhcflurry_\***: mhcflurry_ prediction tool output
 #' * **mhcnuggets_\***: mhcnuggets_ prediction tool output
 #' * **Consensus_scores**: Average value of MHC binding affinity from all prediction tools that contributed output. 95\% confidence intervals are given by **Upper_CI**, **Lower_CI**.
-#' * **DAI**: Differential agretopicty index, see `garnish_summary` for an explanation of DAI.
+#' * **DAI**: Differential agretopicty index of missense and corresponding wild-type peptide, see `garnish_summary` for an explanation of DAI.
 #' * **BLAST_A**: Ratio of consensus binding affinity of mutant peptide / closest single AA mismatch from blastp results. Returned only if `blast = TRUE`.
+#' * **iedb_score**: R implementation of TCR recognition probability for peptide through summing of alignments in IEDB for corresponding organism.
+#' * **min_DAI**: Minimum of BLAST_A and DAI values, to provide the most conservative `fitness_score` value.
+#' * **fitness_score**: Product of min_DAI and iedb_score. The peptide with the highest value per sample is the dominant neoepitope.
 #'
 #' fitness model information [Luksza et al. *Nature* 2017](https://www.ncbi.nlm.nih.gov/pubmed/29132144):
 #' * **ResidueChangeClass**: Amino acid change class, eg hydrophobic to non-hydrophobic.
 #' * **A**: Component of the fitness model. Differential MHC affinity of mutant and closest wt peptide, equivalent to DAI if available, otherwise uses BLAST_A.
 #' * **R**: TCR recognition probability, determined by comparison to known epitopes in the IEDB and amino acid properties.
-#' * **fitness_score**: Product of A and R. The peptide with the highest value per sample is the dominant neoepitope.
+#' * **NeoantigenRecognitionPotential**: Product of A and R. 
 #'
 #' transcript description:
 #' * description

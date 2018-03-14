@@ -138,7 +138,7 @@ mhcdt[species == "mouse" & class == "I"] %>% print
 
 If using direct input to `garnish_predictions` with tables containing MHC alleles already, you may skip this step.
 
-`garnish_predictions` will also recognize "all" as an MHC type and will predict peptides across all supported alleles. This can be very computationally demanding so it is not recommended for a large number of samples or variants unless working on a cluster. Multiple MHC alleles for a single sample should be entered as a space separated string, e.g. "H-2Kb H-2-Db H-2-IAb".
+`garnish_predictions` will also recognize "all" as an MHC type and will predict peptides across all supported alleles. This can be very computationally demanding so it is not recommended for a large number of samples or variants unless working on a cluster. Multiple MHC alleles for a single sample should be entered as a space separated string, e.g. "H-2Kb H-2-Db H-2-IAb". To ensure the correct IEDB file is chosen later on for immune fitness modeling, separate rows of space separated strings for murine and human alleles must be used, even if the sample_id is the same.
 
 ```{r addmhc}
 

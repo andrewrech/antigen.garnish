@@ -66,6 +66,7 @@ library(antigen.garnish)
 
   # add space separated MHC types
   # see list_mhc() for nomenclature of supported alleles
+  # separate murine and human alleles into separate rows, even if same sample_id.
 
       .[, MHC := c("HLA-A*02:01 HLA-DRB1*14:67",
                    "H-2-Kb H-2-IAd",
