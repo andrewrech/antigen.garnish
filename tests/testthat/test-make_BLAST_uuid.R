@@ -65,6 +65,7 @@ testthat::test_that("make_BLAST_uuid", {
         .[, nmer_uuid := uuid::UUIDgenerate(), by = "nmer"] %>%
           .[, sample_id := "my_sample"] %>%
             .[, effect_type := "missense_variant"]
+
     dto <- make_BLAST_uuid(dti) %>% .[order(nmer)]
 
   # run test

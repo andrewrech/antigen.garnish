@@ -213,9 +213,9 @@ parallel::mclapply(dt[, spc %>% unique], function(s){
       return(dto)
     }
 
-    if (length(blastdt == 2)) blastdt <- lapply(blastdt, data.table::fread) %>% data.table::rbindlist
+    if (length(blastdt) == 2) blastdt <- lapply(blastdt, data.table::fread) %>% data.table::rbindlist
 
-    if (length(blastdt == 1)) blastdt <- blastdt %>% data.table::fread
+    if (length(blastdt) == 1) blastdt <- blastdt %>% data.table::fread
 
     blastdt %>% data.table::setnames(names(.),
                                         c("nmer_uuid",

@@ -327,9 +327,9 @@ dtlo <- lapply(8:15, function(nmerl){
 
   })
 
-  if (length(dtls) == 2) dtloo %<>% data.table::rbindlist
+  if (length(dtls) == 2) dtloo %<>% data.table::rbindlist %>% unique
 
-  if (length(dtls) == 1) dtloo <- dtloo[[1]]
+  if (length(dtls) == 1) dtloo <- dtloo[[1]] %>% unique
 
   return(dtloo)
 

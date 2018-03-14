@@ -14,9 +14,9 @@ testthat::test_that("garnish_fitness", {
 
     # run test
         testthat::expect_true(dt[!is.na(R), nmer %>% unique %>% length] == 252)
-        testthat::expect_true(dt %>% nrow == 308)
+        testthat::expect_true(dt %>% nrow == 560)
         testthat::expect_true(dt[, nmer %>% unique %>% length] == 308)
-        testthat::expect_true(dt[, (DAI * R) %>% mean(na.rm = TRUE) %>% signif(digits = 3)] == 0.583)
-        testthat::expect_true(dt[nchar(nmer) == 9, (DAI * R) %>% mean(na.rm = TRUE) %>% signif(digits = 3)] == 0.610)
+        testthat::expect_true(dt[, (DAI * R) %>% mean(na.rm = TRUE) %>% signif(digits = 3)] == 0.992)
+        testthat::expect_true(dt[nchar(nmer) == 9, (DAI * R) %>% mean(na.rm = TRUE) %>% signif(digits = 3)] == 0.935)
 
     })
