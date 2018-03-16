@@ -105,13 +105,14 @@ parallel::mclapply(dt[, spc %>% unique], function(s){
     }
 
     blastdt <- blastdt[, nmer := nmer %>%
-                      stringr::str_replace_all(pattern = "-", replacement = "")] %>%
+                      stringr::str_replace_all(pattern = "-|\\*", replacement = "")] %>%
                .[, WT.peptide := WT.peptide %>%
-                      stringr::str_replace_all(pattern = "-", replacement = "")] %>%
+                      stringr::str_replace_all(pattern = "-|\\*", replacement = "")] %>%
                     .[nchar(nmer) == nchar(WT.peptide) & mismatch_length == 1] %>%
                       .[!is.na(nmer) & !is.na(WT.peptide)]
 
-    blastdt <- blastdt[!nmer %like% "B|U" & !WT.peptide %like% "B|U"]
+    # remove uncertain AA calls
+    blastdt <- blastdt[!nmer %like% "B|U|X|Z" & !WT.peptide %like% "B|U|X|Z"]
 
     if (nrow(blastdt) == 0){
         message("No WT similarity matches found by blast.")
@@ -185,9 +186,9 @@ parallel::mclapply(dt[, spc %>% unique], function(s){
 
     dto <- data.table::rbindlist(list(dti, vdt), fill = TRUE, use.names = TRUE)
 
-  # sanity check to make sure no '-' slipped through from blastp
+  # sanity check to make sure no special symbols slipped through from blastp
 
-    dto <- dto[!nmer %like% "-"]
+    dto <- dto[!nmer %like% "-|\\*"]
 
   # run blastp-short for iedb matches
     message("Running blastp for iedb homology...")
@@ -235,11 +236,11 @@ parallel::mclapply(dt[, spc %>% unique], function(s){
                                         "evalue",
                                         "bitscore"))
 
-    blastdt <- blastdt[, nmer := nmer %>% stringr::str_replace_all(pattern = "-", replacement = "")] %>%
-                  .[, WT.peptide := WT.peptide %>% stringr::str_replace_all(pattern = "-", replacement = "")] %>%
+    blastdt <- blastdt[, nmer := nmer %>% stringr::str_replace_all(pattern = "-|\\*", replacement = "")] %>%
+                  .[, WT.peptide := WT.peptide %>% stringr::str_replace_all(pattern = "-|\\*", replacement = "")] %>%
                     .[!is.na(nmer) & !is.na(WT.peptide)]
 
-    blastdt <- blastdt[!nmer %like% "B|U" & !WT.peptide %like% "B|U"]
+    blastdt <- blastdt[!nmer %like% "B|U|X|Z" & !WT.peptide %like% "B|U|X|Z"]
 
     if (nrow(blastdt) == 0){
       message(paste("No IEDB matches found, returning BLAST against reference proteome(s) only...."))
@@ -375,7 +376,7 @@ parallel::mclapply(dt[, spc %>% unique], function(s){
 
   # sanity check to make sure no '-' slipped through from blastp
 
-    dto <- dto[!(nmer %like% "-")]
+    dto <- dto[!(nmer %like% "-|\\*")]
 
     return(dto)
 
