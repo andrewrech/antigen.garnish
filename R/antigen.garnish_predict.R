@@ -177,7 +177,7 @@ parallel::mclapply(dt[, spc %>% unique], function(s){
 
     vdt %>% .[, nmer := NULL] %>% .[, nmer_uuid := NULL]
 
-    vdt <- vdt[, nmer_l := nchar(nmer)] %>%
+    vdt <- vdt[, nmer_l := nchar(WT.peptide)] %>%
             data.table::setnames("WT.peptide", "nmer") %>%
               .[, nmer_uuid := uuid::UUIDgenerate(), by = c("nmer", "var_uuid")] %>%
                   unique %>%
@@ -365,7 +365,7 @@ parallel::mclapply(dt[, spc %>% unique], function(s){
 
     vdt[, effect_type := "IEDB_source"]
 
-    vdt <- vdt[, nmer_l := nchar(nmer)] %>%
+    vdt <- vdt[, nmer_l := nchar(WT.peptide)] %>%
             data.table::setnames("WT.peptide", "nmer") %>%
               .[, nmer_uuid := uuid::UUIDgenerate(), by = c("nmer", "var_uuid")] %>%
                   unique %>%
