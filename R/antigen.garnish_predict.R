@@ -111,6 +111,8 @@ parallel::mclapply(dt[, spc %>% unique], function(s){
                     .[nchar(nmer) == nchar(WT.peptide) & mismatch_length == 1] %>%
                       .[!is.na(nmer) & !is.na(WT.peptide)]
 
+    blastdt <- blastdt[!nmer %like% "B|U" & !WT.peptide %like% "B|U"]
+
     if (nrow(blastdt) == 0){
         message("No WT similarity matches found by blast.")
         return(dti)
@@ -130,11 +132,12 @@ parallel::mclapply(dt[, spc %>% unique], function(s){
                                   substitutionMatrix = "BLOSUM62",
                                   gapOpening = gap_open,
                                   gapExtension = gap_extend,
-                                  type = "local")
+                                  type = "local",
+                                  scoreOnly = TRUE)
 
-        return(al@score)
+        return(al)
 
-    }, mc.cores = parallel::detectCores()) %>% unlist
+    }) %>% unlist
 
     return(scores)
 
@@ -235,6 +238,8 @@ parallel::mclapply(dt[, spc %>% unique], function(s){
     blastdt <- blastdt[, nmer := nmer %>% stringr::str_replace_all(pattern = "-", replacement = "")] %>%
                   .[, WT.peptide := WT.peptide %>% stringr::str_replace_all(pattern = "-", replacement = "")] %>%
                     .[!is.na(nmer) & !is.na(WT.peptide)]
+
+    blastdt <- blastdt[!nmer %like% "B|U" & !WT.peptide %like% "B|U"]
 
     if (nrow(blastdt) == 0){
       message(paste("No IEDB matches found, returning BLAST against reference proteome(s) only...."))
