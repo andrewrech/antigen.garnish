@@ -1655,9 +1655,14 @@ up <- lapply(dtl, function(x){x[[2]]}) %>% unlist
      if ("blast_uuid" %chin% names(dt))
       dt[!is.na(BLAST_A), min_DAI := BLAST_A]
 
-    if ("DAI" %chin% names(dt)) dt[!is.na(DAI),
-                                  min_DAI := min(DAI, min_DAI, na.rm = TRUE),
-                                  by = 1:nrow(dt[!is.na(DAI)])]
+    if ("DAI" %chin% names(dt)){
+
+      v <- 1:nrow(dt[!is.na(DAI)])
+
+      dt[!is.na(DAI), min_DAI := min(DAI, min_DAI, na.rm = TRUE),
+                    by = v]
+
+    }
 
     if ("iedb_score" %chin% names(dt))
       dt[!is.na(iedb_score) & !is.na(min_DAI),
