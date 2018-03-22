@@ -1659,7 +1659,8 @@ up <- lapply(dtl, function(x){x[[2]]}) %>% unlist
 
       v <- 1:nrow(dt[!is.na(DAI)])
 
-      dt[!is.na(DAI), min_DAI := min(DAI, min_DAI, na.rm = TRUE),
+      if (nrow(dt[!is.na(DAI)]) != 0)
+        dt[!is.na(DAI), min_DAI := min(DAI, min_DAI, na.rm = TRUE),
                     by = v]
 
     }
