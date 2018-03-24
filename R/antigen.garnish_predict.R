@@ -112,7 +112,7 @@ parallel::mclapply(dt[, spc %>% unique], function(s){
                       .[!is.na(nmer) & !is.na(WT.peptide)]
 
     # remove uncertain AA calls
-    blastdt <- blastdt[!nmer %like% "B|U|X|Z" & !WT.peptide %like% "B|U|X|Z"]
+    blastdt <- blastdt[!nmer %like% "B|U|X|Z|O|J" & !WT.peptide %like% "B|U|X|Z|O|J"]
 
     if (nrow(blastdt) == 0){
         message("No WT similarity matches found by blast.")
@@ -240,7 +240,7 @@ parallel::mclapply(dt[, spc %>% unique], function(s){
                   .[, WT.peptide := WT.peptide %>% stringr::str_replace_all(pattern = "-|\\*", replacement = "")] %>%
                     .[!is.na(nmer) & !is.na(WT.peptide)]
 
-    blastdt <- blastdt[!nmer %like% "B|U|X|Z" & !WT.peptide %like% "B|U|X|Z"]
+    blastdt <- blastdt[!nmer %like% "B|U|X|Z|O|J" & !WT.peptide %like% "B|U|X|Z|O|J"]
 
     if (nrow(blastdt) == 0){
       message(paste("No IEDB matches found, returning BLAST against reference proteome(s) only...."))
