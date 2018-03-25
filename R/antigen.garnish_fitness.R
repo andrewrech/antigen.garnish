@@ -10,7 +10,7 @@
 #' @return A data table with added fitness model parameter columns:
 #' * **ResidueChangeClass**: Amino acid change class, eg hydrophobic to non-hydrophobic.
 #' * **R**: TCR recognition probability, determined by comparison to known epitopes in the IEDB.
-#' * **NeoantigenRecognitionPotential**: Neoantigen Recognition Potential calculated by the model. Original validation was limited to 9mers, class I, and human IEDB epitopes. The model will be applied to all peptides, class I and II.
+#' * **NeoantigenRecognitionPotential**: Neoantigen Recognition Potential calculated by the model.
 #'
 #' @export garnish_fitness
 #' @md
