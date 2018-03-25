@@ -1098,7 +1098,7 @@ mcMap(function(x, y) (x %>% as.integer):(y %>% as.integer) %>%
 #' @param humandb Character vector. One of "GRCh37" or "GRCh38".
 #' @param mousedb Character vector. One of "GRCm37" or "GRCm38".
 #' @param save2wd Logical. Save a copy of garnish_predictions output to the working directory as "ag_output.txt"? Default is `FALSE`.
-#' @param remove_wt Logical. Check all nmers peptides generated against wt peptidome and remove matches. Default is `TRUE`. If investigating wild-type sequences, set this to `FALSE`.
+#' @param remove_wt Logical. Check all nmers peptides generated against wt peptidome and remove matches? Default is `TRUE`. If investigating wild-type sequences, set this to `FALSE`.
 #' @return A data table of binding predictions including:
 #' * **cDNA_seq**: mutant cDNA sequence
 #' * **cDNA_locs**: starting index of mutant cDNA
