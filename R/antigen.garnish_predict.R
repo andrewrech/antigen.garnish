@@ -2,7 +2,7 @@
 
 
 ## ---- make_BLAST_uuid
-#' Internal function to categorize mutant and wild-type peptides by similarity using `BLAST` to calculate neoepitope amplitude and IEDB homology.
+#' Internal function to categorize mutant and wild-type peptides by similarity using `BLAST` to calculate neoepitope amplitude and homology to IEDB antigens.
 #'
 #' @param dti Data table of nmers.
 #'
@@ -191,7 +191,7 @@ parallel::mclapply(dt[, spc %>% unique], function(s){
     dto <- dto[!nmer %like% "-|\\*"]
 
   # run blastp-short for iedb matches
-    message("Running blastp for iedb homology...")
+    message("Running blastp for homology to IEDB antigens.")
 
     if (file.exists("Ms_nmer_fasta.fa"))
 
@@ -298,24 +298,19 @@ parallel::mclapply(dt[, spc %>% unique], function(s){
     }
 
   # return iedb_score for short matches only before continuing
-
+  shortmerge <- NULL
   shortdt <- blastdt[nchar(WT.peptide) < 7 & nchar(nmer) > 7]
 
   blastdt %<>% .[nchar(WT.peptide) > 7 & nchar(nmer) > 7]
 
-  if (nrow(shortdt) != 0) shortdt <- shortdt[!nmer_uuid %chin% blastdt[, nmer_uuid %>% unique]]
 
-  # add short matches only here if nmer_uuid does not otherwise exist
+  if (nrow(shortdt) != 0) {
 
-  shortmerge <- NULL
-
-  if (nrow(shortdt) != 0){
-
+  	shortdt <- shortdt[!nmer_uuid %chin% blastdt[, nmer_uuid %>% unique]]
     dto <- merge(dto,
                 shortdt[, .SD %>% unique, .SDcols = c("nmer_uuid", "iedb_score")],
                                       by = "nmer_uuid",
                                       all.x = TRUE)
-
     shortmerge <- "iedb_score"
 
   }
@@ -1131,7 +1126,7 @@ mcMap(function(x, y) (x %>% as.integer):(y %>% as.integer) %>%
 #' * **fitness_score**: Product of min_DAI and iedb_score. The peptide with the highest value per sample is the dominant neoepitope.
 #'
 #' fitness model information [Luksza et al. *Nature* 2017](https://www.ncbi.nlm.nih.gov/pubmed/29132144):
-#' * **ResidueChangeClass**: Amino acid change class, eg hydrophobic to non-hydrophobic.
+#' * **ResidueChangeClass**: Amino acid change class (e.g. hydrophobic, non-hydrophobic).
 #' * **A**: Component of the fitness model. Differential MHC affinity of mutant and closest wt peptide, equivalent to DAI if available, otherwise uses BLAST_A.
 #' * **R**: TCR recognition probability, determined by comparison to known epitopes in the IEDB and amino acid properties.
 #' * **NeoantigenRecognitionPotential**: Product of A and R.
@@ -1246,8 +1241,7 @@ garnish_predictions <- function(dt = NULL,
   on.exit({
     message("Removing temporary files")
     try(
-      list.files(pattern = "(_nmer_fasta\\.fa)|(iedb_query.fa)|((netMHC|mhcflurry|mhcnuggets).*_[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}\\.csv)") %>% file.remove
-    )
+      list.files(pattern = "(_nmer_fasta\\.fa)|(iedb_query.fa)|((netMHC|mhcflurry|mhcnuggets).*_[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}\\.csv)") %>% file.remove, silent = TRUE)
     try(
     utils::download.file("http://get.rech.io/antigen.garnish.usage.txt",
                          destfile = "/dev/null",

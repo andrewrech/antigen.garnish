@@ -8,7 +8,7 @@
 #' @param k Fitness model parameter. Steepness of the binding curve at `a`.
 #'
 #' @return A data table with added fitness model parameter columns:
-#' * **ResidueChangeClass**: Amino acid change class, eg hydrophobic to non-hydrophobic.
+#' * **ResidueChangeClass**: Amino acid change class (e.g. hydrophobic, non-hydrophobic).
 #' * **R**: TCR recognition probability, determined by comparison to known epitopes in the IEDB.
 #' * **NeoantigenRecognitionPotential**: Neoantigen Recognition Potential calculated by the model.
 #'
@@ -22,14 +22,11 @@ garnish_fitness <- function(dt,
     on.exit({
           message("Removing temporary files")
           try(
-          list.files(pattern = "neoepitopes.txt") %>% file.remove
-          )
+          list.files(pattern = "neoepitopes.txt") %>% file.remove, silent = TRUE)
           try(
-          list.files(pattern = "fitness_model_output.txt") %>% file.remove
-          )
+          list.files(pattern = "fitness_model_output.txt") %>% file.remove, silent = TRUE)
           try(
-          unlink(list.files(pattern = "fitness_model_[0-9]+"), recursive = TRUE, force = TRUE)
-          )
+          unlink(list.files(pattern = "fitness_model_[0-9]+"), recursive = TRUE, force = TRUE), silent = TRUE)
                               })
 
   # check input

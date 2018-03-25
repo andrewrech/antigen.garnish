@@ -83,7 +83,7 @@ A data table of binding predictions including:
 
 fitness model information \href{https://www.ncbi.nlm.nih.gov/pubmed/29132144}{Luksza et al. Nature 2017}:
 \itemize{
-\item \strong{ResidueChangeClass}: Amino acid change class, eg hydrophobic to non-hydrophobic.
+\item \strong{ResidueChangeClass}: Amino acid change class (e.g. hydrophobic, non-hydrophobic).
 \item \strong{A}: Component of the fitness model. Differential MHC affinity of mutant and closest wt peptide, equivalent to DAI if available, otherwise uses BLAST_A.
 \item \strong{R}: TCR recognition probability, determined by comparison to known epitopes in the IEDB and amino acid properties.
 \item \strong{NeoantigenRecognitionPotential}: Product of A and R.
