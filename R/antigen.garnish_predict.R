@@ -297,7 +297,7 @@ parallel::mclapply(dt[, spc %>% unique], function(s){
       )
     }
 
-  # return iedb_score for short matches only before continuining
+  # return iedb_score for short matches only before continuing
 
   shortdt <- blastdt[nchar(WT.peptide) < 7 & nchar(nmer) > 7]
 
@@ -305,7 +305,7 @@ parallel::mclapply(dt[, spc %>% unique], function(s){
 
   if (nrow(shortdt) != 0) shortdt <- shortdt[!nmer_uuid %chin% blastdt[, nmer_uuid %>% unique]]
 
-  # add short matches only here. bank variable to account for downstream merge columns
+  # add short matches only here if nmer_uuid does not otherwise exist
 
   shortmerge <- NULL
 
