@@ -17,7 +17,8 @@ make_BLAST_uuid <- function(dti){
         list.files(pattern = "(Ms|Hu)_nmer_fasta|iedb_query|blastpout|iedbout") %>% file.remove
         )
                             })
-
+                            
+if (identical(Sys.getenv("TESTTHAT"), "true")) setwd("~")
 
 if (suppressWarnings(system('which blastp 2> /dev/null', intern = TRUE)) %>%
           length == 0){
@@ -592,7 +593,8 @@ nugdt <- lapply(f_mhcnuggets, function(x){
 
         # dai_uuid is always length 2
         # calculate DAI by dividing
-        # correct WT affinity per Lukza et al.
+        # correct WT affinity per Lukza et al., "* (1 / (1 + (0.0003 * Consensus_scores[2])))".
+        # only affects large WT kD that would otherwise overestimate amplitude value (affinity prediction algorithms are right skewed.)
 
         dt[!dai_uuid %>% is.na,
            DAI := (Consensus_scores[2] /
