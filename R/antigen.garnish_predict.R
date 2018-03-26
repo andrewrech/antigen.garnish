@@ -283,7 +283,6 @@ parallel::mclapply(dt[, spc %>% unique], function(s){
     blastdt[, highest := max(SW), by = "nmer_uuid"]
 
     blastdt <- blastdt[highest == SW] %>%
-              .[!(nmer %like% "-")] %>%
                 .[, highest := NULL]
 
     # account for IEDB matches but none long enough to pass to prediction
