@@ -203,8 +203,8 @@ dtlo <- lapply(8:15, function(nmerl){
 
     dti[, spc := NULL]
 
-    if (db == "Ms") db <- "~/antigen.garnish/Mu_iedb.fasta"
-    if (db == "Hu") db <- "~/antigen.garnish/iedb.bdb"
+    if (db == "Ms") db <- "antigen.garnish/Mu_iedb.fasta"
+    if (db == "Hu") db <- "antigen.garnish/iedb.bdb"
 
     dti <- dti[, ID := link_uuid, by = 1:nrow(dti)]
 
@@ -258,6 +258,14 @@ dtlo <- lapply(8:15, function(nmerl){
         aa %>% Biostrings::writeXStringSet(filename)
 
     # run blastp on fasta
+    # https://www.ncbi.nlm.nih.gov/books/NBK279684/
+    # flags here taken from Lukza et al.:
+    # -task blastp-short optimized blast for <30 AA, uses larger word sizes
+    # -matrix use BLOSUM62 sub substitution matrix
+    # -evalue expect value for saving hits
+    # -gapopen, -gapextend, numeric cost to a gapped alignment and
+    # -outfmt, out put a csv with colums, seqids for query and database seuqnence, start and end of sequence match,
+    # length of overlap, number of mismatches, percent identical, expected value, bitscore
 
       system(
         paste(

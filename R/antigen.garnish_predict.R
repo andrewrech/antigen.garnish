@@ -53,16 +53,22 @@ parallel::mclapply(dt[, spc %>% unique], function(s){
   })
 
   # run blastp-short for near matches
+  # https://www.ncbi.nlm.nih.gov/books/NBK279684/
+  # flags here indicate:
+  # -task blastp-short optimized blast for <30 AA, uses larger word sizes
+  # -outfmt, out put a csv with colums, seqids for query and database seuqnence, start and end of sequence match,
+  # length of overlap, number of mismatches, percent identical, expected value, bitscore
+  # PAM30 is default substitution matrix here
 
   if (file.exists("Ms_nmer_fasta.fa"))
     system(paste0(
-      "blastp -query Ms_nmer_fasta.fa -task blastp-short -db ~/antigen.garnish/mouse.bdb -out msblastpout.csv -num_threads ", parallel::detectCores(),
+      "blastp -query Ms_nmer_fasta.fa -task blastp-short -db antigen.garnish/mouse.bdb -out msblastpout.csv -num_threads ", parallel::detectCores(),
       " -outfmt '10 qseqid sseqid qseq qstart qend sseq sstart send length mismatch pident evalue bitscore'"
       ))
 
   if (file.exists("Hu_nmer_fasta.fa"))
     system(paste0(
-      "blastp -query Hu_nmer_fasta.fa -task blastp-short -db ~/antigen.garnish/human.bdb -out hublastpout.csv -num_threads ", parallel::detectCores(),
+      "blastp -query Hu_nmer_fasta.fa -task blastp-short -db antigen.garnish/human.bdb -out hublastpout.csv -num_threads ", parallel::detectCores(),
       " -outfmt '10 qseqid sseqid qseq qstart qend sseq sstart send length mismatch pident evalue bitscore'"
     ))
 
@@ -108,11 +114,12 @@ parallel::mclapply(dt[, spc %>% unique], function(s){
                       stringr::str_replace_all(pattern = "-|\\*", replacement = "")] %>%
                .[, WT.peptide := WT.peptide %>%
                       stringr::str_replace_all(pattern = "-|\\*", replacement = "")] %>%
+                      .[nchar(nmer) != 0 & nchar(WT.peptide) != 0] %>%
                     .[nchar(nmer) == nchar(WT.peptide) & mismatch_length == 1] %>%
                       .[!is.na(nmer) & !is.na(WT.peptide)]
 
-    # remove uncertain AA calls
-    blastdt <- blastdt[!nmer %like% "B|U|X|Z|O|J" & !WT.peptide %like% "B|U|X|Z|O|J"]
+    # remove uncertain AA calls/whitelist cannonical AA
+    blastdt <- blastdt[nmer %like% "^[ARNDCQEGHILKMFPSTWYV]+$" & WT.peptide %like% "^[ARNDCQEGHILKMFPSTWYV]+$"]
 
     if (nrow(blastdt) == 0){
         message("No WT similarity matches found by blast.")
@@ -144,7 +151,11 @@ parallel::mclapply(dt[, spc %>% unique], function(s){
 
   }
 
+  message("Calculating local alignment to WT peptides.")
+
   blastdt[, SW := SW_align(nmer, WT.peptide)]
+
+  message("Done.")
 
   blastdt[, highest := max(SW), by = "nmer_uuid"]
 
@@ -186,24 +197,28 @@ parallel::mclapply(dt[, spc %>% unique], function(s){
 
     dto <- data.table::rbindlist(list(dti, vdt), fill = TRUE, use.names = TRUE)
 
-  # sanity check to make sure no special symbols slipped through from blastp
-
-    dto <- dto[!nmer %like% "-|\\*"]
-
   # run blastp-short for iedb matches
+  # https://www.ncbi.nlm.nih.gov/books/NBK279684/
+  # flags here taken from Lukza et al.:
+  # -task blastp-short optimized blast for <30 AA, uses larger word sizes
+  # -matrix use BLOSUM62 sub substitution matrix
+  # -evalue expect value for saving hits
+  # -gapopen, -gapextend, numeric cost to a gapped alignment and
+  # -outfmt, out put a csv with colums, seqids for query and database seuqnence, start and end of sequence match,
+  # length of overlap, number of mismatches, percent identical, expected value, bitscore
     message("Running blastp for homology to IEDB antigens.")
 
     if (file.exists("Ms_nmer_fasta.fa"))
 
       system(paste0(
-        "blastp -query Ms_nmer_fasta.fa -task blastp-short -db ~/antigen.garnish/Mu_iedb.fasta -evalue 100000000 -matrix BLOSUM62 -gapopen 11 -gapextend 1 -out iedbout_mu.csv -num_threads ", parallel::detectCores(),
+        "blastp -query Ms_nmer_fasta.fa -task blastp-short -db antigen.garnish/Mu_iedb.fasta -evalue 100000000 -matrix BLOSUM62 -gapopen 11 -gapextend 1 -out iedbout_mu.csv -num_threads ", parallel::detectCores(),
         " -outfmt '10 qseqid sseqid qseq qstart qend sseq sstart send length mismatch pident evalue bitscore'"
       ))
 
     if (file.exists("Hu_nmer_fasta.fa"))
 
       system(paste0(
-        "blastp -query Hu_nmer_fasta.fa -task blastp-short -db ~/antigen.garnish/iedb.bdb -evalue 100000000 -matrix BLOSUM62 -gapopen 11 -gapextend 1 -out iedbout_hu.csv -num_threads ", parallel::detectCores(),
+        "blastp -query Hu_nmer_fasta.fa -task blastp-short -db antigen.garnish/iedb.bdb -evalue 100000000 -matrix BLOSUM62 -gapopen 11 -gapextend 1 -out iedbout_hu.csv -num_threads ", parallel::detectCores(),
         " -outfmt '10 qseqid sseqid qseq qstart qend sseq sstart send length mismatch pident evalue bitscore'"
       ))
 
@@ -238,16 +253,20 @@ parallel::mclapply(dt[, spc %>% unique], function(s){
 
     blastdt <- blastdt[, nmer := nmer %>% stringr::str_replace_all(pattern = "-|\\*", replacement = "")] %>%
                   .[, WT.peptide := WT.peptide %>% stringr::str_replace_all(pattern = "-|\\*", replacement = "")] %>%
-                    .[!is.na(nmer) & !is.na(WT.peptide)]
+                    .[!is.na(nmer) & !is.na(WT.peptide) & nchar(nmer) > 2 & nchar(WT.peptide) > 2]
 
-    blastdt <- blastdt[!nmer %like% "B|U|X|Z|O|J" & !WT.peptide %like% "B|U|X|Z|O|J"]
+    blastdt <- blastdt[nmer %like% "^[ARNDCQEGHILKMFPSTWYV]+$" & WT.peptide %like% "^[ARNDCQEGHILKMFPSTWYV]+$"]
 
     if (nrow(blastdt) == 0){
       message(paste("No IEDB matches found, returning BLAST against reference proteome(s) only...."))
       return(dto)
     }
 
+    message("Summing IEDB local alignments...")
+
     blastdt[, SW := SW_align(nmer, WT.peptide)]
+
+    message("Done.")
 
     modeleR <- function(als,
                             a=26,
@@ -287,7 +306,6 @@ parallel::mclapply(dt[, spc %>% unique], function(s){
 
     # account for IEDB matches but none long enough to pass to prediction
     if (nrow(blastdt[nchar(WT.peptide) > 7 & nchar(nmer) > 7]) == 0){
-      message(paste("Only short (<8AA) IEDB matches found, returning iedb_score without passing to affinity prediction."))
       return(
         merge(dto,
         blastdt[, .SD %>% unique, .SDcols = c("nmer_uuid", "iedb_score")],
@@ -319,8 +337,8 @@ parallel::mclapply(dt[, spc %>% unique], function(s){
   blastdt %<>% unique(by = c("nmer_uuid", "WT.peptide"))
 
   # get full IEDB ref here
-  if (file.exists("Hu_nmer_fasta.fa")) db <- "~/antigen.garnish/iedb.fasta"
-  if (file.exists("Ms_nmer_fasta.fa")) db <- "~/antigen.garnish/Mu_iedb.fasta"
+  if (file.exists("Hu_nmer_fasta.fa")) db <- "antigen.garnish/iedb.fasta"
+  if (file.exists("Ms_nmer_fasta.fa")) db <- "antigen.garnish/Mu_iedb.fasta"
 
   fa <- Biostrings::readAAStringSet(db)
   f <- fa %>% data.table::as.data.table %>% .[, x]
@@ -367,10 +385,6 @@ parallel::mclapply(dt[, spc %>% unique], function(s){
                     .[, pep_type := "wt"]
 
     dto <- data.table::rbindlist(list(dto, vdt), fill = TRUE, use.names = TRUE)
-
-  # sanity check to make sure no '-' slipped through from blastp
-
-    dto <- dto[!(nmer %like% "-|\\*")]
 
     return(dto)
 
