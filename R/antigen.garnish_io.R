@@ -38,13 +38,13 @@
 #' * **classic_top_score**: sum of the top three mutant `nmer` affinity scores (see below)
 #' * **alt_neos**: alternatively defined neoepitopes (ADNs); defined as mutant `nmers` predicted to bind MHC with greatly improved affinity relative to non-mutated counterparts (10x for MHC class I and 4x for MHC class II) (see below)
 #' * **alt_top_score**: sum of the top three mutant `nmer` differential agretopicity indices; differential agretopicity index (DAI) is the ratio of MHC binding affinity between mutant and wt peptide (see below). If the peptide is fusion- or frameshift-derived, the binding affinity of the closest wt peptide determined by BLAST is used to calculate DAI.
-#' * **priority_neos**: mutant peptides that meet both ADN and CDN criteria, and if applicable, have a fitness_score of >= 1.
+#' * **priority_neos**: mutant peptides that meet both ADN and CDN criteria, and if applicable, have a NeoantigenRecognitionPotential of >= 1.
 #' * **fs_neos**: mutant `nmers` derived from frameshift variants predicted to bind MHC with < 500nM \eqn{IC_{50}}
 #' * **fusion_neos**: mutant `nmers` derived from fusion variants predicted to bind MHC with < 500nM \eqn{IC_{50}}
 #' * **nmers**: total mutant `nmers` created
 #' * **predictions**: wt and mutant predictions performed
 #' * **mhc_binders**: `nmers` predicted to at least minimally bind MHC (< 5000nM \eqn{IC_{50}})
-#' * **fitness_scores**: Sum of the top 3 fitness_score values per sample. See `?garnish_fitness`.
+#' * **fitness_scores**: Sum of the top 3 NeoantigenRecognitionPotentials per sample. See `?garnish_fitness`.
 #' * **variants**: total genomic variants evaluated
 #' * **transcripts**: total transcripts evaluated
 #'
@@ -85,8 +85,7 @@ garnish_summary <- function(dt){
     data.table::copy %>%
     unique(by = c("pep_type",
                   "MHC",
-                  "nmer",
-                  "sample_id"))
+                  "nmer"))
 
   # set NA DAI to 0 to filter Inf and -Inf
     dt[, DAI := DAI %>% as.numeric]
@@ -188,31 +187,31 @@ garnish_summary <- function(dt){
 
 # get fitness scores if available
 
-  if ("fitness_score" %chin% names(dt)){
+  if ("NeoantigenRecognitionPotential" %chin% names(dt)){
 
     for (i in dt[, sample_id %>% unique]){
 
       dtn[sample_id == i,
         fitness_scores_class_I :=
-            dt[class == "I" & !is.na(fitness_score) & sample_id == i,
-              fitness_score %>% sum_top_v]]
+            dt[class == "I" & !is.na(NeoantigenRecognitionPotential) & sample_id == i,
+              NeoantigenRecognitionPotential %>% sum_top_v]]
 
       dtn[sample_id == i,
         fitness_scores_class_II :=
-          dt[class == "II" & !is.na(fitness_score) & sample_id == i,
-            fitness_score %>% sum_top_v]]
+          dt[class == "II" & !is.na(NeoantigenRecognitionPotential) & sample_id == i,
+            NeoantigenRecognitionPotential %>% sum_top_v]]
 
       dtn[sample_id == i,
         priority_neos_class_I :=
           dt[class == "I" &  DAI > 10 & Consensus_scores < 50 &
-          (nchar(nmer) != 9 || fitness_score >= 1) &
+          (nchar(nmer) != 9 || NeoantigenRecognitionPotential >= 1) &
           sample_id == i,
             nmer_uuid %>% length]]
 
       dtn[sample_id == i,
         priority_neos_class_II :=
           dt[class == "II" &  DAI > 10 & Consensus_scores < 50 &
-            (nchar(nmer) != 9 || fitness_score >= 1) &
+            (nchar(nmer) != 9 || NeoantigenRecognitionPotential >= 1) &
               sample_id == i,
                 nmer_uuid %>% length]]
 
@@ -304,10 +303,6 @@ ivfdtl <- parallel::mclapply(vcfs %>% seq_along, function(ivf){
                       sort %>%
                       paste(collapse = "_") %>%
                       stringr::str_replace("\\.bam", "")
-
-  # account for no bam names in header, as with VarScan
-      if (sample_id == "") sample_id <- basename(vcfs[ivf])
-
   # extract vcf type
       vcf_type <- vcf@meta %>%
         unlist %>%
@@ -347,8 +342,6 @@ ivfdtl <- parallel::mclapply(vcfs %>% seq_along, function(ivf){
     vdt %<>% .[!se %likef% "WARNING_TRANSCRIPT_INCOMPLETE"]
     vdt %<>% .[!se %likef% "WARNING_TRANSCRIPT_MULTIPLE_STOP_CODONS"]
     vdt %<>% .[!se %likef% "WARNING_TRANSCRIPT_NO_START_CODON"]
-
-    if (vdt %>% nrow < 1) return(data.table::data.table(sample_id = sample_id))
 
     # filter out NA
     vdt %<>% .[!ensembl_transcript_id %>% is.na &
@@ -429,22 +422,6 @@ sample_ids <- lapply(ivfdtl, function(dt){
                     dt$sample_id %>% unique
                       }) %>% unique
 
-    # drop vcfs that had no variants before intersect or union attempts to prevent .SDcols bugs
-    drop <- lapply(ivfdtl, function(x){
-
-      names(x) %>% length
-
-    }) %>% unlist
-
-    if ((drop == 1) %>% any){
-
-      message(paste(vcfs[which(drop == 1)], "returned no suitable variants and will be excluded from output.", sep = " "))
-
-      ivfdtl <- ivfdtl[which(drop != 1)]
-
-    }
-
-
     # return an intersected data table of variants
 
       sdt <- parallel::mclapply(sample_ids,
@@ -464,22 +441,8 @@ sdt <- lapply(ivfdtl, function(dt){
         if (ivfdtl[sdt] %>% length == 1)
           return(ivfdtl[[sdt %>% which]])
 
-        if ((ivfdtl[sdt] %>% length > 1) & intersect == TRUE) {
-
-          x <- ivfdtl[sdt] %>% Reduce(merge_vcf, .)
-
-          if (nrow(x) > 0) return(x)
-
-          if (nrow(x) == 0){
-
-            message(paste("No variants from", sn, "intersect. Returning union."))
-
-            return(ivfdtl[sdt] %>% Reduce(union_vcf, .))
-
-          }
-
-        }
-
+        if ((ivfdtl[sdt] %>% length > 1) & intersect == TRUE)
+          return(ivfdtl[sdt] %>% Reduce(merge_vcf, .))
 
         if ((ivfdtl[sdt] %>% length > 1) & intersect == FALSE)
           return(ivfdtl[sdt] %>% Reduce(union_vcf, .))
@@ -585,10 +548,10 @@ garnish_plot <- function(input){
           plot.background = ggplot2::element_rect(fill = "transparent", colour = NA)) +
         ggplot2::theme(
           plot.margin=grid::unit(c(0, 0, 0, 0 ), "cm")) +
+        ggplot2::xlab("") +
+        ggplot2::ylab("peptides") +
         ggplot2::theme(
           strip.text.x = ggplot2::element_text(size = ggplot2::rel(2)))
-
-      gplot_labs <- ggplot2::labs(x = "", y = "peptides")
 
       gplot_col <-   c("#ff80ab",
                        "#b388ff",
@@ -627,7 +590,7 @@ garnish_plot <- function(input){
         }
       }
 
-    return(gg_dt)
+    return(gplot_names)
 
     }
 
@@ -690,9 +653,9 @@ garnish_plot <- function(input){
          Consensus_scores < 1000,
          type := "fusion"]
 
-    if ("fitness_score" %chin% names(dt))
+    if ("NeoantigenRecognitionPotential" %chin% names(dt))
       dt[Consensus_scores < 50 & DAI > 10 &
-          (fitness_score >= 1 | nchar(nmer) != 9),
+          (NeoantigenRecognitionPotential >= 1 | nchar(nmer) != 9),
             type := "priority"]
 
     dt <- dt[!is.na(type)]
@@ -727,7 +690,6 @@ garnish_plot <- function(input){
                               col = "black", position = "dodge") +
             ggplot2::facet_wrap(~MHC) +
             gplot_theme +
-            gplot_labs +
             ggplot2::theme(legend.position = "bottom",
                            legend.title = ggplot2::element_blank()) +
             ggplot2::scale_fill_manual(values = gplot_col) +
@@ -762,7 +724,6 @@ garnish_plot <- function(input){
                                 col = "black", position = "dodge") +
               ggplot2::facet_wrap(~MHC) +
               gplot_theme +
-              gplot_labs +
               ggplot2::theme(legend.position = "bottom",
                              legend.title = ggplot2::element_blank()) +
               ggplot2::scale_fill_manual(values = gplot_col[1:3]) +
@@ -797,7 +758,6 @@ garnish_plot <- function(input){
                                 col = "black", position = "dodge") +
               ggplot2::facet_wrap(~MHC) +
               gplot_theme +
-              gplot_labs +
               ggplot2::theme(legend.position = "bottom",
                              legend.title = ggplot2::element_blank()) +
               ggplot2::scale_fill_manual(values = gplot_col[1:3]) +
@@ -816,8 +776,7 @@ garnish_plot <- function(input){
       score_dt <- input[[i]] %>% garnish_summary
       cols <- c("sample_id", names(score_dt) %include% "score")
       score_dt <- score_dt[, .SD, .SDcols = cols]
-      score_dt %<>% data.table::melt(id.vars = "sample_id",
-                                     measure.vars = names(score_dt) %include% "score")
+      score_dt %<>% data.table::melt(id.vars = "sample_id")
 
       score_dt[, MHC := "MHC Class I"] %>%
         .[variable %like% "class_II", MHC := "MHC Class II"] %>%
@@ -826,9 +785,11 @@ garnish_plot <- function(input){
 
       if (score_dt %>% stats::na.omit %>% nrow < 1) return(NULL)
 
+      score_dt %<>% data.table::melt(id.vars = "sample_id", measure.vars = names(score_dt) %include% "score")
+
       score_dt <- score_dt[!(MHC == "MHC Class II" & variable == "fitness_scores")]
 
-      score_dt %<>% gplot_names
+      gg_dt %<>% gplot_names
 
       if (nrow(score_dt[variable == "classic_top_score"]) != 0){
 
@@ -838,7 +799,6 @@ garnish_plot <- function(input){
            ggplot2::facet_wrap(~MHC) +
            ggplot2::scale_fill_manual(values = gplot_col[1]) +
            gplot_theme +
-           ggplot2::labs(x = "", y = "Score") +
            ggplot2::theme(legend.position = "none") +
            ggplot2::ggtitle(paste0("ag_classic_top_scores"))
 
@@ -856,7 +816,6 @@ garnish_plot <- function(input){
            ggplot2::facet_wrap(~MHC) +
            ggplot2::scale_fill_manual(values = gplot_col[2]) +
            gplot_theme +
-           ggplot2::labs(x = "", y = "Score") +
            ggplot2::theme(legend.position = "none") +
            ggplot2::ggtitle(paste0("ag_alt_top_scores"))
 
@@ -874,7 +833,6 @@ garnish_plot <- function(input){
            ggplot2::facet_wrap(~MHC) +
            ggplot2::scale_fill_manual(values = gplot_col[3]) +
            gplot_theme +
-           ggplot2::labs(x = "", y = "Score") +
            ggplot2::theme(legend.position = "none") +
            ggplot2::ggtitle(paste0("ag_fitness_scores"))
 

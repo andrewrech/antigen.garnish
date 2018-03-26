@@ -40,12 +40,11 @@ class Neoantigen(object):
 
 
 
-    def __init__(self, params, nl):
+    def __init__(self, params):
         '''
         Constructor
         '''
         pparams=params
-        n=int(nl)
         if len(params)==9:
             pparams.append("1")
         [nid,mid,sample,wtPeptide,mtPeptide,allele,wtScore,mtScore,HLA,chopscore]=params
@@ -58,7 +57,7 @@ class Neoantigen(object):
         [res1,res2]=filter(lambda el: el[0]!=el[1],zip(self.wtPeptide,self.mtPeptide))[0]
         self.residueChange=Neoantigen.residueChangeClass(res1, res2)
 
-        self.position=filter(lambda el: el[1], map(lambda i: [i,self.mtPeptide[i]!=self.wtPeptide[i]],range(0,n)))
+        self.position=filter(lambda el: el[1], map(lambda i: [i,self.mtPeptide[i]!=self.wtPeptide[i]],range(0,nmerl)))
         self.position=self.position[0][0]+1
         self.allele=allele
         self.HLA=HLA

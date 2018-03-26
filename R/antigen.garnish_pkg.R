@@ -33,7 +33,6 @@
 #' @import parallel
 #' @import stringr
 #' @import testthat
-#' @import knitr
 #' @importFrom rio import
 #' @importFrom ShortRead sread readFasta
 #' @importFrom Biostrings DNAString translate

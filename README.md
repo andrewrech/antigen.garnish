@@ -1,4 +1,4 @@
-[![Build Status](http://18.194.224.158:8080/buildStatus/icon?job=antigen.garnish)](http://18.194.224.158:8080/job/antigen.garnish/lastBuild/consoleFull) [![codecov.io](https://codecov.io/github/andrewrech/antigen.garnish/coverage.svg?branch=master)](https://codecov.io/github/andrewrech/antigen.garnish?branch=master) ![](https://img.shields.io/badge/version-0.0.5-blue.svg)
+[![Build Status](http://get.rech.io/antigen.garnish_status.svg)](http://get.rech.io/antigen.garnish_status.html) [![codecov.io](https://codecov.io/github/andrewrech/antigen.garnish/coverage.svg?branch=master)](https://codecov.io/github/andrewrech/antigen.garnish?branch=master) ![](https://img.shields.io/badge/version-0.0.5-blue.svg)
 
 
 # antigen.garnish
@@ -35,7 +35,7 @@ An R package for [neoepitope](http://science.sciencemag.org/content/348/6230/69)
 ### Install prediction tools and `antigen.garnish`
 
 ```sh
-curl -fsSL http://get.rech.io/antigen.garnish.sh | sudo sh
+curl -fsSL http://get.rech.io/install_antigen.garnish.sh | sudo sh
 ```
 
 ## [Package documentation](http://get.rech.io/antigen.garnish.pdf)
@@ -47,13 +47,12 @@ curl -fsSL http://get.rech.io/antigen.garnish.sh | sudo sh
 * `garnish_plot`: generate summary plots
 * `list_mhc`: list all supported MHC allele syntax
 
-### [Vignette](http://get.rech.io/antigen.garnish.pdf)
-
 ### Examples
 
 #### Predict neoepitopes from missense mutations, insertions, and deletions
 
 ```r
+
 library(magrittr)
 library(antigen.garnish)
 
@@ -66,7 +65,6 @@ library(antigen.garnish)
 
   # add space separated MHC types
   # see list_mhc() for nomenclature of supported alleles
-  # separate murine and human alleles into separate rows, even if same sample_id.
 
       .[, MHC := c("HLA-A*02:01 HLA-DRB1*14:67",
                    "H-2-Kb H-2-IAd",
@@ -147,10 +145,6 @@ library(antigen.garnish)
 * [David Balli](https://www.linkedin.com/in/davidballi1)
 * [Robert H. Vonderheide](https://www.med.upenn.edu/apps/faculty/index.php/g20000320/p1073)
 * [Andrew J. Rech](http://rech.io)
-
-## Citation
-
-Rech AJ, Balli D, Stanger BZ, Vonderheide RH. Tumor immunity and survival as a function of alternative neoepitopes in human cancer. Cancer Immunology Research, 2018 Jan 16. pii: canimm.0559.2017. PMID: [29339376](https://www.ncbi.nlm.nih.gov/pubmed/29339376)
 
 ## Contributing
 

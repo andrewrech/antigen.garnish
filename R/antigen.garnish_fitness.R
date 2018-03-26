@@ -7,10 +7,11 @@
 #' @param a Fitness model parameter. Binding curve horizontal displacement used to determine TCR recognition probability of a peptide compared to an IEDB near match.
 #' @param k Fitness model parameter. Steepness of the binding curve at `a`.
 #'
-#' @return A data table with added fitness model parameter columns:
-#' * **ResidueChangeClass**: Amino acid change class (e.g. hydrophobic, non-hydrophobic).
+#' @return A data table with added fitness model parameters columns:
+#' * **ResidueChangeClass**: mutant cDNA sequence
+#' * **A**: `A` component of fitness model, differential MHC affinity of mutant and closest wt peptide, similar to `BLAST_A`.
 #' * **R**: TCR recognition probability, determined by comparison to known epitopes in the IEDB.
-#' * **NeoantigenRecognitionPotential**: Neoantigen Recognition Potential calculated by the model.
+#' * **NeoantigenRecognitionPotential**: Product of A and R, the maximum value per sample is the dominant neoepitope.
 #'
 #' @export garnish_fitness
 #' @md
@@ -21,12 +22,8 @@ garnish_fitness <- function(dt,
 
     on.exit({
           message("Removing temporary files")
-          try(
-          list.files(pattern = "neoepitopes.txt") %>% file.remove, silent = TRUE)
-          try(
-          list.files(pattern = "fitness_model_output.txt") %>% file.remove, silent = TRUE)
-          try(
-          unlink(list.files(pattern = "fitness_model_[0-9]+"), recursive = TRUE, force = TRUE), silent = TRUE)
+          list.files(pattern = "neoepitopes.txt") %>% file.remove
+          unlink("fitness_model", recursive = TRUE, force = TRUE)
                               })
 
   # check input
@@ -57,7 +54,7 @@ the following columns:
 
   # construct input table, defer to DAI calculations over BLAST results if it exists
 
-            dta <- dt[pep_type == "wt" & !is.na(dai_uuid) & dai_uuid != "", .SD %>% unique,
+            dta <- dt[pep_type == "wt" & !is.na(dai_uuid), .SD %>% unique,
                       .SDcols = c("nmer_uuid",
                                   "var_uuid",
                                   "sample_id",
@@ -80,7 +77,7 @@ the following columns:
                                    "WT.Score",
                                    "link_uuid"))
 
-            dtb <- dt[pep_type != "wt" & !is.na(dai_uuid) & dai_uuid != "", .SD %>% unique,
+            dtb <- dt[pep_type != "wt" & !is.na(dai_uuid), .SD %>% unique,
                       .SDcols = c("nmer_uuid",
                                   "var_uuid",
                                   "sample_id",
@@ -113,8 +110,7 @@ the following columns:
 
     if ("blast_uuid" %chin% names(dt)){
 
-      dta <-  dt[pep_type == "wt" & (is.na(dai_uuid) | dai_uuid == "") &
-                  !is.na(blast_uuid) & blast_uuid != "", .SD %>% unique,
+      dta <-  dt[pep_type == "wt" & is.na(dai_uuid) & !is.na(blast_uuid), .SD %>% unique,
                       .SDcols = c("nmer_uuid",
                                   "var_uuid",
                                   "sample_id",
@@ -137,8 +133,7 @@ the following columns:
                                   "WT.Score",
                                   "link_uuid"))
 
-             dtb <-  dt[pep_type != "wt" & (is.na(dai_uuid) | dai_uuid == "") &
-                         !is.na(blast_uuid) & blast_uuid != "", .SD %>% unique,
+             dtb <-  dt[pep_type != "wt" & is.na(dai_uuid) & !is.na(blast_uuid), .SD %>% unique,
                       .SDcols = c("nmer_uuid",
                                   "var_uuid",
                                   "sample_id",
@@ -179,32 +174,16 @@ the following columns:
                             "link_uuid"))
 }
 
-  # loop over nmer lengths and species
-  dti[MT.Allele %like% "H-2", spc := "Ms"] %>%
-    .[MT.Allele %like% "HLA", spc := "Hu"]
+  # loop over nmer lengths
 
-  dtls <- dti %>% split(by = "spc")
-
-dtloo <- lapply(dtls, function(dti){
-
-dtlo <- lapply(8:15, function(nmerl){
+  dt <- lapply(8:15, function(nmerl){
 
     dti <- dti[nchar(WT.Peptide) == nmerl & nchar(MT.Peptide) == nmerl]
 
     if (nrow(dti) == 0) {
       warning(paste("No ", nmerl, "mers compatible for fitness modeling.", sep = ""))
-      return(NULL)
+      return(dt)
     }
-
-    # drop 8mers because python scripts check anchor residues at 2 and 9 and want to avoid errors
-    if (nmerl == 8) return(NULL)
-
-    db <- dti[, spc %>% unique]
-
-    dti[, spc := NULL]
-
-    if (db == "Ms") db <- "~/antigen.garnish/Mu_iedb.fasta"
-    if (db == "Hu") db <- "~/antigen.garnish/iedb.bdb"
 
     dti <- dti[, ID := link_uuid, by = 1:nrow(dti)]
 
@@ -212,15 +191,22 @@ dtlo <- lapply(8:15, function(nmerl){
       v <- dti[, ID %>% unique]
       names(v) <- seq_along(v)
 
-      dti[, ID := ID %>% (function(id){
+dti[, ID := ID %>% (function(id){
           id <- names(v[which(id == v)])
         }), by = "ID"]
 
-      dti[, HLA := paste(MT.Allele %>%
+  for (col in c("MT.Allele",
+                "MUTATION_ID",
+                "Sample"))
+  data.table::set(dti, j = col,
+                  value = dti[[eval(col)]] %>%
+                  stringr::str_replace_all(stringr::fixed("-"), replacement = "_"))
+
+  dti[, HLA := paste(MT.Allele %>%
                       unique, collapse = " "), by = Sample]
-      dti[, chop_score := 1]
-      dti[, .SD %>% unique,
-      .SDcols = c("ID",
+  dti[, chop_score := 1]
+  dti[, .SD %>% unique,
+    .SDcols = c("ID",
                 "MUTATION_ID",
                 "Sample",
                 "WT.Peptide",
@@ -241,11 +227,9 @@ dtlo <- lapply(8:15, function(nmerl){
 
       dtl <- dti %>% split(by = "Sample")
 
-      dn <- paste("fitness_model_", nmerl, sep = "")
+      dir.create("fitness_model", showWarnings = FALSE)
 
-      if (!dir.exists(dn)) dir.create(dn, showWarnings = FALSE)
-
-      lapply(dtl %>% seq_along, function(i){
+lapply(dtl %>% seq_along, function(i){
         dti <- data.table::copy(dtl[[i]])
         dti[, label_wt := paste(Sample, "WT", ID, MUTATION_ID, sep = "|")]
         dti[, label_mut := paste(Sample, "MUT", ID, MUTATION_ID, sep = "|")]
@@ -254,14 +238,14 @@ dtlo <- lapply(8:15, function(nmerl){
         aa_2 <- dti[, MT.Peptide]
         names(aa_2) <- dti[, label_mut]
         aa <- Biostrings::AAStringSet(c(aa, aa_2), use.names = TRUE)
-        filename <- paste0(dn, "/neoantigens_", dti[, Sample %>% unique], ".fasta")
+        filename <- paste0("fitness_model/neoantigens_", dti[, Sample %>% unique], ".fasta")
         aa %>% Biostrings::writeXStringSet(filename)
 
     # run blastp on fasta
 
       system(
         paste(
-      "blastp -query", filename, "-db", db, "-num_threads", parallel::detectCores(), "-outfmt 5 -evalue 100000000 -gapopen 11 -gapextend 1 >",
+      "blastp -query", filename, "-db ~/antigen.garnish/iedb.bdb -num_threads", parallel::detectCores(), "-outfmt 5 -evalue 100000000 -gapopen 11 -gapextend 1 >",
       filename %>% stringr::str_replace("\\.fasta", replacement = "_iedb.xml"),
         sep = " ")
       )
@@ -270,42 +254,49 @@ dtlo <- lapply(8:15, function(nmerl){
 
   # run pipeline
 
-    py_path <- system.file(package = "antigen.garnish") %>% file.path(., "extdata/src/main.py")
+  py_path <- system.file(package = "antigen.garnish") %>% file.path(., "extdata/src/main.py")
 
-    on <- paste(nmerl, "_neoantigens_fitness_model_output.txt", sep = "")
-
-    system(
+  system(
     paste("python",
           py_path,
           "neoepitopes.txt",
-          dn,
+          "./fitness_model",
           a,
           k,
-          on,
+          "neoantigens_fitness_model_output.txt",
           nmerl
     )
-    )
+  )
 
   # curate output
-    if (!file.exists(on)) {
-    warning(paste("garnish_fitness did not return output for nmers of length", nmerl, sep = " "))
-    return(NULL)
-    }
+  if (!file.exists("neoantigens_fitness_model_output.txt")) {
+    warning("garnish_fitness did not return output.")
+    return(dt)
+  }
 
-    dto <- on %>% data.table::fread
+  dto <- "neoantigens_fitness_model_output.txt" %>% data.table::fread
 
-    dto %>% data.table::setnames(c("Mutation", "Sample"),
+  dto %>% data.table::setnames(c("Mutation", "Sample"),
                                c("var_uuid", "sample_id"))
-
-    dto[, R := max(R), by = c("MutantPeptide")]
-
-    dto %<>% melt(measure.vars = c("WildtypePeptide", "MutantPeptide"),
+  dto %<>% melt(measure.vars = c("WildtypePeptide", "MutantPeptide"),
                 value.name = "nmer")
 
-    dt <- merge(dt[nchar(nmer) == nmerl], dto[Excluded == FALSE, .SD %>% unique,
+  # remove output columns before merging if they already exist
+  for (col in c("ResidueChangeClass",
+                "A",
+                "R",
+                "NeoantigenRecognitionPotential"
+                    ))
+    suppressWarnings(set(dt, j = col, value = NULL))
+
+  dto[, var_uuid := var_uuid %>%
+        stringr::str_replace_all(stringr::fixed("_"), replacement = "-")]
+
+  dt <- merge(dt, dto[Excluded == FALSE, .SD %>% unique,
           .SDcols = c("var_uuid",
                       "sample_id",
                       "ResidueChangeClass",
+                      "A",
                       "R",
                       "NeoantigenRecognitionPotential",
                       "nmer")],
@@ -314,20 +305,10 @@ dtlo <- lapply(8:15, function(nmerl){
                              "sample_id",
                              "nmer"))
 
-    return(dt)
+  return(dt)
 
-  }) %>% data.table::rbindlist(fill = TRUE) %>%
-          list(., dt[nchar(nmer) == 8]) %>%
-            data.table::rbindlist(fill = TRUE)
+}) %>% data.table::rbindlist
 
-  return(dtlo)
-
-  })
-
-  if (length(dtls) == 2) dtloo %<>% data.table::rbindlist %>% unique
-
-  if (length(dtls) == 1) dtloo <- dtloo[[1]] %>% unique
-
-  return(dtloo)
+return(dt)
 
 }

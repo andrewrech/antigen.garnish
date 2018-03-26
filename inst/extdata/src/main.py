@@ -7,9 +7,8 @@ from Aligner import Aligner
 
 from Neoantigen import Neoantigen
 
-def readNeoantigens(neofilename, nmerl):
+def readNeoantigens(neofilename):
     neoantigens={}
-    nl=nmerl
     f=open(neofilename)
     header=f.readline()
     htab=header.strip().split("\t")
@@ -24,7 +23,7 @@ def readNeoantigens(neofilename, nmerl):
         if nparams[7]=="NA":
             line=f.readline()
             continue
-        neoantigen=Neoantigen(nparams, nl)
+        neoantigen=Neoantigen(nparams)
         neoantigens[neoantigen.id]=neoantigen
         neoantigen.setA()
         line=f.readline()
@@ -50,7 +49,7 @@ def main(argv):
     outfile=sys.argv[5]
     nmerl=float(argv[6])
 
-    [neoantigens,samples]=readNeoantigens(neofile, nmerl)
+    [neoantigens,samples]=readNeoantigens(neofile)
     #Compute TCR-recognition probabilities for all neoantigens
     aligner=Aligner()
     for sample in samples:

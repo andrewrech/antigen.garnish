@@ -2,7 +2,7 @@
 % Please edit documentation in R/antigen.garnish_predict.R
 \name{make_BLAST_uuid}
 \alias{make_BLAST_uuid}
-\title{Internal function to categorize mutant and wild-type peptides by similarity using \code{BLAST} to calculate neoepitope amplitude and IEDB homology.}
+\title{Internal function to categorize mutant and wild-type peptides by similarity using \code{BLAST} to calculate neoepitope amplitude.}
 \usage{
 make_BLAST_uuid(dti)
 }
@@ -10,5 +10,5 @@ make_BLAST_uuid(dti)
 \item{dti}{Data table of nmers.}
 }
 \description{
-Internal function to categorize mutant and wild-type peptides by similarity using \code{BLAST} to calculate neoepitope amplitude and IEDB homology.
+Internal function to categorize mutant and wild-type peptides by similarity using \code{BLAST} to calculate neoepitope amplitude.
 }

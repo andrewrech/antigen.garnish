@@ -6,8 +6,7 @@
 \usage{
 garnish_predictions(dt = NULL, path = NULL, assemble = TRUE,
   generate = TRUE, predict = TRUE, blast = fitness, fitness = TRUE,
-  humandb = "GRCh38", mousedb = "GRCm38", save2wd = FALSE,
-  remove_wt = TRUE)
+  humandb = "GRCh38", mousedb = "GRCm38")
 }
 \arguments{
 \item{dt}{Data table. Input data table from \code{garnish_variants} or \code{garnish_jaffa}, or a data table in one of these forms:
@@ -47,10 +46,6 @@ MHC                         <same as above>
 \item{humandb}{Character vector. One of "GRCh37" or "GRCh38".}
 
 \item{mousedb}{Character vector. One of "GRCm37" or "GRCm38".}
-
-\item{save2wd}{Logical. Save a copy of garnish_predictions output to the working directory as "ag_output.txt"? Default is \code{FALSE}.}
-
-\item{remove_wt}{Logical. Check all nmers peptides generated against wt peptidome and remove matches. Default is \code{TRUE}. If investigating wild-type sequences, set this to \code{FALSE}.}
 }
 \value{
 A data table of binding predictions including:
@@ -74,19 +69,16 @@ A data table of binding predictions including:
 \item \strong{mhcflurry_*}: mhcflurry_ prediction tool output
 \item \strong{mhcnuggets_*}: mhcnuggets_ prediction tool output
 \item \strong{Consensus_scores}: Average value of MHC binding affinity from all prediction tools that contributed output. 95\% confidence intervals are given by \strong{Upper_CI}, \strong{Lower_CI}.
-\item \strong{DAI}: Differential agretopicty index of missense and corresponding wild-type peptide, see \code{garnish_summary} for an explanation of DAI.
+\item \strong{DAI}: Differential agretopicty index, see \code{garnish_summary} for an explanation of DAI.
 \item \strong{BLAST_A}: Ratio of consensus binding affinity of mutant peptide / closest single AA mismatch from blastp results. Returned only if \code{blast = TRUE}.
-\item \strong{iedb_score}: R implementation of TCR recognition probability for peptide through summing of alignments in IEDB for corresponding organism.
-\item \strong{min_DAI}: Minimum of BLAST_A and DAI values, to provide the most conservative \code{fitness_score} value.
-\item \strong{fitness_score}: Product of min_DAI and iedb_score. The peptide with the highest value per sample is the dominant neoepitope.
 }
 
 fitness model information \href{https://www.ncbi.nlm.nih.gov/pubmed/29132144}{Luksza et al. Nature 2017}:
 \itemize{
-\item \strong{ResidueChangeClass}: Amino acid change class (e.g. hydrophobic, non-hydrophobic).
-\item \strong{A}: Component of the fitness model. Differential MHC affinity of mutant and closest wt peptide, equivalent to DAI if available, otherwise uses BLAST_A.
-\item \strong{R}: TCR recognition probability, determined by comparison to known epitopes in the IEDB and amino acid properties.
-\item \strong{NeoantigenRecognitionPotential}: Product of A and R.
+\item \strong{ResidueChangeClass}: mutant cDNA sequence
+\item \strong{A}: Component of the fitness model. Differential MHC affinity of mutant and closest wt peptide, similar to \code{BLAST_A}.
+\item \strong{R}: TCR recognition probability, determined by comparison to known epitopes in the IEDB.
+\item \strong{NeoantigenRecognitionPotential}: Product of A and R. The peptide with the highest value per sample is the dominant neoepitope.
 }
 
 transcript description:
@@ -98,12 +90,12 @@ transcript description:
 \item transcript_length
 \item transcript_start
 \item peptide
+\item refseq_mrna
 }
 }
 \description{
 Perform ensemble neoepitope prediction on a data table of missense mutations, insertions, deletions or gene fusions using netMHC, mhcflurry, and mhcnuggets.
-See \code{list_mhc} for compatible MHC allele syntax.  Multiple MHC alleles for a single sample_id should be space separated.
-Please keep \strong{murine and human alleles in separate rows}, this will not affect computational speed but will ensure the correct IEDB file is chosen.  See example.
+See \code{list_mhc} for compatible MHC allele syntax.  Multiple MHC alleles for a single sample_id should be space separated.  See example.
 }
 \examples{
 \dontrun{
