@@ -28,6 +28,8 @@ garnish_fitness <- function(dt,
           try(
           unlink(list.files(pattern = "fitness_model_[0-9]+"), recursive = TRUE, force = TRUE), silent = TRUE)
                               })
+                              
+  if (identical(Sys.getenv("TESTTHAT"), "true")) setwd("~")
 
   # check input
 
