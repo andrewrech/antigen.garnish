@@ -8,8 +8,9 @@
 #' @param k Fitness model parameter. Steepness of the binding curve at `a`.
 #'
 #' @return A data table with added fitness model parameter columns:
-#' * **ResidueChangeClass**: Amino acid change class, eg hydrophobic to non-hydrophobic.
+#' * **ResidueChangeClass**: Amino acid change class (e.g. hydrophobic, non-hydrophobic).
 #' * **R**: TCR recognition probability, determined by comparison to known epitopes in the IEDB.
+#' * **NeoantigenRecognitionPotential**: Neoantigen Recognition Potential calculated by the model.
 #'
 #' @export garnish_fitness
 #' @md
@@ -20,10 +21,15 @@ garnish_fitness <- function(dt,
 
     on.exit({
           message("Removing temporary files")
-          list.files(pattern = "neoepitopes.txt") %>% file.remove
-          list.files(pattern = "fitness_model_output.txt") %>% file.remove
-          unlink(list.files(pattern = "fitness_model_[0-9]+"), recursive = TRUE, force = TRUE)
+          try(
+          list.files(pattern = "neoepitopes.txt") %>% file.remove, silent = TRUE)
+          try(
+          list.files(pattern = "fitness_model_output.txt") %>% file.remove, silent = TRUE)
+          try(
+          unlink(list.files(pattern = "fitness_model_[0-9]+"), recursive = TRUE, force = TRUE), silent = TRUE)
                               })
+                              
+  if (identical(Sys.getenv("TESTTHAT"), "true")) setwd("~")
 
   # check input
 
@@ -175,7 +181,13 @@ the following columns:
                             "link_uuid"))
 }
 
-  # loop over nmer lengths
+  # loop over nmer lengths and species
+  dti[MT.Allele %like% "H-2", spc := "Ms"] %>%
+    .[MT.Allele %like% "HLA", spc := "Hu"]
+
+  dtls <- dti %>% split(by = "spc")
+
+dtloo <- lapply(dtls, function(dti){
 
 dtlo <- lapply(8:15, function(nmerl){
 
@@ -188,6 +200,13 @@ dtlo <- lapply(8:15, function(nmerl){
 
     # drop 8mers because python scripts check anchor residues at 2 and 9 and want to avoid errors
     if (nmerl == 8) return(NULL)
+
+    db <- dti[, spc %>% unique]
+
+    dti[, spc := NULL]
+
+    if (db == "Ms") db <- "antigen.garnish/Mu_iedb.fasta"
+    if (db == "Hu") db <- "antigen.garnish/iedb.bdb"
 
     dti <- dti[, ID := link_uuid, by = 1:nrow(dti)]
 
@@ -226,7 +245,7 @@ dtlo <- lapply(8:15, function(nmerl){
 
       dn <- paste("fitness_model_", nmerl, sep = "")
 
-      dir.create(dn, showWarnings = FALSE)
+      if (!dir.exists(dn)) dir.create(dn, showWarnings = FALSE)
 
       lapply(dtl %>% seq_along, function(i){
         dti <- data.table::copy(dtl[[i]])
@@ -241,10 +260,18 @@ dtlo <- lapply(8:15, function(nmerl){
         aa %>% Biostrings::writeXStringSet(filename)
 
     # run blastp on fasta
+    # https://www.ncbi.nlm.nih.gov/books/NBK279684/
+    # flags here taken from Lukza et al.:
+    # -task blastp-short optimized blast for <30 AA, uses larger word sizes
+    # -matrix use BLOSUM62 sub substitution matrix
+    # -evalue expect value for saving hits
+    # -gapopen, -gapextend, numeric cost to a gapped alignment and
+    # -outfmt, out put a csv with colums, seqids for query and database seuqnence, start and end of sequence match,
+    # length of overlap, number of mismatches, percent identical, expected value, bitscore
 
       system(
         paste(
-      "blastp -query", filename, "-db ~/antigen.garnish/iedb.bdb -num_threads", parallel::detectCores(), "-outfmt 5 -evalue 100000000 -gapopen 11 -gapextend 1 >",
+      "blastp -query", filename, "-db", db, "-num_threads", parallel::detectCores(), "-outfmt 5 -evalue 100000000 -gapopen 11 -gapextend 1 >",
       filename %>% stringr::str_replace("\\.fasta", replacement = "_iedb.xml"),
         sep = " ")
       )
@@ -279,6 +306,9 @@ dtlo <- lapply(8:15, function(nmerl){
 
     dto %>% data.table::setnames(c("Mutation", "Sample"),
                                c("var_uuid", "sample_id"))
+
+    dto[, R := max(R), by = c("MutantPeptide")]
+
     dto %<>% melt(measure.vars = c("WildtypePeptide", "MutantPeptide"),
                 value.name = "nmer")
 
@@ -287,6 +317,7 @@ dtlo <- lapply(8:15, function(nmerl){
                       "sample_id",
                       "ResidueChangeClass",
                       "R",
+                      "NeoantigenRecognitionPotential",
                       "nmer")],
                       all.x = TRUE,
                       by = c("var_uuid",
@@ -300,5 +331,13 @@ dtlo <- lapply(8:15, function(nmerl){
             data.table::rbindlist(fill = TRUE)
 
   return(dtlo)
+
+  })
+
+  if (length(dtls) == 2) dtloo %<>% data.table::rbindlist %>% unique
+
+  if (length(dtls) == 1) dtloo <- dtloo[[1]] %>% unique
+
+  return(dtloo)
 
 }

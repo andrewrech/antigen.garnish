@@ -47,12 +47,13 @@ curl -fsSL http://get.rech.io/antigen.garnish.sh | sudo sh
 * `garnish_plot`: generate summary plots
 * `list_mhc`: list all supported MHC allele syntax
 
+### [Vignette](http://get.rech.io/antigen.garnish.pdf)
+
 ### Examples
 
 #### Predict neoepitopes from missense mutations, insertions, and deletions
 
 ```r
-
 library(magrittr)
 library(antigen.garnish)
 
@@ -65,6 +66,7 @@ library(antigen.garnish)
 
   # add space separated MHC types
   # see list_mhc() for nomenclature of supported alleles
+  # separate murine and human alleles into separate rows, even if same sample_id.
 
       .[, MHC := c("HLA-A*02:01 HLA-DRB1*14:67",
                    "H-2-Kb H-2-IAd",
