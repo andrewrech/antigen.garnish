@@ -82,3 +82,6 @@ McGranahan N, Furness AJS, Rosenthal R, Ramskov S, Lyngaa R, et al. 2016. Clonal
 
 Verdegaal EME, de Miranda NFCC, Visser M, Harryvan T, van Buuren MM, et al. 2016. Neoantigen landscape dynamics during human melanoma-T cell interactions. Nature. 536(7614):91–95
 }
+\seealso{
+\code{\link{garnish_plot}} for a sample level summary plotting function.
+}

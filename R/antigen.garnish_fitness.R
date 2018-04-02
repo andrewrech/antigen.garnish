@@ -8,8 +8,6 @@
 #' @param k Fitness model parameter. Steepness of the binding curve at `a`.
 #'
 #' @return A data table with added fitness model parameter columns:
-#' * **ResidueChangeClass**: Amino acid change class (e.g. hydrophobic, non-hydrophobic).
-#' * **R**: TCR recognition probability, determined by comparison to known epitopes in the IEDB.
 #' * **NeoantigenRecognitionPotential**: Neoantigen Recognition Potential calculated by the model.
 #'
 #' @export garnish_fitness
@@ -24,11 +22,9 @@ garnish_fitness <- function(dt,
           try(
           list.files(pattern = "neoepitopes.txt") %>% file.remove, silent = TRUE)
           try(
-          list.files(pattern = "fitness_model_output.txt") %>% file.remove, silent = TRUE)
-          try(
-          unlink(list.files(pattern = "fitness_model_[0-9]+"), recursive = TRUE, force = TRUE), silent = TRUE)
+          unlink(list.files(pattern = "Lukza_model_[0-9]+"), recursive = TRUE, force = TRUE), silent = TRUE)
                               })
-                              
+
   if (identical(Sys.getenv("TESTTHAT"), "true")) setwd("~")
 
   # check input
@@ -189,12 +185,13 @@ the following columns:
 
 dtloo <- lapply(dtls, function(dti){
 
-dtlo <- lapply(8:15, function(nmerl){
+# lapply call is artifact of applying this to more than 9mers, which was not intended
+dtlo <- lapply(9, function(nmerl){
 
     dti <- dti[nchar(WT.Peptide) == nmerl & nchar(MT.Peptide) == nmerl]
 
     if (nrow(dti) == 0) {
-      warning(paste("No ", nmerl, "mers compatible for fitness modeling.", sep = ""))
+      warning(paste("No ", nmerl, "mers compatible for Lukza et al. Nature 2017 fitness modeling.", sep = ""))
       return(NULL)
     }
 
@@ -243,7 +240,7 @@ dtlo <- lapply(8:15, function(nmerl){
 
       dtl <- dti %>% split(by = "Sample")
 
-      dn <- paste("fitness_model_", nmerl, sep = "")
+      dn <- paste("Lukza_model_", nmerl, sep = "")
 
       if (!dir.exists(dn)) dir.create(dn, showWarnings = FALSE)
 
@@ -282,7 +279,7 @@ dtlo <- lapply(8:15, function(nmerl){
 
     py_path <- system.file(package = "antigen.garnish") %>% file.path(., "extdata/src/main.py")
 
-    on <- paste(nmerl, "_neoantigens_fitness_model_output.txt", sep = "")
+    on <- paste(nmerl, "_neoantigens_Lukza_model_output.txt", sep = "")
 
     system(
     paste("python",
@@ -315,8 +312,6 @@ dtlo <- lapply(8:15, function(nmerl){
     dt <- merge(dt[nchar(nmer) == nmerl], dto[Excluded == FALSE, .SD %>% unique,
           .SDcols = c("var_uuid",
                       "sample_id",
-                      "ResidueChangeClass",
-                      "R",
                       "NeoantigenRecognitionPotential",
                       "nmer")],
                       all.x = TRUE,
