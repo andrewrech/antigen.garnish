@@ -185,8 +185,8 @@ the following columns:
 
 dtloo <- lapply(dtls, function(dti){
 
-# lapply call is artifact of applying this to more than 9mers, which was not intended
-dtlo <- lapply(9, function(nmerl){
+# lapply call is artifact of applying this to more than 9mers, which was not intended, keep it in to return all other lengths
+dtlo <- lapply(8:15, function(nmerl){
 
     dti <- dti[nchar(WT.Peptide) == nmerl & nchar(MT.Peptide) == nmerl]
 
@@ -196,7 +196,7 @@ dtlo <- lapply(9, function(nmerl){
     }
 
     # drop 8mers because python scripts check anchor residues at 2 and 9 and want to avoid errors
-    if (nmerl == 8) return(NULL)
+    if (nmerl %chin% c(8, 10:15)) return(NULL)
 
     db <- dti[, spc %>% unique]
 
