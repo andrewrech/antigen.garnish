@@ -195,7 +195,7 @@ dtlo <- lapply(8:15, function(nmerl){
       return(NULL)
     }
 
-    # drop 8mers because python scripts check anchor residues at 2 and 9 and want to avoid errors
+    # drop 8, 10:15 mers because python scripts check anchor residues at 2 and 9, not intended for other lengths
     if (nmerl %chin% c(8, 10:15)) return(NULL)
 
     db <- dti[, spc %>% unique]
