@@ -322,7 +322,7 @@ dtlo <- lapply(8:15, function(nmerl){
     return(dt)
 
   }) %>% data.table::rbindlist(fill = TRUE) %>%
-          list(., dt[nchar(nmer) == 8]) %>%
+          list(., dt[nchar(nmer) %in% c(8, 10:15)]) %>%
             data.table::rbindlist(fill = TRUE)
 
   return(dtlo)
