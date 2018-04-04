@@ -182,11 +182,13 @@ the following columns:
     .[MT.Allele %like% "HLA", spc := "Hu"]
 
   dtls <- dti %>% split(by = "spc")
+  dtloo <- lapply(dtls, function(dti){
 
-dtloo <- lapply(dtls, function(dti){
+	# hold out non-9mers
+	dt_holdout <- dti[nchar(WT.Peptide) != 9 | nchar(MT.Peptide) != 9]
+	dti <- dti[nchar(WT.Peptide) == 9 & nchar(MT.Peptide) == 9]
 
-# lapply call is artifact of applying this to more than 9mers, which was not intended, keep it in to return all other lengths
-dtlo <- lapply(8:15, function(nmerl){
+	# perform Lukza modeling
 
     dti <- dti[nchar(WT.Peptide) == nmerl & nchar(MT.Peptide) == nmerl]
 
@@ -195,7 +197,6 @@ dtlo <- lapply(8:15, function(nmerl){
       return(NULL)
     }
 
-    # drop 8, 10:15 mers because python scripts check anchor residues at 2 and 9, not intended for other lengths
     if (nmerl %in% c(8, 10:15)) return(NULL)
 
     db <- dti[, spc %>% unique]
@@ -319,18 +320,15 @@ dtlo <- lapply(8:15, function(nmerl){
                              "sample_id",
                              "nmer"))
 
-    return(dt)
-
-  }) %>% data.table::rbindlist(fill = TRUE) %>%
-          list(., dt[nchar(nmer) %in% c(8, 10:15)]) %>%
-            data.table::rbindlist(fill = TRUE)
+  # combine 9-mers and non-9-mers
+  dtlo <- list(dt, dt_holdout) %>%
+       data.table::rbindlist(fill = TRUE)
 
   return(dtlo)
 
   })
 
   if (length(dtls) == 2) dtloo %<>% data.table::rbindlist %>% unique
-
   if (length(dtls) == 1) dtloo <- dtloo[[1]] %>% unique
 
   return(dtloo)

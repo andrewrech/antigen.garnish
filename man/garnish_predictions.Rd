@@ -79,7 +79,7 @@ A data table of binding predictions including:
 
 antigen.garnish fitness model results
 \itemize{
-\item \strong{Consensus_scores}: Average value of MHC binding affinity from all prediction tools that contributed output. 95\% confidence intervals are given by \strong{Upper_CI}, \strong{Lower_CI}.
+\item \strong{Consensus_scores}: average value of MHC binding affinity from all prediction tools that contributed output. 95\% confidence intervals are given by \strong{Upper_CI}, \strong{Lower_CI}.
 \item \strong{iedb_score}: R implementation of TCR recognition probability for peptide through summing of alignments in IEDB for corresponding organism.
 \item \strong{min_DAI}: Minimum of value of BLAST_A or DAI values, to provide the most conservative estimate differential binding between input and wildtype matches.
 \item \strong{fitness_score}: Product of min_DAI and iedb_score. The peptide with the highest value per sample is the dominant neoepitope. Does not apply to wildtype input.
