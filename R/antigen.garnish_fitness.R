@@ -182,6 +182,9 @@ the following columns:
     .[MT.Allele %like% "HLA", spc := "Hu"]
 
   dtls <- dti %>% split(by = "spc")
+
+  nmerl <- 9
+  
   dtloo <- lapply(dtls, function(dti){
 
 	# hold out non-9mers
