@@ -184,12 +184,11 @@ the following columns:
   dtls <- dti %>% split(by = "spc")
 
   nmerl <- 9
-  
+
   dtloo <- lapply(dtls, function(dti){
 
 	# hold out non-9mers
-	dt_holdout <- dti[nchar(WT.Peptide) != 9 | nchar(MT.Peptide) != 9]
-	dti <- dti[nchar(WT.Peptide) == 9 & nchar(MT.Peptide) == 9]
+	dt_holdout <- dt[nchar(nmer) != nmerl]
 
 	# perform Lukza modeling
 
@@ -197,10 +196,8 @@ the following columns:
 
     if (nrow(dti) == 0) {
       warning(paste("No ", nmerl, "mers compatible for Lukza et al. Nature 2017 fitness modeling.", sep = ""))
-      return(NULL)
+      return(dt_holdout)
     }
-
-    if (nmerl %in% c(8, 10:15)) return(NULL)
 
     db <- dti[, spc %>% unique]
 
@@ -300,7 +297,7 @@ the following columns:
   # curate output
     if (!file.exists(on)) {
     warning(paste("garnish_fitness did not return output for nmers of length", nmerl, sep = " "))
-    return(NULL)
+    return(dt_holdout)
     }
 
     dto <- on %>% data.table::fread
