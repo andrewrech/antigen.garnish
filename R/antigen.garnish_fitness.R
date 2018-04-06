@@ -320,7 +320,7 @@ the following columns:
                              "sample_id",
                              "nmer"))
 
-  # combine 9-mers and non-9-mers
+  # re-combine 9-mers and non-9-mers
   dtlo <- list(dt, dt_holdout) %>%
        data.table::rbindlist(fill = TRUE)
 

@@ -1137,7 +1137,7 @@ mcMap(function(x, y) (x %>% as.integer):(y %>% as.integer) %>%
 #' * **BLAST_A**: Ratio of consensus binding affinity of mutant peptide / closest single AA mismatch from blastp results. Returned only if `blast = TRUE`.
 #'
 #' antigen.garnish fitness model results
-#' * **Consensus_scores**: Average value of MHC binding affinity from all prediction tools that contributed output. 95\% confidence intervals are given by **Upper_CI**, **Lower_CI**.
+#' * **Consensus_scores**: average value of MHC binding affinity from all prediction tools that contributed output. 95\% confidence intervals are given by **Upper_CI**, **Lower_CI**.
 #' * **iedb_score**: R implementation of TCR recognition probability for peptide through summing of alignments in IEDB for corresponding organism.
 #' * **min_DAI**: Minimum of value of BLAST_A or DAI values, to provide the most conservative estimate differential binding between input and wildtype matches.
 #' * **fitness_score**: Product of min_DAI and iedb_score. The peptide with the highest value per sample is the dominant neoepitope. Does not apply to wildtype input.
