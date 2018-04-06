@@ -183,19 +183,17 @@ the following columns:
 
   dtls <- dti %>% split(by = "spc")
 
-  nmerl <- 9
-
   dtloo <- lapply(dtls, function(dti){
 
 	# hold out non-9mers
-	dt_holdout <- dt[nchar(nmer) != nmerl]
+	dt_holdout <- dt[nchar(nmer) != 9]
 
 	# perform Lukza modeling
 
-    dti <- dti[nchar(WT.Peptide) == nmerl & nchar(MT.Peptide) == nmerl]
+    dti <- dti[nchar(WT.Peptide) == 9 & nchar(MT.Peptide) == 9]
 
     if (nrow(dti) == 0) {
-      warning(paste("No ", nmerl, "mers compatible for Lukza et al. Nature 2017 fitness modeling.", sep = ""))
+      warning(paste("No ", 9, "mers compatible for Lukza et al. Nature 2017 fitness modeling.", sep = ""))
       return(dt_holdout)
     }
 
@@ -241,7 +239,7 @@ the following columns:
 
       dtl <- dti %>% split(by = "Sample")
 
-      dn <- paste("Lukza_model_", nmerl, sep = "")
+      dn <- paste("Lukza_model_", 9, sep = "")
 
       if (!dir.exists(dn)) dir.create(dn, showWarnings = FALSE)
 
@@ -280,7 +278,7 @@ the following columns:
 
     py_path <- system.file(package = "antigen.garnish") %>% file.path(., "extdata/src/main.py")
 
-    on <- paste(nmerl, "_neoantigens_Lukza_model_output.txt", sep = "")
+    on <- paste(9, "_neoantigens_Lukza_model_output.txt", sep = "")
 
     system(
     paste("python",
@@ -290,13 +288,13 @@ the following columns:
           a,
           k,
           on,
-          nmerl
+         9
     )
     )
 
   # curate output
     if (!file.exists(on)) {
-    warning(paste("garnish_fitness did not return output for nmers of length", nmerl, sep = " "))
+    warning(paste("garnish_fitness did not return output for nmers of length", 9, sep = " "))
     return(dt_holdout)
     }
 
@@ -310,7 +308,7 @@ the following columns:
     dto %<>% melt(measure.vars = c("WildtypePeptide", "MutantPeptide"),
                 value.name = "nmer")
 
-    dt <- merge(dt[nchar(nmer) == nmerl], dto[Excluded == FALSE, .SD %>% unique,
+    dt <- merge(dt[nchar(nmer) == 9], dto[Excluded == FALSE, .SD %>% unique,
           .SDcols = c("var_uuid",
                       "sample_id",
                       "NeoantigenRecognitionPotential",
