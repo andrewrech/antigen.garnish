@@ -50,7 +50,7 @@ MHC                         <same as above>
 
 \item{save2wd}{Logical. Save a copy of garnish_predictions output to the working directory as "ag_output.txt"? Default is \code{FALSE}.}
 
-\item{remove_wt}{Logical. Check all nmers peptides generated against wt peptidome and remove matches. Default is \code{TRUE}. If investigating wild-type sequences, set this to \code{FALSE}.}
+\item{remove_wt}{Logical. Check all nmers peptides generated against wt peptidome and remove matches? Default is \code{TRUE}. If investigating wild-type sequences, set this to \code{FALSE}.}
 }
 \value{
 A data table of binding predictions including:
@@ -73,20 +73,21 @@ A data table of binding predictions including:
 \item \strong{*_net}: netMHC prediction tool output
 \item \strong{mhcflurry_*}: mhcflurry_ prediction tool output
 \item \strong{mhcnuggets_*}: mhcnuggets_ prediction tool output
-\item \strong{Consensus_scores}: Average value of MHC binding affinity from all prediction tools that contributed output. 95\% confidence intervals are given by \strong{Upper_CI}, \strong{Lower_CI}.
 \item \strong{DAI}: Differential agretopicty index of missense and corresponding wild-type peptide, see \code{garnish_summary} for an explanation of DAI.
 \item \strong{BLAST_A}: Ratio of consensus binding affinity of mutant peptide / closest single AA mismatch from blastp results. Returned only if \code{blast = TRUE}.
+}
+
+antigen.garnish fitness model results
+\itemize{
+\item \strong{Consensus_scores}: average value of MHC binding affinity from all prediction tools that contributed output. 95\% confidence intervals are given by \strong{Upper_CI}, \strong{Lower_CI}.
 \item \strong{iedb_score}: R implementation of TCR recognition probability for peptide through summing of alignments in IEDB for corresponding organism.
-\item \strong{min_DAI}: Minimum of BLAST_A and DAI values, to provide the most conservative \code{fitness_score} value.
-\item \strong{fitness_score}: Product of min_DAI and iedb_score. The peptide with the highest value per sample is the dominant neoepitope.
+\item \strong{min_DAI}: Minimum of value of BLAST_A or DAI values, to provide the most conservative estimate differential binding between input and wildtype matches.
+\item \strong{fitness_score}: Product of min_DAI and iedb_score. The peptide with the highest value per sample is the dominant neoepitope. Does not apply to wildtype input.
 }
 
 fitness model information \href{https://www.ncbi.nlm.nih.gov/pubmed/29132144}{Luksza et al. Nature 2017}:
 \itemize{
-\item \strong{ResidueChangeClass}: Amino acid change class (e.g. hydrophobic, non-hydrophobic).
-\item \strong{A}: Component of the fitness model. Differential MHC affinity of mutant and closest wt peptide, equivalent to DAI if available, otherwise uses BLAST_A.
-\item \strong{R}: TCR recognition probability, determined by comparison to known epitopes in the IEDB and amino acid properties.
-\item \strong{NeoantigenRecognitionPotential}: Product of A and R.
+\item \strong{NeoantigenRecognitionPotential}: Product of A and R (amplitude, analogous to min_DAI, and TCR recognition probability components).
 }
 
 transcript description:

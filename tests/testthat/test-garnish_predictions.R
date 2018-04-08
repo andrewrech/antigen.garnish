@@ -15,8 +15,9 @@ README <- function(){
                       "HLA-A*01:47 HLA-DRB1*03:08")] %>%
                       garnish_predictions
 
-      testthat::expect_true(dt %>% nrow == 713)
-      testthat::expect_true(dt[, nmer %>% unique %>% length] == 552)
+      testthat::expect_true(dt %>% nrow == 911)
+      testthat::expect_true(dt[iedb_score == 1] %>% nrow == 69)
+      testthat::expect_true(dt[, nmer %>% unique %>% length] == 566)
     })
 }
 

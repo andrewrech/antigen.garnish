@@ -16,9 +16,7 @@ garnish_fitness(dt, a = 26, k = 4.86936)
 \value{
 A data table with added fitness model parameter columns:
 \itemize{
-\item \strong{ResidueChangeClass}: Amino acid change class (e.g. hydrophobic, non-hydrophobic).
-\item \strong{R}: TCR recognition probability, determined by comparison to known epitopes in the IEDB.
-\item \strong{NeoantigenRecognitionPotential}: Neoantigen Recognition Potential calculated by the model. Original validation was limited to 9mers, class I, and human IEDB epitopes. The model will be applied to all peptides, class I and II.
+\item \strong{NeoantigenRecognitionPotential}: Neoantigen Recognition Potential calculated by the model.
 }
 }
 \description{

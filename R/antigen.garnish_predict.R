@@ -17,7 +17,7 @@ make_BLAST_uuid <- function(dti){
         list.files(pattern = "(Ms|Hu)_nmer_fasta|iedb_query|blastpout|iedbout") %>% file.remove
         )
                             })
-                            
+
 if (identical(Sys.getenv("TESTTHAT"), "true")) setwd("~")
 
 if (suppressWarnings(system('which blastp 2> /dev/null', intern = TRUE)) %>%
@@ -1133,18 +1133,17 @@ mcMap(function(x, y) (x %>% as.integer):(y %>% as.integer) %>%
 #' * **\*_net**: netMHC prediction tool output
 #' * **mhcflurry_\***: mhcflurry_ prediction tool output
 #' * **mhcnuggets_\***: mhcnuggets_ prediction tool output
-#' * **Consensus_scores**: Average value of MHC binding affinity from all prediction tools that contributed output. 95\% confidence intervals are given by **Upper_CI**, **Lower_CI**.
 #' * **DAI**: Differential agretopicty index of missense and corresponding wild-type peptide, see `garnish_summary` for an explanation of DAI.
 #' * **BLAST_A**: Ratio of consensus binding affinity of mutant peptide / closest single AA mismatch from blastp results. Returned only if `blast = TRUE`.
+#'
+#' antigen.garnish fitness model results
+#' * **Consensus_scores**: average value of MHC binding affinity from all prediction tools that contributed output. 95\% confidence intervals are given by **Upper_CI**, **Lower_CI**.
 #' * **iedb_score**: R implementation of TCR recognition probability for peptide through summing of alignments in IEDB for corresponding organism.
-#' * **min_DAI**: Minimum of BLAST_A and DAI values, to provide the most conservative `fitness_score` value.
-#' * **fitness_score**: Product of min_DAI and iedb_score. The peptide with the highest value per sample is the dominant neoepitope.
+#' * **min_DAI**: Minimum of value of BLAST_A or DAI values, to provide the most conservative estimate differential binding between input and wildtype matches.
+#' * **fitness_score**: Product of min_DAI and iedb_score. The peptide with the highest value per sample is the dominant neoepitope. Does not apply to wildtype input.
 #'
 #' fitness model information [Luksza et al. *Nature* 2017](https://www.ncbi.nlm.nih.gov/pubmed/29132144):
-#' * **ResidueChangeClass**: Amino acid change class (e.g. hydrophobic, non-hydrophobic).
-#' * **A**: Component of the fitness model. Differential MHC affinity of mutant and closest wt peptide, equivalent to DAI if available, otherwise uses BLAST_A.
-#' * **R**: TCR recognition probability, determined by comparison to known epitopes in the IEDB and amino acid properties.
-#' * **NeoantigenRecognitionPotential**: Product of A and R.
+#' * **NeoantigenRecognitionPotential**: Product of A and R (amplitude, analogous to min_DAI, and TCR recognition probability components).
 #'
 #' transcript description:
 #' * description
@@ -1385,7 +1384,7 @@ if (assemble & input_type == "transcript"){
            } %>%
           which %>% .[1], by = 1:nrow(dt)]
           })
-  
+
     # if pep_wt length < pep_mut ie stop lost variant, this returns NA so:
     dt[is.na(mismatch_s) & nchar(pep_wt) < nchar(pep_mut),
         mismatch_s := nchar(pep_wt) + 1]
