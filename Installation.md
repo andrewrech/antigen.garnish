@@ -9,7 +9,6 @@ Instructions for installation of `antigen.garnish` on an AWS EC2 instance runnin
 
 `
 sudo apt-get update
-
 sudo apt-get install build-essential, zlib1g-dev  
 `
 
