@@ -9,7 +9,6 @@ Recommended instructions for installation of `antigen.garnish`. Install onto an 
 
 ```
 sudo apt-get update
-
 sudo apt-get install build-essential, zlib1g-dev  
 ```
 
