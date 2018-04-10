@@ -80,6 +80,9 @@
 
 garnish_summary <- function(dt){
 
+  # magrittr version check, this will not hide the error, only the NULL return on successful exit
+  invisible(check_dep_versions())
+
 # summarize over unique nmers
 
   dt %<>% data.table::as.data.table %>%
@@ -287,6 +290,9 @@ garnish_summary <- function(dt){
 #' @md
 
 garnish_variants <- function(vcfs, intersect = TRUE){
+
+  # magrittr version check, this will not hide the error, only the NULL return on successful exit
+  invisible(check_dep_versions())
 
   message("Loading VCFs")
 
@@ -535,6 +541,9 @@ sdt <- lapply(ivfdtl, function(dt){
 #' @md
 
 garnish_plot <- function(input){
+
+  # magrittr version check, this will not hide the error, only the NULL return on successful exit
+  invisible(check_dep_versions())
 
   # check input
   if (class(input)[1] == "list" & class(input[[1]])[1] != "data.table")

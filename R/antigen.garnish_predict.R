@@ -1263,6 +1263,9 @@ garnish_predictions <- function(dt = NULL,
     silent = TRUE)
   })
 
+  # magrittr version check, this will not hide the error, only the NULL return on successful exit
+  invisible(check_dep_versions())
+
   if (missing(dt) & missing(path)) stop("dt and path are missing.")
   if (!missing(dt) & !missing(path)) stop("Choose dt or path input.")
 

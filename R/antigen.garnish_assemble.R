@@ -1,5 +1,29 @@
 
 
+## ---- check_dep_versions
+#' Internal function to check for dev version of magrittr.
+#'
+#' @export check_dep_versions
+#' @md
+
+check_dep_versions <- function(){
+
+  ver <- utils::packageVersion("magrittr")
+
+  # have to unlist version because packageVersion class object will call 1.5.0 and 1.5 equivalent
+
+  if (identical(as.numeric(unlist(ver)), c(1,5))) stop("CRAN version of `magrittr` package detected, please install `magrittr` from the tidyverse with `devtools::install_github(\"tidyverse/magrittr\")`")
+
+  # future proofing
+  if (!identical(as.numeric(unlist(ver)), c(1,5,0)))
+    message("Warning, could not confirm magrittr version, if the pipeline is returning errors,
+    consider installing `magrittr` from the tidyverse with `devtools::install_github(\"tidyverse/magrittr\")`")
+
+  return(NULL)
+
+}
+
+
 
 ## ---- list_mhc
 #' List available MHC types using standard nomenclature
