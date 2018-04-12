@@ -1278,6 +1278,9 @@ garnish_predictions <- function(dt = NULL,
 
   if (!"MHC" %chin% names(dt)) stop("Input must include MHC alleles, see ?garnish_predictions")
 
+  # if class of MHC is a list column, it won't bug until first merge in make_BLAST_uuid, added this.
+  if (class(dt[, MHC]) == "list") stop("MHC column must be a character column, not a list, unlist the column and rerun garnish_predictions.")
+
   input_type <- vector()
 
   # specify transcript vs. direct cDNA / mutant index input

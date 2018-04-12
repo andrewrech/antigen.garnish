@@ -361,6 +361,9 @@ ivfdtl <- parallel::mclapply(vcfs %>% seq_along, function(ivf){
     vdt %<>% .[!ensembl_transcript_id %>% is.na &
                !cDNA_change %>% is.na]
 
+    # this bugs downstream if nrow = 0 at this point, ie vcf of all intergenic
+    if (vdt %>% nrow < 1) return(data.table::data.table(sample_id = sample_id))
+
     return(vdt)
     })
 
