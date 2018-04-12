@@ -505,7 +505,7 @@ sdt <- lapply(ivfdtl, function(dt){
      effect_type %like% "insertion|deletion|missense|frameshift"]
 
   if (nrow(sdt) == 0){
-    message("All samples returned no suitable variants and will be excluded from output.\n", sep = " "))
+    message("All samples returned no suitable variants and will be excluded from output.")
     return(NULL)
   }
   return(sdt)
