@@ -448,7 +448,7 @@ sample_ids <- lapply(ivfdtl, function(dt){
 
     if ((drop == 1) %>% any){
 
-      message(paste(vcfs[which(drop == 1)], "returned no suitable variants and will be excluded from output.", sep = " "))
+      message(paste(vcfs[which(drop == 1)], "returned no suitable variants and will be excluded from output.\n", sep = " "))
 
       ivfdtl <- ivfdtl[which(drop != 1)]
 
@@ -504,6 +504,10 @@ sdt <- lapply(ivfdtl, function(dt){
     !effect_type %>% is.na &
      effect_type %like% "insertion|deletion|missense|frameshift"]
 
+  if (nrow(sdt) == 0){
+    message(paste(vcfs[which(drop == 1)], "returned no suitable variants and will be excluded from output.\n", sep = " "))
+    return(NULL)
+  }
   return(sdt)
 
 }
