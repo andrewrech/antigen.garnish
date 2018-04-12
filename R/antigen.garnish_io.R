@@ -452,6 +452,8 @@ sample_ids <- lapply(ivfdtl, function(dt){
 
       ivfdtl <- ivfdtl[which(drop != 1)]
 
+      if (length(ivfdtl) == 0) return(NULL)
+
     }
 
 
@@ -497,6 +499,11 @@ sdt <- lapply(ivfdtl, function(dt){
 
       }) %>% data.table::rbindlist(use.names = TRUE, fill = TRUE)
 
+      if (nrow(sdt) == 0){
+        message("All samples returned no suitable variants and will be excluded from output.")
+        return(NULL)
+      }
+
   # select protein coding variants without NA
   sdt %<>%
     .[protein_coding == TRUE &
@@ -508,6 +515,7 @@ sdt <- lapply(ivfdtl, function(dt){
     message("All samples returned no suitable variants and will be excluded from output.")
     return(NULL)
   }
+
   return(sdt)
 
 }
