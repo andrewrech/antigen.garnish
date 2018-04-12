@@ -223,7 +223,7 @@ parallel::mclapply(dt[, spc %>% unique], function(s){
         " -outfmt '10 qseqid sseqid qseq qstart qend sseq sstart send length mismatch pident evalue bitscore'"
       ))
 
-    blastdt <- list.files(pattern = "iedbout(_mu)?\\.csv") %>%
+    blastdt <- list.files(pattern = "iedbout(_mu|_hu)\\.csv") %>%
                   file.info %>%
                     data.table::as.data.table(keep.rownames = TRUE) %>%
                       .[size != 0, rn]
