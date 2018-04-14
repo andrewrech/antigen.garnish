@@ -38,7 +38,7 @@ An R package for [neoepitope](http://science.sciencemag.org/content/348/6230/69)
 curl -fsSL http://get.rech.io/antigen.garnish.sh | sudo sh
 ```
 
-* detailed installation instructions can be found in the projects [wiki](https://github.com/davidballi/antigen.garnish/wiki)
+* detailed installation instructions can be found in the projects [wiki](https://github.com/davidballi/antigen.garnish/wiki).
 
 ## [Package documentation](http://get.rech.io/antigen.garnish.pdf)
 
