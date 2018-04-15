@@ -9,12 +9,12 @@ Recommended instructions for installation of `antigen.garnish`.  Install onto an
 * python2.7 and pip
 
 #### 1. Update ubuntu
-```
+```bash
 sudo apt-get update
 ```
 
 ##### 2. Install [antigen.garnish](https://github.com/andrewrech/antigen.garnish) and [dt.inflix](https://github.com/andrewrech/dt.inflix) in R.
-```
+```bash
 Rscript --vanilla -e \
 'install.packages("devtools", repos = "http://cran.us.r-project.org"); devtools::install_github("hadley/devtools"); install.packages("testthat", repos = "http://cran.us.r-project.org")'
 
@@ -26,7 +26,7 @@ Rscript --vanilla -e \
 
 * Will download peptide and cDNA databases, known immunogenic IEDB sequences, [NCBI blastp](https://blast.ncbi.nlm.nih.gov/Blast.cgi?CMD=Web&PAGE_TYPE=BlastDocs&DOC_TYPE=Download), [mhcnuggers](https://www.biorxiv.org/content/biorxiv/early/2017/06/23/154757.full.pdf), and [netMHC](http://www.cbs.dtu.dk/services/software.php) tools.  Please note that netMHC, netMHCpan, netMHCII, and netMHCIIpan require academic-use only licenses.
 
-```
+```bash
 cd ~
 curl -fsSL "http://get.rech.io/antigen.garnish.tar.gz" | tar -xvz
 chmod 777 -R ./antigen.garnish
@@ -35,7 +35,7 @@ sudo mv ./antigen.garnish/ncbi-blast-2.7.1+/bin/* /usr/local/bin
 ```
 
 #### 4. Install [mhcflurry](https://github.com/openvax/mhcflurry) and download mhcflurry prediction models.
-```
+```bash
 sudo pip --disable-pip-version-check install scipy mhcflurry h5py biopython
 
 mhcflurry-downloads fetch
