@@ -259,7 +259,9 @@ garnish_summary <- function(dt){
 #'
 #' Recommended somatic variant callers: [MuTect2](https://github.com/broadinstitute/gatk), [Strelka2](https://github.com/Illumina/strelka)
 #'
-#' @param vcfs Paths to VFC files to import.
+#' **Multi-sample vcfs are not supported**.  Single sample and paired tumor-normal vcfs are required.  Multi-sample vcfs will be considered a single sample in the output.
+#'
+#' @param vcfs Paths to one or more VFC files to import.
 #' @param intersect Logical. Return only the intersection of variants in multiple `vcfs` with identical sample names? Intersection performed on `SnpEff` annotations. One `vcf` file per somatic variant caller-input samples pair is required.
 #' @param prop_tab. Optional.  Either a data.table/frame or file path to a table with clonality or allelic frequencies. If the latter is used, allelic frequencies will be used as a surrogate clonality, this has not been validated. Acceptable formats:
 #'

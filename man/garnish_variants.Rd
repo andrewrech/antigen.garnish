@@ -7,7 +7,7 @@
 garnish_variants(vcfs, intersect = TRUE, prop_tab = NULL)
 }
 \arguments{
-\item{vcfs}{Paths to VFC files to import.}
+\item{vcfs}{Paths to one or more VFC files to import.}
 
 \item{intersect}{Logical. Return only the intersection of variants in multiple \code{vcfs} with identical sample names? Intersection performed on \code{SnpEff} annotations. One \code{vcf} file per somatic variant caller-input samples pair is required.}
 
@@ -56,6 +56,8 @@ Process paired tumor-normal VCF variants annotated with \href{http://snpeff.sour
 }
 \details{
 Recommended somatic variant callers: \href{https://github.com/broadinstitute/gatk}{MuTect2}, \href{https://github.com/Illumina/strelka}{Strelka2}
+
+\strong{Multi-sample vcfs are not supported}.  Single sample and paired tumor-normal vcfs are required.  Multi-sample vcfs will be considered a single sample in the output.
 }
 \examples{
 \dontrun{
