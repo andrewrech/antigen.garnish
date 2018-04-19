@@ -45,6 +45,7 @@ curl -fsSL http://get.rech.io/antigen.garnish.sh | sudo sh
 * `garnish_predictions`: perform ensemble neoepitope prediction
 * `garnish_summary`: summarize and rank results
 * `garnish_plot`: generate summary plots
+* `garnish_targets`: list dominant neoepitope sequences, sources, and properties per clone per sample
 * `list_mhc`: list all supported MHC allele syntax
 
 ### [Vignette](http://get.rech.io/antigen.garnish.pdf)
