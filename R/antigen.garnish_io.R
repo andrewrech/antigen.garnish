@@ -1058,7 +1058,11 @@ garnish_targets <- function(dt){
 
   dt <- dt[fitness_score == fs]
 
-  dt <- dt[, .SD %>% unique, .SDcols = c("sample_id", "nmer", "MHC", "external_gene_name", "protein_change",
+  n <- names(dt)[which(names(dt) %chin% c("cDNA_change", "protein_change"))]
+
+  if (length(n) < 1) n <- NULL
+
+  dt <- dt[, .SD %>% unique, .SDcols = c("sample_id", "nmer", "MHC", "external_gene_name", n,
                                         "Consensus_scores", "fitness_score", "iedb_score", "min_DAI", "clone_prop", "clone_id")]
 
   dt <- dt %>% .[order(sample_id, clone_id)]
