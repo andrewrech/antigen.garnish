@@ -11,11 +11,10 @@ garnish_variants(vcfs, intersect = TRUE, prop_tab = NULL)
 
 \item{intersect}{Logical. Return only the intersection of variants in multiple \code{vcfs} with identical sample names? Intersection performed on \code{SnpEff} annotations. One \code{vcf} file per somatic variant caller-input samples pair is required.}
 
-\item{prop_tab.}{Optional.  Either a data.table/frame or file path to a table with clonality or allelic frequencies. If the latter is used, allelic frequencies will be used as a surrogate clonality, this has not been validated. Acceptable formats:
+\item{prop_tab.}{Optional.  Character vector of file paths to a table with clonality or allelic frequencies in the same order as corresponding VCFs. If allelic frequencies are given clonality will be inferred with the assumptions of even ploidy, monophylogeny, no loss of truncal mutations, and all allele frequencies lower than the maximum per sample represent subclonal mutations, this method has not been validated. Acceptable formats for input include:
 
 dt with clonality:\preformatted{Column name                 Example input
 
-sample_id                   sample_1
 chr                         X
 start                       4550159
 end                         4550159
@@ -24,7 +23,6 @@ CELLFRACTION                0.15
 
 dt with allele fractions:\preformatted{Column name                 Example input
 
-sample_id                   sample_1
 #CHROM                      X
 POS                         4550159
 REF                         A

@@ -263,14 +263,13 @@ garnish_summary <- function(dt){
 #'
 #' @param vcfs Paths to one or more VFC files to import.
 #' @param intersect Logical. Return only the intersection of variants in multiple `vcfs` with identical sample names? Intersection performed on `SnpEff` annotations. One `vcf` file per somatic variant caller-input samples pair is required.
-#' @param prop_tab. Optional.  Either a data.table/frame or file path to a table with clonality or allelic frequencies. If the latter is used, allelic frequencies will be used as a surrogate clonality, this has not been validated. Acceptable formats:
+#' @param prop_tab. Optional.  Character vector of file paths to a table with clonality or allelic frequencies in the same order as corresponding VCFs. If allelic frequencies are given clonality will be inferred with the assumptions of even ploidy, monophylogeny, no loss of truncal mutations, and all allele frequencies lower than the maximum per sample represent subclonal mutations, this method has not been validated. Acceptable formats for input include:
 #'
 #'dt with clonality:
 #'
 #'
 #'     Column name                 Example input
 #'
-#'     sample_id                   sample_1
 #'     chr                         X
 #'     start                       4550159
 #'     end                         4550159
@@ -281,7 +280,6 @@ garnish_summary <- function(dt){
 #'
 #'     Column name                 Example input
 #'
-#'     sample_id                   sample_1
 #'     #CHROM                      X
 #'     POS                         4550159
 #'     REF                         A
@@ -532,86 +530,100 @@ sdt <- lapply(ivfdtl, function(dt){
           return(ivfdtl[sdt] %>% Reduce(union_vcf, .))
 
 
-      }) %>% data.table::rbindlist(use.names = TRUE, fill = TRUE)
+      })
 
-      if (nrow(sdt) == 0){
-        message("All samples returned no suitable variants and will be excluded from output.")
-        return(NULL)
+
+  if (!missing(prop_tab)){
+
+    if (length(prop_tab) != length(vcfs)){
+      message("Requires one proportions table per vcf file.  Returning vcf data only.")
+      sdt %<>% data.table::rbindlist(use.names = TRUE, fill = TRUE)
+      return(sdt)
+    }
+
+    sdt <- parallel::mclapply(prop_tab %>% seq_along, function(i){
+
+      if (class(prop_tab[i])[1] == "character") pt <- prop_tab[i] %>% rio::import %>% data.table::as.data.table
+      if (class(prop_tab[i])[1] == "list") pt <- prop_tab[[i]]
+      if (class(pt)[1] == "data.frame") pt %>% data.table::as.data.table
+
+      type <- NULL
+
+      if (!"AF" %chin% names(pt)) type <- "AF"
+      if (!"CELLFRACTION" %chin% names(pt)) type <- "CELLFRACTION"
+
+      if (length(type) == 0){
+
+        message("Unable to parse prop_tab, check input table is properly formatted.  Returning with vcf data only.")
+        return(sdt)
+
       }
 
-  # select protein coding variants without NA
-  sdt %<>%
-    .[protein_coding == TRUE &
-    !protein_change %>% is.na &
-    !effect_type %>% is.na &
-     effect_type %like% "insertion|deletion|missense|frameshift"]
+      if (type == "AF"){
+
+        if (any(!c("#CHROM", "POS", "REF", "ALT", "AF") %chin% names(pt))){
+          message("prop_tab is missing columns, see ?garnish_variants.  Returning vcf data only.")
+          return(sdt)
+        }
+
+        if (dt[, ALT %like% ","] %>% any){
+          message("Detected multiple variants per row.  Split allelic fraction input into a single variant per row.  Returning vcf data only.")
+          return(sdt)
+        }
+
+      # reformat chrom col to account for different reference versions
+        pt[, `#CHROM` := `#CHROM` %>% stringr::str_extract("^(chr)?([0-9][0-9]?|[XY]|MT)") %>%
+              stringr::str_replace("chr", "")]
+
+        sdt[, `#CHROM` := `#CHROM` %>% stringr::str_extract("^(chr)?([0-9][0-9]?|[XY]|MT)") %>%
+                      stringr::str_replace("chr", "")]
+
+        sdt <- merge(sdt, pt, all.x = TRUE, by = c("#CHROM", "POS", "REF", "ALT"))
+
+      }
+
+      if (type == "CELLFRACTION"){
+
+        if (any(!c("chr", "start", "end", "CELLFRACTION") %chin% names(pt))){
+          message(paste("prop_tab for", vcfs[i], "is missing columns, see ?garnish_variants.  Returning vcf data only."), sep = " ")
+          return(sdt)
+        }
+
+        # reformat chrom col to account for different reference versions
+        pt[, chr := chr %>% stringr::str_extract("^(chr)?([0-9][0-9]?|[XY]|MT)") %>%
+              stringr::str_replace("chr", "")]
+
+        sdt[, `#CHROM` := `#CHROM` %>% stringr::str_extract("^(chr)?([0-9][0-9]?|[XY]|MT)") %>%
+                      stringr::str_replace("chr", "")]
+
+        pt %>% data.table::setnames(c("chr", "start"), c("#CHROM", "POS"))
+
+        sdt <- merge(sdt, pt[, .SD %>% unique, .SDcols = c("#CHROM", "POS", "sample_id")],
+        all.x = TRUE, by = c("#CHROM", "POS", "sample_id"))
+
+      }
+
+    }) %>% data.table::rbindlist(fill = TRUE, use.names = TRUE)
+
+  }
+
+  if(missing(prop_tab)) sdt %<>% data.table::rbindlist(use.names = TRUE, fill = TRUE)
 
   if (nrow(sdt) == 0){
     message("All samples returned no suitable variants and will be excluded from output.")
     return(NULL)
   }
 
-  if (!missing(prop_tab)){
+# select protein coding variants without NA
+sdt %<>%
+  .[protein_coding == TRUE &
+  !protein_change %>% is.na &
+  !effect_type %>% is.na &
+  effect_type %like% "insertion|deletion|missense|frameshift"]
 
-    if (class(prop_tab)[1] == "character") prop_tab <- prop_tab %>% rio::important %>% data.table::as.data.table
-    if (class(prop_tab)[1] == "data.frame") prop_tab %>% data.table::as.data.table
-
-    type <- NULL
-
-    if (!"AF" %chin% names(prop_tab)) type <- "AF"
-    if (!"CELLFRACTION" %chin% names(prop_tab)) type <- "CELLFRACTION"
-
-    if (length(type) == 0){
-
-      message("Unable to parse prop_tab, check input table is properly formatted.  Returning with vcf data only.")
-      return(sdt)
-
-    }
-
-    if (type == "AF"){
-
-      if (any(!c("sample_id", "#CHROM", "POS", "REF", "ALT", "AF") %chin% names(prop_tab))){
-        message("prop_tab is missing columns, see ?garnish_variants.  Returning vcf data only.")
-        return(sdt)
-      }
-
-      if (dt[, ALT %like% ","] %>% any){
-        message("Detected multiple variants per row.  Split allelic fraction input into a single variant per row.  Returning vcf data only.")
-        return(sdt)
-      }
-
-      # reformat chrom col to account for different reference versions
-      prop_tab[, `#CHROM` := `#CHROM` %>% stringr::str_extract("^(chr)?([0-9][0-9]?|[XY]|MT)") %>%
-              stringr::str_replace("chr", "")]
-
-      sdt[, `#CHROM` := `#CHROM` %>% stringr::str_extract("^(chr)?([0-9][0-9]?|[XY]|MT)") %>%
-                      stringr::str_replace("chr", "")]
-
-      sdt <- merge(sdt, prop_tab, all.x = TRUE, by = c("sample_id", "#CHROM", "POS", "REF", "ALT"))
-
-    }
-
-    if (type == "CELLFRACTION"){
-
-      if (any(!c("sample_id", "chr", "start", "end", "CELLFRACTION") %chin% names(prop_tab))){
-        message("prop_tab is missing columns, see ?garnish_variants.  Returning vcf data only.")
-        return(sdt)
-      }
-
-      # reformat chrom col to account for different reference versions
-      prop_tab[, chr := chr %>% stringr::str_extract("^(chr)?([0-9][0-9]?|[XY]|MT)") %>%
-              stringr::str_replace("chr", "")]
-
-      sdt[, `#CHROM` := `#CHROM` %>% stringr::str_extract("^(chr)?([0-9][0-9]?|[XY]|MT)") %>%
-                      stringr::str_replace("chr", "")]
-
-      prop_tab %>% data.table::setnames(c("chr", "start"), c("#CHROM", "POS"))
-
-      sdt <- merge(sdt, prop_tab[, .SD %>% unique, .SDcols = c("#CHROM", "POS", "sample_id")],
-      all.x = TRUE, by = c("#CHROM", "POS", "sample_id"))
-
-    }
-
+  if (nrow(sdt) == 0){
+    message("All samples returned no suitable variants and will be excluded from output.")
+    return(NULL)
   }
 
   return(sdt)
