@@ -20,6 +20,7 @@
 #'* `garnish_predictions`: perform ensemble neoepitope prediction
 #'* `garnish_summary`: summarize and rank results
 #'* `garnish_plot`: generate summary plots
+#'* `garnish_targets`: list dominant neoepitope sequences, sources, and properties per clone per sample
 #'* `list_mhc`: list all supported MHC allele syntax
 #' @section Bug, issues, feedback:
 #' Please report bugs and issues and provide feedback via [Github](https://github.com/andrewrech/antigen.garnish/issues) or to [andrewrech\@gmail.com](mailto:andrewrech\@gmail.com).
@@ -30,6 +31,7 @@
 #' @import data.table
 #' @import dt.inflix
 #' @import ggplot2
+#' @import mclust
 #' @import parallel
 #' @import stringr
 #' @import testthat

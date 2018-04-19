@@ -416,8 +416,13 @@ clone_wars <- function(dt){
 
       a <- dt[!is.na(clone_prop), clone_prop %>% unique, by = c("sample_id", "var_uuid")]
 
-      a[, clone_prop := V1 / sum(V1), by = "sample_id"]
+      # assume even ploidy and monophyletic tree so max AF is assumed to be 100% cell fraction and others are subclonal (assumes no pressure to lose mutation and max AF = tumor sample purity).
+      # teleologically, this assumption is really only good for a relatively genetically stable clonal cell line taken off a dish and sequenced.
+      # can't see this being at all a large task, can set max cores and not worry about memory.
 
+      a[, clone_prop := V1 / max(V1, na.rm = TRUE), by = "sample_id"]
+
+      # clear column derived from allele fractions in dt
       dt[, clone_prop := NULL]
 
       dt <- merge(dt, a[, .SD %>% unique, .SDcol = c("sample_id", "var_uuid", "clone_prop")],
