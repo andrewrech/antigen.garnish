@@ -368,7 +368,7 @@ clone_wars <- function(dt){
 
     b %>% setnames(col, "cf")
 
-    match_clone <- function(cf){
+    match_clone <- function(cf, v){
 
       dt <- lapply(cf, function(x){
 
@@ -394,13 +394,13 @@ clone_wars <- function(dt){
 
       x <-  mclust::Mclust(dt[, cf], verbose = FALSE)
 
-      v <- x$parameters$mean
+      vect <- x$parameters$mean
 
-      v %<>% sort(decreasing = TRUE)
+      vect %<>% sort(decreasing = TRUE)
 
-      names(v) <- 1:length(v) %>% as.character
+      names(vect) <- 1:length(vect) %>% as.character
 
-      dt[, c("clone_prop", "clone_id") := cf %>% match_clone]
+      dt[, c("clone_prop", "clone_id") := match_clone(cf, v = vect)]
 
     }) %>% data.table::rbindlist(use.names = TRUE)
 
