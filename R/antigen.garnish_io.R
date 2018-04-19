@@ -329,8 +329,8 @@ garnish_variants <- function(vcfs, intersect = TRUE, prop_tab = NULL){
 
   message("Loading VCFs")
 
-  if (!missing(prop_tab) & intersect = TRUE){
-    
+  if (!missing(prop_tab) & intersect == TRUE){
+
     message("prop_tab argument is present, setting `intersect` to FALSE.
     To intersect and then use clonality, add an \"AF\" or \"CELLFRACTION\" to the table before passing to `garnish_predictions`.")
     intersect <- FALSE
