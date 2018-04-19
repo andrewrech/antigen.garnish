@@ -4,12 +4,33 @@
 \alias{garnish_variants}
 \title{Process VCF variants and return a data table for epitope prediction.}
 \usage{
-garnish_variants(vcfs, intersect = TRUE)
+garnish_variants(vcfs, intersect = TRUE, prop_tab = NULL)
 }
 \arguments{
 \item{vcfs}{Paths to VFC files to import.}
 
 \item{intersect}{Logical. Return only the intersection of variants in multiple \code{vcfs} with identical sample names? Intersection performed on \code{SnpEff} annotations. One \code{vcf} file per somatic variant caller-input samples pair is required.}
+
+\item{prop_tab.}{Optional.  Either a data.table/frame or file path to a table with clonality or allelic frequencies. If the latter is used, allelic frequencies will be used as a surrogate clonality, this has not been validated. Acceptable formats:
+
+dt with clonality:\preformatted{Column name                 Example input
+
+sample_id                   sample_1
+chr                         X
+start                       4550159
+end                         4550159
+CELLFRACTION                0.15
+}
+
+dt with allele fractions:\preformatted{Column name                 Example input
+
+sample_id                   sample_1
+#CHROM                      X
+POS                         4550159
+REF                         A
+ALT                         GC
+AF                          0.85
+}}
 }
 \value{
 A data table with one unique SnpEff variant annotation per row, including:
@@ -22,6 +43,12 @@ A data table with one unique SnpEff variant annotation per row, including:
 \item \strong{protein_change}: protein change in \href{http://varnomen.hgvs.org/recommendations/DNA/}{HGVS} format
 \item \strong{cDNA_change}: cDNA change in \href{http://varnomen.hgvs.org/recommendations/protein/}{HGVS} format
 \item \strong{protein_coding}: is the variant protein coding?
+}
+
+if prop_tab is provided either:
+\itemize{
+\item \strong{CELLFRACTION}: cell fraction taken from input, such as from clonality estimates from \href{http://www.github.com/lima1/PureCN}{PureCN}
+\item \strong{AF}: allelic fraction taken from input
 }
 }
 \description{

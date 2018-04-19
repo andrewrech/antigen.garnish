@@ -1065,7 +1065,7 @@ dto <- parallel::mclapply(dts %>% split(1:chunks), function(dtw){
 
 get_ss_str <- function(x, y){
 
-mcMap(function(x, y) (x %>% as.integer):(y %>% as.integer) %>%
+parallel::mcMap(function(x, y) (x %>% as.integer):(y %>% as.integer) %>%
           paste(collapse = " "), x, y) %>% unlist
     }
 
@@ -1077,6 +1077,7 @@ mcMap(function(x, y) (x %>% as.integer):(y %>% as.integer) %>%
 #' Perform ensemble neoepitope prediction on a data table of missense mutations, insertions, deletions or gene fusions using netMHC, mhcflurry, and mhcnuggets.
 #' See `list_mhc` for compatible MHC allele syntax.  Multiple MHC alleles for a single sample_id should be space separated.
 #' Please keep **murine and human alleles in separate rows**, this will not affect computational speed but will ensure the correct IEDB file is chosen.  See example.
+#' If allele fractions or cell fractions were provided to garnish_variants, then `garnish_score` will be calculated, which summarizes the total immune fitness cost across all clones in a tumor.
 #'
 #' @param path Path to input table ([acceptable formats](https://cran.r-project.org/web/packages/rio/vignettes/rio.html#supported_file_formats)).
 #' @param dt Data table. Input data table from `garnish_variants` or `garnish_jaffa`, or a data table in one of these forms:
@@ -1136,14 +1137,20 @@ mcMap(function(x, y) (x %>% as.integer):(y %>% as.integer) %>%
 #' * **DAI**: Differential agretopicty index of missense and corresponding wild-type peptide, see `garnish_summary` for an explanation of DAI.
 #' * **BLAST_A**: Ratio of consensus binding affinity of mutant peptide / closest single AA mismatch from blastp results. Returned only if `blast = TRUE`.
 #'
+#' clonality info:
+#' * **clone_id**: The rank of the clone containing the variant in that sample, with the first being the largest fraction of the tumor.
+#' * **clone_prop**: The estimated clustered mean value for the proportion of the tumor composed of that clone. If allele fraction and not clonality is used, this is estimated.
+#'
 #' antigen.garnish fitness model results
 #' * **Consensus_scores**: average value of MHC binding affinity from all prediction tools that contributed output. 95\% confidence intervals are given by **Upper_CI**, **Lower_CI**.
 #' * **iedb_score**: R implementation of TCR recognition probability for peptide through summing of alignments in IEDB for corresponding organism.
 #' * **min_DAI**: Minimum of value of BLAST_A or DAI values, to provide the most conservative estimate differential binding between input and wildtype matches.
-#' * **fitness_score**: Product of min_DAI and iedb_score. The peptide with the highest value per sample is the dominant neoepitope. Does not apply to wildtype input.
+#' * **fitness_score**: Product of min_DAI and iedb_score. The peptide with the highest value per clone is the dominant neoepitope. Does not apply to wildtype input.
+#' * **garnish_score**: the summary parameter of immunogenicity at the sample level, summed across dominant neoepitopes of each clone. Only if clonality or allele fraction data is present in the table. See ?garnish_variants.
 #'
 #' fitness model information [Luksza et al. *Nature* 2017](https://www.ncbi.nlm.nih.gov/pubmed/29132144):
 #' * **NeoantigenRecognitionPotential**: Product of A and R (amplitude, analogous to min_DAI, and TCR recognition probability components).
+#' * additionally, the full output from the python scripts provided in the supplementary data are saved to the working directory.
 #'
 #' transcript description:
 #' * description
@@ -1689,6 +1696,8 @@ up <- lapply(dtl, function(x){x[[2]]}) %>% unlist
           fitness_score := min_DAI * iedb_score]
 
    }
+
+   if (any(c("CELLFRACTION", "AF") %chin% names(dt))) dt %<>% clone_wars
 
    if (save2wd){
 

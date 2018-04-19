@@ -45,6 +45,7 @@
 #' * **predictions**: wt and mutant predictions performed
 #' * **mhc_binders**: `nmers` predicted to at least minimally bind MHC (< 5000nM \eqn{IC_{50}})
 #' * **fitness_scores**: Sum of the top 3 fitness_score values per sample. See `?garnish_fitness`.
+#' * **garnish_score**: Sample level immune fitness parameter modeled by summing the exponential of fitness_scores for each dominant neoepitope across all clones in the tumor sample. See ?garnish_predicitons.
 #' * **variants**: total genomic variants evaluated
 #' * **transcripts**: total transcripts evaluated
 #'
@@ -224,6 +225,10 @@ garnish_summary <- function(dt){
 
   }
 
+  if ("garnish_score" %chin% names(dt))
+    dtn <- merge(dtn, dt[, .SD %>% unique, .SDcols = c("sample_id", "garnish_score")],
+      all.x = TRUE, by = "sample_id")
+
   if (c("ensembl_transcript_id", "var_uuid") %chin% (dt %>% names) %>% all) {
 
   dtnv <- parallel::mclapply(dt[, sample_id %>% unique], function(id){
@@ -256,6 +261,30 @@ garnish_summary <- function(dt){
 #'
 #' @param vcfs Paths to VFC files to import.
 #' @param intersect Logical. Return only the intersection of variants in multiple `vcfs` with identical sample names? Intersection performed on `SnpEff` annotations. One `vcf` file per somatic variant caller-input samples pair is required.
+#' @param prop_tab. Optional.  Either a data.table/frame or file path to a table with clonality or allelic frequencies. If the latter is used, allelic frequencies will be used as a surrogate clonality, this has not been validated. Acceptable formats:
+#'
+#'dt with clonality:
+#'
+#'
+#'     Column name                 Example input
+#'
+#'     sample_id                   sample_1
+#'     chr                         X
+#'     start                       4550159
+#'     end                         4550159
+#'     CELLFRACTION                0.15
+#'
+#'dt with allele fractions:
+#'
+#'
+#'     Column name                 Example input
+#'
+#'     sample_id                   sample_1
+#'     #CHROM                      X
+#'     POS                         4550159
+#'     REF                         A
+#'     ALT                         GC
+#'     AF                          0.85
 #'
 #' @return A data table with one unique SnpEff variant annotation per row, including:
 #' * **sample_id**: sample identifier constructed from input \code{.bam} file names
@@ -266,6 +295,10 @@ garnish_summary <- function(dt){
 #' * **protein_change**: protein change in [HGVS](http://varnomen.hgvs.org/recommendations/DNA/) format
 #' * **cDNA_change**: cDNA change in [HGVS](http://varnomen.hgvs.org/recommendations/protein/) format
 #' * **protein_coding**: is the variant protein coding?
+#'
+#' if prop_tab is provided either:
+#' * **CELLFRACTION**: cell fraction taken from input, such as from clonality estimates from [PureCN](http://www.github.com/lima1/PureCN)
+#' * **AF**: allelic fraction taken from input
 #'
 #' @seealso \code{\link{garnish_predictions}}
 #'
@@ -289,7 +322,7 @@ garnish_summary <- function(dt){
 #' @export garnish_variants
 #' @md
 
-garnish_variants <- function(vcfs, intersect = TRUE){
+garnish_variants <- function(vcfs, intersect = TRUE, prop_tab = NULL){
 
   # magrittr version check, this will not hide the error, only the NULL return on successful exit
   invisible(check_dep_versions())
@@ -514,6 +547,69 @@ sdt <- lapply(ivfdtl, function(dt){
   if (nrow(sdt) == 0){
     message("All samples returned no suitable variants and will be excluded from output.")
     return(NULL)
+  }
+
+  if (!missing(prop_tab)){
+
+    if (class(prop_tab)[1] == "character") prop_tab <- prop_tab %>% rio::important %>% data.table::as.data.table
+    if (class(prop_tab)[1] == "data.frame") prop_tab %>% data.table::as.data.table
+
+    type <- NULL
+
+    if (!"AF" %chin% names(prop_tab)) type <- "AF"
+    if (!"CELLFRACTION" %chin% names(prop_tab)) type <- "CELLFRACTION"
+
+    if (length(type) == 0){
+
+      message("Unable to parse prop_tab, check input table is properly formatted.  Returning with vcf data only.")
+      return(sdt)
+
+    }
+
+    if (type == "AF"){
+
+      if (any(!c("sample_id", "#CHROM", "POS", "REF", "ALT", "AF") %chin% names(prop_tab))){
+        message("prop_tab is missing columns, see ?garnish_variants.  Returning vcf data only.")
+        return(sdt)
+      }
+
+      if (dt[, ALT %like% ","] %>% any){
+        message("Detected multiple variants per row.  Split allelic fraction input into a single variant per row.  Returning vcf data only.")
+        return(sdt)
+      }
+
+      # reformat chrom col to account for different reference versions
+      prop_tab[, `#CHROM` := `#CHROM` %>% stringr::str_extract("^(chr)?([0-9][0-9]?|[XY]|MT)") %>%
+              stringr::str_replace("chr", "")]
+
+      sdt[, `#CHROM` := `#CHROM` %>% stringr::str_extract("^(chr)?([0-9][0-9]?|[XY]|MT)") %>%
+                      stringr::str_replace("chr", "")]
+
+      sdt <- merge(sdt, prop_tab, all.x = TRUE, by = c("sample_id", "#CHROM", "POS", "REF", "ALT"))
+
+    }
+
+    if (type == "CELLFRACTION"){
+
+      if (any(!c("sample_id", "chr", "start", "end", "CELLFRACTION") %chin% names(prop_tab))){
+        message("prop_tab is missing columns, see ?garnish_variants.  Returning vcf data only.")
+        return(sdt)
+      }
+
+      # reformat chrom col to account for different reference versions
+      prop_tab[, chr := chr %>% stringr::str_extract("^(chr)?([0-9][0-9]?|[XY]|MT)") %>%
+              stringr::str_replace("chr", "")]
+
+      sdt[, `#CHROM` := `#CHROM` %>% stringr::str_extract("^(chr)?([0-9][0-9]?|[XY]|MT)") %>%
+                      stringr::str_replace("chr", "")]
+
+      prop_tab %>% data.table::setnames(c("chr", "start"), c("#CHROM", "POS"))
+
+      sdt <- merge(sdt, prop_tab[, .SD %>% unique, .SDcols = c("#CHROM", "POS", "sample_id")],
+      all.x = TRUE, by = c("#CHROM", "POS", "sample_id"))
+
+    }
+
   }
 
   return(sdt)
@@ -912,5 +1008,39 @@ garnish_plot <- function(input){
   })
 
   return(NULL)
+
+}
+
+
+## ---- garnish_targets
+#' List the dominant neoepitope sequences for each clone in each sample.
+#'
+#' Requires that garnish_score was computed from allelic or clonal proportion data.
+#'
+#' @return A data table with the dominant neoepitope per clone per sample, in rank order of clone frequency
+#'
+#' @export garnish_targets
+#' @md
+
+garnish_targets <- function(dt){
+
+  if (class(dt)[1] == "character") dt <- dt %>% rio::import %>% data.table::as.data.table
+
+  if (class(dt)[1] == "data.frame") dt %<>% data.table::as.data.table
+
+  dt %<>% data.table::copy
+
+  if (!"clone_id" %chin% names(dt)) stop("No allelic fraction or clonality information in the table.  See ?garnish_variants.")
+
+  dt[, fs := max(fitness_score, na.rm = TRUE), by = c("sample_id", "clone_id")]
+
+  dt <- dt[fitness_score == fs]
+
+  dt <- dt[, .SD %>% unique, .SDcols = c("sample_id", "nmer", "MHC", "external_gene_name", "protein_change",
+                                        "Consensus_scores", "fitness_score", "iedb_score", "min_DAI", "clone_prop", "clone_id")]
+
+  dt <- dt %>% .[order(sample_id, clone_id)]
+
+  return(dt[Consensus_scores < 1000])
 
 }

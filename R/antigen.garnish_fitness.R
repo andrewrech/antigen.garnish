@@ -335,3 +335,102 @@ the following columns:
   return(dtloo)
 
 }
+
+
+## ---- clone_wars
+#' Internal function to integrate clonality data into final garnish_score.
+#'
+#' Integrates clonality input to create a summary metric of tumor fitness similar to [Luksza et al. *Nature* 2017](https://www.ncbi.nlm.nih.gov/pubmed/29132144).
+#'
+#' @import mclust
+#'
+#' @return A data table with added fitness model parameter columns:
+#' * **clone_id**: The rank of the clone containing the variant in that sample, with the first being the largest fraction of the tumor.
+#' * **clone_prop**: The estimated clustered mean value for the proportion of the tumor composed of that clone.
+#' * **garnish_score**: the summary parameter of immunogenicity at the sample level, summed across dominant neoepitopes of each clone.
+#'
+#' @export clone_wars
+#' @md
+
+clone_wars <- function(dt){
+
+  if (!"CELLFRACTION" %chin% names(dt) & !"AF" %chin% names(dt)){
+
+    message("No CELLFRACTION or AF column found, returning dt without computing garnish_score from clonality.")
+    return(dt)
+
+  }
+
+  if ("AF" %chin% names(dt)) col <- "AF"
+  if ("CELLFRACTION" %chin% names(dt)) col <- "CELLFRACTION"
+
+    b <- data.table::copy(dt)
+
+    b %>% setnames(col, "cf")
+
+    match_clone <- function(cf){
+
+      dt <- lapply(cf, function(x){
+
+        abs <- abs(x - v)
+
+        a <- v[which(abs == min(abs))]
+        b <- names(v)[which(abs == min(abs))]
+
+        return(data.table(clone_prop = a, clone_id = b))
+
+      }) %>% data.table::rbindlist
+
+      return(dt)
+
+    }
+
+    cdt <- lapply(b[, sample_id %>% unique], function(s){
+
+      dt <- b[!is.na(cf) & sample_id == s, cf, by = "var_uuid"] %>% unique
+
+      if (nrow(dt) == 0) return(NULL)
+      if (nrow(dt)== 1) return(dt[,  clone_id := 1] %>% .[, clone_prop := cf])
+
+      x <-  mclust::Mclust(dt[, cf], verbose = FALSE)
+
+      v <- x$parameters$mean
+
+      v %<>% sort(decreasing = TRUE)
+
+      names(v) <- 1:length(v) %>% as.character
+
+      dt[, c("clone_prop", "clone_id") := cf %>% match_clone]
+
+    }) %>% data.table::rbindlist(use.names = TRUE)
+
+    cdt %>% data.table::setnames("cf", col)
+
+    dt <- merge(dt, cdt, all.x = TRUE, by = c("var_uuid", col))
+
+    # if using AF as surrogate clonality, recalculate allele fractions into cell population proportions
+    if (col == "AF"){
+
+      message("Garnish_score uses clonality to generate a sample-level metric for immune fitness.
+      The provided allele fractions are being substituted, this is, however, not validated.  See ?garnish_predictions and use with care.")
+
+      a <- dt[!is.na(clone_prop), clone_prop %>% unique, by = c("sample_id", "var_uuid")]
+
+      a[, clone_prop := V1 / sum(V1), by = "sample_id"]
+
+      dt[, clone_prop := NULL]
+
+      dt <- merge(dt, a[, .SD %>% unique, .SDcol = c("sample_id", "var_uuid", "clone_prop")],
+      all.x = TRUE, by = c("sample_id", "var_uuid"))
+
+    }
+
+  dt[!is.na(clone_prop), efit := exp(fitness_score %>% max(na.rm = TRUE)) * unique(clone_prop), by = c("sample_id", "clone_id")]
+
+  dt[!is.na(efit), garnish_score := efit %>% unique %>% sum(na.rm = TRUE), by = "sample_id"]
+
+  dt[, efit := NULL]
+
+  return(dt)
+
+}
