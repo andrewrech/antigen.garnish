@@ -1017,7 +1017,7 @@ garnish_plot <- function(input){
 #'
 #' Requires that garnish_score was computed from allelic or clonal proportion data.
 #'
-#' @return A data table with the dominant neoepitope per clone per sample, in rank order of clone frequency
+#' @return A data table with the dominant neoepitope per clone per sample, in rank order of clone frequency.
 #'
 #' @export garnish_targets
 #' @md

@@ -7,7 +7,7 @@
 garnish_targets(dt)
 }
 \value{
-A data table with the dominant neoepitope per clone per sample, in rank order of clone frequency
+A data table with the dominant neoepitope per clone per sample, in rank order of clone frequency.
 }
 \description{
 Requires that garnish_score was computed from allelic or clonal proportion data.
