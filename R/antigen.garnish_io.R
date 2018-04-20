@@ -1039,11 +1039,9 @@ garnish_plot <- function(input){
 
 
 ## ---- garnish_targets
-#' List the dominant neoepitope sequences for each clone in each sample.
+#' List the dominant neoepitope sequences for each sample and by clone if possible.
 #'
-#' Requires that garnish_score was computed from allelic or clonal proportion data.
-#'
-#' @return A data table with the dominant neoepitope per clone per sample, in rank order of clone frequency.
+#' @return A data table with the dominant neoepitope per sample, and if possible per clone, in rank order of clone frequency.
 #'
 #' @export garnish_targets
 #' @md
@@ -1056,9 +1054,11 @@ garnish_targets <- function(dt){
 
   dt %<>% data.table::copy
 
-  if (!"clone_id" %chin% names(dt)) stop("No allelic fraction or clonality information in the table.  See ?garnish_variants.")
+  c <- c("clone_id", "clone_prop")
 
-  dt[, fs := max(fitness_score, na.rm = TRUE), by = c("sample_id", "clone_id")]
+  if (!"clone_id" %chin% names(dt)) c <- NULL
+
+  dt[, fs := max(fitness_score, na.rm = TRUE), by = c("sample_id", c[1])]
 
   dt <- dt[fitness_score == fs]
 
@@ -1067,9 +1067,11 @@ garnish_targets <- function(dt){
   if (length(n) < 1) n <- NULL
 
   dt <- dt[, .SD %>% unique, .SDcols = c("sample_id", "nmer", "MHC", "external_gene_name", n,
-                                        "Consensus_scores", "fitness_score", "iedb_score", "min_DAI", "clone_prop", "clone_id")]
+                                        "Consensus_scores", "fitness_score", "iedb_score", "min_DAI", c)]
 
-  dt <- dt %>% .[order(sample_id, clone_id)]
+  if (!"clone_id" %chin% names(dt)) dt <- dt %>% .[order(sample_id)]
+
+  if ("clone_id" %chin% names(dt)) dt <- dt %>% .[order(sample_id, clone_id)]
 
   return(dt[Consensus_scores < 1000])
 
