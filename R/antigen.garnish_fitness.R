@@ -183,7 +183,7 @@ the following columns:
 
   dtls <- dti %>% split(by = "spc")
 
-  dtloo <- lapply(dtls, function(dti){
+dtloo <- lapply(dtls, function(dti){
 
 	# hold out non-9mers
 	dt_holdout <- dt[nchar(nmer) != 9]
@@ -210,7 +210,7 @@ the following columns:
       v <- dti[, ID %>% unique]
       names(v) <- seq_along(v)
 
-      dti[, ID := ID %>% (function(id){
+dti[, ID := ID %>% (function(id){
           id <- names(v[which(id == v)])
         }), by = "ID"]
 
@@ -243,7 +243,7 @@ the following columns:
 
       if (!dir.exists(dn)) dir.create(dn, showWarnings = FALSE)
 
-      lapply(dtl %>% seq_along, function(i){
+lapply(dtl %>% seq_along, function(i){
         dti <- data.table::copy(dtl[[i]])
         dti[, label_wt := paste(Sample, "WT", ID, MUTATION_ID, sep = "|")]
         dti[, label_mut := paste(Sample, "MUT", ID, MUTATION_ID, sep = "|")]
