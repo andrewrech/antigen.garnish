@@ -223,7 +223,7 @@ scores <-  parallel::mclapply(col1 %>% seq_along, function(i){
         " -outfmt '10 qseqid sseqid qseq qstart qend sseq sstart send length mismatch pident evalue bitscore'"
       ))
 
-    blastdt <- list.files(pattern = "iedbout(_mu)?\\.csv") %>%
+    blastdt <- list.files(pattern = "iedbout(_mu|_hu)\\.csv") %>%
                   file.info %>%
                     data.table::as.data.table(keep.rownames = TRUE) %>%
                       .[size != 0, rn]
@@ -1264,6 +1264,9 @@ garnish_predictions <- function(dt = NULL,
     silent = TRUE)
   })
 
+  # magrittr version check, this will not hide the error, only the NULL return on successful exit
+  invisible(check_dep_versions())
+
   if (missing(dt) & missing(path)) stop("dt and path are missing.")
   if (!missing(dt) & !missing(path)) stop("Choose dt or path input.")
 
@@ -1275,6 +1278,9 @@ garnish_predictions <- function(dt = NULL,
     stop("Input must be a data table.")
 
   if (!"MHC" %chin% names(dt)) stop("Input must include MHC alleles, see ?garnish_predictions")
+
+  # if class of MHC is a list column, it won't bug until first merge in make_BLAST_uuid, added this.
+  if (class(dt[, MHC]) == "list") stop("MHC column must be a character column, not a list, unlist the column and rerun garnish_predictions.")
 
   input_type <- vector()
 

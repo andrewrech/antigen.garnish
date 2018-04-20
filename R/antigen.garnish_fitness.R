@@ -17,6 +17,9 @@ garnish_fitness <- function(dt,
                             a = 26,
                             k = 4.86936){
 
+  # magrittr version check, this will not hide the error, only the NULL return on successful exit
+  invisible(check_dep_versions())
+
     on.exit({
           message("Removing temporary files")
           try(

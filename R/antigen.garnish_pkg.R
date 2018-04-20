@@ -43,7 +43,7 @@
 #' @importFrom stats na.omit t.test
 #' @importFrom stringi stri_detect_fixed
 #' @importFrom tidyr separate_rows
-#' @importFrom utils download.file
+#' @importFrom utils download.file packageVersion
 #' @importFrom uuid UUIDgenerate
 #' @importFrom vcfR read.vcfR
 #' @importFrom zoo rollapply

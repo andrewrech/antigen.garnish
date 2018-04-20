@@ -80,6 +80,9 @@
 
 garnish_summary <- function(dt){
 
+  # magrittr version check, this will not hide the error, only the NULL return on successful exit
+  invisible(check_dep_versions())
+
 # summarize over unique nmers
 
   dt %<>% data.table::as.data.table %>%
@@ -288,6 +291,9 @@ dtnv <- parallel::mclapply(dt[, sample_id %>% unique], function(id){
 
 garnish_variants <- function(vcfs, intersect = TRUE){
 
+  # magrittr version check, this will not hide the error, only the NULL return on successful exit
+  invisible(check_dep_versions())
+
   message("Loading VCFs")
 
 ivfdtl <- parallel::mclapply(vcfs %>% seq_along, function(ivf){
@@ -354,6 +360,9 @@ ivfdtl <- parallel::mclapply(vcfs %>% seq_along, function(ivf){
     # filter out NA
     vdt %<>% .[!ensembl_transcript_id %>% is.na &
                !cDNA_change %>% is.na]
+
+    # this bugs downstream if nrow = 0 at this point, ie vcf of all intergenic
+    if (vdt %>% nrow < 1) return(data.table::data.table(sample_id = sample_id))
 
     return(vdt)
     })
@@ -440,9 +449,11 @@ drop <- lapply(ivfdtl, function(x){
 
     if ((drop == 1) %>% any){
 
-      message(paste(vcfs[which(drop == 1)], "returned no suitable variants and will be excluded from output.", sep = " "))
+      message(paste(vcfs[which(drop == 1)], "returned no suitable variants and will be excluded from output.\n", sep = " "))
 
       ivfdtl <- ivfdtl[which(drop != 1)]
+
+      if (length(ivfdtl) == 0) return(NULL)
 
     }
 
@@ -489,12 +500,22 @@ sdt <- lapply(ivfdtl, function(dt){
 
       }) %>% data.table::rbindlist(use.names = TRUE, fill = TRUE)
 
+      if (nrow(sdt) == 0){
+        message("All samples returned no suitable variants and will be excluded from output.")
+        return(NULL)
+      }
+
   # select protein coding variants without NA
   sdt %<>%
     .[protein_coding == TRUE &
     !protein_change %>% is.na &
     !effect_type %>% is.na &
      effect_type %like% "insertion|deletion|missense|frameshift"]
+
+  if (nrow(sdt) == 0){
+    message("All samples returned no suitable variants and will be excluded from output.")
+    return(NULL)
+  }
 
   return(sdt)
 
@@ -536,6 +557,9 @@ sdt <- lapply(ivfdtl, function(dt){
 #' @md
 
 garnish_plot <- function(input){
+
+  # magrittr version check, this will not hide the error, only the NULL return on successful exit
+  invisible(check_dep_versions())
 
   # check input
   if (class(input)[1] == "list" & class(input[[1]])[1] != "data.table")

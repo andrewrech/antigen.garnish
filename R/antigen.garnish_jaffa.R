@@ -64,6 +64,9 @@ garnish_jaffa <- function(path, db, fasta_path){
     if (db == "GRCm38") host <- "feb2014.archive.ensembl.org"
     if (db == "GRCm37") host <- "may2012.archive.ensembl.org"
 
+    # magrittr version check, this will not hide the error, only the NULL return on successful exit
+    invisible(check_dep_versions())
+
     dt <- data.table::fread(path) %>%
       data.table::as.data.table
 
