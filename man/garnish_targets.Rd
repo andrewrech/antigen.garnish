@@ -2,13 +2,13 @@
 % Please edit documentation in R/antigen.garnish_io.R
 \name{garnish_targets}
 \alias{garnish_targets}
-\title{List the dominant neoepitope sequences for each clone in each sample.}
+\title{List the dominant neoepitope sequences for each sample and by clone if possible.}
 \usage{
 garnish_targets(dt)
 }
 \value{
-A data table with the dominant neoepitope per clone per sample, in rank order of clone frequency.
+A data table with the dominant neoepitope per sample, and if possible per clone, in rank order of clone frequency.
 }
 \description{
-Requires that garnish_score was computed from allelic or clonal proportion data.
+List the dominant neoepitope sequences for each sample and by clone if possible.
 }

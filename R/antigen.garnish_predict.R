@@ -1090,7 +1090,7 @@ parallel::mcMap(function(x, y) (x %>% as.integer):(y %>% as.integer) %>%
 #'     sample_id                   sample_1
 #'     ensembl_transcript_id       ENST00000311936
 #'     cDNA_change                 c.718T>A
-#'     MHC                         HLA-A02:01 HLA-A03:01
+#'     MHC                         HLA-A*02:01 HLA-A*03:01
 #'                                 H-2-Kb H-2-Kb
 #'                                 HLA-DRB111:07 [second type]
 #'
