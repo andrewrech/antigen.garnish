@@ -1095,7 +1095,7 @@ parallel::mcMap(function(x, y) (x %>% as.integer):(y %>% as.integer) %>%
 #'                                 HLA-DRB111:07 [second type]
 #'
 #'
-#'dt with peptide:
+#'dt with peptide (standard amino-acid one-letter codes only):
 #'
 #'     Column name                 Example input
 #'
@@ -1442,6 +1442,11 @@ if (assemble & input_type == "transcript"){
   }
 
 if (assemble & input_type == "peptide"){
+
+    message("Checking for non-standard AA one-letter codes in \"pep_mut\".  Offending rows will be discarded.")
+
+    dt <- dt[pep_mut %like% "^[ARNDCQEGHILKMFPSTWYV]+$"]
+
     dt[mutant_index == "all", mutant_index :=
       get_ss_str(1, pep_mut %>% nchar)]
 }

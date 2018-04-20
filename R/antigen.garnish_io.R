@@ -260,6 +260,7 @@ garnish_summary <- function(dt){
 #' Recommended somatic variant callers: [MuTect2](https://github.com/broadinstitute/gatk), [Strelka2](https://github.com/Illumina/strelka)
 #'
 #' **Multi-sample vcfs are not supported**.  Single sample and paired tumor-normal vcfs are required.  Multi-sample vcfs will be considered a single sample in the output.
+#' The prop_tab argument may be used to provide clonality/cell fraction information with variants, or allelic fractions.  If the vcf is annotated in the info field and this is indicated in the header, the value "CF" will be used to obtain the cell fraction for variants.
 #'
 #' @param vcfs Paths to one or more VFC files to import.
 #' @param intersect Logical. Return only the intersection of variants in multiple `vcfs` with identical sample names? Intersection performed on `SnpEff` annotations. One `vcf` file per somatic variant caller-input samples pair is required.
@@ -404,6 +405,9 @@ ivfdtl <- parallel::mclapply(vcfs %>% seq_along, function(ivf){
 
     # this bugs downstream if nrow = 0 at this point, ie vcf of all intergenic
     if (vdt %>% nrow < 1) return(data.table::data.table(sample_id = sample_id))
+
+    if (any(stringr::str_detect(vcf@meta, stringr::fixed("ID=CF"))))
+      vdt[, CELLFRACTION := INFO %>% stringr::str_extract("(?<=(CF\\=))[01]\\.[0-9]+(?=;)") %>% as.numeric]
 
     return(vdt)
     })

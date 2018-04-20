@@ -56,6 +56,7 @@ Process paired tumor-normal VCF variants annotated with \href{http://snpeff.sour
 Recommended somatic variant callers: \href{https://github.com/broadinstitute/gatk}{MuTect2}, \href{https://github.com/Illumina/strelka}{Strelka2}
 
 \strong{Multi-sample vcfs are not supported}.  Single sample and paired tumor-normal vcfs are required.  Multi-sample vcfs will be considered a single sample in the output.
+The prop_tab argument may be used to provide clonality/cell fraction information with variants, or allelic fractions.  If the vcf is annotated in the info field and this is indicated in the header, the value "CF" will be used to obtain the cell fraction for variants.
 }
 \examples{
 \dontrun{

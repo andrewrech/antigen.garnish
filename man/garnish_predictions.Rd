@@ -22,7 +22,7 @@ MHC                         HLA-A02:01 HLA-A03:01
                             HLA-DRB111:07 [second type]
 }
 
-dt with peptide:\preformatted{Column name                 Example input
+dt with peptide (standard amino-acid one-letter codes only):\preformatted{Column name                 Example input
 
 sample_id                   <same as above>
 pep_mut                     MTEYKLVVVDAGGVGKSALTIQLIQNHFV
