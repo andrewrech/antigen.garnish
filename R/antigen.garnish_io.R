@@ -102,7 +102,7 @@ garnish_summary <- function(dt){
 
 # function to sum top values of a numeric vector
 
-  sum_top_v <- function(x, value = 3){
+sum_top_v <- function(x, value = 3){
 
       x %<>%
         stats::na.omit %>%
@@ -117,7 +117,7 @@ garnish_summary <- function(dt){
 
   dt %>% data.table::setkey(sample_id)
 
-  dtn <- parallel::mclapply(dt[, sample_id %>% unique], function(id){
+dtn <- parallel::mclapply(dt[, sample_id %>% unique], function(id){
 
     dt <- dt[sample_id == id]
 
@@ -231,7 +231,7 @@ garnish_summary <- function(dt){
 
   if (c("ensembl_transcript_id", "var_uuid") %chin% (dt %>% names) %>% all) {
 
-  dtnv <- parallel::mclapply(dt[, sample_id %>% unique], function(id){
+dtnv <- parallel::mclapply(dt[, sample_id %>% unique], function(id){
 
         dt <- dt[sample_id == id]
 
@@ -485,7 +485,8 @@ sample_ids <- lapply(ivfdtl, function(dt){
                       }) %>% unique
 
     # drop vcfs that had no variants before intersect or union attempts to prevent .SDcols bugs
-    drop <- lapply(ivfdtl, function(x){
+
+drop <- lapply(ivfdtl, function(x){
 
       names(x) %>% length
 
@@ -762,7 +763,7 @@ garnish_plot <- function(input){
 
   # function to shorten names for display
 
-    gplot_names <- function(gg_dt){
+gplot_names <- function(gg_dt){
 
       if (any(gg_dt[, sample_id %>% unique %>% nchar] > 7)){
 
@@ -781,11 +782,11 @@ garnish_plot <- function(input){
   # function to fill in missing combinations of factors
   # to graph dt with even bars per sample_id
 
-    gplot_missing_combn <- function(dt){
+gplot_missing_combn <- function(dt){
 
       ns <- dt[, sample_id %>% unique %>% length]
 
-      type <- lapply(dt[, type %>% unique], function(x){
+type <- lapply(dt[, type %>% unique], function(x){
                replicate(ns * 2, x)
                }) %>% unlist
 
@@ -798,8 +799,7 @@ garnish_plot <- function(input){
 
         }
 
-
-  lapply(input %>% seq_along, function(i){
+lapply(input %>% seq_along, function(i){
 
     dt <- input[[i]]
     dt <- data.table::copy(dt) %>%
@@ -958,7 +958,7 @@ garnish_plot <- function(input){
 
     })
 
-    lapply(input %>% seq_along, function(i){
+lapply(input %>% seq_along, function(i){
 
       score_dt <- input[[i]] %>% garnish_summary
       cols <- c("sample_id", names(score_dt) %include% "score")
