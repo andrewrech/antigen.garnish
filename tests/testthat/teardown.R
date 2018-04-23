@@ -15,7 +15,9 @@
       "Ms_nmer_fasta.fa",
       "msblastpout.csv",
       "antigen.garnish_test_input.xlsx",
-     "9_neoantigens_Lukza_model_output.txt"), function(i){
+     "9_neoantigens_Lukza_model_output.txt",
+     "antigen.garnish_test_pureCN.vcf",
+     "antigen.garnish_pureCN_example_output.txt"), function(i){
 
         if (file.exists(i))
           file.remove(i)

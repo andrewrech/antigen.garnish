@@ -1,3 +1,10 @@
+# antigen.garnish 0.0.6
+
+* add support for clonality
+* sample level summary parameter garnish_score implemented
+* garnish_targets function added
+* fitness model now implemented in R
+
 # antigen.garnish 0.0.5
 
 * add ncbi-blast functionality to determine neoepitope near matches
@@ -24,4 +31,3 @@
 # antigen.garnish 0.0.1
 
 * Initial version
-

@@ -116,4 +116,28 @@ peptides <- function(){
       })
   }
 
-parallel::mclapply(list(README, transcripts, Excel, jaffa, peptides), test_runner)
+  CELLFRACTION <- function(){
+    testthat::test_that("garnish_predictions with CELLFRACTION", {
+    skip_pred_tools()
+
+        # load test data
+          dt <- "antigen.garnish_test_pureCN.vcf" %T>%
+          utils::download.file("http://get.rech.io/antigen.garnish_test_pureCN.vcf", .) %>%
+
+        # run test
+          garnish_variants %>%
+            .[, MHC := c("HLA-A*02:01 HLA-DRB1*14:67")] %>%
+                        .[1:3] %>%
+                        garnish_predictions
+
+        testthat::expect_true(dt %>% nrow == 929)
+        testthat::expect_true(dt[pep_type %like% "mut",
+                                garnish_score %>% unique %>% signif(digits = 3)] == 1.38)
+        testthat::expect_true(dt[, nmer %>% unique %>% length] == 566)
+        testthat::expect_true(dt[iedb_score %>% signif(digits = 3) == 1] %>% nrow == 42)
+        testthat::expect_true(dt[!is.na(clone_prop), clone_prop %>% unique %>% length] == 2)
+        
+      })
+  }
+
+parallel::mclapply(list(README, transcripts, Excel, jaffa, peptides, CELLFRACTION), test_runner)

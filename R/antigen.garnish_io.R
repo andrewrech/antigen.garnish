@@ -226,7 +226,7 @@ garnish_summary <- function(dt){
   }
 
   if ("garnish_score" %chin% names(dt))
-    dtn <- merge(dtn, dt[, .SD %>% unique, .SDcols = c("sample_id", "garnish_score")],
+    dtn <- merge(dtn, dt[!is.na(garnish_score), .SD %>% unique, .SDcols = c("sample_id", "garnish_score")],
       all.x = TRUE, by = "sample_id")
 
   if (c("ensembl_transcript_id", "var_uuid") %chin% (dt %>% names) %>% all) {
@@ -961,7 +961,7 @@ garnish_plot <- function(input){
     lapply(input %>% seq_along, function(i){
 
       score_dt <- input[[i]] %>% garnish_summary
-      cols <- c("sample_id", names(score_dt) %include% "score")
+      cols <- c("sample_id", names(score_dt) %include% "score(s)?_")
       score_dt <- score_dt[, .SD, .SDcols = cols]
       score_dt %<>% data.table::melt(id.vars = "sample_id",
                                      measure.vars = names(score_dt) %include% "score")
@@ -1032,6 +1032,35 @@ garnish_plot <- function(input){
       }
 
   })
+
+  lapply(input %>% seq_along, function(i){
+
+    score_dt <- input[[i]] %>% garnish_summary
+
+    if (!"garnish_score" %chin% names(score_dt)) return(NULL)
+
+    score_dt %<>% .[, .SD %>% unique, .SDcols = c("sample_id", "garnish_score")]
+
+    if (score_dt %>% stats::na.omit %>% nrow < 1) return(NULL)
+
+    score_dt[is.na(garnish_score), garnish_score := 0]
+
+    score_dt %<>% gplot_names
+
+    g <- ggplot2::ggplot(score_dt,
+                         ggplot2::aes(x = sample_id, y = garnish_score)) +
+         ggplot2::geom_col(fill = gplot_col[1], col = "black", position = "dodge") +
+         gplot_theme +
+         ggplot2::labs(x = "", y = "garnish_score") +
+         ggplot2::theme(legend.position = "none") +
+         ggplot2::ggtitle(paste0("antigen_garnish_score"))
+
+    ggplot2::ggsave(plot = g,
+      paste0("antigen.garnish_garnish_score_",
+      gplot_fn,
+      ".pdf"), height = 6, width = 9)
+
+})
 
   return(NULL)
 

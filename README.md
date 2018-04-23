@@ -5,7 +5,7 @@
 
 Ensemble neoepitope prediction from DNA variants in R.
 
-![](http://get.rech.io/antigen.garnish_flowchart.svg)
+![](http://get.rech.io/Schematic.png)
 
 ## Description
 
