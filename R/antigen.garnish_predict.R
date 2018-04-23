@@ -1107,6 +1107,8 @@ parallel::mcMap(function(x, y) (x %>% as.integer):(y %>% as.integer) %>%
 #'                                 7 13 14
 #'     MHC                         <same as above>
 #'
+#' @param counts Optional. A file path to an RNA count matrix.  The first column must contain ENSEMBL transcript ids. All samples in the input table must be present in the count matrix.
+#' @param min_counts Integer. The minimum number of read counts that the transcript must be present to pass a variant.  Default is 1.
 #' @param assemble Logical. Assemble data table?
 #' @param generate Logical. Generate peptides?
 #' @param predict Logical. Predict binding affinities?
@@ -1250,6 +1252,8 @@ parallel::mcMap(function(x, y) (x %>% as.integer):(y %>% as.integer) %>%
 
 garnish_predictions <- function(dt = NULL,
                                 path = NULL,
+                                counts = NULL,
+                                min_counts = 1,
                                assemble = TRUE,
                                generate = TRUE,
                                predict = TRUE,
@@ -1343,6 +1347,40 @@ if (fitness == TRUE & blast == FALSE)
 if (assemble & input_type == "transcript"){
 
     dt %<>% get_metadata(humandb = humandb, mousedb = mousedb)
+
+    if (!missing(counts)){
+
+      ct <- rio::import(counts) %>% data.table::as.data.table
+
+      col <- ct[, .SD, .SDcols = 1]
+
+      if (!all(col %>% stringr::str_detect("ENS(MUS)?T")))
+        stop("Count matrix file first column must contain ENSEMBL transcript ids.")
+
+      if (any(is.na(col)) |
+      length(unique(col)) != length(col) |
+      any(stringr::str_detect(col, pattern = stringr::fixed("."))))
+        stop("Count matrix id column has transcript versions, non-unique, or NA values.")
+
+      ct %>% setnames(names(ct)[1], "ensembl_transcript_id")
+
+      ct %<>% melt(id.vars = "ensembl_transcript_id", variable.name = "sample_id", value_name = "counts")
+
+      if(any(!dt[, sample_id %>% unique] %chin% ct[,  sample_id %>% unique]))
+        stop("Count matrix does not contain columns for all samples in input data.")
+
+      ct[, counts := counts > min_counts]
+
+      ct <- ct[counts == TRUE]
+
+      dt <- merge(dt, ct[, .SD %>% unique, .SDcols = c("sample_id", "ensembl_transcript_id")],
+                  by = c("sample_id", "ensembl_transcript_id"))
+
+      if(nrow(dt) == 0)
+        stop("No variants in any sample met RNA counts matrix threshold, check RNA count matrix input and transcript ids or run without a count matrix.")
+
+    }
+
 
     # extract cDNA changes and make cDNA
     dt %<>% extract_cDNA

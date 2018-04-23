@@ -4,10 +4,10 @@
 \alias{garnish_predictions}
 \title{Perform neoepitope prediction.}
 \usage{
-garnish_predictions(dt = NULL, path = NULL, assemble = TRUE,
-  generate = TRUE, predict = TRUE, blast = fitness, fitness = TRUE,
-  humandb = "GRCh38", mousedb = "GRCm38", save2wd = FALSE,
-  remove_wt = TRUE)
+garnish_predictions(dt = NULL, path = NULL, counts = NULL,
+  min_counts = 1, assemble = TRUE, generate = TRUE, predict = TRUE,
+  blast = fitness, fitness = TRUE, humandb = "GRCh38",
+  mousedb = "GRCm38", save2wd = FALSE, remove_wt = TRUE)
 }
 \arguments{
 \item{dt}{Data table. Input data table from \code{garnish_variants} or \code{garnish_jaffa}, or a data table in one of these forms:
@@ -33,6 +33,10 @@ MHC                         <same as above>
 }}
 
 \item{path}{Path to input table (\href{https://cran.r-project.org/web/packages/rio/vignettes/rio.html#supported_file_formats}{acceptable formats}).}
+
+\item{counts}{Optional. A file path to an RNA count matrix.  The first column must contain ENSEMBL transcript ids. All samples in the input table must be present in the count matrix.}
+
+\item{min_counts}{Integer. The minimum number of read counts that the transcript must be present to pass a variant.  Default is 1.}
 
 \item{assemble}{Logical. Assemble data table?}
 
