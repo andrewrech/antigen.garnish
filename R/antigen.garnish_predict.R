@@ -127,12 +127,12 @@ parallel::mclapply(dt[, spc %>% unique], function(s){
         return(dti)
     }
 
-    SW_align <- function(col1,
+SW_align <- function(col1,
                       col2,
                       gap_open = -11,
                       gap_extend = -1){
 
-      scores <-  parallel::mclapply(col1 %>% seq_along, function(i){
+scores <-  parallel::mclapply(col1 %>% seq_along, function(i){
 
         aa1 <- Biostrings::AAString(col1[i])
         aa2 <- Biostrings::AAString(col2[i])
@@ -269,13 +269,13 @@ parallel::mclapply(dt[, spc %>% unique], function(s){
 
     message("Done.")
 
-    modeleR <- function(als,
+modeleR <- function(als,
                             a=26,
                             k=4.86936){
 
       message("Calculating microbial homology...")
 
-      expo_sum <- function(vect){
+expo_sum <- function(vect){
 
         m <- max(vect)
 
@@ -345,7 +345,7 @@ parallel::mclapply(dt[, spc %>% unique], function(s){
   f <- fa %>% data.table::as.data.table %>% .[, x]
   names(f) <- fa@ranges@NAMES
 
-  blastdt[, IEDB_anno := parallel::mclapply(IEDB_anno, function(i){
+blastdt[, IEDB_anno := parallel::mclapply(IEDB_anno, function(i){
 
       mv <- f[which(stringr::str_detect(pattern = stringr::fixed(i), names(f)))]
       mv <- mv[which(stringr::str_detect(pattern = stringr::fixed(WT.peptide), mv))]
@@ -390,6 +390,7 @@ parallel::mclapply(dt[, spc %>% unique], function(s){
     return(dto)
 
 }
+
 
 
 ## ---- make_DAI_uuid
