@@ -1350,11 +1350,13 @@ if (assemble & input_type == "transcript"){
 
     if (!missing(counts)){
 
+      if (!file.exists(counts)) stop("Unable to open count matrix file, check file path.")
+
       ct <- rio::import(counts) %>% data.table::as.data.table
 
-      col <- ct[, .SD, .SDcols = 1]
+      col <- ct[, .SD, .SDcols = 1] %>% unlist
 
-      if (!all(col %>% stringr::str_detect("ENS(MUS)?T")))
+      if (!all(col %>% stringr::str_detect(pattern = "ENS(MUS)?T")))
         stop("Count matrix file first column must contain ENSEMBL transcript ids.")
 
       if (any(is.na(col)) |
@@ -1364,7 +1366,8 @@ if (assemble & input_type == "transcript"){
 
       ct %>% setnames(names(ct)[1], "ensembl_transcript_id")
 
-      ct %<>% melt(id.vars = "ensembl_transcript_id", variable.name = "sample_id", value_name = "counts")
+      ct %<>% melt(id.vars = "ensembl_transcript_id", variable.name = "sample_id",
+                    value_name = "counts", variable.factor = FALSE)
 
       if(any(!dt[, sample_id %>% unique] %chin% ct[,  sample_id %>% unique]))
         stop("Count matrix does not contain columns for all samples in input data.")

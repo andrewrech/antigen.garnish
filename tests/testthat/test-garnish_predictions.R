@@ -136,8 +136,46 @@ peptides <- function(){
         testthat::expect_true(dt[, nmer %>% unique %>% length] == 566)
         testthat::expect_true(dt[iedb_score %>% signif(digits = 3) == 1] %>% nrow == 42)
         testthat::expect_true(dt[!is.na(clone_prop), clone_prop %>% unique %>% length] == 2)
-        
+
       })
   }
 
-parallel::mclapply(list(README, transcripts, Excel, jaffa, peptides, CELLFRACTION), test_runner)
+  RNA_test <- function(){
+
+    testthat::test_that("garnish_predictions from transcripts, with RNA", {
+    skip_pred_tools()
+
+    # load test data
+      dt <- data.table::data.table(
+           sample_id = "test",
+           ensembl_transcript_id =
+           c("ENSMUST00000128119",
+             "ENSMUST00000044250",
+             "ENSMUST00000018743"),
+           cDNA_change = c("c.4988C>T",
+                           "c.1114T>G",
+                           "c.718T>A"),
+           MHC = "H-2-Kb H-2-IAd")
+
+      data.table::data.table(
+        id =
+        c("ENSMUST00000128119",
+        "ENSMUST00000044250",
+        "ENSMUST00000018743"),
+        test = c(100, 10, 1)) %>%
+        data.table::fwrite("antigen.garnish_rna_temp.txt", sep = "\t",
+                            quote = FALSE, row.names = FALSE)
+
+      # run test
+        dt <- garnish_predictions(dt,
+                            counts = "antigen.garnish_rna_temp.txt",
+                            blast = FALSE,
+                            fitness = FALSE)
+
+      testthat::expect_equal(dt$sample_id %>% unique %>% length, 2)
+      testthat::expect_true(all(!dt$sample_id %chin% "ENSMUST00000018743"))
+      
+      })
+  }
+
+parallel::mclapply(list(README, transcripts, Excel, jaffa, peptides, CELLFRACTION, RNA_test), test_runner)
