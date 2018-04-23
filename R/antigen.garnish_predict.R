@@ -1281,6 +1281,9 @@ garnish_predictions <- function(dt = NULL,
 
   # if class of MHC is a list column, it won't bug until first merge in make_BLAST_uuid, added this.
   if (class(dt[, MHC]) == "list") stop("MHC column must be a character column, not a list, unlist the column and rerun garnish_predictions.")
+  
+  # remove double or more spaces in MHC string (will not bug until garnish_fitness)
+  dt[, MHC %>% unique %>% stringr::str_replace_all("\\ +", " ")]
 
   input_type <- vector()
 
