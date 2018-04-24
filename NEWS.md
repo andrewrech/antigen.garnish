@@ -4,6 +4,7 @@
 * sample level summary parameter garnish_score implemented
 * garnish_targets function added
 * fitness model now implemented in R
+* added RNA filter to garnish_predictions
 
 # antigen.garnish 0.0.5
 
