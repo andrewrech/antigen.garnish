@@ -281,7 +281,7 @@ dtnv <- parallel::mclapply(dt[, sample_id %>% unique], function(id){
 #'
 #'     Column name                 Example input
 #'
-#'     #CHROM                      X
+#'     CHROM                      X
 #'     POS                         4550159
 #'     REF                         A
 #'     ALT                         GC
@@ -557,41 +557,46 @@ sdt <- lapply(ivfdtl, function(dt){
     sdt <- parallel::mclapply(prop_tab %>% seq_along, function(i){
 
       if (class(prop_tab[i])[1] == "character") pt <- prop_tab[i] %>% rio::import %>% data.table::as.data.table
-      if (class(prop_tab[i])[1] == "list") pt <- prop_tab[[i]]
-      if (class(pt)[1] == "data.frame") pt %>% data.table::as.data.table
+
+      dt <- sdt[[i]]
 
       type <- NULL
 
-      if (!"AF" %chin% names(pt)) type <- "AF"
-      if (!"CELLFRACTION" %chin% names(pt)) type <- "CELLFRACTION"
+      if ("AF" %chin% names(pt)) type <- "AF"
+      if ("CELLFRACTION" %chin% names(pt)) type <- "CELLFRACTION"
 
       if (length(type) == 0){
 
         message("Unable to parse prop_tab, check input table is properly formatted.  Returning with vcf data only.")
-        return(sdt)
+        return(dt)
 
       }
 
       if (type == "AF"){
 
-        if (any(!c("#CHROM", "POS", "REF", "ALT", "AF") %chin% names(pt))){
+        if (any(!c("CHROM", "POS", "REF", "ALT", "AF") %chin% names(pt))){
           message("prop_tab is missing columns, see ?garnish_variants.  Returning vcf data only.")
-          return(sdt)
+          return(dt)
         }
 
         if (dt[, ALT %like% ","] %>% any){
           message("Detected multiple variants per row.  Split allelic fraction input into a single variant per row.  Returning vcf data only.")
-          return(sdt)
+          return(dt)
         }
 
       # reformat chrom col to account for different reference versions
-        pt[, `#CHROM` := `#CHROM` %>% stringr::str_extract("^(chr)?([0-9][0-9]?|[XY]|MT)") %>%
+        pt[, `CHROM` := `CHROM` %>% stringr::str_extract("^(chr)?([0-9][0-9]?|[XY]|MT)") %>%
               stringr::str_replace("chr", "")]
 
-        sdt[, `#CHROM` := `#CHROM` %>% stringr::str_extract("^(chr)?([0-9][0-9]?|[XY]|MT)") %>%
+        dt[, `CHROM` := `CHROM` %>% stringr::str_extract("^(chr)?([0-9][0-9]?|[XY]|MT)") %>%
                       stringr::str_replace("chr", "")]
 
-        sdt <- merge(sdt, pt, all.x = TRUE, by = c("#CHROM", "POS", "REF", "ALT"))
+        pt[, c("CHROM", "POS", "REF", "ALT") := lapply(.SD, as.character),
+            .SDcols = c("CHROM", "POS", "REF", "ALT")]
+
+        dt <- merge(dt, pt, all.x = TRUE, by = c("CHROM", "POS", "REF", "ALT"))
+
+        return(dt)
 
       }
 
@@ -599,28 +604,38 @@ sdt <- lapply(ivfdtl, function(dt){
 
         if (any(!c("chr", "start", "end", "CELLFRACTION") %chin% names(pt))){
           message(paste("prop_tab for", vcfs[i], "is missing columns, see ?garnish_variants.  Returning vcf data only."), sep = " ")
-          return(sdt)
+          return(dt)
         }
 
         # reformat chrom col to account for different reference versions
         pt[, chr := chr %>% stringr::str_extract("^(chr)?([0-9][0-9]?|[XY]|MT)") %>%
               stringr::str_replace("chr", "")]
 
-        sdt[, `#CHROM` := `#CHROM` %>% stringr::str_extract("^(chr)?([0-9][0-9]?|[XY]|MT)") %>%
+        dt[, `CHROM` := `CHROM` %>% stringr::str_extract("^(chr)?([0-9][0-9]?|[XY]|MT)") %>%
                       stringr::str_replace("chr", "")]
 
-        pt %>% data.table::setnames(c("chr", "start"), c("#CHROM", "POS"))
+        # SNVs only for this
+        pt <- pt[start == end]
 
-        sdt <- merge(sdt, pt[, .SD %>% unique, .SDcols = c("#CHROM", "POS", "sample_id")],
-        all.x = TRUE, by = c("#CHROM", "POS", "sample_id"))
+        pt %>% data.table::setnames(c("chr", "start"), c("CHROM", "POS"))
+
+        pt[, c("CHROM", "POS") := lapply(.SD, as.character),
+            .SDcols = c("CHROM", "POS")]
+
+        dt <- merge(dt, pt[, .SD %>% unique, .SDcols = c("CHROM", "POS", "CELLFRACTION")],
+        all.x = TRUE, by = c("CHROM", "POS"))
+
+        return(dt)
 
       }
 
-    }) %>% data.table::rbindlist(fill = TRUE, use.names = TRUE)
+    })
+
+    if (class(sdt)[1] == "list") sdt %<>% data.table::rbindlist(fill = TRUE, use.names = TRUE)
 
   }
 
-  if(missing(prop_tab)) sdt %<>% data.table::rbindlist(use.names = TRUE, fill = TRUE)
+  if(missing(prop_tab) & class(sdt)[1] == "list") sdt %<>% data.table::rbindlist(use.names = TRUE, fill = TRUE)
 
   if (nrow(sdt) == 0){
     message("All samples returned no suitable variants and will be excluded from output.")

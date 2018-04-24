@@ -18,7 +18,9 @@
      "9_neoantigens_Lukza_model_output.txt",
      "antigen.garnish_test_pureCN.vcf",
      "antigen.garnish_pureCN_example_output.txt",
-      "antigen.garnish_rna_temp.txt"), function(i){
+      "antigen.garnish_rna_temp.txt",
+      "antigen.garnish_prop_AF.txt",
+      "antigen.garnish_prop_CF.txt"), function(i){
 
         if (file.exists(i))
           file.remove(i)
