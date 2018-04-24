@@ -5,7 +5,7 @@ Description: An R package for neoepitope analysis that takes human or murine DNA
 Authors@R: c(
           person("Lee", "Richman", email = "leepr@upenn.edu", role = c("aut")),
           person("David", "Balli", email = "balli@advaxis.com", role = c("aut")),
-          person("Robert", "Vonderheide", email = "rhv@upenn.edu", role = c("sad")),
+          person("Robert", "Vonderheide", email = "rhv@upenn.edu", role = c("aut")),
           person("Andrew", "Rech", email = "andrewrech@gmail.com", role = c("aut", "cre")))
 License: GPL-3
 Encoding: UTF-8
