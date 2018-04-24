@@ -1367,7 +1367,7 @@ if (assemble & input_type == "transcript"){
       ct %>% setnames(names(ct)[1], "ensembl_transcript_id")
 
       ct %<>% melt(id.vars = "ensembl_transcript_id", variable.name = "sample_id",
-                    value_name = "counts", variable.factor = FALSE)
+                    value.name = "counts", variable.factor = FALSE)
 
       if(any(!dt[, sample_id %>% unique] %chin% ct[,  sample_id %>% unique]))
         stop("Count matrix does not contain columns for all samples in input data.")

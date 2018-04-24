@@ -172,9 +172,9 @@ peptides <- function(){
                             blast = FALSE,
                             fitness = FALSE)
 
-      testthat::expect_equal(dt$sample_id %>% unique %>% length, 2)
-      testthat::expect_true(all(!dt$sample_id %chin% "ENSMUST00000018743"))
-      
+      testthat::expect_equal(dt$ensembl_transcript_id %>% unique %>% length, 2)
+      testthat::expect_true(all(!dt$ensembl_transcript_id %chin% "ENSMUST00000018743"))
+
       })
   }
 
