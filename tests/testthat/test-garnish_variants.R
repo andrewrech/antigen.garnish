@@ -18,7 +18,7 @@ testthat::test_that("garnish_variants", {
 
 m1_CN <- function(){
 
-testthat::test_that("garnish_variants", {
+testthat::test_that("garnish_variants with pureCN", {
 
   # load test data
     dt <- "antigen.garnish_test_pureCN.vcf" %T>%
@@ -31,7 +31,7 @@ testthat::test_that("garnish_variants", {
   testthat::expect_equal(dt[!is.na(CELLFRACTION)] %>% nrow, 29)
 
     })
-    
+
 }
 
 
