@@ -34,9 +34,9 @@ MHC                         <same as above>
 
 \item{path}{Path to input table (\href{https://cran.r-project.org/web/packages/rio/vignettes/rio.html#supported_file_formats}{acceptable formats}).}
 
-\item{counts}{Optional. A file path to an RNA count matrix.  The first column must contain ENSEMBL transcript ids. All samples in the input table must be present in the count matrix.}
+\item{counts}{Optional. A file path to an RNA count matrix. The first column must contain ENSEMBL transcript ids. All samples in the input table must be present in the count matrix.}
 
-\item{min_counts}{Integer. The minimum number of read counts that the transcript must be present to pass a variant.  Default is 1.}
+\item{min_counts}{Integer. The minimum number of read counts that the transcript must be present to pass a variant. Default is 1.}
 
 \item{assemble}{Logical. Assemble data table?}
 
@@ -84,7 +84,7 @@ A data table of binding predictions including:
 clonality info:
 \itemize{
 \item \strong{clone_id}: The rank of the clone containing the variant in that sample, with the first being the largest fraction of the tumor.
-\item \strong{cl_proportion}: The estimated clustered mean value for the proportion of the tumor composed of that clone. If allele fraction and not clonality is used, this is estimated.
+\item \strong{cl_proportion}: The estimated mean tumor fraction containing the clone. If allele fraction and not clonality is used, this is estimated.
 }
 
 antigen.garnish fitness model results
@@ -115,8 +115,8 @@ transcript description:
 }
 \description{
 Perform ensemble neoepitope prediction on a data table of missense mutations, insertions, deletions or gene fusions using netMHC, mhcflurry, and mhcnuggets.
-See \code{list_mhc} for compatible MHC allele syntax.  Multiple MHC alleles for a single sample_id should be space separated.
-Please keep \strong{murine and human alleles in separate rows}, this will not affect computational speed but will ensure the correct IEDB file is chosen.  See example.
+See \code{list_mhc} for compatible MHC allele syntax. Multiple MHC alleles for a single sample_id should be space separated.
+Please keep \strong{murine and human alleles in separate rows}, this will not affect computational speed but will ensure the correct IEDB file is chosen. See example.
 If allele fractions or cell fractions were provided to garnish_variants, then \code{garnish_score} will be calculated, which summarizes the total immune fitness cost across all clones in a tumor.
 }
 \examples{

@@ -45,7 +45,7 @@
 #' * **predictions**: wt and mutant predictions performed
 #' * **mhc_binders**: `nmers` predicted to at least minimally bind MHC (< 5000nM \eqn{IC_{50}})
 #' * **fitness_scores**: Sum of the top 3 fitness_score values per sample. See `?garnish_fitness`.
-#' * **garnish_score**: Sample level immune fitness parameter. Derived by summing the exponential of fitness_scores for each top neoepitope across all clones in the tumor sample. See ?garnish_predicitons.
+#' * **garnish_score**: Sample level immune fitness. Derived by summing the exponential of `fitness_scores` for each top neoepitope across all clones in the tumor sample. See ?garnish_predicitons.
 #' * **variants**: total genomic variants evaluated
 #' * **transcripts**: total transcripts evaluated
 #'
@@ -258,32 +258,36 @@ dtnv <- parallel::mclapply(dt[, sample_id %>% unique], function(id){
 #'
 #' Process paired tumor-normal VCF variants annotated with [SnpEff](http://snpeff.sourceforge.net/) for neoepitope prediction using `garnish_predictions`. VCFs from matched samples can be optionally intersected to select only variants present across input files.
 #'
-#' @param vcfs Paths to one or more VFC files to import.
+#' @param vcfs Paths to one or more VFC files to import. [Example vcf](http://get.rech.io/antigen.garnish_example.vcf).
 #' @param intersect Logical. Return only the intersection of variants in multiple `vcfs` with identical sample names? Intersection performed on `SnpEff` annotations. One `vcf` file per somatic variant caller-input samples pair is required.
-#' @param prop_tab. Optional character vector of file paths to a table with clonality or allelic frequencies.
+#' @param prop_tab. File paths to a table with clonality or allelic frequencies.
 #'
 #'dt with clonality:
 #'
 #'
-#'     Column name                 Example input
+#'     Column name                 Example value
 #'
-#' 		 sample_ids                  sample_1
+#' 		 sample_id                   sample_1
 #'     chr                         X
 #'     start                       4550159
 #'     end                         4550159
 #'     CELLFRACTION                0.15
 #'
+#'     [Example `.csv` table](http://get.rech.io/antigen.garnish_example_prop_CF.csv)
+#'
 #'dt with allele fractions:
 #'
 #'
-#'     Column name                 Example input
+#'     Column name                 Example value
 #'
-#' 		 sample_ids                  sample_1
-#'     CHROM                      X
+#' 		 sample_id                   sample_1
+#'     CHROM                       X
 #'     POS                         4550159
 #'     REF                         A
 #'     ALT                         GC
 #'     AF                          0.85
+#'
+#'     [Example `.csv` table](http://get.rech.io/antigen.garnish_example_prop_AF.csv)
 #'
 #' @return A data table with one unique SnpEff variant annotation per row, including:
 #' * **sample_id**: sample identifier constructed from input \code{.bam} file names
@@ -304,7 +308,7 @@ dtnv <- parallel::mclapply(dt[, sample_id %>% unique], function(id){
 #' @details Recommended somatic variant callers: [MuTect2](https://github.com/broadinstitute/gatk), [Strelka2](https://github.com/Illumina/strelka)
 #'
 #' Single samples are required. Multi-sample `vcf`s are not supported.
-#' The prop_tab argument may be used to provide clonality/cell fraction information with variants, or allelic fractions.  If the input `vcf` contains a `CF` info field, this field will be used as the cell fraction.
+#' The prop_tab argument may be used to provide clonality/cell fraction information with variants, or allelic fractions. If the input `vcf` contains a `CF` info field, this field will be used as the cell fraction.
 #'
 #' @examples
 #'\dontrun{
@@ -338,8 +342,9 @@ garnish_variants <- function(vcfs, intersect = TRUE, prop_tab = NULL){
 
   if (!missing(prop_tab) & intersect == TRUE){
 
-    message("prop_tab argument is present, setting `intersect` to FALSE.
-    To intersect and then use clonality, add an \"AF\" or \"CELLFRACTION\" to the table before passing to `garnish_predictions`.")
+    warning("prop_tab argument is present, setting intersect to FALSE.
+
+To intersect and then use clonality, add an \"AF\" or \"CELLFRACTION\" column to the table before passing to garnish_predictions.")
     intersect <- FALSE
 
   }
@@ -388,7 +393,8 @@ ivfdtl <- parallel::mclapply(vcfs %>% seq_along, function(ivf){
 
     if (vcf@gt %>% length > 0) vdt <- cbind(vdt, vcf@gt %>% data.table::as.data.table)
 
-    if (vdt %>% nrow < 1) return(data.table::data.table(sample_id = sample_id))
+    if (vdt %>% nrow < 1)
+    	return(data.table::data.table(sample_id = sample_id))
 
     vdt[, sample_id := sample_id]
     vdt[, vcf_type := vcf_type]
@@ -403,14 +409,16 @@ ivfdtl <- parallel::mclapply(vcfs %>% seq_along, function(ivf){
     vdt %<>% .[!se %likef% "WARNING_TRANSCRIPT_MULTIPLE_STOP_CODONS"]
     vdt %<>% .[!se %likef% "WARNING_TRANSCRIPT_NO_START_CODON"]
 
-    if (vdt %>% nrow < 1) return(data.table::data.table(sample_id = sample_id))
+    if (vdt %>% nrow < 1)
+    	return(data.table::data.table(sample_id = sample_id))
 
     # filter out NA
     vdt %<>% .[!ensembl_transcript_id %>% is.na &
                !cDNA_change %>% is.na]
 
     # this bugs downstream if nrow = 0 at this point, ie vcf of all intergenic
-    if (vdt %>% nrow < 1) return(data.table::data.table(sample_id = sample_id))
+    if (vdt %>% nrow < 1)
+    	return(data.table::data.table(sample_id = sample_id))
 
     if (any(stringr::str_detect(vcf@meta, stringr::fixed("ID=CF"))))
       vdt[, CELLFRACTION := INFO %>% stringr::str_extract("(?<=(CF\\=))[01]\\.[0-9]+(?=;)") %>% as.numeric]
@@ -500,11 +508,12 @@ drop <- lapply(ivfdtl, function(x){
 
     if ((drop == 1) %>% any){
 
-      message(paste(vcfs[which(drop == 1)], "returned no suitable variants and will be excluded from output.\n", sep = " "))
+      warning(paste(vcfs[which(drop == 1)], "returned no suitable variants and will be excluded from output.\n", sep = " "))
 
       ivfdtl <- ivfdtl[which(drop != 1)]
 
-      if (length(ivfdtl) == 0) return(NULL)
+      if (length(ivfdtl) == 0)
+      	return(NULL)
 
     }
 
@@ -532,7 +541,8 @@ sdt <- lapply(ivfdtl, function(dt){
 
           x <- ivfdtl[sdt] %>% Reduce(merge_vcf, .)
 
-          if (nrow(x) > 0) return(x)
+          if (nrow(x) > 0)
+          	return(x)
 
           if (nrow(x) == 0){
 
@@ -555,7 +565,7 @@ sdt <- lapply(ivfdtl, function(dt){
   if (!missing(prop_tab)){
 
     if (length(prop_tab) != length(vcfs)){
-      message("Requires one proportions table per vcf file.  Returning vcf data only.")
+      warning("Requires one proportions table per .vcf file. Returning vcf data only.")
       sdt %<>% data.table::rbindlist(use.names = TRUE, fill = TRUE)
       return(sdt)
     }
@@ -573,7 +583,9 @@ sdt <- lapply(ivfdtl, function(dt){
 
       if (length(type) == 0){
 
-        message("Unable to parse prop_tab, check input table is properly formatted.  Returning with vcf data only.")
+        warnings("Unable to parse prop_tab, check that the input table is properly formatted. Returning with vcf data only.
+
+Example table: http://get.rech.io/antigen.garnish_example_prop_CF.csv")
         return(dt)
 
       }
@@ -581,21 +593,30 @@ sdt <- lapply(ivfdtl, function(dt){
       if (type == "AF"){
 
         if (any(!c("CHROM", "POS", "REF", "ALT", "AF") %chin% names(pt))){
-          message("prop_tab is missing columns, see ?garnish_variants.  Returning vcf data only.")
+          warning("prop_tab is missing columns, see ?garnish_variants. Returning vcf data only.
+
+Example table: http://get.rech.io/antigen.garnish_example_prop_AF.csv")
           return(dt)
         }
 
         if (dt[, ALT %like% ","] %>% any){
-          message("Detected multiple variants per row.  Split allelic fraction input into a single variant per row.  Returning vcf data only.")
+          warning("Detected multiple variants per row. Split allelic fraction input into a single variant per row. Returning vcf data only.
+
+Example tables:
+http://get.rech.io/antigen.garnish_example_prop_AF.csv
+http://get.rech.io/antigen.garnish_example_prop_CF.csv")
           return(dt)
         }
 
       # reformat chrom col to account for different reference versions
         pt[, `CHROM` := `CHROM` %>% stringr::str_extract("^(chr)?([0-9][0-9]?|[XY]|MT)") %>%
-              stringr::str_replace("chr", "")]
+              stringr::str_replace("chr", "") %>%
+              stringr::str_replace("MT", "M")
+              ]
 
         dt[, `CHROM` := `CHROM` %>% stringr::str_extract("^(chr)?([0-9][0-9]?|[XY]|MT)") %>%
-                      stringr::str_replace("chr", "")]
+                      stringr::str_replace("chr", "") %>%
+                      stringr::str_replace("MT", "M")]
 
         pt[, c("CHROM", "POS", "REF", "ALT") := lapply(.SD, as.character),
             .SDcols = c("CHROM", "POS", "REF", "ALT")]
@@ -609,7 +630,9 @@ sdt <- lapply(ivfdtl, function(dt){
       if (type == "CELLFRACTION"){
 
         if (any(!c("chr", "start", "end", "CELLFRACTION") %chin% names(pt))){
-          message(paste("prop_tab for", vcfs[i], "is missing columns, see ?garnish_variants.  Returning vcf data only."), sep = " ")
+          warning(paste("prop_tab for", vcfs[i], "is missing columns, see ?garnish_variants. Returning vcf data only.
+
+Example table: http://get.rech.io/antigen.garnish_example_prop_AF.csv"), sep = " ")
           return(dt)
         }
 
@@ -618,7 +641,8 @@ sdt <- lapply(ivfdtl, function(dt){
               stringr::str_replace("chr", "")]
 
         dt[, `CHROM` := `CHROM` %>% stringr::str_extract("^(chr)?([0-9][0-9]?|[XY]|MT)") %>%
-                      stringr::str_replace("chr", "")]
+                      stringr::str_replace("chr", "") %>%
+                      stringr::str_replace("MT", "M")]
 
         # SNVs only for this
         pt <- pt[start == end]
@@ -644,7 +668,7 @@ sdt <- lapply(ivfdtl, function(dt){
   if(missing(prop_tab) & class(sdt)[1] == "list") sdt %<>% data.table::rbindlist(use.names = TRUE, fill = TRUE)
 
   if (nrow(sdt) == 0){
-    message("All samples returned no suitable variants and will be excluded from output.")
+    warning("All samples returned no suitable variants and will be excluded from output.")
     return(NULL)
   }
 
@@ -656,7 +680,7 @@ sdt %<>%
   effect_type %like% "insertion|deletion|missense|frameshift"]
 
   if (nrow(sdt) == 0){
-    message("All samples returned no suitable variants and will be excluded from output.")
+    warning("All samples returned no suitable variants and will be excluded from output.")
     return(NULL)
   }
 
@@ -992,7 +1016,8 @@ lapply(input %>% seq_along, function(i){
           .[, variable := variable %>%
             stringr::str_extract("^.*(?=(_class_))")]
 
-      if (score_dt %>% stats::na.omit %>% nrow < 1) return(NULL)
+      if (score_dt %>% stats::na.omit %>% nrow < 1)
+      	return(NULL)
 
       score_dt <- score_dt[!(MHC == "MHC Class II" & variable == "fitness_scores")]
 
@@ -1002,7 +1027,8 @@ lapply(input %>% seq_along, function(i){
 
       g <- ggplot2::ggplot(score_dt[variable == "classic_top_score"],
                            ggplot2::aes(x = sample_id, y = value)) +
-           ggplot2::geom_col(ggplot2::aes(fill = variable), col = "black", position = "dodge") +
+           ggplot2::geom_col(ggplot2::aes(fill = variable), col = "black",
+                             position = "dodge") +
            ggplot2::facet_wrap(~MHC) +
            ggplot2::scale_fill_manual(values = gplot_col[1]) +
            gplot_theme +
@@ -1020,7 +1046,8 @@ lapply(input %>% seq_along, function(i){
       if (nrow(score_dt[variable == "alt_top_score"]) != 0){
 
       g <- ggplot2::ggplot(score_dt[variable == "alt_top_score"], ggplot2::aes(x = sample_id, y = value)) +
-           ggplot2::geom_col(ggplot2::aes(fill = variable), col = "black", position = "dodge") +
+           ggplot2::geom_col(ggplot2::aes(fill = variable), col = "black",
+                             position = "dodge") +
            ggplot2::facet_wrap(~MHC) +
            ggplot2::scale_fill_manual(values = gplot_col[2]) +
            gplot_theme +
@@ -1038,7 +1065,8 @@ lapply(input %>% seq_along, function(i){
       if (nrow(score_dt[variable == "fitness_scores"]) != 0){
 
       g <- ggplot2::ggplot(score_dt[variable == "fitness_scores"], ggplot2::aes(x = sample_id, y = value)) +
-           ggplot2::geom_col(ggplot2::aes(fill = variable), col = "black", position = "dodge") +
+           ggplot2::geom_col(ggplot2::aes(fill = variable), col = "black",
+                             position = "dodge") +
            ggplot2::facet_wrap(~MHC) +
            ggplot2::scale_fill_manual(values = gplot_col[3]) +
            gplot_theme +
@@ -1058,11 +1086,13 @@ lapply(input %>% seq_along, function(i){
 
     score_dt <- input[[i]] %>% garnish_summary
 
-    if (!"garnish_score" %chin% names(score_dt)) return(NULL)
+    if (!"garnish_score" %chin% names(score_dt))
+    	return(NULL)
 
     score_dt %<>% .[, .SD %>% unique, .SDcols = c("sample_id", "garnish_score")]
 
-    if (score_dt %>% stats::na.omit %>% nrow < 1) return(NULL)
+    if (score_dt %>% stats::na.omit %>% nrow < 1)
+    	return(NULL)
 
     score_dt[is.na(garnish_score), garnish_score := 0]
 

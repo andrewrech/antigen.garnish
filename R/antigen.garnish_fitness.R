@@ -346,7 +346,7 @@ lapply(dtl %>% seq_along, function(i){
 #'
 #' @return A data table with added fitness model parameter columns:
 #' * **clone_id**: rank of the clone containing the variant (highest equals larger tumor fraction).
-#' * **cl_proportion**: estimated clustered mean value for the proportion of the tumor composed of that clone.
+#' * **cl_proportion**: estimated mean tumor fraction containing the clone.
 #' * **garnish_score**: the summary parameter of immunogenicity at the sample level, summed across top neoepitopes of each clone.
 #'
 #' @export garnish_clonality

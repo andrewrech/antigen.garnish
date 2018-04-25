@@ -11,7 +11,7 @@ garnish_variants(vcfs, intersect = TRUE, prop_tab = NULL)
 
 \item{intersect}{Logical. Return only the intersection of variants in multiple \code{vcfs} with identical sample names? Intersection performed on \code{SnpEff} annotations. One \code{vcf} file per somatic variant caller-input samples pair is required.}
 
-\item{prop_tab.}{Optional.  Character vector of file paths to a table with clonality or allelic frequencies in the same order as corresponding VCFs. If allelic frequencies are given clonality will be inferred with the assumptions of even ploidy, monophylogeny, no loss of truncal mutations, and all allele frequencies lower than the maximum per sample represent subclonal mutations, this method has not been validated. Acceptable formats for input include:
+\item{prop_tab.}{Optional. Character vector of file paths to a table with clonality or allelic frequencies in the same order as corresponding VCFs. If allelic frequencies are given clonality will be inferred with the assumptions of even ploidy, monophylogeny, no loss of truncal mutations, and all allele frequencies lower than the maximum per sample represent subclonal mutations, this method has not been validated. Acceptable formats for input include:
 
 dt with clonality:\preformatted{Column name                 Example input
 
@@ -55,8 +55,8 @@ Process paired tumor-normal VCF variants annotated with \href{http://snpeff.sour
 \details{
 Recommended somatic variant callers: \href{https://github.com/broadinstitute/gatk}{MuTect2}, \href{https://github.com/Illumina/strelka}{Strelka2}
 
-\strong{Multi-sample vcfs are not supported}.  Single sample and paired tumor-normal vcfs are required.  Multi-sample vcfs will be considered a single sample in the output.
-The prop_tab argument may be used to provide clonality/cell fraction information with variants, or allelic fractions.  If the vcf is annotated in the info field and this is indicated in the header, the value "CF" will be used to obtain the cell fraction for variants.
+\strong{Multi-sample vcfs are not supported}. Single sample and paired tumor-normal vcfs are required. Multi-sample vcfs will be considered a single sample in the output.
+The prop_tab argument may be used to provide clonality/cell fraction information with variants, or allelic fractions. If the vcf is annotated in the info field and this is indicated in the header, the value "CF" will be used to obtain the cell fraction for variants.
 }
 \examples{
 \dontrun{

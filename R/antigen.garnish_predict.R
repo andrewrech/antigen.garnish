@@ -22,7 +22,7 @@ if (identical(Sys.getenv("TESTTHAT"), "true")) setwd("~")
 
 if (suppressWarnings(system('which blastp 2> /dev/null', intern = TRUE)) %>%
           length == 0){
-            message("Skipping BLAST because ncbiblast+ is not in PATH")
+            warning("Skipping BLAST because ncbiblast+ is not in PATH")
           return(dti)
 
    }
@@ -920,7 +920,8 @@ esl, function(es){
 
 write_mhcnuggets_nmers <- function(dt, alleles){
 
-  if (dt %>% nrow == 0) return(NULL)
+  if (dt %>% nrow == 0)
+  	return(NULL)
 
   if (!c("mhcnuggets", "nmer", "nmer_l") %chin% (dt %>% names) %>% any)
           stop("dt must contain mhcnuggets and nmer columns")
@@ -1007,7 +1008,8 @@ parallel::mclapply(mnug_dt[allele == i] %>% split(1:breakpoints), function(dt){
 #' @md
 
 write_netmhc_nmers <- function(dt, type){
-    if (dt %>% nrow == 0) return(NULL)
+    if (dt %>% nrow == 0)
+    	return(NULL)
     if (!c("nmer", "nmer_l") %chin% (dt %>% names) %>% any)
           stop("dt must contain nmer and nmer_l columns")
 
@@ -1104,8 +1106,8 @@ parallel::mcMap(function(x, y) (x %>% as.integer):(y %>% as.integer) %>%
 #'                                 7 13 14
 #'     MHC                         <same as above>
 #'
-#' @param counts Optional. A file path to an RNA count matrix.  The first column must contain ENSEMBL transcript ids. All samples in the input table must be present in the count matrix.
-#' @param min_counts Integer. The minimum number of read counts that the transcript must be present to pass a variant.  Default is 1.
+#' @param counts Optional. A file path to an RNA count matrix. The first column must contain ENSEMBL transcript ids. All samples in the input table must be present in the count matrix.
+#' @param min_counts Integer. The minimum number of read counts that the transcript must be present to pass a variant. Default is 1.
 #' @param assemble Logical. Assemble data table?
 #' @param generate Logical. Generate peptides?
 #' @param predict Logical. Predict binding affinities?
@@ -1138,19 +1140,19 @@ parallel::mcMap(function(x, y) (x %>% as.integer):(y %>% as.integer) %>%
 #' * **BLAST_A**: Ratio of consensus binding affinity of mutant peptide / closest single AA mismatch from blastp results. Returned only if `blast = TRUE`.
 #'
 #' clonality info:
-#' * **clone_id**: The rank of the clone containing the variant in that sample, with the first being the largest fraction of the tumor.
-#' * **cl_proportion**: The estimated clustered mean value for the proportion of the tumor composed of that clone. If allele fraction and not clonality is used, this is estimated.
+#' * **clone_id**: rank of the clone containing the variant (highest equals larger tumor fraction).
+#' * **cl_proportion**: The estimated mean tumor fraction containing the clone. If allele fraction and not clonality is used, this is estimated.
 #'
 #' antigen.garnish fitness model results
 #' * **Consensus_scores**: average value of MHC binding affinity from all prediction tools that contributed output. 95\% confidence intervals are given by **Upper_CI**, **Lower_CI**.
 #' * **iedb_score**: R implementation of TCR recognition probability for peptide through summing of alignments in IEDB for corresponding organism.
 #' * **min_DAI**: Minimum of value of BLAST_A or DAI values, to provide the most conservative estimate differential binding between input and wildtype matches.
 #' * **fitness_score**: Product of min_DAI and iedb_score. The peptide with the highest value per clone is the top neoepitope. Does not apply to wildtype input.
-#' * **garnish_score**: the summary parameter of immunogenicity at the sample level, summed across top neoepitopes of each clone. Only if clonality or allele fraction data is present in the table. See ?garnish_variants.
+#' * **garnish_score**: overall sample immunogenicity based on top clonal neoepitopes. Only if clonality or allele fraction data is present in the table. See ?garnish_variants.
 #'
 #' fitness model information [Luksza et al. *Nature* 2017](https://www.ncbi.nlm.nih.gov/pubmed/29132144):
 #' * **NeoantigenRecognitionPotential**: Product of A and R (amplitude, analogous to min_DAI, and TCR recognition probability components).
-#' * additionally, the full output from the python scripts provided in the supplementary data are saved to the working directory.
+#' * full raw output saved to the working directory.
 #'
 #' transcript description:
 #' * description
@@ -1160,9 +1162,12 @@ parallel::mcMap(function(x, y) (x %>% as.integer):(y %>% as.integer) %>%
 #' * transcript_length
 #' * transcript_start
 #' * peptide
-#' @param details See `list_mhc` for compatible MHC allele syntax.  Multiple MHC alleles for a single sample_id should be space separated.
-#' Mmurine and human alleles should be in separate rows.
-#' If allelic fraction or cellular fraction were provided to garnish_variants, then `garnish_score` will be calculated, which summarizes the total immune fitness cost across all clones in a tumor.
+#' @details
+#' * dee `list_mhc` for compatible MHC allele syntax
+#' multiple MHC alleles for a single sample_id should be space separated. Murine and human alleles should be in separate rows
+#' * `garnish_score` is calculated if allelic fraction or tumor cellular fraction were provided
+#' @seealso \code{\link{garnish_variants}}
+#' @seealso \code{\link{list_mhc}}
 #' @seealso \code{\link{garnish_summary}}
 #'
 #' @examples
@@ -1352,8 +1357,6 @@ if (assemble & input_type == "transcript"){
 
     if (!missing(counts)){
 
-      if (!file.exists(counts)) stop("Unable to open count matrix file, check file path.")
-
       ct <- rio::import(counts) %>% data.table::as.data.table
 
       col <- ct[, .SD, .SDcols = 1] %>% unlist
@@ -1368,8 +1371,10 @@ if (assemble & input_type == "transcript"){
 
       ct %>% setnames(names(ct)[1], "ensembl_transcript_id")
 
-      ct %<>% melt(id.vars = "ensembl_transcript_id", variable.name = "sample_id",
-                    value.name = "counts", variable.factor = FALSE)
+      ct %<>% melt(id.vars = "ensembl_transcript_id",
+ 									 variable.name = "sample_id",
+                   value.name = "counts",
+ 									 variable.factor = FALSE)
 
       if(any(!dt[, sample_id %>% unique] %chin% ct[,  sample_id %>% unique]))
         stop("Count matrix does not contain columns for all samples in input data.")
@@ -1395,7 +1400,7 @@ if (assemble & input_type == "transcript"){
     dt[, pep_wt := coding %>% translate_cDNA]
     dt[, pep_mut := coding_mut %>% translate_cDNA]
 
-    message(paste(nrow(dt[is.na(pep_wt) | is.na(pep_mut)]),
+    warning(paste(nrow(dt[is.na(pep_wt) | is.na(pep_mut)]),
                 "mutants could not be translated and were dropped."))
 
     dt <- dt[!is.na(pep_wt) & !is.na(pep_mut)]
@@ -1490,7 +1495,7 @@ if (assemble & input_type == "transcript"){
 
 if (assemble & input_type == "peptide"){
 
-    message("Checking for non-standard AA one-letter codes in \"pep_mut\".  Offending rows will be discarded.")
+    message("Checking for non-standard AA one-letter codes in \"pep_mut\". Offending rows will be discarded.")
 
     dt <- dt[pep_mut %like% "^[ARNDCQEGHILKMFPSTWYV]+$"]
 
@@ -1810,7 +1815,8 @@ nmer_dt <- lapply((15:8), function(pl){
         mut_frag_loc <- dt$mutant_index[n]
 
         # if the peptide is not long enough, return
-        if (!(mut_frag_t %>% length) >= pl) return(NULL)
+        if (!(mut_frag_t %>% length) >= pl)
+        	return(NULL)
 
           # re-register peptide if the mutant index
           # is not centered due to back truncation

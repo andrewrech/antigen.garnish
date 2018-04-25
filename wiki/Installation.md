@@ -1,6 +1,6 @@
 ## Detailed install instructions.
 
-Recommended instructions for installation of `antigen.garnish`.  Install onto an AWS EC2 instance running an Ubuntu Server 16.04 LTS per-configured with [Bioconductor](https://www.bioconductor.org/help/bioconductor-cloud-ami/#overview) (ami-aab1e9d0) and the top 80 bioconductor [tools](http://www.bioconductor.org/packages/stats/).  This AMI runs R version 4.3.2 and Bioconductor version 3.6.
+Recommended instructions for installation of `antigen.garnish`. Install onto an AWS EC2 instance running an Ubuntu Server 16.04 LTS per-configured with [Bioconductor](https://www.bioconductor.org/help/bioconductor-cloud-ami/#overview) (ami-aab1e9d0) and the top 80 bioconductor [tools](http://www.bioconductor.org/packages/stats/). This AMI runs R version 4.3.2 and Bioconductor version 3.6.
 
 #### Requirements for installation
 
@@ -26,7 +26,7 @@ Rscript --vanilla -e \
 
 ##### 3. Download `antigen.garnish` dependency files.
 
-* Will download peptide and cDNA databases, known immunogenic IEDB sequences, [NCBI blastp](https://blast.ncbi.nlm.nih.gov/Blast.cgi?CMD=Web&PAGE_TYPE=BlastDocs&DOC_TYPE=Download), [mhcnuggets](https://www.biorxiv.org/content/biorxiv/early/2017/06/23/154757.full.pdf), and [netMHC](http://www.cbs.dtu.dk/services/software.php) tools.  Please note that netMHC, netMHCpan, netMHCII, and netMHCIIpan require academic-use only licenses.
+* Will download peptide and cDNA databases, known immunogenic IEDB sequences, [NCBI blastp](https://blast.ncbi.nlm.nih.gov/Blast.cgi?CMD=Web&PAGE_TYPE=BlastDocs&DOC_TYPE=Download), [mhcnuggets](https://www.biorxiv.org/content/biorxiv/early/2017/06/23/154757.full.pdf), and [netMHC](http://www.cbs.dtu.dk/services/software.php) tools. Please note that netMHC, netMHCpan, netMHCII, and netMHCIIpan require academic-use only licenses.
 
 ```bash
 cd ~

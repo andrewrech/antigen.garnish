@@ -8,14 +8,15 @@
 
 check_dep_versions <- function(){
 
-  ver <- utils::packageVersion("magrittr")
+if (!installed.packages() %>% data.table::as.data.table %>%
+	.[Package == "magrittr", Version %>%
+	stringr::str_replace_all("\\.", "") %>%
+	as.numeric >= 160])
+	stop("magrittr version >= 1.5.0 is required and can be installed with:
 
-  # have to unlist version because packageVersion class object will call 1.5.0 and 1.5 equivalent
+	     devtools::install_github(\"tidyverse/magrittr\")")
 
-##### TODO
-  if (identical(as.numeric(unlist(ver)), c(1,5))) stop("CRAN version of `magrittr` package detected, please install `magrittr` from the tidyverse with `devtools::install_github(\"tidyverse/magrittr\")`")
-
-  return(NULL)
+	return(NULL)
 
 }
 

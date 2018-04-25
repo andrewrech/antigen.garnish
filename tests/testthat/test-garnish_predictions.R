@@ -118,25 +118,29 @@ peptides <- function(){
 
   CELLFRACTION <- function(){
     testthat::test_that("garnish_predictions with CELLFRACTION", {
+
     skip_pred_tools()
 
-        # load test data
-          dt <- "antigen.garnish_test_pureCN.vcf" %T>%
-          utils::download.file("http://get.rech.io/antigen.garnish_test_pureCN.vcf", .) %>%
+      # load test data
+        dt <- "antigen.garnish_test_pureCN.vcf" %T>%
+        utils::download.file("http://get.rech.io/antigen.garnish_test_pureCN.vcf", .) %>%
 
-        # run test
-          garnish_variants %>%
-            .[, MHC := c("HLA-A*02:01 HLA-DRB1*14:67")] %>%
-                        .[1:3] %>%
-                        garnish_predictions
+      # run test
+        garnish_variants %>%
+          .[, MHC := c("HLA-A*02:01 HLA-DRB1*14:67")] %>%
+                      .[1:3] %>%
+                      garnish_predictions
 
-        testthat::expect_true(dt %>% nrow == 929)
-        testthat::expect_true(dt[pep_type %like% "mut",
-                                garnish_score %>% unique %>% signif(digits = 3)] == 1.38)
-        testthat::expect_true(dt[, nmer %>% unique %>% length] == 566)
-        testthat::expect_true(dt[iedb_score %>% signif(digits = 3) == 1] %>% nrow == 42)
-        testthat::expect_true(dt[!is.na(cl_proportion), cl_proportion %>% unique %>% length] == 2)
-
+      testthat::expect_true(dt %>% nrow == 929)
+      testthat::expect_true(dt[pep_type %like% "mut",
+                              garnish_score %>%
+                              unique %>% signif(digits = 3)] == 1.38)
+      testthat::expect_true(dt[, nmer %>%
+                            unique %>% length] == 566)
+      testthat::expect_true(dt[iedb_score %>% signif(digits = 3) == 1] %>%
+                            nrow == 42)
+      testthat::expect_true(dt[!is.na(cl_proportion), cl_proportion %>%
+                            unique %>% length] == 2)
       })
   }
 
@@ -172,10 +176,19 @@ peptides <- function(){
                             blast = FALSE,
                             fitness = FALSE)
 
-      testthat::expect_equal(dt$ensembl_transcript_id %>% unique %>% length, 2)
-      testthat::expect_true(all(!dt$ensembl_transcript_id %chin% "ENSMUST00000018743"))
+      testthat::expect_equal(dt$ensembl_transcript_id %>%
+                             unique %>% length, 2)
+      testthat::expect_true(all(!dt$ensembl_transcript_id %chin%
+                                "ENSMUST00000018743"))
 
       })
   }
 
-parallel::mclapply(list(README, transcripts, Excel, jaffa, peptides, CELLFRACTION, RNA_test), test_runner)
+parallel::mclapply(list(README,
+									 transcripts,
+									 Excel,
+									 jaffa,
+									 peptides,
+									 CELLFRACTION,
+									 RNA_test),
+									 test_runner)
