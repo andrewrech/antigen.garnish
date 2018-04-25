@@ -45,7 +45,7 @@
 #' * **predictions**: wt and mutant predictions performed
 #' * **mhc_binders**: `nmers` predicted to at least minimally bind MHC (< 5000nM \eqn{IC_{50}})
 #' * **fitness_scores**: Sum of the top 3 fitness_score values per sample. See `?garnish_fitness`.
-#' * **garnish_score**: Sample level immune fitness parameter modeled by summing the exponential of fitness_scores for each dominant neoepitope across all clones in the tumor sample. See ?garnish_predicitons.
+#' * **garnish_score**: Sample level immune fitness parameter modeled by summing the exponential of fitness_scores for each top neoepitope across all clones in the tumor sample. See ?garnish_predicitons.
 #' * **variants**: total genomic variants evaluated
 #' * **transcripts**: total transcripts evaluated
 #'
@@ -259,12 +259,12 @@ dtnv <- parallel::mclapply(dt[, sample_id %>% unique], function(id){
 #'
 #' Recommended somatic variant callers: [MuTect2](https://github.com/broadinstitute/gatk), [Strelka2](https://github.com/Illumina/strelka)
 #'
-#' **Multi-sample vcfs are not supported**.  Single sample and paired tumor-normal vcfs are required.  Multi-sample vcfs will be considered a single sample in the output.
+#' Multi-sample vcfs are not supported. Single sample and paired tumor-normal vcfs are required.
 #' The prop_tab argument may be used to provide clonality/cell fraction information with variants, or allelic fractions.  If the vcf is annotated in the info field and this is indicated in the header, the value "CF" will be used to obtain the cell fraction for variants.
 #'
 #' @param vcfs Paths to one or more VFC files to import.
 #' @param intersect Logical. Return only the intersection of variants in multiple `vcfs` with identical sample names? Intersection performed on `SnpEff` annotations. One `vcf` file per somatic variant caller-input samples pair is required.
-#' @param prop_tab. Optional.  Character vector of file paths to a table with clonality or allelic frequencies in the same order as corresponding VCFs. If allelic frequencies are given clonality will be inferred with the assumptions of even ploidy, monophylogeny, no loss of truncal mutations, and all allele frequencies lower than the maximum per sample represent subclonal mutations, this method has not been validated. Acceptable formats for input include:
+#' @param prop_tab. ##### TODO Optional character vector of file paths to a table with clonality or allelic frequencies in the same order as corresponding VCFs.
 #'
 #'dt with clonality:
 #'
@@ -297,7 +297,7 @@ dtnv <- parallel::mclapply(dt[, sample_id %>% unique], function(id){
 #' * **cDNA_change**: cDNA change in [HGVS](http://varnomen.hgvs.org/recommendations/protein/) format
 #' * **protein_coding**: is the variant protein coding?
 #'
-#' if prop_tab is provided either:
+#' if prop_tab is provided, either:
 #' * **CELLFRACTION**: cell fraction taken from input, such as from clonality estimates from [PureCN](http://www.github.com/lima1/PureCN)
 #' * **AF**: allelic fraction taken from input
 #'
@@ -319,6 +319,8 @@ dtnv <- parallel::mclapply(dt[, sample_id %>% unique], function(id){
 #'
 #' @references
 #' Callari M, Sammut SJ, De Mattos-Arruda L, Bruna A, Rueda OM, Chin SF, and Caldas C. 2017. Intersect-then-combine approach: improving the performance of somatic variant calling in whole exome sequencing data using multiple aligners and callers. Genome Medicine. 9:35.
+#' ##### TODO add snpeff reference
+#' ##### TODO add PureCN reference
 #'
 #' @export garnish_variants
 #' @md
@@ -1067,19 +1069,22 @@ lapply(input %>% seq_along, function(i){
 }
 
 
-## ---- garnish_targets
-#' List the dominant neoepitope sequences for each sample and by clone if possible.
+## ---- garnish.antigens
+#' List the top neoepitope sequences for each sample and by clone if possible.
 #'
-#' @return A data table with the dominant neoepitope per sample, and if possible per clone, in rank order of clone frequency.
+#' @return A data table with the top neoepitope per sample, and if possible per clone, in rank order of clone frequency.
 #'
-#' @export garnish_targets
+#' @export garnish.antigens
 #' @md
 
-garnish_targets <- function(dt){
+garnish.antigens <- function(dt){
 
-  if (class(dt)[1] == "character") dt <- dt %>% rio::import %>% data.table::as.data.table
+  if (class(dt)[1] == "character") dt <- dt %>%
+  rio::import %>%
+    data.table::as.data.table
 
-  if (class(dt)[1] == "data.frame") dt %<>% data.table::as.data.table
+  if (class(dt)[1] == "data.frame") dt %<>%
+    data.table::as.data.table
 
   dt %<>% data.table::copy
 

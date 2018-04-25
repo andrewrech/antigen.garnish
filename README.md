@@ -1,4 +1,4 @@
-[![Build Status](http://18.194.224.158:8080/buildStatus/icon?job=antigen.garnish)](http://18.194.224.158:8080/job/antigen.garnish/lastBuild/consoleFull) [![codecov.io](https://codecov.io/github/andrewrech/antigen.garnish/coverage.svg?branch=master)](https://codecov.io/github/andrewrech/antigen.garnish?branch=master) ![](https://img.shields.io/badge/version-0.0.5-blue.svg)
+[![Build Status](http://18.194.224.158:8080/buildStatus/icon?job=antigen.garnish)](http://18.194.224.158:8080/job/antigen.garnish/lastBuild/consoleFull) [![codecov.io](https://codecov.io/github/andrewrech/antigen.garnish/coverage.svg?branch=master)](https://codecov.io/github/andrewrech/antigen.garnish?branch=master) ![](https://img.shields.io/badge/version-0.0.6-blue.svg)
 
 
 # antigen.garnish
@@ -9,7 +9,7 @@ Ensemble neoepitope prediction from DNA variants in R.
 
 ## Description
 
-An R package for [neoepitope](http://science.sciencemag.org/content/348/6230/69) analysis that takes human or murine DNA missense mutations, insertions, deletions, and gene fusions and performs neoepitope prediction. Input is a VCF file or table of peptides. Output is neoepitopes and a summary of neoepitope load and fitness by sample. [More information.](http://antigen-garnish-presentation.s3-website-us-east-1.amazonaws.com)
+An R package for [neoepitope](http://science.sciencemag.org/content/348/6230/69) analysis that takes human or murine DNA missense mutations, insertions, deletions, and gene fusions and performs ensemble neoepitope prediction using 7 algorithms. Input is a VCF file or table of peptides. Output is ranked neoepitopes and a summary of neoepitope load and fitness by sample. Neoepitopes are ranked by MHC I/II binding affinity, clonality, RNA expression, dissimilarity to the normal peptidome, and similarity to known immunogenic antigens. [More information.](http://antigen-garnish-presentation.s3-website-us-east-1.amazonaws.com)
 
 ### Advantages
 
@@ -17,7 +17,12 @@ An R package for [neoepitope](http://science.sciencemag.org/content/348/6230/69)
     - missense mutations, insertions, deletions, and gene fusions
     - human and mouse
     - ensemble MHC class I/II binding prediction using [mhcflurry](https://github.com/hammerlab/mhcflurry), [mhcnuggets](https://github.com/KarchinLab/mhcnuggets), [netMHC](http://www.cbs.dtu.dk/services/NetMHC/), [netMHCII](http://www.cbs.dtu.dk/services/NetMHCII/), [netMHCpan](http://www.cbs.dtu.dk/services/NetMHCpan/) and [netMHCIIpan](http://www.cbs.dtu.dk/services/NetMHCIIpan/i)
-    - rank by dissimilarity to the normal peptidome / similarity to known immunogenic antigens
+    - ranked by
+    	+ MHC I/II binding affinity
+    	+ clonality
+    	+ RNA expression
+    	+ dissimilarity to the normal peptidome
+    	+ similarity to known immunogenic antigens
 1. **Speed and simplicity**:
     - 1000 variants are ranked in a single step in less than five minutes
 1. **Integration with R/Bioconductor**
@@ -38,7 +43,7 @@ An R package for [neoepitope](http://science.sciencemag.org/content/348/6230/69)
 curl -fsSL http://get.rech.io/antigen.garnish.sh | sudo sh
 ```
 
-* detailed installation instructions can be found in the projects [wiki](https://github.com/davidballi/antigen.garnish/wiki).
+* detailed installation instructions can be found in the [wiki](https://github.com/andrewrech/antigen.garnish/wiki).
 
 ## [Package documentation](http://get.rech.io/antigen.garnish.pdf)
 
@@ -46,11 +51,8 @@ curl -fsSL http://get.rech.io/antigen.garnish.sh | sudo sh
 * `garnish_jaffa`: process gene fusions from [JAFFA](https://github.com/Oshlack/JAFFA)
 * `garnish_predictions`: perform ensemble neoepitope prediction
 * `garnish_summary`: summarize and rank results
+* `garnish.antigens`: list top neoepitope sequences, sources, and properties for each[clone](https://github.com/lima1/PureCN) and sample
 * `garnish_plot`: generate summary plots
-* `garnish_targets`: list dominant neoepitope sequences, sources, and properties per clone per sample
-* `list_mhc`: list all supported MHC allele syntax
-
-### [Vignette](http://get.rech.io/antigen.garnish.pdf)
 
 ### Examples
 

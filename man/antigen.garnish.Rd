@@ -37,7 +37,7 @@ Advantages
 \item \code{garnish_predictions}: perform ensemble neoepitope prediction
 \item \code{garnish_summary}: summarize and rank results
 \item \code{garnish_plot}: generate summary plots
-\item \code{garnish_targets}: list dominant neoepitope sequences, sources, and properties per clone per sample
+\item \code{garnish.antigens}: list top neoepitope sequences, sources, and properties per clone per sample
 \item \code{list_mhc}: list all supported MHC allele syntax
 }
 }

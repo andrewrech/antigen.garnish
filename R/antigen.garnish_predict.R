@@ -1148,8 +1148,8 @@ parallel::mcMap(function(x, y) (x %>% as.integer):(y %>% as.integer) %>%
 #' * **Consensus_scores**: average value of MHC binding affinity from all prediction tools that contributed output. 95\% confidence intervals are given by **Upper_CI**, **Lower_CI**.
 #' * **iedb_score**: R implementation of TCR recognition probability for peptide through summing of alignments in IEDB for corresponding organism.
 #' * **min_DAI**: Minimum of value of BLAST_A or DAI values, to provide the most conservative estimate differential binding between input and wildtype matches.
-#' * **fitness_score**: Product of min_DAI and iedb_score. The peptide with the highest value per clone is the dominant neoepitope. Does not apply to wildtype input.
-#' * **garnish_score**: the summary parameter of immunogenicity at the sample level, summed across dominant neoepitopes of each clone. Only if clonality or allele fraction data is present in the table. See ?garnish_variants.
+#' * **fitness_score**: Product of min_DAI and iedb_score. The peptide with the highest value per clone is the top neoepitope. Does not apply to wildtype input.
+#' * **garnish_score**: the summary parameter of immunogenicity at the sample level, summed across top neoepitopes of each clone. Only if clonality or allele fraction data is present in the table. See ?garnish_variants.
 #'
 #' fitness model information [Luksza et al. *Nature* 2017](https://www.ncbi.nlm.nih.gov/pubmed/29132144):
 #' * **NeoantigenRecognitionPotential**: Product of A and R (amplitude, analogous to min_DAI, and TCR recognition probability components).
@@ -1749,7 +1749,7 @@ up <- lapply(dtl, function(x){x[[2]]}) %>% unlist
 
    }
 
-   if (any(c("CELLFRACTION", "AF") %chin% names(dt))) dt %<>% clone_wars
+   if (any(c("CELLFRACTION", "AF") %chin% names(dt))) dt %<>% garnish_clonality
 
    if (save2wd){
 

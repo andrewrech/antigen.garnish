@@ -337,22 +337,22 @@ lapply(dtl %>% seq_along, function(i){
 }
 
 
-## ---- clone_wars
-#' Internal function to integrate clonality data into final garnish_score.
+## ---- garnish_clonality
+#' Internal function to integrate clonality data into final `garnish_score` parameter.
 #'
-#' Integrates clonality input to create a summary metric of tumor fitness similar to [Luksza et al. *Nature* 2017](https://www.ncbi.nlm.nih.gov/pubmed/29132144).
+#' Integrates clonality input for creation of a summary metric of tumor fitness similar to [Luksza et al. *Nature* 2017](https://www.ncbi.nlm.nih.gov/pubmed/29132144).
 #'
-#' @import mclust
+#' @param dt Data table. ##### TODO
 #'
 #' @return A data table with added fitness model parameter columns:
-#' * **clone_id**: The rank of the clone containing the variant in that sample, with the first being the largest fraction of the tumor.
-#' * **clone_prop**: The estimated clustered mean value for the proportion of the tumor composed of that clone.
-#' * **garnish_score**: the summary parameter of immunogenicity at the sample level, summed across dominant neoepitopes of each clone.
+#' * **clone_id**: the rank of the clone containing the variant in that sample, with the first being the largest fraction of the tumor.
+#' * **clone_prop**: the estimated clustered mean value for the proportion of the tumor composed of that clone.
+#' * **garnish_score**: the summary parameter of immunogenicity at the sample level, summed across top neoepitopes of each clone.
 #'
-#' @export clone_wars
+#' @export garnish_clonality
 #' @md
 
-clone_wars <- function(dt){
+garnish_clonality <- function(dt){
 
   if (!"CELLFRACTION" %chin% names(dt) & !"AF" %chin% names(dt)){
 
@@ -417,6 +417,7 @@ clone_wars <- function(dt){
       a <- dt[!is.na(clone_prop), clone_prop %>% unique, by = c("sample_id", "var_uuid")]
 
       # assume even ploidy and monophyletic tree so max AF is assumed to be 100% cell fraction and others are subclonal (assumes no pressure to lose mutation and max AF = tumor sample purity).
+
       # teleologically, this assumption is really only good for a relatively genetically stable clonal cell line taken off a dish and sequenced.
       # can't see this being at all a large task, can set max cores and not worry about memory.
 

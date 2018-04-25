@@ -1,10 +1,10 @@
-testthat::test_that("garnish_targets", {
+testthat::test_that("garnish.antigens", {
 skip_pred_tools()
 
     # load test data
       dt <- "http://get.rech.io/antigen.garnish_pureCN_example_output.txt" %>%
       data.table::fread %>%
-      garnish_targets
+      garnish.antigens
 
     # run test
 

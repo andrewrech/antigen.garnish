@@ -1,4 +1,4 @@
-testthat::test_that("clone_wars", {
+testthat::test_that("garnish_clonality", {
 
   # load test data
     dt <- "http://get.rech.io/antigen.garnish_pureCN_example_output.txt" %>%
@@ -6,7 +6,7 @@ testthat::test_that("clone_wars", {
               .[, c("clone_prop", "clone_id", "garnish_score") := NULL]
   # run test
 
-  dt %<>% clone_wars
+  dt %<>% garnish_clonality
 
 
   testthat::expect_equal(dt[!is.na(garnish_score), garnish_score %>% unique %>% length], 1)

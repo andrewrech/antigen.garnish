@@ -20,7 +20,7 @@
 #'* `garnish_predictions`: perform ensemble neoepitope prediction
 #'* `garnish_summary`: summarize and rank results
 #'* `garnish_plot`: generate summary plots
-#'* `garnish_targets`: list dominant neoepitope sequences, sources, and properties per clone per sample
+#'* `garnish.antigens`: list top neoepitope sequences, sources, and properties per clone per sample
 #'* `list_mhc`: list all supported MHC allele syntax
 #' @section Bug, issues, feedback:
 #' Please report bugs and issues and provide feedback via [Github](https://github.com/andrewrech/antigen.garnish/issues) or to [andrewrech\@gmail.com](mailto:andrewrech\@gmail.com).
@@ -31,17 +31,18 @@
 #' @import data.table
 #' @import dt.inflix
 #' @import ggplot2
+#' @import knitr
+#' @import mclust
 #' @import mclust
 #' @import parallel
 #' @import stringr
 #' @import testthat
-#' @import knitr
-#' @importFrom rio import
-#' @importFrom ShortRead sread readFasta
 #' @importFrom Biostrings DNAString translate
+#' @importFrom Rdpack reprompt
+#' @importFrom ShortRead sread readFasta
 #' @importFrom biomaRt useMart getBM getSequence
 #' @importFrom magrittr %>% %T>% %$% %<>%
-#' @importFrom Rdpack reprompt
+#' @importFrom rio import
 #' @importFrom stats na.omit t.test
 #' @importFrom stringi stri_detect_fixed
 #' @importFrom tidyr separate_rows

@@ -1,10 +1,13 @@
 # antigen.garnish 0.0.6
 
-* add support for clonality
-* sample level summary parameter garnish_score implemented
-* garnish_targets function added
-* fitness model now implemented in R
-* added RNA filter to garnish_predictions
+* clonality filter added to garnish_predictions
+* RNA expression filter added to garnish_predictions
+* fitness model implemented in R
+* garnish.antigens function added to rank neoepitopes
+* garnish_score function added to return sample level immune fitness summary
+* update summary and plot functions with better output
+* add wiki with installation instructions
+* numerous edge case bug fixes
 
 # antigen.garnish 0.0.5
 
@@ -15,20 +18,20 @@
 
 # antigen.garnish 0.0.4
 
-* Summary plots
-* Improve tests
+* add summary plots
+* improve test coverage
 
 # antigen.garnish 0.0.3
 
-* Inverse match against global normal proteins
-* Improve testing, test formatting
+* inverse match against global normal proteins
+* improve testing, test formatting
 
 # antigen.garnish 0.0.2
 
-* Deduplicate predictions
-* Gene fusions
-* Stable API
+* add prediction deduplication to garnish_predictions
+* add gene fusions as a source of neoepitopes using garnish_jaffa
+* stable API
 
 # antigen.garnish 0.0.1
 
-* Initial version
+* initial version

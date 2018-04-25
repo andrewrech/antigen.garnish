@@ -92,8 +92,8 @@ antigen.garnish fitness model results
 \item \strong{Consensus_scores}: average value of MHC binding affinity from all prediction tools that contributed output. 95\% confidence intervals are given by \strong{Upper_CI}, \strong{Lower_CI}.
 \item \strong{iedb_score}: R implementation of TCR recognition probability for peptide through summing of alignments in IEDB for corresponding organism.
 \item \strong{min_DAI}: Minimum of value of BLAST_A or DAI values, to provide the most conservative estimate differential binding between input and wildtype matches.
-\item \strong{fitness_score}: Product of min_DAI and iedb_score. The peptide with the highest value per clone is the dominant neoepitope. Does not apply to wildtype input.
-\item \strong{garnish_score}: the summary parameter of immunogenicity at the sample level, summed across dominant neoepitopes of each clone. Only if clonality or allele fraction data is present in the table. See ?garnish_variants.
+\item \strong{fitness_score}: Product of min_DAI and iedb_score. The peptide with the highest value per clone is the top neoepitope. Does not apply to wildtype input.
+\item \strong{garnish_score}: the summary parameter of immunogenicity at the sample level, summed across top neoepitopes of each clone. Only if clonality or allele fraction data is present in the table. See ?garnish_variants.
 }
 
 fitness model information \href{https://www.ncbi.nlm.nih.gov/pubmed/29132144}{Luksza et al. Nature 2017}:
