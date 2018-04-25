@@ -4,11 +4,11 @@
 #' Implements the neoepitope fitness model of [Luksza et al. *Nature* 2017](https://www.ncbi.nlm.nih.gov/pubmed/29132144).
 #'
 #' @param dt Data table output from `garnish_predictions`.
-#' @param a Fitness model parameter. Binding curve horizontal displacement used to determine TCR recognition probability of a peptide compared to an IEDB near match.
-#' @param k Fitness model parameter. Steepness of the binding curve at `a`.
+#' @param a Numeric fitness model parameter. Binding curve horizontal displacement used to determine TCR recognition probability of a peptide compared to an IEDB near match.
+#' @param k Numeric fitness model parameter. Steepness of the binding curve at `a`.
 #'
 #' @return A data table with added fitness model parameter columns:
-#' * **NeoantigenRecognitionPotential**: Neoantigen Recognition Potential calculated by the model.
+#' * **NeoantigenRecognitionPotential**: Neoantigen recognition potential calculated by the model.
 #'
 #' @export garnish_fitness
 #' @md
@@ -345,8 +345,8 @@ lapply(dtl %>% seq_along, function(i){
 #' @param dt Data table. ##### TODO
 #'
 #' @return A data table with added fitness model parameter columns:
-#' * **clone_id**: the rank of the clone containing the variant in that sample, with the first being the largest fraction of the tumor.
-#' * **clone_prop**: the estimated clustered mean value for the proportion of the tumor composed of that clone.
+#' * **clone_id**: rank of the clone containing the variant (highest equals larger tumor fraction).
+#' * **cl_proportion**: estimated clustered mean value for the proportion of the tumor composed of that clone.
 #' * **garnish_score**: the summary parameter of immunogenicity at the sample level, summed across top neoepitopes of each clone.
 #'
 #' @export garnish_clonality
@@ -356,13 +356,15 @@ garnish_clonality <- function(dt){
 
   if (!"CELLFRACTION" %chin% names(dt) & !"AF" %chin% names(dt)){
 
-    message("No CELLFRACTION or AF column found, returning dt without computing garnish_score from clonality.")
+    warnings("No CELLFRACTION or AF column found. Returning dt without computing garnish_score from clonality.")
     return(dt)
 
   }
 
-  if ("AF" %chin% names(dt)) col <- "AF"
-  if ("CELLFRACTION" %chin% names(dt)) col <- "CELLFRACTION"
+  if ("AF" %chin% names(dt))
+  	col <- "AF"
+  if ("CELLFRACTION" %chin% names(dt))
+  	col <- "CELLFRACTION"
 
     b <- data.table::copy(dt)
 
@@ -377,7 +379,7 @@ garnish_clonality <- function(dt){
         a <- v[which(abs == min(abs))]
         b <- names(v)[which(abs == min(abs))]
 
-        return(data.table(clone_prop = a, clone_id = b))
+        return(data.table(cl_proportion = a, clone_id = b))
 
       }) %>% data.table::rbindlist
 
@@ -389,8 +391,10 @@ garnish_clonality <- function(dt){
 
       dt <- b[!is.na(cf) & sample_id == s, cf, by = "var_uuid"] %>% unique
 
-      if (nrow(dt) == 0) return(NULL)
-      if (nrow(dt)== 1) return(dt[,  clone_id := 1] %>% .[, clone_prop := cf])
+      if (nrow(dt) == 0)
+      	return(NULL)
+      if (nrow(dt)== 1)
+      	return(dt[,  clone_id := 1] %>% .[, cl_proportion := cf])
 
       x <-  mclust::Mclust(dt[, cf], verbose = FALSE)
 
@@ -400,7 +404,7 @@ garnish_clonality <- function(dt){
 
       names(vect) <- 1:length(vect) %>% as.character
 
-      dt[, c("clone_prop", "clone_id") := match_clone(cf, v = vect)]
+      dt[, c("cl_proportion", "clone_id") := match_clone(cf, v = vect)]
 
     }) %>% data.table::rbindlist(use.names = TRUE)
 
@@ -411,27 +415,24 @@ garnish_clonality <- function(dt){
     # if using AF as surrogate clonality, recalculate allele fractions into cell population proportions
     if (col == "AF"){
 
-      message("Garnish_score uses clonality to generate a sample-level metric for immune fitness.
-      The provided allele fractions are being substituted, this is, however, not validated.  See ?garnish_predictions and use with care.")
-
-      a <- dt[!is.na(clone_prop), clone_prop %>% unique, by = c("sample_id", "var_uuid")]
+      a <- dt[!is.na(cl_proportion), cl_proportion %>% unique, by = c("sample_id", "var_uuid")]
 
       # assume even ploidy and monophyletic tree so max AF is assumed to be 100% cell fraction and others are subclonal (assumes no pressure to lose mutation and max AF = tumor sample purity).
 
       # teleologically, this assumption is really only good for a relatively genetically stable clonal cell line taken off a dish and sequenced.
       # can't see this being at all a large task, can set max cores and not worry about memory.
 
-      a[, clone_prop := V1 / max(V1, na.rm = TRUE), by = "sample_id"]
+      a[, cl_proportion := V1 / max(V1, na.rm = TRUE), by = "sample_id"]
 
       # clear column derived from allele fractions in dt
-      dt[, clone_prop := NULL]
+      dt[, cl_proportion := NULL]
 
-      dt <- merge(dt, a[, .SD %>% unique, .SDcol = c("sample_id", "var_uuid", "clone_prop")],
+      dt <- merge(dt, a[, .SD %>% unique, .SDcol = c("sample_id", "var_uuid", "cl_proportion")],
       all.x = TRUE, by = c("sample_id", "var_uuid"))
 
     }
 
-  dt[!is.na(clone_prop), efit := exp(fitness_score %>% max(na.rm = TRUE)) * unique(clone_prop), by = c("sample_id", "clone_id")]
+  dt[!is.na(cl_proportion), efit := exp(fitness_score %>% max(na.rm = TRUE)) * unique(cl_proportion), by = c("sample_id", "clone_id")]
 
   dt[!is.na(efit), garnish_score := efit %>% unique %>% sum(na.rm = TRUE), by = "sample_id"]
 

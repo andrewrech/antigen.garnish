@@ -45,7 +45,7 @@
 #' * **predictions**: wt and mutant predictions performed
 #' * **mhc_binders**: `nmers` predicted to at least minimally bind MHC (< 5000nM \eqn{IC_{50}})
 #' * **fitness_scores**: Sum of the top 3 fitness_score values per sample. See `?garnish_fitness`.
-#' * **garnish_score**: Sample level immune fitness parameter modeled by summing the exponential of fitness_scores for each top neoepitope across all clones in the tumor sample. See ?garnish_predicitons.
+#' * **garnish_score**: Sample level immune fitness parameter. Derived by summing the exponential of fitness_scores for each top neoepitope across all clones in the tumor sample. See ?garnish_predicitons.
 #' * **variants**: total genomic variants evaluated
 #' * **transcripts**: total transcripts evaluated
 #'
@@ -59,7 +59,8 @@
 #'
 #'To better model potential for oligoclonal antitumor responses directed against neoepitopes, we additionally report a **top three neoepitope score**, which is defined as the sum of the top three affinity scores \eqn{\left(\frac{1}{IC_{50}}\right)} for CDNs or sum of top three DAI for ADNs. The top three was chosen in each case because this is the minimum number that captures the potential for an oligoclonal T cell response and mirrors experimentally confirmed oligoclonality of T cell responses against human tumors. Moreover, the top three score was the least correlated to total neoepitope load (vs. top 4 through top 15) in a large scale human analysis of neoepitope across 27 disease types (R-squared = 0.0495), and therefore not purely a derivative of total neoepitope load.
 #'
-#' @seealso \code{\link{garnish_plot}} for a sample level summary plotting function.
+#' @seealso \code{\link{garnish_predictions}}
+#' @seealso \code{\link{garnish_plot}}
 #' @export garnish_summary
 #'
 #' @references
@@ -257,20 +258,16 @@ dtnv <- parallel::mclapply(dt[, sample_id %>% unique], function(id){
 #'
 #' Process paired tumor-normal VCF variants annotated with [SnpEff](http://snpeff.sourceforge.net/) for neoepitope prediction using `garnish_predictions`. VCFs from matched samples can be optionally intersected to select only variants present across input files.
 #'
-#' Recommended somatic variant callers: [MuTect2](https://github.com/broadinstitute/gatk), [Strelka2](https://github.com/Illumina/strelka)
-#'
-#' Multi-sample vcfs are not supported. Single sample and paired tumor-normal vcfs are required.
-#' The prop_tab argument may be used to provide clonality/cell fraction information with variants, or allelic fractions.  If the vcf is annotated in the info field and this is indicated in the header, the value "CF" will be used to obtain the cell fraction for variants.
-#'
 #' @param vcfs Paths to one or more VFC files to import.
 #' @param intersect Logical. Return only the intersection of variants in multiple `vcfs` with identical sample names? Intersection performed on `SnpEff` annotations. One `vcf` file per somatic variant caller-input samples pair is required.
-#' @param prop_tab. ##### TODO Optional character vector of file paths to a table with clonality or allelic frequencies in the same order as corresponding VCFs.
+#' @param prop_tab. Optional character vector of file paths to a table with clonality or allelic frequencies.
 #'
 #'dt with clonality:
 #'
 #'
 #'     Column name                 Example input
 #'
+#' 		 sample_ids                  sample_1
 #'     chr                         X
 #'     start                       4550159
 #'     end                         4550159
@@ -281,6 +278,7 @@ dtnv <- parallel::mclapply(dt[, sample_id %>% unique], function(id){
 #'
 #'     Column name                 Example input
 #'
+#' 		 sample_ids                  sample_1
 #'     CHROM                      X
 #'     POS                         4550159
 #'     REF                         A
@@ -303,6 +301,11 @@ dtnv <- parallel::mclapply(dt[, sample_id %>% unique], function(id){
 #'
 #' @seealso \code{\link{garnish_predictions}}
 #'
+#' @details Recommended somatic variant callers: [MuTect2](https://github.com/broadinstitute/gatk), [Strelka2](https://github.com/Illumina/strelka)
+#'
+#' Single samples are required. Multi-sample `vcf`s are not supported.
+#' The prop_tab argument may be used to provide clonality/cell fraction information with variants, or allelic fractions.  If the input `vcf` contains a `CF` info field, this field will be used as the cell fraction.
+#'
 #' @examples
 #'\dontrun{
 #'library(magrittr)
@@ -318,9 +321,10 @@ dtnv <- parallel::mclapply(dt[, sample_id %>% unique], function(id){
 #'}
 #'
 #' @references
+#' Krøigård AB, Thomassen M, Lænkholm A-V, Kruse TA, Larsen MJ. 2016. Evaluation of Nine Somatic Variant Callers for Detection of Somatic Mutations in Exome and Targeted Deep Sequencing Data. PLoS ONE. 11(3):e0151664
+#' Cingolani P, Platts A, Wang LL, Coon M, Nguyen T, et al. 2012. A program for annotating and predicting the effects of single nucleotide polymorphisms, SnpEff: SNPs in the genome of Drosophila melanogaster strain w1118; iso-2; iso-3. Fly (Austin). 6(2):80–92
+#' Riester M, Singh AP, Brannon AR, Yu K, Campbell CD, et al. 2016. PureCN: copy number calling and SNV classification using targeted short read sequencing. Source Code Biol Med. 11(1):13
 #' Callari M, Sammut SJ, De Mattos-Arruda L, Bruna A, Rueda OM, Chin SF, and Caldas C. 2017. Intersect-then-combine approach: improving the performance of somatic variant calling in whole exome sequencing data using multiple aligners and callers. Genome Medicine. 9:35.
-#' ##### TODO add snpeff reference
-#' ##### TODO add PureCN reference
 #'
 #' @export garnish_variants
 #' @md
@@ -1103,7 +1107,7 @@ garnish.antigens <- function(dt){
 
   dt %<>% data.table::copy
 
-  c <- c("clone_id", "clone_prop")
+  c <- c("clone_id", "cl_proportion")
 
   if (!"clone_id" %chin% names(dt)) c <- NULL
 

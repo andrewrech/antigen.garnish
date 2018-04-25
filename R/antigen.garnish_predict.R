@@ -1076,9 +1076,6 @@ parallel::mcMap(function(x, y) (x %>% as.integer):(y %>% as.integer) %>%
 #' Perform neoepitope prediction.
 #'
 #' Perform ensemble neoepitope prediction on a data table of missense mutations, insertions, deletions or gene fusions using netMHC, mhcflurry, and mhcnuggets.
-#' See `list_mhc` for compatible MHC allele syntax.  Multiple MHC alleles for a single sample_id should be space separated.
-#' Please keep **murine and human alleles in separate rows**, this will not affect computational speed but will ensure the correct IEDB file is chosen.  See example.
-#' If allele fractions or cell fractions were provided to garnish_variants, then `garnish_score` will be calculated, which summarizes the total immune fitness cost across all clones in a tumor.
 #'
 #' @param path Path to input table ([acceptable formats](https://cran.r-project.org/web/packages/rio/vignettes/rio.html#supported_file_formats)).
 #' @param dt Data table. Input data table from `garnish_variants` or `garnish_jaffa`, or a data table in one of these forms:
@@ -1142,7 +1139,7 @@ parallel::mcMap(function(x, y) (x %>% as.integer):(y %>% as.integer) %>%
 #'
 #' clonality info:
 #' * **clone_id**: The rank of the clone containing the variant in that sample, with the first being the largest fraction of the tumor.
-#' * **clone_prop**: The estimated clustered mean value for the proportion of the tumor composed of that clone. If allele fraction and not clonality is used, this is estimated.
+#' * **cl_proportion**: The estimated clustered mean value for the proportion of the tumor composed of that clone. If allele fraction and not clonality is used, this is estimated.
 #'
 #' antigen.garnish fitness model results
 #' * **Consensus_scores**: average value of MHC binding affinity from all prediction tools that contributed output. 95\% confidence intervals are given by **Upper_CI**, **Lower_CI**.
@@ -1163,7 +1160,9 @@ parallel::mcMap(function(x, y) (x %>% as.integer):(y %>% as.integer) %>%
 #' * transcript_length
 #' * transcript_start
 #' * peptide
-#'
+#' @param details See `list_mhc` for compatible MHC allele syntax.  Multiple MHC alleles for a single sample_id should be space separated.
+#' Mmurine and human alleles should be in separate rows.
+#' If allelic fraction or cellular fraction were provided to garnish_variants, then `garnish_score` will be calculated, which summarizes the total immune fitness cost across all clones in a tumor.
 #' @seealso \code{\link{garnish_summary}}
 #'
 #' @examples
@@ -1292,7 +1291,7 @@ garnish_predictions <- function(dt = NULL,
 
   # if class of MHC is a list column, it won't bug until first merge in make_BLAST_uuid, added this.
   if (class(dt[, MHC]) == "list") stop("MHC column must be a character column, not a list, unlist the column and rerun garnish_predictions.")
-  
+
   # remove double or more spaces in MHC string (will not bug until garnish_fitness)
   dt[, MHC %>% unique %>% stringr::str_replace_all("\\ +", " ")]
 

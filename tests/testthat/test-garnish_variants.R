@@ -59,13 +59,13 @@ testthat::test_that("garnish_variants with AF/prop_tab", {
   # run test
     dt <- garnish_variants(dt, prop_tab = "antigen.garnish_prop_AF.txt")
 
-  testthat::expect_equal(dt %>% names %>% length, 22)
-  testthat::expect_equal(dt[is.na(AF)] %>% nrow, 0)
+	  testthat::expect_equal(dt %>% names %>% length, 22)
+	  testthat::expect_equal(dt[is.na(AF)] %>% nrow, 0)
 
-  dt <- garnish_variants(dt, prop_tab = "antigen.garnish_prop_CF.txt")
+	  dt <- garnish_variants(dt, prop_tab = "antigen.garnish_prop_CF.txt")
 
-  testthat::expect_equal(dt %>% names %>% length, 22)
-  testthat::expect_equal(dt[, CELLFRACTION], c(0.3, 0.4, 0.25))
+	  testthat::expect_equal(dt %>% names %>% length, 22)
+	  testthat::expect_equal(dt[, CELLFRACTION], c(0.3, 0.4, 0.25))
 
     })
 

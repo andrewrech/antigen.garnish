@@ -84,7 +84,7 @@ A data table of binding predictions including:
 clonality info:
 \itemize{
 \item \strong{clone_id}: The rank of the clone containing the variant in that sample, with the first being the largest fraction of the tumor.
-\item \strong{clone_prop}: The estimated clustered mean value for the proportion of the tumor composed of that clone. If allele fraction and not clonality is used, this is estimated.
+\item \strong{cl_proportion}: The estimated clustered mean value for the proportion of the tumor composed of that clone. If allele fraction and not clonality is used, this is estimated.
 }
 
 antigen.garnish fitness model results

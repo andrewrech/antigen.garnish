@@ -135,7 +135,7 @@ peptides <- function(){
                                 garnish_score %>% unique %>% signif(digits = 3)] == 1.38)
         testthat::expect_true(dt[, nmer %>% unique %>% length] == 566)
         testthat::expect_true(dt[iedb_score %>% signif(digits = 3) == 1] %>% nrow == 42)
-        testthat::expect_true(dt[!is.na(clone_prop), clone_prop %>% unique %>% length] == 2)
+        testthat::expect_true(dt[!is.na(cl_proportion), cl_proportion %>% unique %>% length] == 2)
 
       })
   }

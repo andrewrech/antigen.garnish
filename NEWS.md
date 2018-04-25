@@ -2,11 +2,11 @@
 
 * clonality filter added to garnish_predictions
 * RNA expression filter added to garnish_predictions
-* fitness model implemented in R
+* fitness model implemented in R vs. Python
 * garnish.antigens function added to rank neoepitopes
 * garnish_score function added to return sample level immune fitness summary
-* update summary and plot functions with better output
-* add wiki with installation instructions
+* updated summary and plot functions with better output
+* added wiki with installation instructions
 * numerous edge case bug fixes
 
 # antigen.garnish 0.0.5
@@ -14,7 +14,6 @@
 * add ncbi-blast functionality to determine neoepitope near matches
 * add ncbi-blast functionality to determine known IEDB matches
 * implement antigen fitness model of Lukza et al. *Nature* 2017
-
 
 # antigen.garnish 0.0.4
 

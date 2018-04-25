@@ -10,7 +10,7 @@ garnish_clonality(dt)
 A data table with added fitness model parameter columns:
 \itemize{
 \item \strong{clone_id}: The rank of the clone containing the variant in that sample, with the first being the largest fraction of the tumor.
-\item \strong{clone_prop}: The estimated clustered mean value for the proportion of the tumor composed of that clone.
+\item \strong{cl_proportion}: The estimated clustered mean value for the proportion of the tumor composed of that clone.
 \item \strong{garnish_score}: the summary parameter of immunogenicity at the sample level, summed across top neoepitopes of each clone.
 }
 }

@@ -12,12 +12,8 @@ check_dep_versions <- function(){
 
   # have to unlist version because packageVersion class object will call 1.5.0 and 1.5 equivalent
 
+##### TODO
   if (identical(as.numeric(unlist(ver)), c(1,5))) stop("CRAN version of `magrittr` package detected, please install `magrittr` from the tidyverse with `devtools::install_github(\"tidyverse/magrittr\")`")
-
-  # future proofing
-  if (!identical(as.numeric(unlist(ver)), c(1,5,0)))
-    message("Warning, could not confirm magrittr version, if the pipeline is returning errors,
-    consider installing `magrittr` from the tidyverse with `devtools::install_github(\"tidyverse/magrittr\")`")
 
   return(NULL)
 
