@@ -2,7 +2,7 @@
 % Please edit documentation in R/antigen.garnish_io.R
 \name{garnish_antigens}
 \alias{garnish_antigens}
-\title{List the top neoepitope sequences for each sample and by clone if possible.}
+\title{List top neoepitopes for each sample and/or by clones within each sample..}
 \usage{
 garnish_antigens(dt)
 }
@@ -10,5 +10,5 @@ garnish_antigens(dt)
 A data table with the top neoepitope per sample, and if possible per clone, in rank order of clone frequency.
 }
 \description{
-List the top neoepitope sequences for each sample and by clone if possible.
+List top neoepitopes for each sample and/or by clones within each sample..
 }

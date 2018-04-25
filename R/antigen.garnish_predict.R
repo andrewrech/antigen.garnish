@@ -1300,9 +1300,6 @@ garnish_affinity <- function(dt = NULL,
   # remove double or more spaces in MHC string (will not bug until garnish_fitness)
   dt[, MHC %>% unique %>% stringr::str_replace_all("\\ +", " ")]
 
-  # remove double or more spaces in MHC string (will not bug until garnish_fitness)
-  dt[, MHC %>% unique %>% stringr::str_replace_all("\\ +", " ")]
-
   input_type <- vector()
 
   # specify transcript vs. direct cDNA / mutant index input

@@ -342,7 +342,7 @@ lapply(dtl %>% seq_along, function(i){
 #'
 #' Integrates clonality input for creation of a summary metric of tumor fitness similar to [Luksza et al. *Nature* 2017](https://www.ncbi.nlm.nih.gov/pubmed/29132144).
 #'
-#' @param dt Data table. ##### TODO
+#' @param dt Data table. Passed internally from garnish_affinity, requires AF or CELLFRACTION columns.
 #'
 #' @return A data table with added fitness model parameter columns:
 #' * **clone_id**: rank of the clone containing the variant (highest equals larger tumor fraction).

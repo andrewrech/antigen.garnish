@@ -264,7 +264,7 @@ dtnv <- parallel::mclapply(dt[, sample_id %>% unique], function(id){
 #'
 #' @param vcfs Paths to one or more VFC files to import. [Example vcf](http://get.rech.io/antigen.garnish_example.vcf).
 #' @param intersect Logical. Return only the intersection of variants in multiple `vcfs` with identical sample names? Intersection performed on `SnpEff` annotations. One `vcf` file per somatic variant caller-input samples pair is required.
-#' @param prop_tab. File paths to a table with clonality or allelic frequencies. [Example](http://get.rech.io/antigen.garnish_example_prop_CF.csv) `.csv` table with tumor cell fraction. [Example](http://get.rech.io/antigen.garnish_example_prop_CF.csv) `.csv` table with allelic fraction.
+#' @param prop_tab. File paths to tables with clonality or allelic frequencies. [Example](http://get.rech.io/antigen.garnish_example_prop_CF.csv) `.csv` table with tumor cell fraction. [Example](http://get.rech.io/antigen.garnish_example_prop_CF.csv) `.csv` table with allelic fraction. Pattern matching to vcf file names is performed.
 #'
 #'dt with tumor cell fraction:
 #'
@@ -568,17 +568,47 @@ sdt <- lapply(ivfdtl, function(dt){
 
   if (!missing(prop_tab)){
 
-    if (length(prop_tab) != length(vcfs)){
-      warning("Requires one proportions table per .vcf file. Returning vcf data only.")
+    patts <- vcfs %>% stringr::str_extract("^.*(?=(\\.vcf(.gz)?$))")
+
+    matches <- lapply(patts, function(p){
+
+      a <- prop_tab[which(prop_tab %like% p)]
+
+      if (length(a) != 1){
+        warning(paste("Zero or more than one proportions table matches vcf named",
+        vcfs[which(vcfs %like% p)],
+        "returning vcf data only."))
+        return(NULL)
+      }
+
+      return(data.table::data.table(match = a, pattern = p))
+
+    }) %>% data.table::rbindlist(use.names = TRUE)
+
+    if (nrow(matches) == 0){
+      warning("Could not match any proportions tables to vcfs. Check file names if proportions data is missing in the output. Returning vcf data only.")
       sdt %<>% data.table::rbindlist(use.names = TRUE, fill = TRUE)
       return(sdt)
     }
 
-    sdt <- parallel::mclapply(prop_tab %>% seq_along, function(i){
+    if (nrow(matches) != length(prop_tab)){
+      warning("Could not match all proportions tables to vcfs. A maximum of one proportions table per .vcf file is accepted.
+      Returning vcf data only for unmatched vcfs. Check file names if expected data are missing in the output.")
+      sdt %<>% data.table::rbindlist(use.names = TRUE, fill = TRUE)
+      return(sdt)
+    }
 
-      if (class(prop_tab[i])[1] == "character") pt <- prop_tab[i] %>% rio::import %>% data.table::as.data.table
+    sdt <- parallel::mclapply(sdt %>% seq_along, function(i){
 
       dt <- sdt[[i]]
+
+      # if no matching table, return vcf data only
+      if (!patts[i] %chin% matches[, pattern])
+        return(dt)
+
+      ptname <- matches[pattern == patts[i], match]
+
+      pt <- ptname %>% rio::import %>% data.table::as.data.table
 
       type <- NULL
 
