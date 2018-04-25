@@ -2,18 +2,21 @@
 % Please edit documentation in R/antigen.garnish_fitness.R
 \name{garnish_clonality}
 \alias{garnish_clonality}
-\title{Internal function to integrate clonality data into final garnish_score.}
+\title{Internal function to integrate clonality data into final \code{garnish_score} parameter.}
 \usage{
 garnish_clonality(dt)
+}
+\arguments{
+\item{dt}{Data table. ##### TODO}
 }
 \value{
 A data table with added fitness model parameter columns:
 \itemize{
-\item \strong{clone_id}: The rank of the clone containing the variant in that sample, with the first being the largest fraction of the tumor.
-\item \strong{cl_proportion}: The estimated mean tumor fraction containing the clone.
+\item \strong{clone_id}: rank of the clone containing the variant (highest equals larger tumor fraction).
+\item \strong{cl_proportion}: estimated mean tumor fraction containing the clone.
 \item \strong{garnish_score}: the summary parameter of immunogenicity at the sample level, summed across top neoepitopes of each clone.
 }
 }
 \description{
-Integrates clonality input to create a summary metric of tumor fitness similar to \href{https://www.ncbi.nlm.nih.gov/pubmed/29132144}{Luksza et al. Nature 2017}.
+Integrates clonality input for creation of a summary metric of tumor fitness similar to \href{https://www.ncbi.nlm.nih.gov/pubmed/29132144}{Luksza et al. Nature 2017}.
 }

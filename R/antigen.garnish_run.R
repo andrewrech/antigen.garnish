@@ -156,8 +156,5 @@ check_pred_tools <- function(){
           tool_status$mhcnuggets <- FALSE
          }
 
-         # TODO remove this, temporary knitr call to fix CI warnings until vignette patched in
-         temp <- knitr::opts_chunk
-
           return(tool_status)
 }

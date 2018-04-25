@@ -7,27 +7,33 @@
 garnish_variants(vcfs, intersect = TRUE, prop_tab = NULL)
 }
 \arguments{
-\item{vcfs}{Paths to one or more VFC files to import.}
+\item{vcfs}{Paths to one or more VFC files to import. \href{http://get.rech.io/antigen.garnish_example.vcf}{Example vcf}.}
 
 \item{intersect}{Logical. Return only the intersection of variants in multiple \code{vcfs} with identical sample names? Intersection performed on \code{SnpEff} annotations. One \code{vcf} file per somatic variant caller-input samples pair is required.}
 
-\item{prop_tab.}{Optional. Character vector of file paths to a table with clonality or allelic frequencies in the same order as corresponding VCFs. If allelic frequencies are given clonality will be inferred with the assumptions of even ploidy, monophylogeny, no loss of truncal mutations, and all allele frequencies lower than the maximum per sample represent subclonal mutations, this method has not been validated. Acceptable formats for input include:
+\item{prop_tab.}{File paths to a table with clonality or allelic frequencies.
 
-dt with clonality:\preformatted{Column name                 Example input
+dt with clonality:\preformatted{Column name                 Example value
 
+     sample_id                   sample_1
 chr                         X
 start                       4550159
 end                         4550159
 CELLFRACTION                0.15
+
+[Example `.csv` table](http://get.rech.io/antigen.garnish_example_prop_CF.csv)
 }
 
-dt with allele fractions:\preformatted{Column name                 Example input
+dt with allele fractions:\preformatted{Column name                 Example value
 
-CHROM                      X
+     sample_id                   sample_1
+CHROM                       X
 POS                         4550159
 REF                         A
 ALT                         GC
 AF                          0.85
+
+[Example `.csv` table](http://get.rech.io/antigen.garnish_example_prop_AF.csv)
 }}
 }
 \value{
@@ -43,20 +49,20 @@ A data table with one unique SnpEff variant annotation per row, including:
 \item \strong{protein_coding}: is the variant protein coding?
 }
 
-if prop_tab is provided either:
+if prop_tab is provided, either:
 \itemize{
 \item \strong{CELLFRACTION}: cell fraction taken from input, such as from clonality estimates from \href{http://www.github.com/lima1/PureCN}{PureCN}
 \item \strong{AF}: allelic fraction taken from input
 }
 }
 \description{
-Process paired tumor-normal VCF variants annotated with \href{http://snpeff.sourceforge.net/}{SnpEff} for neoepitope prediction using \code{garnish_predictions}. VCFs from matched samples can be optionally intersected to select only variants present across input files.
+Process paired tumor-normal VCF variants annotated with \href{http://snpeff.sourceforge.net/}{SnpEff} for neoepitope prediction using \code{garnish_affinity}. VCFs from matched samples can be optionally intersected to select only variants present across input files.
 }
 \details{
 Recommended somatic variant callers: \href{https://github.com/broadinstitute/gatk}{MuTect2}, \href{https://github.com/Illumina/strelka}{Strelka2}
 
-\strong{Multi-sample vcfs are not supported}. Single sample and paired tumor-normal vcfs are required. Multi-sample vcfs will be considered a single sample in the output.
-The prop_tab argument may be used to provide clonality/cell fraction information with variants, or allelic fractions. If the vcf is annotated in the info field and this is indicated in the header, the value "CF" will be used to obtain the cell fraction for variants.
+Single samples are required. Multi-sample \code{vcf}s are not supported.
+The prop_tab argument may be used to provide clonality/cell fraction information with variants, or allelic fractions. If the input \code{vcf} contains a \code{CF} info field, this field will be used as the cell fraction.
 }
 \examples{
 \dontrun{
@@ -74,8 +80,11 @@ library(antigen.garnish)
 
 }
 \references{
+Krøigård AB, Thomassen M, Lænkholm A-V, Kruse TA, Larsen MJ. 2016. Evaluation of Nine Somatic Variant Callers for Detection of Somatic Mutations in Exome and Targeted Deep Sequencing Data. PLoS ONE. 11(3):e0151664
+Cingolani P, Platts A, Wang LL, Coon M, Nguyen T, et al. 2012. A program for annotating and predicting the effects of single nucleotide polymorphisms, SnpEff: SNPs in the genome of Drosophila melanogaster strain w1118; iso-2; iso-3. Fly (Austin). 6(2):80–92
+Riester M, Singh AP, Brannon AR, Yu K, Campbell CD, et al. 2016. PureCN: copy number calling and SNV classification using targeted short read sequencing. Source Code Biol Med. 11(1):13
 Callari M, Sammut SJ, De Mattos-Arruda L, Bruna A, Rueda OM, Chin SF, and Caldas C. 2017. Intersect-then-combine approach: improving the performance of somatic variant calling in whole exome sequencing data using multiple aligners and callers. Genome Medicine. 9:35.
 }
 \seealso{
-\code{\link{garnish_predictions}}
+\code{\link{garnish_affinity}}
 }

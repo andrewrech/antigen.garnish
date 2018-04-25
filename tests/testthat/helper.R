@@ -9,7 +9,7 @@ skip_pred_tools <- function() {
 
          if (suppressWarnings(system('which blastp 2> /dev/null', intern = TRUE)) %>%
           length == 0)
-          testthat::skip("Skipping garnish_predictions README example from VCF without fitness because ncbiblast+ is not in PATH")
+          testthat::skip("Skipping garnish_affinity README example from VCF without fitness because ncbiblast+ is not in PATH")
         }
 
 test_runner <- function(fn){

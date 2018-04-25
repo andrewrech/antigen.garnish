@@ -1,7 +1,7 @@
 ## ---- garnish_jaffa
 #' Process gene fusions and return a data table for neoepitope prediction.
 #'
-#' Process [JAFFA](https://github.com/Oshlack/JAFFA) gene fusion `fasta` and `results.csv` output for neoepitope prediction using `garnish_predictions`.
+#' Process [JAFFA](https://github.com/Oshlack/JAFFA) gene fusion `fasta` and `results.csv` output for neoepitope prediction using `garnish_affinity`.
 #'
 #' @param path Path to `jaffa_results.csv`.
 #' @param db Character vector. One of `GRCm37`, `GRCm38`, `GRCh37`, or `GRCh38`.
@@ -19,7 +19,7 @@
 #' * **pep_wt**: wt cDNA sequence of peptide from 5' fusion gene.
 #' * **fus_tx**: cDNA sequence of predicted fusion product
 #'
-#' @seealso \code{\link{garnish_predictions}}
+#' @seealso \code{\link{garnish_affinity}}
 #'
 #' @examples
 #'\dontrun{
@@ -39,7 +39,7 @@
 #'    .[, MHC := "H-2-Kb"] %>%
 #'
 #'  # get predictions
-#'    antigen.garnish::garnish_predictions %>%
+#'    antigen.garnish::garnish_affinity %>%
 #'
 #'  # summarize predictions
 #'    antigen.garnish::garnish_summary %T>%

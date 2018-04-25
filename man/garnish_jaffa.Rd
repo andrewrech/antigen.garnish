@@ -30,7 +30,7 @@ A data table of mutant peptides, including:
 }
 }
 \description{
-Process \href{https://github.com/Oshlack/JAFFA}{JAFFA} gene fusion \code{fasta} and \code{results.csv} output for neoepitope prediction using \code{garnish_predictions}.
+Process \href{https://github.com/Oshlack/JAFFA}{JAFFA} gene fusion \code{fasta} and \code{results.csv} output for neoepitope prediction using \code{garnish_affinity}.
 }
 \examples{
 \dontrun{
@@ -50,7 +50,7 @@ library(antigen.garnish)
    .[, MHC := "H-2-Kb"] \%>\%
 
  # get predictions
-   antigen.garnish::garnish_predictions \%>\%
+   antigen.garnish::garnish_affinity \%>\%
 
  # summarize predictions
    antigen.garnish::garnish_summary \%T>\%
@@ -59,5 +59,5 @@ library(antigen.garnish)
 
 }
 \seealso{
-\code{\link{garnish_predictions}}
+\code{\link{garnish_affinity}}
 }

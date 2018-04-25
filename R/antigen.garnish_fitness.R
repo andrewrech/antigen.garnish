@@ -3,7 +3,7 @@
 #'
 #' Implements the neoepitope fitness model of [Luksza et al. *Nature* 2017](https://www.ncbi.nlm.nih.gov/pubmed/29132144).
 #'
-#' @param dt Data table output from `garnish_predictions`.
+#' @param dt Data table output from `garnish_affinity`.
 #' @param a Numeric fitness model parameter. Binding curve horizontal displacement used to determine TCR recognition probability of a peptide compared to an IEDB near match.
 #' @param k Numeric fitness model parameter. Steepness of the binding curve at `a`.
 #'
@@ -363,6 +363,7 @@ garnish_clonality <- function(dt){
 
   if ("AF" %chin% names(dt))
   	col <- "AF"
+
   if ("CELLFRACTION" %chin% names(dt))
   	col <- "CELLFRACTION"
 
@@ -393,6 +394,7 @@ garnish_clonality <- function(dt){
 
       if (nrow(dt) == 0)
       	return(NULL)
+
       if (nrow(dt)== 1)
       	return(dt[,  clone_id := 1] %>% .[, cl_proportion := cf])
 
@@ -413,16 +415,22 @@ garnish_clonality <- function(dt){
     dt <- merge(dt, cdt, all.x = TRUE, by = c("var_uuid", col))
 
     # if using AF as surrogate clonality, recalculate allele fractions into cell population proportions
+
     if (col == "AF"){
 
       a <- dt[!is.na(cl_proportion), cl_proportion %>% unique, by = c("sample_id", "var_uuid")]
 
-      # assume even ploidy and monophyletic tree so max AF is assumed to be 100% cell fraction and others are subclonal (assumes no pressure to lose mutation and max AF = tumor sample purity).
+      # determine maximum allelic fraction from most prevalent SNVs
 
-      # teleologically, this assumption is really only good for a relatively genetically stable clonal cell line taken off a dish and sequenced.
-      # can't see this being at all a large task, can set max cores and not worry about memory.
+      len <- dt[, V1 %>% stats::na.omit %>% length]
 
-      a[, cl_proportion := V1 / max(V1, na.rm = TRUE), by = "sample_id"]
+      a[, cl_proportion := V1 /
+	      (V1 %>%
+	      sort(decreasing = TRUE) %>%
+	      stats::na.omit %>%
+	      .[1:(ifelse(len > 20, (len*0.1) %>%
+	                     ceiling, 5))] %>% mean(na.rm = TRUE)
+	                                 ), by = "sample_id"]
 
       # clear column derived from allele fractions in dt
       dt[, cl_proportion := NULL]

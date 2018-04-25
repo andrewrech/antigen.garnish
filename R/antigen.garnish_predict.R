@@ -1074,7 +1074,7 @@ parallel::mcMap(function(x, y) (x %>% as.integer):(y %>% as.integer) %>%
 
 
 
-## ---- garnish_predictions
+## ---- garnish_affinity
 #' Perform neoepitope prediction.
 #'
 #' Perform ensemble neoepitope prediction on a data table of missense mutations, insertions, deletions or gene fusions using netMHC, mhcflurry, and mhcnuggets.
@@ -1115,8 +1115,8 @@ parallel::mcMap(function(x, y) (x %>% as.integer):(y %>% as.integer) %>%
 #' @param fitness Logical. Run model of [Luksza et al. *Nature* 2017](https://www.ncbi.nlm.nih.gov/pubmed/29132144) to predict neoepitope fitness?
 #' @param humandb Character vector. One of "GRCh37" or "GRCh38".
 #' @param mousedb Character vector. One of "GRCm37" or "GRCm38".
-#' @param save2wd Logical. Save a copy of garnish_predictions output to the working directory as "ag_output.txt"? Default is `FALSE`.
-#' @param remove_wt Logical. Check all nmers peptides generated against wt peptidome and remove matches? Default is `TRUE`. If investigating wild-type sequences, set this to `FALSE`.
+#' @param save Logical. Save a copy of garnish_affinity output to the working directory as "ag_output.txt"? Default is `TRUE`.
+#' @param remove_wt Logical. Check all `nmer`s generated against wt peptidome and remove matches? Default is `TRUE`. If investigating wild-type sequences, set this to `FALSE`.
 #' @return A data table of binding predictions including:
 #' * **cDNA_seq**: mutant cDNA sequence
 #' * **cDNA_locs**: starting index of mutant cDNA
@@ -1190,7 +1190,7 @@ parallel::mcMap(function(x, y) (x %>% as.integer):(y %>% as.integer) %>%
 #'                    "HLA-A*01:47 HLA-DRB1*03:08")] %>%
 #'
 #'    # predict neoepitopes
-#'    antigen.garnish::garnish_predictions %>%
+#'    antigen.garnish::garnish_affinity %>%
 #'
 #'    # summarize predictions
 #'    antigen.garnish::garnish_summary %T>%
@@ -1216,7 +1216,7 @@ parallel::mcMap(function(x, y) (x %>% as.integer):(y %>% as.integer) %>%
 #'           MHC = c("HLA-A*02:01 HLA-DRB1*14:67",
 #'                   "H-2-Kb H-2-IAd",
 #'                   "HLA-A*01:47 HLA-DRB1*03:08")) %>%
-#'  antigen.garnish::garnish_predictions %T>%
+#'  antigen.garnish::garnish_affinity %T>%
 #'  str
 #' }
 #'
@@ -1232,7 +1232,7 @@ parallel::mcMap(function(x, y) (x %>% as.integer):(y %>% as.integer) %>%
 #'           pep_mut = "MTEYKLVVVGAGDVGKSALTIQLIQNHFVDEYDP",
 #'           mutant_index = "12",
 #'           MHC = "all") %>%
-#'  antigen.garnish::garnish_predictions %T>%
+#'  antigen.garnish::garnish_affinity %T>%
 #'  str
 #' }
 #'
@@ -1244,29 +1244,29 @@ parallel::mcMap(function(x, y) (x %>% as.integer):(y %>% as.integer) %>%
 #'        utils::download.file("http://get.rech.io/antigen.garnish_test_input.xlsx", .)
 #'
 #'    # predict neoepitopes
-#'      dt <- antigen.garnish::garnish_predictions(path = path) %T>%
+#'      dt <- antigen.garnish::garnish_affinity(path = path) %T>%
 #'      str
 #' }
 #'
 #' @references
 #' Luksza, M, Riaz, N, Makarov, V, Balachandran VP, et al. 2017. A neoepitope fitness model predicts tumour response to checkpoint blockade immunotherapy. Nature. 23;551(7681):512-516
 #'
-#' @export garnish_predictions
+#' @export garnish_affinity
 #' @md
 
-garnish_predictions <- function(dt = NULL,
-                                path = NULL,
-                                counts = NULL,
-                                min_counts = 1,
-                               assemble = TRUE,
-                               generate = TRUE,
-                               predict = TRUE,
-                               blast = fitness,
-                               fitness = TRUE,
-                               humandb = "GRCh38",
-                               mousedb = "GRCm38",
-                               save2wd = FALSE,
-                               remove_wt = TRUE){
+garnish_affinity <- function(dt = NULL,
+ 														 path = NULL,
+ 														 counts = NULL,
+ 														 min_counts = 1,
+ 														 assemble = TRUE,
+ 														 generate = TRUE,
+ 														 predict = TRUE,
+ 														 blast = fitness,
+ 														 fitness = TRUE,
+ 														 humandb = "GRCh38",
+ 														 mousedb = "GRCm38",
+ 														 save = TRUE,
+ 														 remove_wt = TRUE){
 
   on.exit({
     message("Removing temporary files")
@@ -1292,10 +1292,10 @@ garnish_predictions <- function(dt = NULL,
   if (!"data.table" %chin% class(dt))
     stop("Input must be a data table.")
 
-  if (!"MHC" %chin% names(dt)) stop("Input must include MHC alleles, see ?garnish_predictions")
+  if (!"MHC" %chin% names(dt)) stop("Input must include MHC alleles, see ?garnish_affinity")
 
   # if class of MHC is a list column, it won't bug until first merge in make_BLAST_uuid, added this.
-  if (class(dt[, MHC]) == "list") stop("MHC column must be a character column, not a list, unlist the column and rerun garnish_predictions.")
+  if (class(dt[, MHC]) == "list") stop("MHC column must be a character column, not a list, unlist the column and rerun garnish_affinity.")
 
   # remove double or more spaces in MHC string (will not bug until garnish_fitness)
   dt[, MHC %>% unique %>% stringr::str_replace_all("\\ +", " ")]
@@ -1755,7 +1755,7 @@ up <- lapply(dtl, function(x){x[[2]]}) %>% unlist
 
    if (any(c("CELLFRACTION", "AF") %chin% names(dt))) dt %<>% garnish_clonality
 
-   if (save2wd){
+   if (save){
 
      gplot_fn <- format(Sys.time(), "%d/%m/%y %H:%M:%OS") %>%
                    stringr::str_replace_all("[^A-Za-z0-9]", "_") %>%
@@ -1777,7 +1777,7 @@ up <- lapply(dtl, function(x){x[[2]]}) %>% unlist
 ## ---- make_nmers
 #' Internal function for parallelized `nmer` creation.
 #'
-#' @param dt Data table. Input data table from `garnish_predictions`.
+#' @param dt Data table. Input data table from `garnish_affinity`.
 #'
 #' @export make_nmers
 #' @md

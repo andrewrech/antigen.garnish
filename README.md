@@ -49,9 +49,9 @@ curl -fsSL http://get.rech.io/antigen.garnish.sh | sudo sh
 
 * `garnish_variants`: process missense / indel VCF variants from [SnpEff](http://snpeff.sourceforge.net/)
 * `garnish_jaffa`: process gene fusions from [JAFFA](https://github.com/Oshlack/JAFFA)
-* `garnish_predictions`: perform ensemble neoepitope prediction
+* `garnish_affinity`: perform ensemble neoepitope prediction
 * `garnish_summary`: summarize and rank results
-* `garnish.antigens`: list top neoepitope sequences, sources, and properties for each[clone](https://github.com/lima1/PureCN) and sample
+* `garnish_antigens`: list top neoepitope sequences, sources, and properties for each[clone](https://github.com/lima1/PureCN) and sample
 * `garnish_plot`: generate summary plots
 
 ### Examples
@@ -78,7 +78,7 @@ library(antigen.garnish)
                    "HLA-A*01:47 HLA-DRB1*03:08")] %>%
 
   # predict neoepitopes
-    garnish_predictions
+    garnish_affinity
 
   # summarize predictions
     dt %>%
@@ -108,7 +108,7 @@ library(antigen.garnish)
     .[, MHC := "H-2-Kb"] %>%
 
   # get predictions
-    garnish_predictions %>%
+    garnish_affinity %>%
 
   # summarize predictions
     garnish_summary %T>%
@@ -159,7 +159,7 @@ Rech AJ, Balli D, Stanger BZ, Vonderheide RH. Tumor immunity and survival as a f
 
 ## Contributing
 
-We welcome contributions and feedback via Github or [email](mailto:andrewrech@gmail.com).
+We welcome contributions and feedback via Github or [email](mailto:rech@rech.io).
 
 ## License
 

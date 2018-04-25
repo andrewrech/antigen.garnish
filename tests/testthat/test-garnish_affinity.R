@@ -1,7 +1,7 @@
 
 README <- function(){
 
-  testthat::test_that("garnish_predictions strict README example", {
+  testthat::test_that("garnish_affinity strict README example", {
   skip_pred_tools()
 
       # load test data
@@ -13,7 +13,7 @@ README <- function(){
           .[, MHC := c("HLA-A*02:01 HLA-DRB1*14:67",
                        "H-2-Kb H-2-IAd",
                       "HLA-A*01:47 HLA-DRB1*03:08")] %>%
-                      garnish_predictions
+                      garnish_affinity
 
       testthat::expect_true(dt %>% nrow == 911)
       testthat::expect_true(dt[iedb_score == 1] %>% nrow == 69)
@@ -23,7 +23,7 @@ README <- function(){
 
 transcripts <- function(){
 
-  testthat::test_that("garnish_predictions from transcripts, diverse MHC", {
+  testthat::test_that("garnish_affinity from transcripts, diverse MHC", {
   skip_pred_tools()
 
   # load test data
@@ -40,7 +40,7 @@ transcripts <- function(){
                  "H-2-Kb H-2-IAd",
                  "HLA-C*14:02")) %>%
     # run test
-      garnish_predictions(blast = FALSE,
+      garnish_affinity(blast = FALSE,
                           fitness = FALSE)
 
     testthat::expect_equal(dt$cDNA_change %>% unique %>% length, 3)
@@ -54,14 +54,14 @@ transcripts <- function(){
 }
 
 Excel <- function(){
-  testthat::test_that("garnish_predictions from Excel file", {
+  testthat::test_that("garnish_affinity from Excel file", {
 
     # load test data
       path <- "antigen.garnish_test_input.xlsx" %T>%
         utils::download.file("http://get.rech.io/antigen.garnish_test_input.xlsx", .)
 
     # run test
-    dt <- garnish_predictions(path = path,
+    dt <- garnish_affinity(path = path,
                               predict = FALSE,
                               blast = FALSE,
                               fitness = FALSE)
@@ -88,7 +88,7 @@ jaffa <- function(){
       dt[, MHC := "H-2-Kb"]
 
     # run test
-      dt <- garnish_predictions(dt, blast = FALSE, fitness = FALSE)
+      dt <- garnish_affinity(dt, blast = FALSE, fitness = FALSE)
 
     testthat::expect_equal(dt %>% nrow, 1071)
 
@@ -96,7 +96,7 @@ jaffa <- function(){
 }
 
 peptides <- function(){
-  testthat::test_that("garnish_predictions assemble from peptides", {
+  testthat::test_that("garnish_affinity assemble from peptides", {
 
     # load test data
       dt <- data.table::data.table(
@@ -106,7 +106,7 @@ peptides <- function(){
               MHC = c("H-2-Kb")
                                    )
     # run test data
-      dto <- garnish_predictions(dt,
+      dto <- garnish_affinity(dt,
                                  predict = FALSE,
                                  blast = FALSE,
                                  fitness = FALSE)
@@ -117,7 +117,7 @@ peptides <- function(){
   }
 
   CELLFRACTION <- function(){
-    testthat::test_that("garnish_predictions with CELLFRACTION", {
+    testthat::test_that("garnish_affinity with CELLFRACTION", {
 
     skip_pred_tools()
 
@@ -129,7 +129,7 @@ peptides <- function(){
         garnish_variants %>%
           .[, MHC := c("HLA-A*02:01 HLA-DRB1*14:67")] %>%
                       .[1:3] %>%
-                      garnish_predictions
+                      garnish_affinity
 
       testthat::expect_true(dt %>% nrow == 929)
       testthat::expect_true(dt[pep_type %like% "mut",
@@ -146,7 +146,7 @@ peptides <- function(){
 
   RNA_test <- function(){
 
-    testthat::test_that("garnish_predictions from transcripts, with RNA", {
+    testthat::test_that("garnish_affinity from transcripts, with RNA", {
     skip_pred_tools()
 
     # load test data
@@ -171,7 +171,7 @@ peptides <- function(){
                             quote = FALSE, row.names = FALSE)
 
       # run test
-        dt <- garnish_predictions(dt,
+        dt <- garnish_affinity(dt,
                             counts = "antigen.garnish_rna_temp.txt",
                             blast = FALSE,
                             fitness = FALSE)

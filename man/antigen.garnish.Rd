@@ -6,7 +6,7 @@
 \alias{antigen.garnish-package}
 \title{\pkg{antigen.garnish}: ensemble neoepitope prediction from DNA variants in R.}
 \description{
-\href{http://neoepitopes.io}{antigen.garnish} is an R package for \href{http://science.sciencemag.org/content/348/6230/69}{neoepitope} analysis that takes human or murine DNA missense mutations, insertions, deletions, and gene fusions and performs neoepitope prediction. Input is a VCF file or table of peptides. Output is neoepitopes and a summary of neoepitope load and fitness by sample.
+An R package for \href{http://science.sciencemag.org/content/348/6230/69}{neoepitope} analysis that takes human or murine DNA missense mutations, insertions, deletions, and gene fusions and performs ensemble neoepitope prediction using 7 algorithms. Input is a VCF file or table of peptides. Output is ranked neoepitopes and a summary of neoepitope load and fitness by sample. Neoepitopes are ranked by MHC I/II binding affinity, clonality, RNA expression, dissimilarity to the normal peptidome, and similarity to known immunogenic antigens. \href{http://antigen-garnish-presentation.s3-website-us-east-1.amazonaws.com}{More information.}
 }
 \details{
 Advantages
@@ -16,7 +16,14 @@ Advantages
 \item missense mutations, insertions, deletions, and gene fusions
 \item human and mouse
 \item ensemble MHC class I/II binding prediction using \href{https://github.com/hammerlab/mhcflurry}{mhcflurry}, \href{https://github.com/KarchinLab/mhcnuggets}{mhcnuggets}, \href{http://www.cbs.dtu.dk/services/NetMHC/}{netMHC}, \href{http://www.cbs.dtu.dk/services/NetMHCII/}{netMHCII}, \href{http://www.cbs.dtu.dk/services/NetMHCpan/}{netMHCpan} and \href{http://www.cbs.dtu.dk/services/NetMHCIIpan/i}{netMHCIIpan}
-\item rank by dissimilarity to the normal peptidome / similarity to known immunogenic antigens
+\item ranked by
+}
+\itemize{
+\item MHC I/II binding affinity
+\item clonality
+\item RNA expression
+\item dissimilarity to the normal peptidome
+\item similarity to known immunogenic antigens
 }
 \item \strong{Speed and simplicity}:
 \itemize{
@@ -34,16 +41,15 @@ Advantages
 \itemize{
 \item \code{garnish_variants}: process missense / indel VCF variants from \href{http://snpeff.sourceforge.net/}{SnpEff}
 \item \code{garnish_jaffa}: process gene fusions from \href{https://github.com/Oshlack/JAFFA}{JAFFA}
-\item \code{garnish_predictions}: perform ensemble neoepitope prediction
+\item \code{garnish_affinity}: perform ensemble neoepitope prediction
 \item \code{garnish_summary}: summarize and rank results
+\item \code{garnish_antigens}: list top neoepitope sequences, sources, and properties for each \href{https://github.com/lima1/PureCN}{clone} and sample
 \item \code{garnish_plot}: generate summary plots
-\item \code{garnish.antigens}: list top neoepitope sequences, sources, and properties per clone per sample
-\item \code{list_mhc}: list all supported MHC allele syntax
 }
 }
 
 \section{Bug, issues, feedback}{
 
-Please report bugs and issues and provide feedback via \href{https://github.com/andrewrech/antigen.garnish/issues}{Github} or to \href{mailto:andrewrech@gmail.com}{andrewrech@gmail.com}.
+Please report bugs and issues and provide feedback via \href{https://github.com/andrewrech/antigen.garnish/issues}{Github} or to \href{mailto:rech@rech.io}{rech@rech.io}.
 }
 

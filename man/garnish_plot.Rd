@@ -2,12 +2,12 @@
 % Please edit documentation in R/antigen.garnish_io.R
 \name{garnish_plot}
 \alias{garnish_plot}
-\title{Graph \code{garnish_predictions} results.}
+\title{Graph \code{garnish_affinity} results.}
 \usage{
 garnish_plot(input)
 }
 \arguments{
-\item{input}{Output from \code{garnish_predictions} to graph. \code{input} may be a data table object, list of data tables, or file path to a rio::import-compatible file type. If a list of data tables is provided, unique plots will be generated for each data table.}
+\item{input}{Output from \code{garnish_affinity} to graph. \code{input} may be a data table object, list of data tables, or file path to a rio::import-compatible file type. If a list of data tables is provided, unique plots will be generated for each data table.}
 }
 \value{
 NULL
@@ -34,7 +34,7 @@ library(antigen.garnish)
 
 }
 \seealso{
-\code{\link{garnish_predictions}}
+\code{\link{garnish_affinity}}
 
 \code{\link{garnish_summary}}
 }

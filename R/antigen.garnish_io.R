@@ -3,7 +3,7 @@
 #'
 #' Calculate neoepitope summary statistics for priority, classic, alternative, frameshift-derived, and fusion-derived neoepitopes for each sample.
 #'
-#' @param dt Data table. Prediction output from `garnish_predictions`.
+#' @param dt Data table. Prediction output from `garnish_affinity`.
 #'
 #' @examples
 #'\dontrun{
@@ -23,7 +23,7 @@
 #'                  "HLA-A*01:47 HLA-DRB1*03:08")] %>%
 #'
 #'  # predict neoepitopes
-#'    antigen.garnish::garnish_predictions %>%
+#'    antigen.garnish::garnish_affinity %>%
 #'
 #'  # summarize predictions
 #'    antigen.garnish::garnish_summary %T>%
@@ -59,7 +59,7 @@
 #'
 #'To better model potential for oligoclonal antitumor responses directed against neoepitopes, we additionally report a **top three neoepitope score**, which is defined as the sum of the top three affinity scores \eqn{\left(\frac{1}{IC_{50}}\right)} for CDNs or sum of top three DAI for ADNs. The top three was chosen in each case because this is the minimum number that captures the potential for an oligoclonal T cell response and mirrors experimentally confirmed oligoclonality of T cell responses against human tumors. Moreover, the top three score was the least correlated to total neoepitope load (vs. top 4 through top 15) in a large scale human analysis of neoepitope across 27 disease types (R-squared = 0.0495), and therefore not purely a derivative of total neoepitope load.
 #'
-#' @seealso \code{\link{garnish_predictions}}
+#' @seealso \code{\link{garnish_affinity}}
 #' @seealso \code{\link{garnish_plot}}
 #' @export garnish_summary
 #'
@@ -83,6 +83,7 @@
 garnish_summary <- function(dt){
 
   # magrittr version check, this will not hide the error, only the NULL return on successful exit
+
   invisible(check_dep_versions())
 
 # summarize over unique nmers
@@ -99,7 +100,10 @@ garnish_summary <- function(dt){
     dt[is.na(DAI), DAI  := 0]
 
 
-  dt <- dt[DAI != Inf & DAI != -Inf & Consensus_scores != Inf & Consensus_scores != -Inf]
+  dt <- dt[DAI != Inf &
+					 DAI != -Inf &
+					 Consensus_scores != Inf &
+					 Consensus_scores != -Inf]
 
 # function to sum top values of a numeric vector
 
@@ -256,13 +260,13 @@ dtnv <- parallel::mclapply(dt[, sample_id %>% unique], function(id){
 ## ---- garnish_variants
 #' Process VCF variants and return a data table for epitope prediction.
 #'
-#' Process paired tumor-normal VCF variants annotated with [SnpEff](http://snpeff.sourceforge.net/) for neoepitope prediction using `garnish_predictions`. VCFs from matched samples can be optionally intersected to select only variants present across input files.
+#' Process paired tumor-normal VCF variants annotated with [SnpEff](http://snpeff.sourceforge.net/) for neoepitope prediction using `garnish_affinity`. VCFs from matched samples can be optionally intersected to select only variants present across input files.
 #'
 #' @param vcfs Paths to one or more VFC files to import. [Example vcf](http://get.rech.io/antigen.garnish_example.vcf).
 #' @param intersect Logical. Return only the intersection of variants in multiple `vcfs` with identical sample names? Intersection performed on `SnpEff` annotations. One `vcf` file per somatic variant caller-input samples pair is required.
-#' @param prop_tab. File paths to a table with clonality or allelic frequencies.
+#' @param prop_tab. File paths to a table with clonality or allelic frequencies. [Example](http://get.rech.io/antigen.garnish_example_prop_CF.csv) `.csv` table with tumor cell fraction. [Example](http://get.rech.io/antigen.garnish_example_prop_CF.csv) `.csv` table with allelic fraction.
 #'
-#'dt with clonality:
+#'dt with tumor cell fraction:
 #'
 #'
 #'     Column name                 Example value
@@ -273,9 +277,8 @@ dtnv <- parallel::mclapply(dt[, sample_id %>% unique], function(id){
 #'     end                         4550159
 #'     CELLFRACTION                0.15
 #'
-#'     [Example `.csv` table](http://get.rech.io/antigen.garnish_example_prop_CF.csv)
 #'
-#'dt with allele fractions:
+#'dt with allelic fraction:
 #'
 #'
 #'     Column name                 Example value
@@ -286,8 +289,6 @@ dtnv <- parallel::mclapply(dt[, sample_id %>% unique], function(id){
 #'     REF                         A
 #'     ALT                         GC
 #'     AF                          0.85
-#'
-#'     [Example `.csv` table](http://get.rech.io/antigen.garnish_example_prop_AF.csv)
 #'
 #' @return A data table with one unique SnpEff variant annotation per row, including:
 #' * **sample_id**: sample identifier constructed from input \code{.bam} file names
@@ -303,7 +304,7 @@ dtnv <- parallel::mclapply(dt[, sample_id %>% unique], function(id){
 #' * **CELLFRACTION**: cell fraction taken from input, such as from clonality estimates from [PureCN](http://www.github.com/lima1/PureCN)
 #' * **AF**: allelic fraction taken from input
 #'
-#' @seealso \code{\link{garnish_predictions}}
+#' @seealso \code{\link{garnish_affinity}}
 #'
 #' @details Recommended somatic variant callers: [MuTect2](https://github.com/broadinstitute/gatk), [Strelka2](https://github.com/Illumina/strelka)
 #'
@@ -326,8 +327,11 @@ dtnv <- parallel::mclapply(dt[, sample_id %>% unique], function(id){
 #'
 #' @references
 #' Krøigård AB, Thomassen M, Lænkholm A-V, Kruse TA, Larsen MJ. 2016. Evaluation of Nine Somatic Variant Callers for Detection of Somatic Mutations in Exome and Targeted Deep Sequencing Data. PLoS ONE. 11(3):e0151664
+#'
 #' Cingolani P, Platts A, Wang LL, Coon M, Nguyen T, et al. 2012. A program for annotating and predicting the effects of single nucleotide polymorphisms, SnpEff: SNPs in the genome of Drosophila melanogaster strain w1118; iso-2; iso-3. Fly (Austin). 6(2):80–92
+#'
 #' Riester M, Singh AP, Brannon AR, Yu K, Campbell CD, et al. 2016. PureCN: copy number calling and SNV classification using targeted short read sequencing. Source Code Biol Med. 11(1):13
+#'
 #' Callari M, Sammut SJ, De Mattos-Arruda L, Bruna A, Rueda OM, Chin SF, and Caldas C. 2017. Intersect-then-combine approach: improving the performance of somatic variant calling in whole exome sequencing data using multiple aligners and callers. Genome Medicine. 9:35.
 #'
 #' @export garnish_variants
@@ -344,7 +348,7 @@ garnish_variants <- function(vcfs, intersect = TRUE, prop_tab = NULL){
 
     warning("prop_tab argument is present, setting intersect to FALSE.
 
-To intersect and then use clonality, add an \"AF\" or \"CELLFRACTION\" column to the table before passing to garnish_predictions.")
+To intersect and then use clonality, add an \"AF\" or \"CELLFRACTION\" column to the table before passing to garnish_affinity.")
     intersect <- FALSE
 
   }
@@ -691,13 +695,13 @@ sdt %<>%
 
 
 ## ---- garnish_plot
-#' Graph `garnish_predictions` results.
+#' Graph `garnish_affinity` results.
 #'
 #' Plot ADN, CDN, priority, frameshift, and fusion derived `nmers` for class I and class II MHC by `sample_id`.
 #'
-#' @param input Output from `garnish_predictions` to graph. `input` may be a data table object, list of data tables, or file path to a rio::import-compatible file type. If a list of data tables is provided, unique plots will be generated for each data table.
+#' @param input Output from `garnish_affinity` to graph. `input` may be a data table object, list of data tables, or file path to a rio::import-compatible file type. If a list of data tables is provided, unique plots will be generated for each data table.
 #'
-#' @seealso \code{\link{garnish_predictions}}
+#' @seealso \code{\link{garnish_affinity}}
 #' @seealso \code{\link{garnish_summary}}
 #'
 #' @examples
@@ -1008,12 +1012,14 @@ lapply(input %>% seq_along, function(i){
       score_dt <- input[[i]] %>% garnish_summary
       cols <- c("sample_id", names(score_dt) %include% "score(s)?_")
       score_dt <- score_dt[, .SD, .SDcols = cols]
-      score_dt %<>% data.table::melt(id.vars = "sample_id",
-                                     measure.vars = names(score_dt) %include% "score")
+      score_dt %<>%
+      	data.table::melt(id.vars = "sample_id",
+			                   measure.vars = names(score_dt) %include%
+                                     "score")
 
       score_dt[, MHC := "MHC Class I"] %>%
         .[variable %like% "class_II", MHC := "MHC Class II"] %>%
-          .[, variable := variable %>%
+        .[, variable := variable %>%
             stringr::str_extract("^.*(?=(_class_))")]
 
       if (score_dt %>% stats::na.omit %>% nrow < 1)
@@ -1118,15 +1124,15 @@ lapply(input %>% seq_along, function(i){
 }
 
 
-## ---- garnish.antigens
-#' List the top neoepitope sequences for each sample and by clone if possible.
+## ---- garnish_antigens
+#' List top neoepitopes for each sample and/or by clones within each sample..
 #'
 #' @return A data table with the top neoepitope per sample, and if possible per clone, in rank order of clone frequency.
 #'
-#' @export garnish.antigens
+#' @export garnish_antigens
 #' @md
 
-garnish.antigens <- function(dt){
+garnish_antigens <- function(dt){
 
   if (class(dt)[1] == "character") dt <- dt %>%
   rio::import %>%

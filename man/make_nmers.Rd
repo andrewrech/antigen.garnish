@@ -7,7 +7,7 @@
 make_nmers(dt)
 }
 \arguments{
-\item{dt}{Data table. Input data table from \code{garnish_predictions}.}
+\item{dt}{Data table. Input data table from \code{garnish_affinity}.}
 }
 \description{
 Internal function for parallelized \code{nmer} creation.

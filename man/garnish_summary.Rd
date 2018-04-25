@@ -7,7 +7,7 @@
 garnish_summary(dt)
 }
 \arguments{
-\item{dt}{Data table. Prediction output from \code{garnish_predictions}.}
+\item{dt}{Data table. Prediction output from \code{garnish_affinity}.}
 }
 \value{
 Summary table description:
@@ -25,7 +25,7 @@ A summary data table of \code{dt} by \code{sample_id} with the following columns
 \item \strong{predictions}: wt and mutant predictions performed
 \item \strong{mhc_binders}: \code{nmers} predicted to at least minimally bind MHC (< 5000nM \eqn{IC_{50}})
 \item \strong{fitness_scores}: Sum of the top 3 fitness_score values per sample. See \code{?garnish_fitness}.
-\item \strong{garnish_score}: Sample level immune fitness parameter modeled by summing the exponential of fitness_scores for each top neoepitope across all clones in the tumor sample. See ?garnish_predicitons.
+\item \strong{garnish_score}: Sample level immune fitness. Derived by summing the exponential of \code{fitness_scores} for each top neoepitope across all clones in the tumor sample. See ?garnish_predicitons.
 \item \strong{variants}: total genomic variants evaluated
 \item \strong{transcripts}: total transcripts evaluated
 }
@@ -61,7 +61,7 @@ library(antigen.garnish)
                  "HLA-A*01:47 HLA-DRB1*03:08")] \%>\%
 
  # predict neoepitopes
-   antigen.garnish::garnish_predictions \%>\%
+   antigen.garnish::garnish_affinity \%>\%
 
  # summarize predictions
    antigen.garnish::garnish_summary \%T>\%
@@ -84,5 +84,7 @@ McGranahan N, Furness AJS, Rosenthal R, Ramskov S, Lyngaa R, et al. 2016. Clonal
 Verdegaal EME, de Miranda NFCC, Visser M, Harryvan T, van Buuren MM, et al. 2016. Neoantigen landscape dynamics during human melanoma-T cell interactions. Nature. 536(7614):91–95
 }
 \seealso{
-\code{\link{garnish_plot}} for a sample level summary plotting function.
+\code{\link{garnish_affinity}}
+
+\code{\link{garnish_plot}}
 }

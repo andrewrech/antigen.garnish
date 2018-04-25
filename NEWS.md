@@ -1,9 +1,9 @@
 # antigen.garnish 0.0.6
 
-* clonality filter added to garnish_predictions
-* RNA expression filter added to garnish_predictions
+* clonality filter added to garnish_affinity
+* RNA expression filter added to garnish_affinity
 * fitness model implemented in R vs. Python
-* garnish.antigens function added to rank neoepitopes
+* garnish_antigens function added to rank neoepitopes
 * garnish_score function added to return sample level immune fitness summary
 * updated summary and plot functions with better output
 * added wiki with installation instructions
@@ -27,7 +27,7 @@
 
 # antigen.garnish 0.0.2
 
-* add prediction deduplication to garnish_predictions
+* add prediction deduplication to garnish_affinity
 * add gene fusions as a source of neoepitopes using garnish_jaffa
 * stable API
 

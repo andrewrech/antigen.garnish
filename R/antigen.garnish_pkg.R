@@ -8,12 +8,7 @@
 #'    - missense mutations, insertions, deletions, and gene fusions
 #'    - human and mouse
 #'    - ensemble MHC class I/II binding prediction using [mhcflurry](https://github.com/hammerlab/mhcflurry), [mhcnuggets](https://github.com/KarchinLab/mhcnuggets), [netMHC](http://www.cbs.dtu.dk/services/NetMHC/), [netMHCII](http://www.cbs.dtu.dk/services/NetMHCII/), [netMHCpan](http://www.cbs.dtu.dk/services/NetMHCpan/) and [netMHCIIpan](http://www.cbs.dtu.dk/services/NetMHCIIpan/i)
-#'    - ranked by
-#'    	+ MHC I/II binding affinity
-#'    	+ clonality
-#'    	+ RNA expression
-#'    	+ dissimilarity to the normal peptidome
-#'    	+ similarity to known immunogenic antigens
+#'    - ranked by MHC I/II binding affinity, clonality, RNA expression, dissimilarity to the normal peptidome, and similarity to known immunogenic antigens
 #'1. **Speed and simplicity**:
 #'    - 1000 variants are ranked in a single step in less than five minutes
 #'1. **Integration with R/Bioconductor**
@@ -22,9 +17,9 @@
 #' @section Manifest:
 #'* `garnish_variants`: process missense / indel VCF variants from [SnpEff](http://snpeff.sourceforge.net/)
 #'* `garnish_jaffa`: process gene fusions from [JAFFA](https://github.com/Oshlack/JAFFA)
-#'* `garnish_predictions`: perform ensemble neoepitope prediction
+#'* `garnish_affinity`: perform ensemble neoepitope prediction
 #'* `garnish_summary`: summarize and rank results
-#'* `garnish.antigens`: list top neoepitope sequences, sources, and properties for each [clone](https://github.com/lima1/PureCN) and sample
+#'* `garnish_antigens`: list top neoepitope sequences, sources, and properties for each [clone](https://github.com/lima1/PureCN) and sample
 #'* `garnish_plot`: generate summary plots
 #' @section Bug, issues, feedback:
 #' Please report bugs and issues and provide feedback via [Github](https://github.com/andrewrech/antigen.garnish/issues) or to [andrewrech\@gmail.com](mailto:andrewrech\@gmail.com).
