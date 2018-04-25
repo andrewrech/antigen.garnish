@@ -6,7 +6,7 @@ testthat::test_that("garnish_clonality", {
               .[, c("clone_prop", "clone_id", "garnish_score") := NULL]
   # run test
 
-  dt %<>% garnish_clonality
+  dto <-  dt %>% garnish_clonality
 
   testthat::expect_equal(dto[!is.na(garnish_score), garnish_score %>% unique %>% length], 1)
   testthat::expect_equal(dto[, clone_id %>% as.numeric %>% range(na.rm = TRUE)], c(1,2))
