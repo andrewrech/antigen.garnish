@@ -11,7 +11,7 @@ check_dep_versions <- function(){
 if (!installed.packages() %>% data.table::as.data.table %>%
 	.[Package == "magrittr", Version %>%
 	stringr::str_replace_all("\\.", "") %>%
-	as.numeric >= 160])
+	as.numeric >= 150])
 	stop("magrittr version >= 1.5.0 is required and can be installed with:
 
 	     devtools::install_github(\"tidyverse/magrittr\")")
