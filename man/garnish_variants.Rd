@@ -23,7 +23,7 @@ CELLFRACTION                0.15
 
 dt with allele fractions:\preformatted{Column name                 Example input
 
-#CHROM                      X
+CHROM                      X
 POS                         4550159
 REF                         A
 ALT                         GC
