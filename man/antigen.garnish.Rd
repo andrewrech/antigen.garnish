@@ -16,14 +16,7 @@ Advantages
 \item missense mutations, insertions, deletions, and gene fusions
 \item human and mouse
 \item ensemble MHC class I/II binding prediction using \href{https://github.com/hammerlab/mhcflurry}{mhcflurry}, \href{https://github.com/KarchinLab/mhcnuggets}{mhcnuggets}, \href{http://www.cbs.dtu.dk/services/NetMHC/}{netMHC}, \href{http://www.cbs.dtu.dk/services/NetMHCII/}{netMHCII}, \href{http://www.cbs.dtu.dk/services/NetMHCpan/}{netMHCpan} and \href{http://www.cbs.dtu.dk/services/NetMHCIIpan/i}{netMHCIIpan}
-\item ranked by
-}
-\itemize{
-\item MHC I/II binding affinity
-\item clonality
-\item RNA expression
-\item dissimilarity to the normal peptidome
-\item similarity to known immunogenic antigens
+\item ranked by MHC I/II binding affinity, clonality, RNA expression, dissimilarity to the normal peptidome, and similarity to known immunogenic antigens
 }
 \item \strong{Speed and simplicity}:
 \itemize{
@@ -50,6 +43,6 @@ Advantages
 
 \section{Bug, issues, feedback}{
 
-Please report bugs and issues and provide feedback via \href{https://github.com/andrewrech/antigen.garnish/issues}{Github} or to \href{mailto:rech@rech.io}{rech@rech.io}.
+Please report bugs and issues and provide feedback via \href{https://github.com/andrewrech/antigen.garnish/issues}{Github} or to \href{mailto:andrewrech@gmail.com}{andrewrech@gmail.com}.
 }
 

@@ -11,20 +11,18 @@ garnish_variants(vcfs, intersect = TRUE, prop_tab = NULL)
 
 \item{intersect}{Logical. Return only the intersection of variants in multiple \code{vcfs} with identical sample names? Intersection performed on \code{SnpEff} annotations. One \code{vcf} file per somatic variant caller-input samples pair is required.}
 
-\item{prop_tab.}{File paths to a table with clonality or allelic frequencies.
+\item{prop_tab.}{File paths to a table with clonality or allelic frequencies. \href{http://get.rech.io/antigen.garnish_example_prop_CF.csv}{Example} \code{.csv} table with tumor cell fraction. \href{http://get.rech.io/antigen.garnish_example_prop_CF.csv}{Example} \code{.csv} table with allelic fraction.
 
-dt with clonality:\preformatted{Column name                 Example value
+dt with tumor cell fraction:\preformatted{Column name                 Example value
 
      sample_id                   sample_1
 chr                         X
 start                       4550159
 end                         4550159
 CELLFRACTION                0.15
-
-[Example `.csv` table](http://get.rech.io/antigen.garnish_example_prop_CF.csv)
 }
 
-dt with allele fractions:\preformatted{Column name                 Example value
+dt with allelic fraction:\preformatted{Column name                 Example value
 
      sample_id                   sample_1
 CHROM                       X
@@ -32,8 +30,6 @@ POS                         4550159
 REF                         A
 ALT                         GC
 AF                          0.85
-
-[Example `.csv` table](http://get.rech.io/antigen.garnish_example_prop_AF.csv)
 }}
 }
 \value{
@@ -81,8 +77,11 @@ library(antigen.garnish)
 }
 \references{
 Krøigård AB, Thomassen M, Lænkholm A-V, Kruse TA, Larsen MJ. 2016. Evaluation of Nine Somatic Variant Callers for Detection of Somatic Mutations in Exome and Targeted Deep Sequencing Data. PLoS ONE. 11(3):e0151664
+
 Cingolani P, Platts A, Wang LL, Coon M, Nguyen T, et al. 2012. A program for annotating and predicting the effects of single nucleotide polymorphisms, SnpEff: SNPs in the genome of Drosophila melanogaster strain w1118; iso-2; iso-3. Fly (Austin). 6(2):80–92
+
 Riester M, Singh AP, Brannon AR, Yu K, Campbell CD, et al. 2016. PureCN: copy number calling and SNV classification using targeted short read sequencing. Source Code Biol Med. 11(1):13
+
 Callari M, Sammut SJ, De Mattos-Arruda L, Bruna A, Rueda OM, Chin SF, and Caldas C. 2017. Intersect-then-combine approach: improving the performance of somatic variant calling in whole exome sequencing data using multiple aligners and callers. Genome Medicine. 9:35.
 }
 \seealso{
