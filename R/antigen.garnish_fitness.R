@@ -421,7 +421,7 @@ garnish_clonality <- function(dt){
 
     if (col == "AF"){
 
-      a <- dt[!is.na(cl_proportion) & !is.na(AF), cl_proportion %>% unique, by = c("sample_id", "var_uuid")]
+      a <- dt[!is.na(cl_proportion) & !is.na(AF) & pep_type != "wt", cl_proportion %>% unique, by = c("sample_id", "var_uuid", "pep_type")]
 
       # determine maximum allelic fraction from most prevalent SNVs, use top decile from ecdf
 
@@ -438,12 +438,12 @@ garnish_clonality <- function(dt){
       # clear column derived from allele fractions in dt
       dt[, cl_proportion := NULL]
 
-      dt <- merge(dt, a[, .SD %>% unique, .SDcol = c("sample_id", "var_uuid", "cl_proportion")],
-      all.x = TRUE, by = c("sample_id", "var_uuid"))
+      dt <- merge(dt, a[, .SD %>% unique, .SDcol = c("sample_id", "var_uuid", "cl_proportion", "pep_type")],
+      all.x = TRUE, by = c("sample_id", "var_uuid", "pep_type"))
 
     }
 
-  dt[!is.na(cl_proportion), efit := exp(fitness_score %>% max(na.rm = TRUE)) * unique(cl_proportion), by = c("sample_id", "clone_id")]
+  dt[!is.na(cl_proportion), efit := exp(fitness_score %>% max(na.rm = TRUE)) * cl_proportion, by = c("sample_id", "clone_id")]
 
   dt[!is.na(efit), garnish_score := efit %>% unique %>% sum(na.rm = TRUE), by = "sample_id"]
 
