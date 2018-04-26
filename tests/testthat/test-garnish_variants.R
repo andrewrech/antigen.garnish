@@ -22,7 +22,7 @@ testthat::test_that("garnish_variants with pureCN", {
 
   # load test data
     dt <- "antigen.garnish_test_pureCN.vcf" %T>%
-      utils::download.file("http://get.rech.io/antigen.garnish_test_PureCN.vcf", .) %>%
+      utils::download.file("http://get.rech.io/antigen.garnish_test_pureCN.vcf", .) %>%
 
   # run test
     garnish_variants
