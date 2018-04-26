@@ -3,7 +3,7 @@ testthat::test_that("garnish_antigens",
 skip_pred_tools()
 
     # load test data
-      dt <- "http://get.rech.io/antigen.garnish_pureCN_example_output.txt" %>%
+      dt <- "http://get.rech.io/antigen.garnish_PureCN_example_output.txt" %>%
       data.table::fread %>%
       garnish_antigens
 
