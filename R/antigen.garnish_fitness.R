@@ -429,7 +429,7 @@ garnish_clonality <- function(dt){
 	      sort(decreasing = TRUE) %>%
 	      stats::na.omit %>%
 	      .[1:(ifelse(len > 20, (len*0.1) %>%
-	                     ceiling, 5))] %>% mean(na.rm = TRUE)
+	                     ceiling, min(len5))] %>% mean(na.rm = TRUE)
 	                                 ), by = "sample_id"]
 
       # clear column derived from allele fractions in dt

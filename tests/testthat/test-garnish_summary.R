@@ -11,7 +11,7 @@ testthat::test_that("garnish_summary", {
      testthat::expect_equal(dto$variants, 2)
      testthat::expect_equal(ncol(dto), 21)
 
-     dt <- data.table::fread("http://get.rech.io/antigen.garnish_pureCN_example_output.txt")
+     dt <- data.table::fread("http://get.rech.io/antigen.garnish_PureCN_example_output.txt")
 
     dto2 <- garnish_summary(dt)
 
