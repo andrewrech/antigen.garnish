@@ -9,7 +9,7 @@ Ensemble neoepitope prediction from DNA variants in R.
 
 ## Description
 
-An R package for [neoepitope](http://science.sciencemag.org/content/348/6230/69) analysis that takes human or murine DNA missense mutations, insertions, deletions, and gene fusions and performs ensemble neoepitope prediction using 7 algorithms. Input is a VCF file or table of peptides. Output is ranked neoepitopes and a summary of neoepitope load and fitness by sample. Neoepitopes are ranked by MHC I/II binding affinity, clonality, RNA expression, dissimilarity to the normal peptidome, and similarity to known immunogenic antigens. [More information.](http://antigen-garnish-presentation.s3-website-us-east-1.amazonaws.com)
+An R package for [neoepitope](http://science.sciencemag.org/content/348/6230/69) analysis that takes human or murine DNA missense mutations, insertions, deletions, and gene fusions and performs ensemble neoepitope prediction using 7 algorithms. Input is a VCF file or table of peptides. Output is ranked neoepitopes and a summary of neoepitope load and fitness by sample. Neoepitopes are ranked by MHC I/II binding affinity, clonality, RNA expression, dissimilarity to the normal peptidome, and similarity to known immunogenic antigens. [Package schematic](https://github.com/andrewrech/antigen.garnish/wiki/Package-schematic). [More information.](http://antigen-garnish-presentation.s3-website-us-east-1.amazonaws.com)
 
 ### Advantages
 
