@@ -422,7 +422,7 @@ garnish_clonality <- function(dt){
 
       # determine maximum allelic fraction from most prevalent SNVs
 
-      len <- dt[, V1 %>% stats::na.omit %>% length]
+      len <- a[, V1 %>% stats::na.omit %>% length]
 
       a[, cl_proportion := V1 /
 	      (V1 %>%
