@@ -414,23 +414,26 @@ garnish_clonality <- function(dt){
 
     dt <- merge(dt, cdt, all.x = TRUE, by = c("var_uuid", col))
 
+    # remove cl_proportion from wt peptide rows because its meaningless and refers to matched mutant nmer
+    dt[pep_type == "wt", cl_proportion := as.numeric(NA)]
+
     # if using AF as surrogate clonality, recalculate allele fractions into cell population proportions
 
     if (col == "AF"){
 
-      a <- dt[!is.na(cl_proportion), cl_proportion %>% unique, by = c("sample_id", "var_uuid")]
+      a <- dt[!is.na(cl_proportion) & !is.na(AF), cl_proportion %>% unique, by = c("sample_id", "var_uuid")]
 
-      # determine maximum allelic fraction from most prevalent SNVs
+      # determine maximum allelic fraction from most prevalent SNVs, use top decile from ecdf
 
-      len <- a[, V1 %>% stats::na.omit %>% length]
+      ecdf_wrap <- function(v){
 
-      a[, cl_proportion := V1 /
-	      (V1 %>%
-	      sort(decreasing = TRUE) %>%
-	      stats::na.omit %>%
-	      .[1:(ifelse(len > 20, (len*0.1) %>%
-	                     ceiling, min(len, 5)))] %>% mean(na.rm = TRUE)
-	                                 ), by = "sample_id"]
+        return(v %>% stats::ecdf %>% quantile(0.9))
+
+      }
+
+      a[, ecdf := ecdf_wrap(V1), by = "sample_id"]
+
+      a[, cl_proportion := V1 / ecdf, by = "sample_id"]
 
       # clear column derived from allele fractions in dt
       dt[, cl_proportion := NULL]
