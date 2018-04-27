@@ -104,9 +104,9 @@ get_metadata <- function(dt,
   if (!humandb %chin% c("GRCh37", "GRCh38")) stop("humandb set incorrectly")
   if (!mousedb %chin% c("GRCm37", "GRCm38")) stop("mousedb set incorrectly")
 
-  if (humandb == "GRCh38") hhost <- "aug2017.archive.ensembl.org"
+  if (humandb == "GRCh38") hhost <- "www.ensembl.org"
   if (humandb == "GRCh37") hhost <- "grch37.ensembl.org"
-  if (mousedb == "GRCm38") mhost <- "feb2014.archive.ensembl.org"
+  if (mousedb == "GRCm38") mhost <- "www.ensembl.org"
   if (mousedb == "GRCm37") mhost <- "may2012.archive.ensembl.org"
 
     # remove version suffix
