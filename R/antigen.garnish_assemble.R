@@ -8,7 +8,7 @@
 
 check_dep_versions <- function(){
 
-if (!installed.packages() %>% data.table::as.data.table %>%
+if (!utils::installed.packages() %>% data.table::as.data.table %>%
 	.[Package == "magrittr", Version %>%
 	stringr::str_replace_all("\\.", "") %>%
 	as.numeric >= 150])
@@ -285,45 +285,106 @@ make_cDNA <- function(dt){
       }
 
 
+## ---- get_infof
+#' Internal function to extract INFO column vector to a data table.
+#'
+#' @param dt Data table with character vector `INFO` column, from `vcf` file.
+#'
+#' @return Data table with `INFO` column from `.vcf` parsed into additional columns.
+#'
+#' @export get_infof
+#' @md
+
+get_infof <- function(dt){
+
+##### TODO speedup and error check
+
+	if (!"INFO" %chin% (dt %>% names))
+		stop("Error parsing input file INFO field.")
+
+
+	infodt <- dt$INFO %>%
+		parallel::mclapply(., function(info){
+
+		infon <- info %>%
+		       data.table::tstrsplit(";") %>%
+		       unlist %>%
+					 stringr::str_replace("=.*", "")
+
+		infon <- (1:length(infon)) %>%
+		  sapply(., function(i){
+
+		  	if (infon[i] %>% is.na ||
+		  			infon[i] %>% missing) {
+		  	  		return(glue::glue("V{i}"))
+		  	  	} else {
+		  	  		infon[i]
+		  	  	}
+		})
+		infodt <- info %>%
+		       strsplit(";") %>%
+		       unlist %>%
+					 stringr::str_replace("^.*=", "") %>%
+					 t %>%
+					 data.table::as.data.table
+
+		infodt %>% data.table::setnames(infon)
+
+		return(infodt)
+
+		}) %>%
+		rbindlist(fill = TRUE, use.names = TRUE)
+
+		if (
+		    (dt %>% nrow) !=
+		    (infodt %>% nrow)
+		    )
+			stop("Error parsing input file INFO field.")
+
+	dt <- cbind(dt, infodt)
+
+	return(dt)
+
+}
+
+
+
 
 ## ---- get_snpeff
 #' Internal function to extract SnpEff annotation information to a data table.
 #'
-#' @param dt Data table with INFO column from a SnpEff-annotated VCF file.
+#' @param v Data table with character vector `ANN` column, from `vcf` file.
+#'
+#' @return Data table with the `ANN` column parsed into additional rows.
+#'
 #' @export get_snpeff
 #' @md
 
 get_snpeff <- function(dt){
 
-    if (!"INFO" %chin% (dt %>% names)) stop("dt must contain INFO column")
+		if (!"ANN" %chin% (dt %>% names))
+			stop("Error parsing input file ANN field from SnpEff.")
 
-    dt[, se := INFO %>%
-      stringr::str_extract("ANN.*") %>%
-      stringr::str_replace("ANN=[^\\|]+\\|", "")]
-
-    # add a variant identifier
+		# add a variant identifier
     suppressWarnings(dt[, snpeff_uuid :=
                   lapply(1:nrow(dt),
                   uuid::UUIDgenerate) %>% unlist])
 
-    # abort if no variants passed filtering
-    if (dt %>% nrow < 1) return(NULL)
-
     # spread SnpEff annotation over rows
-    dt %>% tidyr::separate_rows("se", sep = ",")
+    dt %>% tidyr::separate_rows("ANN", sep = ",")
 
     # extract info from snpeff annotation
-      dt[, effect_type := se %>%
+      dt[, effect_type := ANN %>%
           stringr::str_extract("^[a-z0-9][^\\|]+")]
-      dt[, ensembl_transcript_id := se %>%
+      dt[, ensembl_transcript_id := ANN %>%
           stringr::str_extract("(?<=\\|)(ENSMUST|ENST)[0-9]+")]
-      dt[, ensembl_gene_id := se %>%
+      dt[, ensembl_gene_id := ANN %>%
           stringr::str_extract("(?<=\\|)(ENSMUSG|ENSG)[0-9.]+(?=\\|)")]
-      dt[, protein_change := se %>%
+      dt[, protein_change := ANN %>%
           stringr::str_extract("p\\.[^\\|]+")]
-      dt[, cDNA_change := se %>%
+      dt[, cDNA_change := ANN %>%
           stringr::str_extract("c\\.[^\\|]+")]
-      dt[, protein_coding := se %>%
+      dt[, protein_coding := ANN %>%
           stringr::str_detect("protein_coding")]
 
       return(dt)

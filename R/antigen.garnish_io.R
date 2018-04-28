@@ -262,33 +262,8 @@ dtnv <- parallel::mclapply(dt[, sample_id %>% unique], function(id){
 #'
 #' Process paired tumor-normal VCF variants annotated with [SnpEff](http://snpeff.sourceforge.net/) for neoepitope prediction using `garnish_affinity`. VCFs from matched samples can be optionally intersected to select only variants present across input files.
 #'
-#' @param vcfs Paths to one or more VFC files to import. [Example vcf](http://get.rech.io/antigen.garnish_example.vcf).
+#' @param vcfs Paths to one or more VFC files to import. See details below.
 #' @param intersect Logical. Return only the intersection of variants in multiple `vcfs` with identical sample names? Intersection performed on `SnpEff` annotations. One `vcf` file per somatic variant caller-input samples pair is required.
-#' @param prop_tab. File paths to tables with clonality or allelic frequencies. [Example](http://get.rech.io/antigen.garnish_example_prop_CF.csv) `.csv` table with tumor cell fraction. [Example](http://get.rech.io/antigen.garnish_example_prop_CF.csv) `.csv` table with allelic fraction. Pattern matching to vcf file names is performed.
-#'
-#'dt with tumor cell fraction:
-#'
-#'
-#'     Column name                 Example value
-#'
-#' 		 sample_id                   sample_1
-#'     chr                         X
-#'     start                       4550159
-#'     end                         4550159
-#'     CELLFRACTION                0.15
-#'
-#'
-#'dt with allelic fraction:
-#'
-#'
-#'     Column name                 Example value
-#'
-#' 		 sample_id                   sample_1
-#'     CHROM                       X
-#'     POS                         4550159
-#'     REF                         A
-#'     ALT                         GC
-#'     AF                          0.85
 #'
 #' @return A data table with one unique SnpEff variant annotation per row, including:
 #' * **sample_id**: sample identifier constructed from input \code{.bam} file names
@@ -300,16 +275,19 @@ dtnv <- parallel::mclapply(dt[, sample_id %>% unique], function(id){
 #' * **cDNA_change**: cDNA change in [HGVS](http://varnomen.hgvs.org/recommendations/protein/) format
 #' * **protein_coding**: is the variant protein coding?
 #'
-#' if prop_tab is provided, either:
-#' * **CELLFRACTION**: cell fraction taken from input, such as from clonality estimates from [PureCN](http://www.github.com/lima1/PureCN)
-#' * **AF**: allelic fraction taken from input
+#' if CF or AF fields in provided in input VCFs, either:
+#' * **cell_fraction**: cell fraction taken from input, such as from clonality estimates from [PureCN](http://www.github.com/lima1/PureCN)
+#' * **allelic_fraction**: allelic fraction taken from input
 #'
 #' @seealso \code{\link{garnish_affinity}}
 #'
-#' @details Recommended somatic variant callers: [MuTect2](https://github.com/broadinstitute/gatk), [Strelka2](https://github.com/Illumina/strelka)
+#' @details `vcf`s can optionally containing a `AF` or `CF` *INFO* field, in which case cellular fraction or allelic fraction is considered when ranking neoepitopes. [Example vcf](http://get.rech.io/antigen.garnish_example.vcf). Single samples are required. Multi-sample `vcf`s are not supported. `vcf`s must be annotated with [SnpEff](http://snpeff.sourceforge.net/).
 #'
-#' Single samples are required. Multi-sample `vcf`s are not supported.
-#' The prop_tab argument may be used to provide clonality/cell fraction information with variants, or allelic fractions. If the input `vcf` contains a `CF` info field, this field will be used as the cell fraction.
+#' Recommended workflow:
+#'
+#' 1. Call variants using [MuTect2](https://github.com/broadinstitute/gatk) and [Strelka2](https://github.com/Illumina/strelka), [intersecting variants](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5394620/).
+#' 2. Classification by somatic status and clonality using [PureCN](http://www.github.com/lima1/PureCN).
+#' 3. Annotate variants using [SnpEff](http://snpeff.sourceforge.net/) (**required**).
 #'
 #' @examples
 #'\dontrun{
@@ -337,40 +315,30 @@ dtnv <- parallel::mclapply(dt[, sample_id %>% unique], function(id){
 #' @export garnish_variants
 #' @md
 
-garnish_variants <- function(vcfs, intersect = TRUE, prop_tab = NULL){
+garnish_variants <- function(vcfs, intersect = FALSE){
 
   # magrittr version check, this will not hide the error, only the NULL return on successful exit
   invisible(check_dep_versions())
 
   message("Loading VCFs")
 
-  if (!missing(prop_tab) & intersect == TRUE){
-
-    warning("prop_tab argument is present, setting intersect to FALSE.
-
-To intersect and then use clonality, add an \"AF\" or \"CELLFRACTION\" column to the table before passing to garnish_affinity.")
-    intersect <- FALSE
-
-  }
-
 ivfdtl <- parallel::mclapply(vcfs %>% seq_along, function(ivf){
 
   # load dt
       vcf <-  vcfR::read.vcfR(vcfs[ivf], verbose = TRUE)
 
-  # extract sample names from Mutect2 and Strelka command line for intersection
-
-      sample_id <- vcf@meta %>%
-                      stringr::str_extract_all("[^ ]+\\.bam") %>%
-                      unlist %>%
-                      unique %>%
-                      basename %>%
-                      sort %>%
-                      paste(collapse = "_") %>%
-                      stringr::str_replace("\\.bam", "")
-
+     if (!is.null(vcf@gt)){
+      sample_id <- vcf@gt %>%
+      data.table::as.data.table %>%
+      names %>%
+      .[-1] %>% paste(collapse = ".")
+    }
   # account for no bam names in header, as with VarScan
-      if (sample_id == "") sample_id <- basename(vcfs[ivf])
+			if (sample_id == ""){
+			  warning(paste0(
+			  "No sample names in ", vcfs[ivf], ", using file name."))
+			  sample_id <- basename(vcfs[ivf])
+			  }
 
   # extract vcf type
       vcf_type <- vcf@meta %>%
@@ -380,7 +348,8 @@ ivfdtl <- parallel::mclapply(vcfs %>% seq_along, function(ivf){
         stats::na.omit %>%
                  unlist %>%
         data.table::first
-      if (vcf_type %>% length == 0) vcf_type <- "other"
+      if (vcf_type %>% length == 0)
+      	vcf_type <- "unknown"
 
   # return a data table of variants
 
@@ -393,19 +362,40 @@ ivfdtl <- parallel::mclapply(vcfs %>% seq_along, function(ivf){
         !vdt[, INFO %>%
       stringr::str_detect(stringr::fixed("ANN=")) %>% all]
       )
-      stop(paste0("\nInput file \n", vcfs[ivf], "\nis missing INFO SnpEff annotations"))
+      stop(paste0("\nInput file \n",
+									vcfs[ivf],
+									"\nis missing INFO SnpEff annotations"))
 
-    if (vcf@gt %>% length > 0) vdt <- cbind(vdt, vcf@gt %>% data.table::as.data.table)
+    if (vcf@gt %>% length > 0)
+    	vdt <- cbind(vdt, vcf@gt %>% data.table::as.data.table)
 
     if (vdt %>% nrow < 1)
     	return(data.table::data.table(sample_id = sample_id))
 
+
     vdt[, sample_id := sample_id]
     vdt[, vcf_type := vcf_type]
 
-    # filter SnpEff warnings
 
-    vdt %<>% get_snpeff
+######### ANDREW ##################################
+# TODO
+
+
+		if (vdt %>% nrow < 1)
+			stop("No variants are present in the input file.")
+
+		# parse ANN column
+
+		vdt %<>% get_infof
+
+		# parse INFO column
+
+		vdt %<>% get_snpeff
+
+
+##############################################################
+
+    # filter SnpEff warnings
 
     vdt %<>% .[!se %like% "ERROR_.*CHROMOSOME"]
     vdt %<>% .[!se %likef% "WARNING_SEQUENCE_NOT_AVAILABLE"]
@@ -425,10 +415,15 @@ ivfdtl <- parallel::mclapply(vcfs %>% seq_along, function(ivf){
     	return(data.table::data.table(sample_id = sample_id))
 
     if (any(stringr::str_detect(vcf@meta, stringr::fixed("ID=CF"))))
-      vdt[, CELLFRACTION := INFO %>% stringr::str_extract("(?<=(CF\\=))[01]\\.[0-9]+(?=;)") %>% as.numeric]
+      vdt[, cell_fraction := INFO %>% stringr::str_extract("(?<=(CF\\=))[01]\\.[0-9]+(?=;)") %>% as.numeric]
+
+    if (any(stringr::str_detect(vcf@meta, stringr::fixed("ID=AF"))))
+      vdt[, allelic_fraction := INFO %>% stringr::str_extract("(?<=(AF\\=))[01]\\.[0-9]+(?=;)") %>% as.numeric]
 
     return(vdt)
     })
+
+
 
 rename_vcf_fields <- function(dt1, dt2) {
 
@@ -498,6 +493,7 @@ union_vcf <- function(dt, dt2){
 
   }
 
+
 sample_ids <- lapply(ivfdtl, function(dt){
                     dt$sample_id %>% unique
                       }) %>% unique
@@ -565,141 +561,7 @@ sdt <- lapply(ivfdtl, function(dt){
 
       })
 
-
-  if (!missing(prop_tab)){
-
-    patts <- vcfs %>% stringr::str_extract("^.*(?=(\\.vcf(.gz)?$))")
-
-    matches <- lapply(patts, function(p){
-
-      a <- prop_tab[which(prop_tab %like% p)]
-
-      if (length(a) != 1){
-        warning(paste("Zero or more than one proportions table matches vcf named",
-        vcfs[which(vcfs %like% p)],
-        "returning vcf data only."))
-        return(NULL)
-      }
-
-      return(data.table::data.table(match = a, pattern = p))
-
-    }) %>% data.table::rbindlist(use.names = TRUE)
-
-    if (nrow(matches) == 0){
-      warning("Could not match any proportions tables to vcfs. Check file names if proportions data is missing in the output. Returning vcf data only.")
-      sdt %<>% data.table::rbindlist(use.names = TRUE, fill = TRUE)
-      return(sdt)
-    }
-
-    if (nrow(matches) != length(prop_tab)){
-      warning("Could not match all proportions tables to vcfs. A maximum of one proportions table per .vcf file is accepted.
-      Returning vcf data only for unmatched vcfs. Check file names if expected data are missing in the output.")
-      sdt %<>% data.table::rbindlist(use.names = TRUE, fill = TRUE)
-      return(sdt)
-    }
-
-    sdt <- parallel::mclapply(sdt %>% seq_along, function(i){
-
-      dt <- sdt[[i]]
-
-      # if no matching table, return vcf data only
-      if (!patts[i] %chin% matches[, pattern])
-        return(dt)
-
-      ptname <- matches[pattern == patts[i], match]
-
-      pt <- ptname %>% rio::import %>% data.table::as.data.table
-
-      type <- NULL
-
-      if ("AF" %chin% names(pt)) type <- "AF"
-      if ("CELLFRACTION" %chin% names(pt)) type <- "CELLFRACTION"
-
-      if (length(type) == 0){
-
-        warnings("Unable to parse prop_tab, check that the input table is properly formatted. Returning with vcf data only.
-
-Example table: http://get.rech.io/antigen.garnish_example_prop_CF.csv")
-        return(dt)
-
-      }
-
-      if (type == "AF"){
-
-        if (any(!c("CHROM", "POS", "REF", "ALT", "AF") %chin% names(pt))){
-          warning("prop_tab is missing columns, see ?garnish_variants. Returning vcf data only.
-
-Example table: http://get.rech.io/antigen.garnish_example_prop_AF.csv")
-          return(dt)
-        }
-
-        if (dt[, ALT %like% ","] %>% any){
-          warning("Detected multiple variants per row. Split allelic fraction input into a single variant per row. Returning vcf data only.
-
-Example tables:
-http://get.rech.io/antigen.garnish_example_prop_AF.csv
-http://get.rech.io/antigen.garnish_example_prop_CF.csv")
-          return(dt)
-        }
-
-      # reformat chrom col to account for different reference versions
-        pt[, `CHROM` := `CHROM` %>% stringr::str_extract("^(chr)?([0-9][0-9]?|[XY]|MT)") %>%
-              stringr::str_replace("chr", "") %>%
-              stringr::str_replace("MT", "M")
-              ]
-
-        dt[, `CHROM` := `CHROM` %>% stringr::str_extract("^(chr)?([0-9][0-9]?|[XY]|MT)") %>%
-                      stringr::str_replace("chr", "") %>%
-                      stringr::str_replace("MT", "M")]
-
-        pt[, c("CHROM", "POS", "REF", "ALT") := lapply(.SD, as.character),
-            .SDcols = c("CHROM", "POS", "REF", "ALT")]
-
-        dt <- merge(dt, pt, all.x = TRUE, by = c("CHROM", "POS", "REF", "ALT"))
-
-        return(dt)
-
-      }
-
-      if (type == "CELLFRACTION"){
-
-        if (any(!c("chr", "start", "end", "CELLFRACTION") %chin% names(pt))){
-          warning(paste("prop_tab for", vcfs[i], "is missing columns, see ?garnish_variants. Returning vcf data only.
-
-Example table: http://get.rech.io/antigen.garnish_example_prop_AF.csv"), sep = " ")
-          return(dt)
-        }
-
-        # reformat chrom col to account for different reference versions
-        pt[, chr := chr %>% stringr::str_extract("^(chr)?([0-9][0-9]?|[XY]|MT)") %>%
-              stringr::str_replace("chr", "")]
-
-        dt[, `CHROM` := `CHROM` %>% stringr::str_extract("^(chr)?([0-9][0-9]?|[XY]|MT)") %>%
-                      stringr::str_replace("chr", "") %>%
-                      stringr::str_replace("MT", "M")]
-
-        # SNVs only for this
-        pt <- pt[start == end]
-
-        pt %>% data.table::setnames(c("chr", "start"), c("CHROM", "POS"))
-
-        pt[, c("CHROM", "POS") := lapply(.SD, as.character),
-            .SDcols = c("CHROM", "POS")]
-
-        dt <- merge(dt, pt[, .SD %>% unique, .SDcols = c("CHROM", "POS", "CELLFRACTION")],
-        all.x = TRUE, by = c("CHROM", "POS"))
-
-        return(dt)
-
-      }
-
-    })
-
-    if (class(sdt)[1] == "list") sdt %<>% data.table::rbindlist(fill = TRUE, use.names = TRUE)
-
-  }
-
-  if(missing(prop_tab) & class(sdt)[1] == "list") sdt %<>% data.table::rbindlist(use.names = TRUE, fill = TRUE)
+  if(class(sdt)[1] == "list") sdt %<>% data.table::rbindlist(use.names = TRUE, fill = TRUE)
 
   if (nrow(sdt) == 0){
     warning("All samples returned no suitable variants and will be excluded from output.")
@@ -1156,6 +1018,8 @@ lapply(input %>% seq_along, function(i){
 
 ## ---- garnish_antigens
 #' List top neoepitopes for each sample and/or by clones within each sample..
+#'
+#' @param dt An output data table from `garnish_affinity`.
 #'
 #' @return A data table with the top neoepitope per sample, and if possible per clone, in rank order of clone frequency.
 #'

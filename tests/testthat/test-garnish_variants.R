@@ -16,6 +16,7 @@ testthat::test_that("garnish_variants", {
 
 }
 
+##### TODO re-write test
 m1_CN <- function(){
 
 testthat::test_that("garnish_variants with PureCN", {
@@ -28,39 +29,7 @@ testthat::test_that("garnish_variants with PureCN", {
     garnish_variants
 
   testthat::expect_equal(dt %>% names %>% length, 22)
-  testthat::expect_equal(dt[!is.na(CELLFRACTION)] %>% nrow, 29)
-
-    })
-
-}
-
-m1_AF <- function(){
-
-testthat::test_that("garnish_variants with AF/prop_tab", {
-
-  # load test data
-  dt <- "antigen.garnish_example.vcf" %T>%
-    utils::download.file("http://get.rech.io/antigen.garnish_example.vcf", .) %>%
-
-  # run test
-   garnish_variants(.,
-     prop_tab = "http://get.rech.io/antigen.garnish_example_prop_AF.csv")
-
-	  testthat::expect_equal(dt %>% names %>% length, 22)
-	  testthat::expect_equal(dt[is.na(AF)] %>% nrow, 0)
-
-	  dt <- garnish_variants("antigen.garnish_example.vcf",
-     prop_tab = "http://get.rech.io/antigen.garnish_example_prop_CF.csv")
-
-	  testthat::expect_equal(dt %>% names %>% length, 22)
-	  testthat::expect_equal(dt[, CELLFRACTION], c(0.3, 0.4, 0.25))
-
-    dt2 <- "antigen.garnish_test_PureCN.vcf" %T>%
-      utils::download.file("http://get.rech.io/antigen.garnish_test_PureCN.vcf", .) %>%
-      garnish_variants(vcfs = c(., "antigen.garnish_example.vcf"), prop_tab = "http://get.rech.io/antigen.garnish_example_prop_CF.csv")
-
-    testthat::expect_equal(dt2[, sample_id %>% unique], c("antigen.garnish_test_PureCN.vcf", "normal_tumor.bam"))
-    testthat::expect_equal(dt2[, .N, by = "sample_id"]$N, c(33, 3))
+  testthat::expect_equal(dt[!is.na(cell_fraction)] %>% nrow, 29)
 
     })
 
@@ -68,6 +37,5 @@ testthat::test_that("garnish_variants with AF/prop_tab", {
 
 
 parallel::mclapply(list(vars,
-									 m1_CN,
-									 m1_AF),
+									 m1_CN),
 									 test_runner)

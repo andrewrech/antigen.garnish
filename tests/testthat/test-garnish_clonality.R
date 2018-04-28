@@ -20,7 +20,7 @@ testthat::test_that("garnish_clonality", {
 # now check AF instead of CF
 
 
-dt %>% data.table::setnames("CELLFRACTION", "AF")
+dt %>% data.table::setnames("cell_fraction", "allelic_fraction")
 
 dt %<>% garnish_clonality
 

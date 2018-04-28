@@ -273,8 +273,6 @@ modeleR <- function(als,
                             a=26,
                             k=4.86936){
 
-      message("Calculating microbial homology...")
-
 expo_sum <- function(vect){
 
         m <- max(vect)
@@ -1397,11 +1395,10 @@ if (assemble & input_type == "transcript"){
     dt[, pep_wt := coding %>% translate_cDNA]
     dt[, pep_mut := coding_mut %>% translate_cDNA]
 
-    warning(paste(nrow(dt[is.na(pep_wt) | is.na(pep_mut)]),
-                "mutants could not be translated and were dropped."))
+    if (dt %>% nrow == 0)
+    	stop("No mutant peptides exist in the data table for affinity prediction.")
 
     dt <- dt[!is.na(pep_wt) & !is.na(pep_mut)]
-
 
     dt[, frameshift := FALSE]
 
@@ -1750,7 +1747,7 @@ up <- lapply(dtl, function(x){x[[2]]}) %>% unlist
 
    }
 
-   if (any(c("CELLFRACTION", "AF") %chin% names(dt))) dt %<>% garnish_clonality
+   if (any(c("cell_fraction", "allelic_fraction") %chin% names(dt))) dt %<>% garnish_clonality
 
    if (save){
 
