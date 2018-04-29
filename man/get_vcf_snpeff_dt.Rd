@@ -7,7 +7,10 @@
 get_vcf_snpeff_dt(dt)
 }
 \arguments{
-\item{dt}{Data table with INFO column from a SnpEff-annotated VCF file.}
+\item{v}{Data table with character vector \code{ANN} column, from \code{vcf} file.}
+}
+\value{
+Data table with the \code{ANN} column parsed into additional rows.
 }
 \description{
 Internal function to extract SnpEff annotation information to a data table.

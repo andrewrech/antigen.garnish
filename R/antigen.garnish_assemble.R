@@ -308,23 +308,25 @@ get_vcf_info_dt <- function(vcf){
 
 		# loop over INFO field
 		# tolerant of variable length and content
-			idt <- parallel::mclapply(1:nrow(dt), function(i){
+	v <- dt[, INFO %>% paste(collapse = ";@@@=@@@;")]
+	vd <- v %>%
+		stringr::str_replace_all("(?<=;)[^=;]+", "") %>%
+		stringr::str_replace_all(stringr::fixed("="), "")
+	vn <- v %>%
+		stringr::str_replace_all("(?<==)[^;]+", "") %>%
+		stringr::str_replace_all(stringr::fixed("="), "")
 
-				 dti <- dt[, stats::na.omit(
-				               data.table::tstrsplit(
-				               INFO[i], ";"))]
-		     data.table::setnames(
-		      dti, stringi::stri_replace_all_regex(
-		             dti[1], "=.*", ""))
+	vd %<>% strsplit("@@@")
+	vn %<>% strsplit(("@@@"))
 
-				return(dti)
+	idt <- parallel::mclapply(1:length(vn[[1]]), function(i){
 
-				}) %>% rbindlist(fill = TRUE,
-							   use.names = TRUE)
+		v <- vd[[1]][i] %>% strsplit(";") %>% .[[1]]
+		names(v) <- vn[[1]][i] %>% strsplit(";") %>% .[[1]]
 
-	for (c in idt %>% names)
-		set(idt, j = c, value = idt[, get(c)] %>%
-		    stringr::str_extract("(?<==).*"))
+		return(v %>% as.list)
+ß
+	}) %>% rbindlist(fill = TRUE, use.names = TRUE)
 
 	if (
 	    (dt %>% nrow) !=
@@ -368,24 +370,24 @@ get_vcf_sample_dt <- function(vcf){
 
 		# loop over sample level data
 		# tolerant of variable length and content
+
 			idt <- parallel::mclapply(names, function(n){
-			idt <- parallel::mclapply(1:nrow(dt), function(i){
 
-				 dti <- dt[, data.table::tstrsplit(
-				               get(n)[i], ":")]
+				ld <- dt[, get(n)]
+				ln <- dt[, FORMAT]
 
-		     data.table::setnames(dti,
-	                   paste0(n, "_",
-	                          dt[, strsplit(
-				             					     FORMAT[i], ":")] %>%
-		     						   unlist))
+				idt <- parallel::mclapply(1:length(ln), function(i){
 
-				return(dti)
+					l <- ld[i] %>% strsplit(":") %>% .[[1]]
+					names(l) <- ln[i] %>% strsplit(":") %>% .[[1]]
 
-				}) %>% rbindlist(fill = TRUE,
-				  use.names = TRUE)
-				}) %>% do.call(cbind, .)
+					return(v %>% as.list)
+				}) %>% rbindlist(fill = TRUE, use.names = TRUE)
 
+        return(idt)
+
+		  }) %>% do.call(cbind, .)
+e
 		# assign ref and alt to individual columns
 
 			for (c in (idt %>% names %include% "_AD$")){

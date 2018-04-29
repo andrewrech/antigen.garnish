@@ -4,7 +4,7 @@ testthat::test_that("get_vcf_snpeff_dt", {
 
 		dt <- "antigen.garnish_test.vcf" %T>%
       utils::download.file("http://get.rech.io/antigen.garnish_test.vcf", .) %>%
-    	vcfR::read.vcfR(vcfo, verbose = TRUE) %>%
+    	vcfR::read.vcfR(verbose = TRUE) %>%
       get_vcf_info_dt
 
     testthat::expect_equal(dt %>% names,
