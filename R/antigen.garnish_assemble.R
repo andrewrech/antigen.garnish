@@ -285,63 +285,54 @@ make_cDNA <- function(dt){
       }
 
 
-## ---- get_infof
-#' Internal function to extract INFO column vector to a data table.
+
+## ---- get_vcf_info_dt
+#' Internal function to extract a data table of variants with `INFO` fields in columns.
 #'
-#' @param dt Data table with character vector `INFO` column, from `vcf` file.
+#' @param vcf vcfR object to extract data from.
 #'
-#' @return Data table with `INFO` column from `.vcf` parsed into additional columns.
+#' @return Data table of variants with `INFO` fields in columns.
 #'
-#' @export get_infof
+#' @export get_vcf_info_dt
 #' @md
 
-get_infof <- function(dt){
+get_vcf_info_dt <- function(vcf){
 
-##### TODO speedup and error check
+	if (vcf %>% class %>% .[1] != "vcfR")
+		stop("vcf input is not a vcfR object.")
+
+	dt <- vcf@fix %>% data.table::as.data.table
 
 	if (!"INFO" %chin% (dt %>% names))
 		stop("Error parsing input file INFO field.")
 
+		# loop over INFO field
+		# tolerant of variable length and content
+			idt <- parallel::mclapply(1:nrow(dt), function(i){
 
-	infodt <- dt$INFO %>%
-		parallel::mclapply(., function(info){
+				 dti <- dt[, stats::na.omit(
+				               data.table::tstrsplit(
+				               INFO[i], ";"))]
+		     data.table::setnames(
+		      dti, stringi::stri_replace_all_regex(
+		             dti[1], "=.*", ""))
 
-		infon <- info %>%
-		       data.table::tstrsplit(";") %>%
-		       unlist %>%
-					 stringr::str_replace("=.*", "")
+				return(dti)
 
-		infon <- (1:length(infon)) %>%
-		  sapply(., function(i){
+				}) %>% rbindlist(fill = TRUE,
+							   use.names = TRUE)
 
-		  	if (infon[i] %>% is.na ||
-		  			infon[i] %>% missing) {
-		  	  		return(glue::glue("V{i}"))
-		  	  	} else {
-		  	  		infon[i]
-		  	  	}
-		})
-		infodt <- info %>%
-		       strsplit(";") %>%
-		       unlist %>%
-					 stringr::str_replace("^.*=", "") %>%
-					 t %>%
-					 data.table::as.data.table
+	for (c in idt %>% names)
+		set(idt, j = c, value = idt[, get(c)] %>%
+		    stringr::str_extract("(?<==).*"))
 
-		infodt %>% data.table::setnames(infon)
+	if (
+	    (dt %>% nrow) !=
+	    (idt %>% nrow)
+	    )
+		stop("Error parsing input file INFO field.")
 
-		return(infodt)
-
-		}) %>%
-		rbindlist(fill = TRUE, use.names = TRUE)
-
-		if (
-		    (dt %>% nrow) !=
-		    (infodt %>% nrow)
-		    )
-			stop("Error parsing input file INFO field.")
-
-	dt <- cbind(dt, infodt)
+	dt <- cbind(dt, idt)
 
 	return(dt)
 
@@ -349,18 +340,85 @@ get_infof <- function(dt){
 
 
 
+## ---- get_vcf_sample_dt
+#' Internal function to extract a data table from sample `vcf` fields.
+#'
+#' @param vcf vcfR object to extract data from.
+#'
+#' @return Data table of variants with sample level fields in columns.
+#'
+#' @export get_vcf_sample_dt
+#' @md
 
-## ---- get_snpeff
+get_vcf_sample_dt <- function(vcf){
+
+	if (vcf %>% class %>% .[1] != "vcfR")
+		stop("vcf input is not a vcfR object.")
+
+	dt <- vcf@gt %>% data.table::as.data.table
+
+	if (!"FORMAT" %chin% (dt %>% names))
+		stop("Error parsing input file sample level info.")
+
+		names <- vcf@gt %>%
+						attributes %>%
+						.$dimnames %>%
+						unlist %excludef%
+						"FORMAT"
+
+		# loop over sample level data
+		# tolerant of variable length and content
+			idt <- parallel::mclapply(names, function(n){
+			idt <- parallel::mclapply(1:nrow(dt), function(i){
+
+				 dti <- dt[, data.table::tstrsplit(
+				               get(n)[i], ":")]
+
+		     data.table::setnames(dti,
+	                   paste0(n, "_",
+	                          dt[, strsplit(
+				             					     FORMAT[i], ":")] %>%
+		     						   unlist))
+
+				return(dti)
+
+				}) %>% rbindlist(fill = TRUE,
+				  use.names = TRUE)
+				}) %>% do.call(cbind, .)
+
+		# assign ref and alt to individual columns
+
+			for (c in (idt %>% names %include% "_AD$")){
+				idt[, paste0(c, c("_ref", "_alt")) := get(c) %>%
+						data.table::tstrsplit(",")]
+				set(idt, j = c, value = NULL)
+		}
+
+	if (
+	    (dt %>% nrow) !=
+	    (idt %>% nrow)
+	    )
+		stop("Error parsing input file INFO field.")
+
+		dt <- cbind(dt, idt)
+
+	return(dt)
+
+}
+
+
+
+## ---- get_vcf_snpeff_dt
 #' Internal function to extract SnpEff annotation information to a data table.
 #'
 #' @param v Data table with character vector `ANN` column, from `vcf` file.
 #'
 #' @return Data table with the `ANN` column parsed into additional rows.
 #'
-#' @export get_snpeff
+#' @export get_vcf_snpeff_dt
 #' @md
 
-get_snpeff <- function(dt){
+get_vcf_snpeff_dt <- function(dt){
 
 		if (!"ANN" %chin% (dt %>% names))
 			stop("Error parsing input file ANN field from SnpEff.")

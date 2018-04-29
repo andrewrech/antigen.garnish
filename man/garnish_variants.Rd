@@ -26,7 +26,7 @@ A data table with one unique SnpEff variant annotation per row, including:
 
 if CF or AF fields in provided in input VCFs, either:
 \itemize{
-\item \strong{cell_fraction}: cell fraction taken from input, such as from clonality estimates from \href{http://www.github.com/lima1/PureCN}{PureCN}
+\item \strong{cellular_fraction}: cell fraction taken from input, such as from clonality estimates from \href{http://www.github.com/lima1/PureCN}{PureCN}
 \item \strong{allelic_fraction}: allelic fraction taken from input
 }
 }

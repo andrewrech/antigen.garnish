@@ -276,18 +276,19 @@ dtnv <- parallel::mclapply(dt[, sample_id %>% unique], function(id){
 #' * **protein_coding**: is the variant protein coding?
 #'
 #' if CF or AF fields in provided in input VCFs, either:
-#' * **cell_fraction**: cell fraction taken from input, such as from clonality estimates from [PureCN](http://www.github.com/lima1/PureCN)
+#' * **cellular_fraction**: cell fraction taken from input, such as from clonality estimates from [PureCN](http://www.github.com/lima1/PureCN)
 #' * **allelic_fraction**: allelic fraction taken from input
 #'
 #' @seealso \code{\link{garnish_affinity}}
 #'
-#' @details `vcf`s can optionally containing a `AF` or `CF` *INFO* field, in which case cellular fraction or allelic fraction is considered when ranking neoepitopes. [Example vcf](http://get.rech.io/antigen.garnish_example.vcf). Single samples are required. Multi-sample `vcf`s are not supported. `vcf`s must be annotated with [SnpEff](http://snpeff.sourceforge.net/).
+#' @details `vcf`s can optionally contain an `AF` or `CF` *INFO* field, in which case cellular fraction or allelic fraction is considered when ranking neoepitopes. [Example vcf](http://get.rech.io/antigen.garnish_example.vcf). Single samples are required. Multi-sample `vcf`s are not supported. `vcf`s must be annotated with [SnpEff](http://snpeff.sourceforge.net/).
 #'
 #' Recommended workflow:
 #'
 #' 1. Call variants using [MuTect2](https://github.com/broadinstitute/gatk) and [Strelka2](https://github.com/Illumina/strelka), [intersecting variants](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5394620/).
-#' 2. Classification by somatic status and clonality using [PureCN](http://www.github.com/lima1/PureCN).
-#' 3. Annotate variants using [SnpEff](http://snpeff.sourceforge.net/) (**required**).
+#' 3. Variant filtering according to experimental specifications.
+#' 4. Classification by somatic status and clonality using [PureCN](http://www.github.com/lima1/PureCN).
+#' 5. Annotate variants using [SnpEff](http://snpeff.sourceforge.net/) (**required**).
 #'
 #' @examples
 #'\dontrun{
@@ -333,7 +334,9 @@ ivfdtl <- parallel::mclapply(vcfs %>% seq_along, function(ivf){
       names %>%
       .[-1] %>% paste(collapse = ".")
     }
-  # account for no bam names in header, as with VarScan
+
+  # fallback if sample names are missing
+
 			if (sample_id == ""){
 			  warning(paste0(
 			  "No sample names in ", vcfs[ivf], ", using file name."))
@@ -341,19 +344,20 @@ ivfdtl <- parallel::mclapply(vcfs %>% seq_along, function(ivf){
 			  }
 
   # extract vcf type
+
       vcf_type <- vcf@meta %>%
         unlist %>%
-        stringr::str_extract(stringr::regex("(Strelka)|(Mutect)|(VarScan)|(samtools mpileup)|(somaticsniper)|(freebayes)|(virmid)",
-          ignore_case = TRUE)) %>%
+        stringr::str_extract(stringr::regex("strelka|mutect|varscan|samtools|somaticsniper|freebayes|virmid",ignore_case = TRUE)) %>%
         stats::na.omit %>%
-                 unlist %>%
+        unlist %>%
         data.table::first
+
       if (vcf_type %>% length == 0)
       	vcf_type <- "unknown"
 
   # return a data table of variants
 
-    vdt <- vcf@fix %>% data.table::as.data.table
+    vdt <- vcf %>% get_vcf_info_dt
 
   # check that VCF is SnpEff-annotated
 
@@ -367,33 +371,37 @@ ivfdtl <- parallel::mclapply(vcfs %>% seq_along, function(ivf){
 									"\nis missing INFO SnpEff annotations"))
 
     if (vcf@gt %>% length > 0)
-    	vdt <- cbind(vdt, vcf@gt %>% data.table::as.data.table)
+
+    	vdt %<>% cbind(vcf@gt %>% data.table::as.data.table)
 
     if (vdt %>% nrow < 1)
     	return(data.table::data.table(sample_id = sample_id))
 
-
     vdt[, sample_id := sample_id]
     vdt[, vcf_type := vcf_type]
 
-
-######### ANDREW ##################################
-# TODO
-
-
-		if (vdt %>% nrow < 1)
-			stop("No variants are present in the input file.")
+		if (vdt %>% nrow < 1){
+			warning("No variants are present in the input file.")
+			return(data.table::data.table(sample_id = sample_id))
+			}
 
 		# parse ANN column
 
-		vdt %<>% get_infof
+		vdt %<>% try(get_vcf_info_dt)
+
+		if (vdt %>% class[1] == "try-error"){
+		  warning("Error parsing input file INFO field.")
+		  return(data.table::data.table(sample_id = sample_id))
+      }
 
 		# parse INFO column
 
-		vdt %<>% get_snpeff
+		vdt %<>% try(get_vcf_snpeff_dt)
 
-
-##############################################################
+		if (vdt %>% class[1] == "try-error"){
+		  warning("Error parsing input file SnpEff ANN annotation.")
+		  return(data.table::data.table(sample_id = sample_id))
+      }
 
     # filter SnpEff warnings
 
@@ -403,32 +411,33 @@ ivfdtl <- parallel::mclapply(vcfs %>% seq_along, function(ivf){
     vdt %<>% .[!se %likef% "WARNING_TRANSCRIPT_MULTIPLE_STOP_CODONS"]
     vdt %<>% .[!se %likef% "WARNING_TRANSCRIPT_NO_START_CODON"]
 
-    if (vdt %>% nrow < 1)
+    if (vdt %>% nrow < 1){
+      warning("No variants are present in the input file after filtering.")
     	return(data.table::data.table(sample_id = sample_id))
+    	}
 
     # filter out NA
     vdt %<>% .[!ensembl_transcript_id %>% is.na &
                !cDNA_change %>% is.na]
 
-    # this bugs downstream if nrow = 0 at this point, ie vcf of all intergenic
-    if (vdt %>% nrow < 1)
+    if (vdt %>% nrow < 1){
+      warning("No variants are present in the input file after filtering.")
     	return(data.table::data.table(sample_id = sample_id))
+    	}
 
-    if (any(stringr::str_detect(vcf@meta, stringr::fixed("ID=CF"))))
-      vdt[, cell_fraction := INFO %>% stringr::str_extract("(?<=(CF\\=))[01]\\.[0-9]+(?=;)") %>% as.numeric]
+    if ("CF" %chin% (vdt %>% names))
+      vdt <- data.table::setnames("CF", "cellular_fraction")
 
-    if (any(stringr::str_detect(vcf@meta, stringr::fixed("ID=AF"))))
-      vdt[, allelic_fraction := INFO %>% stringr::str_extract("(?<=(AF\\=))[01]\\.[0-9]+(?=;)") %>% as.numeric]
+    if ("AF" %chin% (vdt %>% names))
+      vdt <- data.table::setnames("AF", "allelic_fraction")
 
     return(vdt)
     })
 
-
-
 rename_vcf_fields <- function(dt1, dt2) {
 
        # a function to rename VCF INFO and
-        # FORMAT fields for merging
+       # FORMAT fields for merging
 
       for (common_col in c("INFO", "FORMAT")){
 
@@ -487,10 +496,8 @@ union_vcf <- function(dt, dt2){
               overlaps]
               ), use.names = TRUE, fill = TRUE)
 
-
       sdt[, vcf_type := "union"]
            return(sdt)
-
   }
 
 
@@ -516,7 +523,6 @@ drop <- lapply(ivfdtl, function(x){
       	return(NULL)
 
     }
-
 
     # return an intersected data table of variants
 
@@ -546,25 +552,26 @@ sdt <- lapply(ivfdtl, function(dt){
 
           if (nrow(x) == 0){
 
-            message(paste("No variants from", sn, "intersect. Returning union."))
+            message(paste("No variants from",
+            sn,
+            "intersect. Returning union."))
 
             return(ivfdtl[sdt] %>% Reduce(union_vcf, .))
 
           }
-
         }
-
 
         if ((ivfdtl[sdt] %>% length > 1) & intersect == FALSE)
           return(ivfdtl[sdt] %>% Reduce(union_vcf, .))
 
-
       })
 
-  if(class(sdt)[1] == "list") sdt %<>% data.table::rbindlist(use.names = TRUE, fill = TRUE)
+  if(class(sdt)[1] == "list")
+    sdt %<>% data.table::rbindlist(use.names = TRUE,
+                                   fill = TRUE)
 
   if (nrow(sdt) == 0){
-    warning("All samples returned no suitable variants and will be excluded from output.")
+    warning("No samples returned passing variants.")
     return(NULL)
   }
 
@@ -576,7 +583,7 @@ sdt %<>%
   effect_type %like% "insertion|deletion|missense|frameshift"]
 
   if (nrow(sdt) == 0){
-    warning("All samples returned no suitable variants and will be excluded from output.")
+    warning("No samples returned protein coding variants.")
     return(NULL)
   }
 

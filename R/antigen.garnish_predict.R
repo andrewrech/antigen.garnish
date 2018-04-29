@@ -269,9 +269,7 @@ scores <-  parallel::mclapply(col1 %>% seq_along, function(i){
 
     message("Done.")
 
-modeleR <- function(als,
-                            a=26,
-                            k=4.86936){
+modeleR <- function(als, a=26, k=4.86936){
 
 expo_sum <- function(vect){
 
@@ -336,8 +334,10 @@ expo_sum <- function(vect){
   blastdt %<>% unique(by = c("nmer_uuid", "WT.peptide"))
 
   # get full IEDB ref here
-  if (file.exists("Hu_nmer_fasta.fa")) db <- "antigen.garnish/iedb.fasta"
-  if (file.exists("Ms_nmer_fasta.fa")) db <- "antigen.garnish/Mu_iedb.fasta"
+  if (file.exists("Hu_nmer_fasta.fa"))
+    db <- "antigen.garnish/iedb.fasta"
+  if (file.exists("Ms_nmer_fasta.fa"))
+    db <- "antigen.garnish/Mu_iedb.fasta"
 
   fa <- Biostrings::readAAStringSet(db)
   f <- fa %>% data.table::as.data.table %>% .[, x]
@@ -369,7 +369,14 @@ blastdt[, IEDB_anno := parallel::mclapply(IEDB_anno, function(i){
 
     # to add WT.peptide (in this case IEDB epitope) back to table need nmer, nmer_i, nmer_l (nchar(nmer)), var_uuid, effect_type
 
-    vdt <- dto[, .SD %>% unique, .SDcols = c("nmer_uuid", "nmer_i", "nmer_l", "var_uuid", "sample_id", "effect_type", "MHC")]
+    vdt <- dto[, .SD %>% unique,
+      .SDcols = c("nmer_uuid",
+                  "nmer_i",
+                  "nmer_l",
+                  "var_uuid",
+                  "sample_id",
+                  "effect_type",
+                  "MHC")]
 
     vdt <- merge(vdt, blastdt, by = "nmer_uuid")
 
@@ -383,7 +390,8 @@ blastdt[, IEDB_anno := parallel::mclapply(IEDB_anno, function(i){
                   unique %>%
                     .[, pep_type := "wt"]
 
-    dto <- data.table::rbindlist(list(dto, vdt), fill = TRUE, use.names = TRUE)
+    dto <- data.table::rbindlist(list(dto, vdt),
+      fill = TRUE, use.names = TRUE)
 
     return(dto)
 
@@ -1747,7 +1755,7 @@ up <- lapply(dtl, function(x){x[[2]]}) %>% unlist
 
    }
 
-   if (any(c("cell_fraction", "allelic_fraction") %chin% names(dt))) dt %<>% garnish_clonality
+   if (any(c("cellular_fraction", "allelic_fraction") %chin% names(dt))) dt %<>% garnish_clonality
 
    if (save){
 

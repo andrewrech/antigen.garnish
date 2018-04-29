@@ -116,8 +116,8 @@ peptides <- function(){
       })
   }
 
-  cell_fraction <- function(){
-    testthat::test_that("garnish_affinity with cell_fraction", {
+  cellular_fraction <- function(){
+    testthat::test_that("garnish_affinity with cellular_fraction", {
 
     skip_pred_tools()
 
@@ -189,6 +189,6 @@ parallel::mclapply(list(README,
 									 Excel,
 									 jaffa,
 									 peptides,
-									 cell_fraction,
+									 cellular_fraction,
 									 RNA_test),
 									 test_runner)

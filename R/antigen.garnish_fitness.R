@@ -342,7 +342,7 @@ lapply(dtl %>% seq_along, function(i){
 #'
 #' Integrates clonality input for creation of a summary metric of tumor fitness similar to [Luksza et al. *Nature* 2017](https://www.ncbi.nlm.nih.gov/pubmed/29132144).
 #'
-#' @param dt Data table. Passed internally from garnish_affinity, requires allelic_fraction or cell_fraction columns.
+#' @param dt Data table. Passed internally from garnish_affinity, requires allelic_fraction or cellular_fraction columns.
 #'
 #' @return A data table with added fitness model parameter columns:
 #' * **clone_id**: rank of the clone containing the variant (highest equals larger tumor fraction).
@@ -354,18 +354,18 @@ lapply(dtl %>% seq_along, function(i){
 
 garnish_clonality <- function(dt){
 
-  if (!"cell_fraction" %chin% names(dt) & !"allelic_fraction" %chin% names(dt)){
+  if (!"cellular_fraction" %chin% names(dt) & !"allelic_fraction" %chin% names(dt)){
 
-    warnings("No cell_fraction or allelic_fraction column found. Returning dt without computing garnish_score from clonality.")
+    warnings("No cellular_fraction or allelic_fraction column found. Returning dt without computing garnish_score from clonality.")
     return(dt)
   }
 
   if ("allelic_fraction" %chin% names(dt))
   	col <- "allelic_fraction"
 
-  # prefer cell_fraction if available
-  if ("cell_fraction" %chin% names(dt))
-  	col <- "cell_fraction"
+  # prefer cellular_fraction if available
+  if ("cellular_fraction" %chin% names(dt))
+  	col <- "cellular_fraction"
 
 
     b <- data.table::copy(dt)
@@ -416,17 +416,27 @@ garnish_clonality <- function(dt){
     dt <- merge(dt, cdt, all.x = TRUE, by = c("var_uuid", col))
 
     # remove cl_proportion from wt peptide rows because its meaningless and refers to matched mutant nmer
+
     dt[pep_type == "wt", cl_proportion := as.numeric(NA)]
 
     # if using allelic_fraction as surrogate clonality, recalculate allele fractions into cell population proportions
 
+    read_cols <- dt %>% names %include% "_AD_(ref|alt)$"
+
     if (col == "allelic_fraction"){
 
-      a <- dt[!is.na(cl_proportion) & !is.na(allelic_fraction) & pep_type != "wt", cl_proportion %>% unique, by = c("sample_id", "var_uuid", "pep_type")]
+      a <- dt[!is.na(cl_proportion) &
+              !is.na(allelic_fraction) &
+              pep_type != "wt", cl_proportion %>%
+              unique, by = c("sample_id", "var_uuid", "pep_type")]
+
+      # filter by supporting reads
+  		for (c in read_cols)
+  			a %<>% .[get(c) >= 15]
 
       # determine maximum allelic fraction from most prevalent SNVs, use top decile from ecdf
 
-      ecdf_wrap <- function(v){
+      a_normalization <- function(v){
 
         return(v %>% stats::ecdf %>% stats::quantile(0.9))
 
