@@ -13,14 +13,7 @@ testthat::test_that("make_BLAST_uuid", {
           .[, sample_id := "my_sample"] %>%
             .[, effect_type := "missense_variant"]
 
-    cwd <- getwd()
-
-
-    Sys.getenv("HOME") %>% setwd
-
     dto <- make_BLAST_uuid(dti) %>% .[order(nmer)]
-
-    setwd(cwd)
 
   # run test
        testthat::expect_equal(dto[!is.na(blast_uuid), nmer],

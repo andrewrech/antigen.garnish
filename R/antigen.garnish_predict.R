@@ -36,7 +36,8 @@ if (suppressWarnings(system('which blastp 2> /dev/null', intern = TRUE)) %>%
 
   # generate fastas to query
 
-parallel::mclapply(dt[, spc %>% unique], function(s){
+##### TODO
+lapply(dt[, spc %>% unique], function(s){
 
     dt <- dt[spc == s]
 
@@ -52,7 +53,7 @@ parallel::mclapply(dt[, spc %>% unique], function(s){
     Biostrings::writeXStringSet(AA, file = paste(s, "_nmer_fasta.fa", sep = ""), format = "fasta")
 
   })
-
+browser()
   # run blastp-short for near matches
   # https://www.ncbi.nlm.nih.gov/books/NBK279684/
   # flags here indicate:
@@ -1243,9 +1244,9 @@ parallel::mcMap(function(x, y) (x %>% as.integer):(y %>% as.integer) %>%
 #' }
 #'
 #'\dontrun{
-#'# input from Microsoft Excel
+#'# input from Microsoft excel
 #'
-#'    # download an example Excel file
+#'    # download an example excel file
 #'      path <- "antigen.garnish_test_input.xlsx" %T>%
 #'        utils::download.file("http://get.rech.io/antigen.garnish_test_input.xlsx", .)
 #'

@@ -9,7 +9,7 @@ testthat::test_that("garnish_fitness", {
         }
 
     # load test data
-        dt <- data.table::fread("http://get.rech.io/antigen.garnish_example_output.txt") %>%
+        dt <- data.table::fread("http://get.rech.io/antigen.garnish_example_affinity_output.txt") %>%
                 garnish_fitness
 
     # run test

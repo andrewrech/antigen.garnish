@@ -325,7 +325,7 @@ get_vcf_info_dt <- function(vcf){
 		names(v) <- vn[[1]][i] %>% strsplit(";") %>% .[[1]]
 
 		return(v %>% as.list)
-ß
+
 	}) %>% rbindlist(fill = TRUE, use.names = TRUE)
 
 	if (

@@ -8,7 +8,7 @@ convert.aa <- function(x){
 
 
   # load test data
-    dt <- data.table::fread("http://get.rech.io/antigen.garnish_example_output.txt")
+    dt <- data.table::fread("http://get.rech.io/antigen.garnish_example_affinity_output.txt")
 
   # test if nmers are contained in peptides
 

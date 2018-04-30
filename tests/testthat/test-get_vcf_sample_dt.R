@@ -1,17 +1,13 @@
-testthat::test_that("get_vcf_snpeff_dt", {
+testthat::test_that("get_vcf_sample_dt", {
 
   # load test data
 
 		dt <- "antigen.garnish_test.vcf" %T>%
       utils::download.file("http://get.rech.io/antigen.garnish_test.vcf", .) %>%
-    	vcfR::read.vcfR(vcfo, verbose = TRUE) %>%
+    	vcfR::read.vcfR(verbose = TRUE) %>%
       get_vcf_sample_dt
 
   # run test
-
-    dt[, .SD, .SDcols = c("effect_type", "ensembl_transcript_id",
-    "ensembl_gene_id", "protein_change", "cDNA_change",
-    "protein_coding")] %>%
 
     testthat::expect_equal(dt %>% names,
                            c("FORMAT",

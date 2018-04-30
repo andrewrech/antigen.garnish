@@ -53,8 +53,8 @@ transcripts <- function(){
     })
 }
 
-Excel <- function(){
-  testthat::test_that("garnish_affinity from Excel file", {
+excel <- function(){
+  testthat::test_that("garnish_affinity from excel file", {
 
     # load test data
       path <- "antigen.garnish_test_input.xlsx" %T>%
@@ -83,7 +83,7 @@ jaffa <- function(){
   skip_pred_tools()
 
     # load test data
-      dt <- data.table::fread("http://get.rech.io/antigen.garnish_example_input_jaffa.csv")
+      dt <- data.table::fread("http://get.rech.io/antigen.garnish_example_jaffa_input.csv")
 
       dt[, MHC := "H-2-Kb"]
 
@@ -186,7 +186,7 @@ peptides <- function(){
 
 parallel::mclapply(list(README,
 									 transcripts,
-									 Excel,
+									 excel,
 									 jaffa,
 									 peptides,
 									 cellular_fraction,
