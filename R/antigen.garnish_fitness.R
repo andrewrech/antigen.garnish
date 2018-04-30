@@ -379,6 +379,7 @@ garnish_clonality <- function(dt){
         abs <- abs(x - v)
 
         a <- v[which(abs == min(abs))]
+
         b <- names(v)[which(abs == min(abs))]
 
         return(data.table(cl_proportion = a, clone_id = b))
@@ -436,13 +437,15 @@ garnish_clonality <- function(dt){
 
       # determine maximum allelic fraction from most prevalent SNVs, use top decile from ecdf
 
-      a_normalization <- function(v){
+      calculate_ecdf <- function(x){
+			  if ((x %>% stats::na.omit %>% length) > 0){
+			    return(stats::ecdf(x)(x))
+			  } else {
+			    return(NA %>% as.numeric)
+			  }
+			}
 
-        return(v %>% stats::ecdf %>% stats::quantile(0.9))
-
-      }
-
-      a[, ecdf := ecdf_wrap(V1), by = "sample_id"]
+      a[, ecdf := calculate_ecdf(V1), by = "sample_id"]
 
       a[, cl_proportion := V1 / ecdf, by = "sample_id"]
 

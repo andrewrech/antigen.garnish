@@ -4,12 +4,10 @@
 \alias{garnish_variants}
 \title{Process VCF variants and return a data table for epitope prediction.}
 \usage{
-garnish_variants(vcfs, intersect = FALSE)
+garnish_variants(vcfs)
 }
 \arguments{
 \item{vcfs}{Paths to one or more VFC files to import. See details below.}
-
-\item{intersect}{Logical. Return only the intersection of variants in multiple \code{vcfs} with identical sample names? Intersection performed on \code{SnpEff} annotations. One \code{vcf} file per somatic variant caller-input samples pair is required.}
 }
 \value{
 A data table with one unique SnpEff variant annotation per row, including:

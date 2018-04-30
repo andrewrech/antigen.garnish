@@ -263,7 +263,6 @@ dtnv <- parallel::mclapply(dt[, sample_id %>% unique], function(id){
 #' Process paired tumor-normal VCF variants annotated with [SnpEff](http://snpeff.sourceforge.net/) for neoepitope prediction using `garnish_affinity`. VCFs from matched samples can be optionally intersected to select only variants present across input files.
 #'
 #' @param vcfs Paths to one or more VFC files to import. See details below.
-#' @param intersect Logical. Return only the intersection of variants in multiple `vcfs` with identical sample names? Intersection performed on `SnpEff` annotations. One `vcf` file per somatic variant caller-input samples pair is required.
 #'
 #' @return A data table with one unique SnpEff variant annotation per row, including:
 #' * **sample_id**: sample identifier constructed from input \code{.bam} file names
@@ -316,14 +315,15 @@ dtnv <- parallel::mclapply(dt[, sample_id %>% unique], function(id){
 #' @export garnish_variants
 #' @md
 
-garnish_variants <- function(vcfs, intersect = FALSE){
+garnish_variants <- function(vcfs){
 
   # magrittr version check, this will not hide the error, only the NULL return on successful exit
+
   invisible(check_dep_versions())
 
   message("Loading VCFs")
 
-ivfdtl <- parallel::mclapply(vcfs %>% seq_along, function(ivf){
+sdt <- lapply(vcfs %>% seq_along, function(ivf){
 
   # load dt
       vcf <-  vcfR::read.vcfR(vcfs[ivf], verbose = TRUE)
@@ -370,9 +370,10 @@ ivfdtl <- parallel::mclapply(vcfs %>% seq_along, function(ivf){
 									vcfs[ivf],
 									"\nis missing INFO SnpEff annotations"))
 
-    if (vcf@gt %>% length > 0)
+  	# parse sample level info
 
-    	vdt %<>% cbind(vcf@gt %>% data.table::as.data.table)
+	    if (vcf@gt %>% length > 0)
+	      vdt %<>% cbind(vcf %>% get_vcf_sample_dt)
 
     if (vdt %>% nrow < 1)
     	return(data.table::data.table(sample_id = sample_id))
@@ -380,36 +381,36 @@ ivfdtl <- parallel::mclapply(vcfs %>% seq_along, function(ivf){
     vdt[, sample_id := sample_id]
     vdt[, vcf_type := vcf_type]
 
+
 		if (vdt %>% nrow < 1){
 			warning("No variants are present in the input file.")
 			return(data.table::data.table(sample_id = sample_id))
 			}
 
-		# parse ANN column
 
-		vdt %<>% try(get_vcf_info_dt)
-
-		if (vdt %>% class[1] == "try-error"){
+		if (vdt %>% class %>%
+		     .[1] == "try-error"){
 		  warning("Error parsing input file INFO field.")
 		  return(data.table::data.table(sample_id = sample_id))
       }
 
-		# parse INFO column
+		# parse ANN column
 
-		vdt %<>% try(get_vcf_snpeff_dt)
+		vdt %<>% get_vcf_snpeff_dt
 
-		if (vdt %>% class[1] == "try-error"){
+		if (vdt %>% class %>%
+		     .[1] == "try-error"){
 		  warning("Error parsing input file SnpEff ANN annotation.")
 		  return(data.table::data.table(sample_id = sample_id))
       }
 
     # filter SnpEff warnings
 
-    vdt %<>% .[!se %like% "ERROR_.*CHROMOSOME"]
-    vdt %<>% .[!se %likef% "WARNING_SEQUENCE_NOT_AVAILABLE"]
-    vdt %<>% .[!se %likef% "WARNING_TRANSCRIPT_INCOMPLETE"]
-    vdt %<>% .[!se %likef% "WARNING_TRANSCRIPT_MULTIPLE_STOP_CODONS"]
-    vdt %<>% .[!se %likef% "WARNING_TRANSCRIPT_NO_START_CODON"]
+    vdt %<>% .[!ANN %like% "ERROR_.*CHROMOSOME"]
+    vdt %<>% .[!ANN %likef% "WARNING_SEQUENCE_NOT_AVAILABLE"]
+    vdt %<>% .[!ANN %likef% "WARNING_TRANSCRIPT_INCOMPLETE"]
+    vdt %<>% .[!ANN %likef% "WARNING_TRANSCRIPT_MULTIPLE_STOP_CODONS"]
+    vdt %<>% .[!ANN %likef% "WARNING_TRANSCRIPT_NO_START_CODON"]
 
     if (vdt %>% nrow < 1){
       warning("No variants are present in the input file after filtering.")
@@ -433,138 +434,6 @@ ivfdtl <- parallel::mclapply(vcfs %>% seq_along, function(ivf){
 
     return(vdt)
     })
-
-rename_vcf_fields <- function(dt1, dt2) {
-
-       # a function to rename VCF INFO and
-       # FORMAT fields for merging
-
-      for (common_col in c("INFO", "FORMAT")){
-
-          if (common_col %chin% (dt %>% names))
-            dt %>%
-              data.table::setnames(common_col,
-                paste0(common_col, "_", dt[, vcf_type[1]]))
-          if (common_col %chin% (dt2 %>% names))
-            dt2 %>%
-              data.table::setnames(common_col,
-                paste0(common_col, "_", dt2[, vcf_type[1]]))
-        }
-    }
-
-merge_vcf <- function(dt, dt2){
-
-    # a function to intersect annotated variants
-      # across VCFs using SnpEff
-
-      sdt <- merge(dt, dt2[, .SD,
-                 .SDcols = c("INFO",
-                             "FORMAT",
-                             "ensembl_transcript_id",
-                             "cDNA_change")],
-                 by = c("ensembl_transcript_id",
-                        "cDNA_change"))
-
-      sdt[, vcf_type := "intersect"]
-         return(sdt)
-
-  }
-
-union_vcf <- function(dt, dt2){
-
-    # a function to take the union of annotated variants
-      # across VCFs using SnpEff
-
-      rename_vcf_fields(dt, dt2)
-      mdt <- merge(dt, dt2[, .SD,
-                 .SDcols = c(dt2 %>% names %include% "^INFO",
-                             dt2 %>% names %include% "^FORMAT",
-                             "ensembl_transcript_id",
-                             "cDNA_change")],
-                  by = c("ensembl_transcript_id",
-                          "cDNA_change"))
-
-      overlaps <- mdt[, paste0(ensembl_transcript_id,
-                               cDNA_change) %>%
-                        unique]
-
-      sdt <- rbindlist(list(
-            mdt,
-            dt[!paste0(ensembl_transcript_id, cDNA_change) %chin%
-              overlaps],
-            dt2[!paste0(ensembl_transcript_id, cDNA_change) %chin%
-              overlaps]
-              ), use.names = TRUE, fill = TRUE)
-
-      sdt[, vcf_type := "union"]
-           return(sdt)
-  }
-
-
-sample_ids <- lapply(ivfdtl, function(dt){
-                    dt$sample_id %>% unique
-                      }) %>% unique
-
-    # drop vcfs that had no variants before intersect or union attempts to prevent .SDcols bugs
-
-drop <- lapply(ivfdtl, function(x){
-
-      names(x) %>% length
-
-    }) %>% unlist
-
-    if ((drop == 1) %>% any){
-
-      warning(paste(vcfs[which(drop == 1)], "returned no suitable variants and will be excluded from output.\n", sep = " "))
-
-      ivfdtl <- ivfdtl[which(drop != 1)]
-
-      if (length(ivfdtl) == 0)
-      	return(NULL)
-
-    }
-
-    # return an intersected data table of variants
-
-      sdt <- parallel::mclapply(sample_ids,
-
-function(sn){
-
-        # find data tables with matching sample names
-
-sdt <- lapply(ivfdtl, function(dt){
-
-             dt[, sample_id %>% .[1]] == sn
-
-            }) %>% unlist
-
-      # merge all data tables with matching sample names
-
-        if (ivfdtl[sdt] %>% length == 1)
-          return(ivfdtl[[sdt %>% which]])
-
-        if ((ivfdtl[sdt] %>% length > 1) & intersect == TRUE) {
-
-          x <- ivfdtl[sdt] %>% Reduce(merge_vcf, .)
-
-          if (nrow(x) > 0)
-          	return(x)
-
-          if (nrow(x) == 0){
-
-            message(paste("No variants from",
-            sn,
-            "intersect. Returning union."))
-
-            return(ivfdtl[sdt] %>% Reduce(union_vcf, .))
-
-          }
-        }
-
-        if ((ivfdtl[sdt] %>% length > 1) & intersect == FALSE)
-          return(ivfdtl[sdt] %>% Reduce(union_vcf, .))
-
-      })
 
   if(class(sdt)[1] == "list")
     sdt %<>% data.table::rbindlist(use.names = TRUE,

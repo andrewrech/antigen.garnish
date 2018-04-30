@@ -7,7 +7,7 @@
 get_vcf_snpeff_dt(dt)
 }
 \arguments{
-\item{v}{Data table with character vector \code{ANN} column, from \code{vcf} file.}
+\item{dt}{Data table with character vector \code{ANN} column, from \code{vcf} file.}
 }
 \value{
 Data table with the \code{ANN} column parsed into additional rows.

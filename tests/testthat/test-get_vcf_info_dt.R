@@ -59,6 +59,6 @@ testthat::test_that("get_vcf_snpeff_dt", {
    											  	))
 
     testthat::expect_equal(dt %>% nrow, 61)
-    testthat::expect_equal(dt %>% length, 47)
+    testthat::expect_equal(dt %>% length, 48)
 
     })

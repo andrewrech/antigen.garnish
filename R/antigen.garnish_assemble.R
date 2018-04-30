@@ -381,13 +381,17 @@ get_vcf_sample_dt <- function(vcf){
 					l <- ld[i] %>% strsplit(":") %>% .[[1]]
 					names(l) <- ln[i] %>% strsplit(":") %>% .[[1]]
 
-					return(v %>% as.list)
+
+					return(l %>% as.list)
 				}) %>% rbindlist(fill = TRUE, use.names = TRUE)
 
+				idt %>% data.table::setnames(
+                  idt %>% names,
+                  idt %>% names %>% paste0(n, "_", .))
         return(idt)
 
 		  }) %>% do.call(cbind, .)
-e
+
 		# assign ref and alt to individual columns
 
 			for (c in (idt %>% names %include% "_AD$")){
@@ -413,7 +417,7 @@ e
 ## ---- get_vcf_snpeff_dt
 #' Internal function to extract SnpEff annotation information to a data table.
 #'
-#' @param v Data table with character vector `ANN` column, from `vcf` file.
+#' @param dt Data table with character vector `ANN` column, from `vcf` file.
 #'
 #' @return Data table with the `ANN` column parsed into additional rows.
 #'
@@ -431,11 +435,12 @@ get_vcf_snpeff_dt <- function(dt){
                   uuid::UUIDgenerate) %>% unlist])
 
     # spread SnpEff annotation over rows
-    dt %>% tidyr::separate_rows("ANN", sep = ",")
+    dt %<>% tidyr::separate_rows("ANN", sep = ",")
 
     # extract info from snpeff annotation
       dt[, effect_type := ANN %>%
-          stringr::str_extract("^[a-z0-9][^\\|]+")]
+          stringr::str_extract("^[^\\|]+\\|[^|]+") %>%
+          stringr::str_replace("^[^\\|]+\\|", "")]
       dt[, ensembl_transcript_id := ANN %>%
           stringr::str_extract("(?<=\\|)(ENSMUST|ENST)[0-9]+")]
       dt[, ensembl_gene_id := ANN %>%
