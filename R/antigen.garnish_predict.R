@@ -53,7 +53,7 @@ lapply(dt[, spc %>% unique], function(s){
     Biostrings::writeXStringSet(AA, file = paste(s, "_nmer_fasta.fa", sep = ""), format = "fasta")
 
   })
-browser()
+
   # run blastp-short for near matches
   # https://www.ncbi.nlm.nih.gov/books/NBK279684/
   # flags here indicate:

@@ -13,6 +13,7 @@ testthat::test_that("garnish_fitness", {
                 garnish_fitness
 
     # run test
+
         testthat::expect_true(dt[!is.na(NeoantigenRecognitionPotential), nmer %>% unique %>% length] == 32)
         testthat::expect_true(dt %>% nrow == 340)
         testthat::expect_true(dt[, nmer %>% unique %>% length] == 308)
