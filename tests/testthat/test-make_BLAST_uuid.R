@@ -51,4 +51,4 @@ testthat::test_that("make_BLAST_uuid", {
 						  "wt",
 							"mutnfs",
 							"wt"))
-    })
+    } )

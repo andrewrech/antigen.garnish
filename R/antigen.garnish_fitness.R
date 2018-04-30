@@ -364,6 +364,7 @@ garnish_clonality <- function(dt){
   	col <- "allelic_fraction"
 
   # prefer cellular_fraction if available
+
   if ("cellular_fraction" %chin% names(dt))
   	col <- "cellular_fraction"
 
