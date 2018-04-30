@@ -427,7 +427,11 @@ garnish_clonality <- function(dt){
 
       ecdf_wrap <- function(v){
 
-        return(v %>% stats::ecdf %>% quantile(0.9))
+        v %<>% stats::na.omit
+
+        q <- stats::ecdf(v)(v)
+
+        return(v[q > 0.9] %>% mean)
 
       }
 
