@@ -12,6 +12,8 @@ testthat::test_that("garnish_clonality", {
                          garnish_score %>%
                          unique %>%
                          length], 1)
+
+
   testthat::expect_equal(dto[, clone_id %>% as.numeric %>%
                          range(na.rm = TRUE)], c(1,2))
   testthat::expect_equal(dto[!is.na(cl_proportion), cl_proportion %>%
@@ -20,7 +22,7 @@ testthat::test_that("garnish_clonality", {
 # now check AF instead of CF
 
 
-dt %>% data.table::setnames("CELLFRACTION", "AF")
+dt %>% data.table::setnames("cellular_fraction", "allelic_fraction")
 
 dt %<>% garnish_clonality
 
@@ -32,6 +34,6 @@ testthat::expect_equal(dt[, clone_id %>% as.numeric %>%
                        c(1,2))
 testthat::expect_equal(dt[!is.na(cl_proportion),
                        cl_proportion %>% range(na.rm = TRUE)] %>%
-                       signif(digits = 3), c(0.305, 1.170))
+                       signif(digits = 3), c(0.408, 1.050))
 
     })

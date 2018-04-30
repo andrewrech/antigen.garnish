@@ -15,9 +15,9 @@ README <- function(){
                       "HLA-A*01:47 HLA-DRB1*03:08")] %>%
                       garnish_affinity
 
-      testthat::expect_true(dt %>% nrow == 911)
+      testthat::expect_true(dt %>% nrow == 991)
       testthat::expect_true(dt[iedb_score == 1] %>% nrow == 69)
-      testthat::expect_true(dt[, nmer %>% unique %>% length] == 566)
+      testthat::expect_true(dt[, nmer %>% unique %>% length] == 574)
     })
 }
 
@@ -53,8 +53,8 @@ transcripts <- function(){
     })
 }
 
-Excel <- function(){
-  testthat::test_that("garnish_affinity from Excel file", {
+excel <- function(){
+  testthat::test_that("garnish_affinity from excel file", {
 
     # load test data
       path <- "antigen.garnish_test_input.xlsx" %T>%
@@ -83,7 +83,7 @@ jaffa <- function(){
   skip_pred_tools()
 
     # load test data
-      dt <- data.table::fread("http://get.rech.io/antigen.garnish_example_input_jaffa.csv")
+      dt <- data.table::fread("http://get.rech.io/antigen.garnish_example_jaffa_input.csv")
 
       dt[, MHC := "H-2-Kb"]
 
@@ -116,14 +116,14 @@ peptides <- function(){
       })
   }
 
-  CELLFRACTION <- function(){
-    testthat::test_that("garnish_affinity with CELLFRACTION", {
+  cellular_fraction <- function(){
+    testthat::test_that("garnish_affinity with cellular_fraction", {
 
     skip_pred_tools()
 
       # load test data
-        dt <- "antigen.garnish_test_pureCN.vcf" %T>%
-        utils::download.file("http://get.rech.io/antigen.garnish_test_pureCN.vcf", .) %>%
+        dt <- "antigen.garnish_test.vcf" %T>%
+        utils::download.file("http://get.rech.io/antigen.garnish_test.vcf", .) %>%
 
       # run test
         garnish_variants %>%
@@ -186,9 +186,9 @@ peptides <- function(){
 
 parallel::mclapply(list(README,
 									 transcripts,
-									 Excel,
+									 excel,
 									 jaffa,
 									 peptides,
-									 CELLFRACTION,
+									 cellular_fraction,
 									 RNA_test),
 									 test_runner)

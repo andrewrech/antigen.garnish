@@ -42,12 +42,13 @@
 #' @importFrom biomaRt useMart getBM getSequence
 #' @importFrom magrittr %>% %T>% %$% %<>%
 #' @importFrom rio import
-#' @importFrom stats na.omit t.test
+#' @importFrom stats na.omit t.test ecdf quantile
 #' @importFrom stringi stri_detect_fixed
 #' @importFrom tidyr separate_rows
-#' @importFrom utils download.file packageVersion
+#' @importFrom utils download.file packageVersion installed.packages
 #' @importFrom uuid UUIDgenerate
 #' @importFrom vcfR read.vcfR
 #' @importFrom zoo rollapply
+#'
 #' @md
 NULL

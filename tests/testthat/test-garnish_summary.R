@@ -1,7 +1,7 @@
 testthat::test_that("garnish_summary", {
 
   # load test data
-    dt <- data.table::fread("http://get.rech.io/antigen.garnish_example_output.txt")
+    dt <- data.table::fread("http://get.rech.io/antigen.garnish_example_affinity_output.txt")
 
     dto <- garnish_summary(dt)
 

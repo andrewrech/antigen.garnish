@@ -7,7 +7,7 @@
 garnish_clonality(dt)
 }
 \arguments{
-\item{dt}{Data table. Passed internally from garnish_affinity, requires AF or CELLFRACTION columns.}
+\item{dt}{Data table. Passed internally from garnish_affinity, requires allelic_fraction or cellular_fraction columns.}
 }
 \value{
 A data table with added fitness model parameter columns:

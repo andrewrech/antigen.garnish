@@ -36,7 +36,8 @@ if (suppressWarnings(system('which blastp 2> /dev/null', intern = TRUE)) %>%
 
   # generate fastas to query
 
-parallel::mclapply(dt[, spc %>% unique], function(s){
+##### TODO
+lapply(dt[, spc %>% unique], function(s){
 
     dt <- dt[spc == s]
 
@@ -269,11 +270,7 @@ scores <-  parallel::mclapply(col1 %>% seq_along, function(i){
 
     message("Done.")
 
-modeleR <- function(als,
-                            a=26,
-                            k=4.86936){
-
-      message("Calculating microbial homology...")
+modeleR <- function(als, a=26, k=4.86936){
 
 expo_sum <- function(vect){
 
@@ -338,8 +335,10 @@ expo_sum <- function(vect){
   blastdt %<>% unique(by = c("nmer_uuid", "WT.peptide"))
 
   # get full IEDB ref here
-  if (file.exists("Hu_nmer_fasta.fa")) db <- "antigen.garnish/iedb.fasta"
-  if (file.exists("Ms_nmer_fasta.fa")) db <- "antigen.garnish/Mu_iedb.fasta"
+  if (file.exists("Hu_nmer_fasta.fa"))
+    db <- "antigen.garnish/iedb.fasta"
+  if (file.exists("Ms_nmer_fasta.fa"))
+    db <- "antigen.garnish/Mu_iedb.fasta"
 
   fa <- Biostrings::readAAStringSet(db)
   f <- fa %>% data.table::as.data.table %>% .[, x]
@@ -371,7 +370,14 @@ blastdt[, IEDB_anno := parallel::mclapply(IEDB_anno, function(i){
 
     # to add WT.peptide (in this case IEDB epitope) back to table need nmer, nmer_i, nmer_l (nchar(nmer)), var_uuid, effect_type
 
-    vdt <- dto[, .SD %>% unique, .SDcols = c("nmer_uuid", "nmer_i", "nmer_l", "var_uuid", "sample_id", "effect_type", "MHC")]
+    vdt <- dto[, .SD %>% unique,
+      .SDcols = c("nmer_uuid",
+                  "nmer_i",
+                  "nmer_l",
+                  "var_uuid",
+                  "sample_id",
+                  "effect_type",
+                  "MHC")]
 
     vdt <- merge(vdt, blastdt, by = "nmer_uuid")
 
@@ -385,7 +391,8 @@ blastdt[, IEDB_anno := parallel::mclapply(IEDB_anno, function(i){
                   unique %>%
                     .[, pep_type := "wt"]
 
-    dto <- data.table::rbindlist(list(dto, vdt), fill = TRUE, use.names = TRUE)
+    dto <- data.table::rbindlist(list(dto, vdt),
+      fill = TRUE, use.names = TRUE)
 
     return(dto)
 
@@ -1237,9 +1244,9 @@ parallel::mcMap(function(x, y) (x %>% as.integer):(y %>% as.integer) %>%
 #' }
 #'
 #'\dontrun{
-#'# input from Microsoft Excel
+#'# input from Microsoft excel
 #'
-#'    # download an example Excel file
+#'    # download an example excel file
 #'      path <- "antigen.garnish_test_input.xlsx" %T>%
 #'        utils::download.file("http://get.rech.io/antigen.garnish_test_input.xlsx", .)
 #'
@@ -1397,11 +1404,10 @@ if (assemble & input_type == "transcript"){
     dt[, pep_wt := coding %>% translate_cDNA]
     dt[, pep_mut := coding_mut %>% translate_cDNA]
 
-    warning(paste(nrow(dt[is.na(pep_wt) | is.na(pep_mut)]),
-                "mutants could not be translated and were dropped."))
+    if (dt %>% nrow == 0)
+    	stop("No mutant peptides exist in the data table for affinity prediction.")
 
     dt <- dt[!is.na(pep_wt) & !is.na(pep_mut)]
-
 
     dt[, frameshift := FALSE]
 
@@ -1750,7 +1756,7 @@ up <- lapply(dtl, function(x){x[[2]]}) %>% unlist
 
    }
 
-   if (any(c("CELLFRACTION", "AF") %chin% names(dt))) dt %<>% garnish_clonality
+   if (any(c("cellular_fraction", "allelic_fraction") %chin% names(dt))) dt %<>% garnish_clonality
 
    if (save){
 

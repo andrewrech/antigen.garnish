@@ -190,9 +190,9 @@ library(antigen.garnish)
 }
 
 \dontrun{
-# input from Microsoft Excel
+# input from Microsoft excel
 
-   # download an example Excel file
+   # download an example excel file
      path <- "antigen.garnish_test_input.xlsx" \%T>\%
        utils::download.file("http://get.rech.io/antigen.garnish_test_input.xlsx", .)
 

@@ -9,10 +9,11 @@ testthat::test_that("garnish_fitness", {
         }
 
     # load test data
-        dt <- data.table::fread("http://get.rech.io/antigen.garnish_example_output.txt") %>%
+        dt <- data.table::fread("http://get.rech.io/antigen.garnish_example_affinity_output.txt") %>%
                 garnish_fitness
 
     # run test
+
         testthat::expect_true(dt[!is.na(NeoantigenRecognitionPotential), nmer %>% unique %>% length] == 32)
         testthat::expect_true(dt %>% nrow == 340)
         testthat::expect_true(dt[, nmer %>% unique %>% length] == 308)

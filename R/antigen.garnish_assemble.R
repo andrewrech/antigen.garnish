@@ -8,7 +8,7 @@
 
 check_dep_versions <- function(){
 
-if (!installed.packages() %>% data.table::as.data.table %>%
+if (!utils::installed.packages() %>% data.table::as.data.table %>%
 	.[Package == "magrittr", Version %>%
 	stringr::str_replace_all("\\.", "") %>%
 	as.numeric >= 150])
@@ -286,44 +286,170 @@ make_cDNA <- function(dt){
 
 
 
-## ---- get_snpeff
-#' Internal function to extract SnpEff annotation information to a data table.
+## ---- get_vcf_info_dt
+#' Internal function to extract a data table of variants with `INFO` fields in columns.
 #'
-#' @param dt Data table with INFO column from a SnpEff-annotated VCF file.
-#' @export get_snpeff
+#' @param vcf vcfR object to extract data from.
+#'
+#' @return Data table of variants with `INFO` fields in columns.
+#'
+#' @export get_vcf_info_dt
 #' @md
 
-get_snpeff <- function(dt){
+get_vcf_info_dt <- function(vcf){
 
-    if (!"INFO" %chin% (dt %>% names)) stop("dt must contain INFO column")
+	if (vcf %>% class %>% .[1] != "vcfR")
+		stop("vcf input is not a vcfR object.")
 
-    dt[, se := INFO %>%
-      stringr::str_extract("ANN.*") %>%
-      stringr::str_replace("ANN=[^\\|]+\\|", "")]
+	dt <- vcf@fix %>% data.table::as.data.table
 
-    # add a variant identifier
+	if (!"INFO" %chin% (dt %>% names))
+		stop("Error parsing input file INFO field.")
+
+		# loop over INFO field
+		# tolerant of variable length and content
+	v <- dt[, INFO %>% paste(collapse = ";@@@=@@@;")]
+	vd <- v %>%
+		stringr::str_replace_all("(?<=;)[^=;]+", "") %>%
+		stringr::str_replace_all(stringr::fixed("="), "")
+	vn <- v %>%
+		stringr::str_replace_all("(?<==)[^;]+", "") %>%
+		stringr::str_replace_all(stringr::fixed("="), "")
+
+	vd %<>% strsplit("@@@")
+	vn %<>% strsplit(("@@@"))
+
+	idt <- parallel::mclapply(1:length(vn[[1]]), function(i){
+
+		v <- vd[[1]][i] %>% strsplit(";") %>% .[[1]]
+		names(v) <- vn[[1]][i] %>% strsplit(";") %>% .[[1]]
+
+		return(v %>% as.list)
+
+	}) %>% rbindlist(fill = TRUE, use.names = TRUE)
+
+	if (
+	    (dt %>% nrow) !=
+	    (idt %>% nrow)
+	    )
+		stop("Error parsing input file INFO field.")
+
+	dt <- cbind(dt, idt)
+
+	return(dt)
+
+}
+
+
+
+## ---- get_vcf_sample_dt
+#' Internal function to extract a data table from sample `vcf` fields.
+#'
+#' @param vcf vcfR object to extract data from.
+#'
+#' @return Data table of variants with sample level fields in columns.
+#'
+#' @export get_vcf_sample_dt
+#' @md
+
+get_vcf_sample_dt <- function(vcf){
+
+	if (vcf %>% class %>% .[1] != "vcfR")
+		stop("vcf input is not a vcfR object.")
+
+	dt <- vcf@gt %>% data.table::as.data.table
+
+	if (!"FORMAT" %chin% (dt %>% names))
+		stop("Error parsing input file sample level info.")
+
+		names <- vcf@gt %>%
+						attributes %>%
+						.$dimnames %>%
+						unlist %excludef%
+						"FORMAT"
+
+		# loop over sample level data
+		# tolerant of variable length and content
+
+			idt <- parallel::mclapply(names, function(n){
+
+				ld <- dt[, get(n)]
+				ln <- dt[, FORMAT]
+
+				idt <- parallel::mclapply(1:length(ln), function(i){
+
+					l <- ld[i] %>% strsplit(":") %>% .[[1]]
+					names(l) <- ln[i] %>% strsplit(":") %>% .[[1]]
+
+
+					return(l %>% as.list)
+				}) %>% rbindlist(fill = TRUE, use.names = TRUE)
+
+				idt %>% data.table::setnames(
+                  idt %>% names,
+                  idt %>% names %>% paste0(n, "_", .))
+        return(idt)
+
+		  }) %>% do.call(cbind, .)
+
+		# assign ref and alt to individual columns
+
+			for (c in (idt %>% names %include% "_AD$")){
+				idt[, paste0(c, c("_ref", "_alt")) := get(c) %>%
+						data.table::tstrsplit(",")]
+				set(idt, j = c, value = NULL)
+		}
+
+	if (
+	    (dt %>% nrow) !=
+	    (idt %>% nrow)
+	    )
+		stop("Error parsing input file INFO field.")
+
+		dt <- cbind(dt, idt)
+
+	return(dt)
+
+}
+
+
+
+## ---- get_vcf_snpeff_dt
+#' Internal function to extract SnpEff annotation information to a data table.
+#'
+#' @param dt Data table with character vector `ANN` column, from `vcf` file.
+#'
+#' @return Data table with the `ANN` column parsed into additional rows.
+#'
+#' @export get_vcf_snpeff_dt
+#' @md
+
+get_vcf_snpeff_dt <- function(dt){
+
+		if (!"ANN" %chin% (dt %>% names))
+			stop("Error parsing input file ANN field from SnpEff.")
+
+		# add a variant identifier
     suppressWarnings(dt[, snpeff_uuid :=
                   lapply(1:nrow(dt),
                   uuid::UUIDgenerate) %>% unlist])
 
-    # abort if no variants passed filtering
-    if (dt %>% nrow < 1) return(NULL)
-
     # spread SnpEff annotation over rows
-    dt %>% tidyr::separate_rows("se", sep = ",")
+    dt %<>% tidyr::separate_rows("ANN", sep = ",")
 
     # extract info from snpeff annotation
-      dt[, effect_type := se %>%
-          stringr::str_extract("^[a-z0-9][^\\|]+")]
-      dt[, ensembl_transcript_id := se %>%
+      dt[, effect_type := ANN %>%
+          stringr::str_extract("^[^\\|]+\\|[^|]+") %>%
+          stringr::str_replace("^[^\\|]+\\|", "")]
+      dt[, ensembl_transcript_id := ANN %>%
           stringr::str_extract("(?<=\\|)(ENSMUST|ENST)[0-9]+")]
-      dt[, ensembl_gene_id := se %>%
+      dt[, ensembl_gene_id := ANN %>%
           stringr::str_extract("(?<=\\|)(ENSMUSG|ENSG)[0-9.]+(?=\\|)")]
-      dt[, protein_change := se %>%
+      dt[, protein_change := ANN %>%
           stringr::str_extract("p\\.[^\\|]+")]
-      dt[, cDNA_change := se %>%
+      dt[, cDNA_change := ANN %>%
           stringr::str_extract("c\\.[^\\|]+")]
-      dt[, protein_coding := se %>%
+      dt[, protein_coding := ANN %>%
           stringr::str_detect("protein_coding")]
 
       return(dt)

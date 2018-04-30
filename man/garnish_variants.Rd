@@ -4,33 +4,10 @@
 \alias{garnish_variants}
 \title{Process VCF variants and return a data table for epitope prediction.}
 \usage{
-garnish_variants(vcfs, intersect = TRUE, prop_tab = NULL)
+garnish_variants(vcfs)
 }
 \arguments{
-\item{vcfs}{Paths to one or more VFC files to import. \href{http://get.rech.io/antigen.garnish_example.vcf}{Example vcf}.}
-
-\item{intersect}{Logical. Return only the intersection of variants in multiple \code{vcfs} with identical sample names? Intersection performed on \code{SnpEff} annotations. One \code{vcf} file per somatic variant caller-input samples pair is required.}
-
-\item{prop_tab.}{File paths to tables with clonality or allelic frequencies. \href{http://get.rech.io/antigen.garnish_example_prop_CF.csv}{Example} \code{.csv} table with tumor cell fraction. \href{http://get.rech.io/antigen.garnish_example_prop_CF.csv}{Example} \code{.csv} table with allelic fraction. Pattern matching to vcf file names is performed.
-
-dt with tumor cell fraction:\preformatted{Column name                 Example value
-
-     sample_id                   sample_1
-chr                         X
-start                       4550159
-end                         4550159
-CELLFRACTION                0.15
-}
-
-dt with allelic fraction:\preformatted{Column name                 Example value
-
-     sample_id                   sample_1
-CHROM                       X
-POS                         4550159
-REF                         A
-ALT                         GC
-AF                          0.85
-}}
+\item{vcfs}{Paths to one or more VFC files to import. See details below.}
 }
 \value{
 A data table with one unique SnpEff variant annotation per row, including:
@@ -45,20 +22,25 @@ A data table with one unique SnpEff variant annotation per row, including:
 \item \strong{protein_coding}: is the variant protein coding?
 }
 
-if prop_tab is provided, either:
+if CF or AF fields in provided in input VCFs, either:
 \itemize{
-\item \strong{CELLFRACTION}: cell fraction taken from input, such as from clonality estimates from \href{http://www.github.com/lima1/PureCN}{PureCN}
-\item \strong{AF}: allelic fraction taken from input
+\item \strong{cellular_fraction}: cell fraction taken from input, such as from clonality estimates from \href{http://www.github.com/lima1/PureCN}{PureCN}
+\item \strong{allelic_fraction}: allelic fraction taken from input
 }
 }
 \description{
 Process paired tumor-normal VCF variants annotated with \href{http://snpeff.sourceforge.net/}{SnpEff} for neoepitope prediction using \code{garnish_affinity}. VCFs from matched samples can be optionally intersected to select only variants present across input files.
 }
 \details{
-Recommended somatic variant callers: \href{https://github.com/broadinstitute/gatk}{MuTect2}, \href{https://github.com/Illumina/strelka}{Strelka2}
+\code{vcf}s can optionally contain an \code{AF} or \code{CF} \emph{INFO} field, in which case cellular fraction or allelic fraction is considered when ranking neoepitopes. \href{http://get.rech.io/antigen.garnish_example.vcf}{Example vcf}. Single samples are required. Multi-sample \code{vcf}s are not supported. \code{vcf}s must be annotated with \href{http://snpeff.sourceforge.net/}{SnpEff}.
 
-Single samples are required. Multi-sample \code{vcf}s are not supported.
-The prop_tab argument may be used to provide clonality/cell fraction information with variants, or allelic fractions. If the input \code{vcf} contains a \code{CF} info field, this field will be used as the cell fraction.
+Recommended workflow:
+\enumerate{
+\item Call variants using \href{https://github.com/broadinstitute/gatk}{MuTect2} and \href{https://github.com/Illumina/strelka}{Strelka2}, \href{https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5394620/}{intersecting variants}.
+\item Variant filtering according to experimental specifications.
+\item Classification by somatic status and clonality using \href{http://www.github.com/lima1/PureCN}{PureCN}.
+\item Annotate variants using \href{http://snpeff.sourceforge.net/}{SnpEff} (\strong{required}).
+}
 }
 \examples{
 \dontrun{

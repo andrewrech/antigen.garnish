@@ -6,6 +6,9 @@
 \usage{
 garnish_antigens(dt)
 }
+\arguments{
+\item{dt}{An output data table from \code{garnish_affinity}.}
+}
 \value{
 A data table with the top neoepitope per sample, and if possible per clone, in rank order of clone frequency.
 }
