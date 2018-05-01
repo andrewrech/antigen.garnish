@@ -398,10 +398,10 @@ garnish_clonality <- function(dt){
       if (nrow(dt) == 0)
       	return(NULL)
 
-      if (nrow(dt)== 1)
+      if (nrow(dt) == 1)
       	return(dt[,  clone_id := 1] %>% .[, cl_proportion := cf])
 
-      x <-  mclust::Mclust(dt[, cf], verbose = FALSE)
+      x <-  mclust::Mclust(dt[, cf %>% as.numeric], verbose = FALSE)
 
       vect <- x$parameters$mean
 
