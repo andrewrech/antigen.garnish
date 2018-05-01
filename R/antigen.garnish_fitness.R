@@ -373,6 +373,8 @@ garnish_clonality <- function(dt){
 
     b %>% setnames(col, "cf")
 
+    b[, cf := as.numeric(cf)]
+
     match_clone <- function(cf, v){
 
       dt <- lapply(cf, function(x){

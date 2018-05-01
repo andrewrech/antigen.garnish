@@ -14,7 +14,7 @@ README <- function(){
           .[, MHC := c("HLA-A*02:01 HLA-DRB1*14:67",
                        "H-2-Kb H-2-IAd",
                       "HLA-A*01:47 HLA-DRB1*03:08")] %>%
-                      garnish_affinity
+                      garnish_affinity(save = FALSE)
 
       testthat::expect_true(dt %>% nrow == 991)
       testthat::expect_true(dt[iedb_score == 1] %>% nrow == 69)
@@ -44,7 +44,8 @@ transcripts <- function(){
                  "HLA-C*14:02")) %>%
     # run test
       garnish_affinity(blast = FALSE,
-                          fitness = FALSE)
+                          fitness = FALSE,
+                          save = FALSE)
 
     testthat::expect_equal(dt$cDNA_change %>% unique %>% length, 3)
     testthat::expect_equal(dt$MHC %>% unique %>% sort,
@@ -89,12 +90,13 @@ jaffa <- function(){
   d <- test_data_dir()
 
     # load test data
-      dt <- file.path(d, "antigen.garnish_example_jaffa_input.csv")
+      dt <- file.path(d, "antigen.garnish_example_jaffa_input.csv") %>%
+      data.table::fread
 
       dt[, MHC := "H-2-Kb"]
 
     # run test
-      dt <- garnish_affinity(dt, blast = FALSE, fitness = FALSE)
+      dt <- garnish_affinity(dt, blast = FALSE, fitness = FALSE, save = FALSE)
 
     testthat::expect_equal(dt %>% nrow, 1071)
 
@@ -136,7 +138,7 @@ peptides <- function(){
         garnish_variants %>%
           .[, MHC := c("HLA-A*02:01 HLA-DRB1*14:67")] %>%
                       .[1:3] %>%
-                      garnish_affinity
+                      garnish_affinity(save = FALSE)
 
       testthat::expect_true(dt %>% nrow == 929)
       testthat::expect_true(dt[pep_type %like% "mut",
@@ -181,7 +183,8 @@ peptides <- function(){
         dt <- garnish_affinity(dt,
                             counts = "antigen.garnish_rna_temp.txt",
                             blast = FALSE,
-                            fitness = FALSE)
+                            fitness = FALSE,
+                            save = FALSE)
 
       testthat::expect_equal(dt$ensembl_transcript_id %>%
                              unique %>% length, 2)
