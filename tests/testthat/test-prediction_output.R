@@ -1,14 +1,16 @@
 testthat::test_that("prediction output", {
 
-convert.aa <- function(x){
+  convert.aa <- function(x){
           sn <- names(Biostrings::AMINO_ACID_CODE)
           x <- Biostrings::AMINO_ACID_CODE[which(sn == x)]
           unlist(x)
         }
 
+  d <- test_data_dir()
+
 
   # load test data
-    dt <- data.table::fread("http://get.rech.io/antigen.garnish_example_affinity_output.txt")
+    dt <- data.table::fread(filepath(d, "antigen.garnish_example_affinity_output.txt"))
 
   # test if nmers are contained in peptides
 

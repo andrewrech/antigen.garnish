@@ -3,11 +3,10 @@ testthat::test_that("garnish_affinity_assemble_generate", {
   list.files(pattern = "(netMHC|nuggets|flurry).*-.*-.*\\.csv") %>% file.remove
   on.exit(list.files(pattern = "(netMHC|nuggets|flurry).*-.*-.*\\.csv") %>% file.remove)
 
-
-
+  d <- test_data_dir()
 
   # load test data
-    dt <- data.table::fread("http://get.rech.io/antigen.garnish_example_input.txt") %>%
+    dt <- data.table::fread(file.path(d, "antigen.garnish_example_input.txt")) %>%
      .[, MHC := c("HLA-A*02:01 HLA-DRB1*14:67",
                    "H-2-Kb H-2-IAd",
                    "HLA-A*01:47 HLA-DRB1*03:08")]

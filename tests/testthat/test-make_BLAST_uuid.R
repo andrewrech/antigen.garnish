@@ -4,8 +4,9 @@ testthat::test_that("make_BLAST_uuid", {
    testthat::skip("Skipping make_BLAST_uuid because ncbiblast+ is not in PATH")
    }
 
-   dt <- data.table::fread("http://get.rech.io/antigen.garnish_test_make_BLAST_uuid.csv")
+   d <- test_data_dir()
 
+   dt <- data.table::fread(file.path(d, "antigen.garnish_test_make_BLAST_uuid.csv"))
 
     dti <- dt %>% data.table::copy %>%
       .[, MHC := "H-2-Kb"] %>%

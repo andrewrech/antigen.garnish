@@ -1,9 +1,10 @@
 testthat::test_that("get_vcf_sample_dt", {
 
+	d <- test_data_dir()
+
   # load test data
 
-		dt <- "antigen.garnish_test.vcf" %T>%
-      utils::download.file("http://get.rech.io/antigen.garnish_test.vcf", .) %>%
+		dt <- file.path(d, "antigen.garnish_test.vcf") %>%
     	vcfR::read.vcfR(verbose = TRUE) %>%
       get_vcf_sample_dt
 

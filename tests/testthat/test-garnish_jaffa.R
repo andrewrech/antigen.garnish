@@ -1,13 +1,13 @@
 testthat::test_that("garnish_jaffa", {
 
+    d <- test_data_dir()
+
     list.files(pattern = "antigen.garnish_jaffa") %>% file.remove
     on.exit(list.files(pattern = "antigen.garnish_jaffa") %>% file.remove)
 
   # load test data
-    path <- "antigen.garnish_jaffa_results.csv" %T>%
-        utils::download.file("http://get.rech.io/antigen.garnish_jaffa_results.csv", .)
-    fasta_path <- "antigen.garnish_jaffa_results.fasta" %T>%
-      utils::download.file("http://get.rech.io/antigen.garnish_jaffa_results.fasta", .)
+    path <- file.path(d, "antigen.garnish_jaffa_results.csv")
+    fasta_path <- file.path(d, "antigen.garnish_jaffa_results.fasta")
 
   # run test
    dt <- garnish_jaffa(path = path, db = "GRCm38", fasta_path = fasta_path)

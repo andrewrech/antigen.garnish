@@ -1,8 +1,10 @@
 testthat::test_that("garnish_variants", {
 
+  d <- test_data_dir()
+
   # load test data
-     dt <- "antigen.garnish_example.vcf" %T>%
-        utils::download.file("http://get.rech.io/antigen.garnish_example.vcf", .) %>%
+     dt <- "antigen.garnish_example.vcf" %>%
+        file.path(d, .) %>%
 
     # run test
       garnish_variants

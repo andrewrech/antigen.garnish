@@ -1,7 +1,9 @@
 testthat::test_that("garnish_clonality", {
 
   # load test data
-    dt <- "http://get.rech.io/antigen.garnish_PureCN_example_output.txt" %>%
+  d <- test_data_dir()
+
+    dt <- file.path(d, "antigen.garnish_PureCN_example_output.txt") %>%
               data.table::fread %>%
               .[, c("cl_proportion", "clone_id", "garnish_score") := NULL]
   # run test
@@ -34,6 +36,6 @@ testthat::expect_equal(dt[, clone_id %>% as.numeric %>%
                        c(1,2))
 testthat::expect_equal(dt[!is.na(cl_proportion),
                        cl_proportion %>% range(na.rm = TRUE)] %>%
-                       signif(digits = 3), c(0.408, 1.050))
+                       signif(digits = 3), c(0.259, 1.000))
 
     })

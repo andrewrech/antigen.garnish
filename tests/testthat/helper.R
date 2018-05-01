@@ -12,6 +12,14 @@ skip_pred_tools <- function() {
           testthat::skip("Skipping garnish_affinity README example from VCF without fitness because ncbiblast+ is not in PATH")
         }
 
+test_data_dir <- function(){
+
+  dir <- system.file(package = "antigen.garnish") %>% file.path(., "extdata/testdata")
+
+  return(dir)
+
+}
+
 test_runner <- function(fn){
     cdir <- getwd()
     temp_dir <- uuid::UUIDgenerate()

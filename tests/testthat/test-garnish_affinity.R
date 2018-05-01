@@ -4,9 +4,10 @@ README <- function(){
   testthat::test_that("garnish_affinity strict README example", {
   skip_pred_tools()
 
+  d <- test_data_dir()
+
       # load test data
-        dt <- "antigen.garnish_example.vcf" %T>%
-        utils::download.file("http://get.rech.io/antigen.garnish_example.vcf", .) %>%
+        dt <- file.path(d, "antigen.garnish_example.vcf") %>%
 
       # run test
         garnish_variants %>%
@@ -25,6 +26,8 @@ transcripts <- function(){
 
   testthat::test_that("garnish_affinity from transcripts, diverse MHC", {
   skip_pred_tools()
+
+  d <- test_data_dir()
 
   # load test data
     dt <- data.table::data.table(
@@ -56,9 +59,10 @@ transcripts <- function(){
 excel <- function(){
   testthat::test_that("garnish_affinity from excel file", {
 
+    d <- test_data_dir()
+
     # load test data
-      path <- "antigen.garnish_test_input.xlsx" %T>%
-        utils::download.file("http://get.rech.io/antigen.garnish_test_input.xlsx", .)
+      path <- file.path(d, "antigen.garnish_test_input.xlsx")
 
     # run test
     dt <- garnish_affinity(path = path,
@@ -82,8 +86,10 @@ jaffa <- function(){
 
   skip_pred_tools()
 
+  d <- test_data_dir()
+
     # load test data
-      dt <- data.table::fread("http://get.rech.io/antigen.garnish_example_jaffa_input.csv")
+      dt <- file.path(d, "antigen.garnish_example_jaffa_input.csv")
 
       dt[, MHC := "H-2-Kb"]
 
@@ -121,9 +127,10 @@ peptides <- function(){
 
     skip_pred_tools()
 
+    d <- test_data_dir()
+
       # load test data
-        dt <- "antigen.garnish_test.vcf" %T>%
-        utils::download.file("http://get.rech.io/antigen.garnish_test.vcf", .) %>%
+        dt <- file.path(d, "antigen.garnish_test.vcf") %>%
 
       # run test
         garnish_variants %>%
