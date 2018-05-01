@@ -1,5 +1,7 @@
 testthat::test_that("garnish_fitness", {
 
+  d <- test_data_dir()
+
   if (suppressWarnings(system('which blastp 2> /dev/null', intern = TRUE)) %>%
           length == 0)
       testthat::skip("Skipping garnish_fitness because ncbiblast+ is not in PATH")
