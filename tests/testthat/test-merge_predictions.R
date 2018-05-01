@@ -17,10 +17,10 @@ testthat::test_that("merge_predictions", {
   file.copy(output, basename(output))
 
   # run test
-    dto <- merge_predictions(
-      readRDS(file.path(d, "antigen.garnish_netMHC_test_output.RDS")),
-      readRDS(file.path(d, "antigen.garnish_merge_predictions_input_dt.RDS"))
-    )
+  dto <- merge_predictions(
+   readRDS(gzcon(url("http://get.rech.io/antigen.garnish_netMHC_test_output.RDS"))),
+   readRDS(gzcon(url("http://get.rech.io/antigen.garnish_merge_predictions_input_dt.RDS")))
+ )
 
   testthat::expect_gt(dto %>% nrow, 250)
   testthat::expect_equal(dto %>% length, 111)
