@@ -4,6 +4,7 @@ testthat::test_that("run_mhcnuggets", {
   on.exit(list.files(pattern = "mhcnuggets_.*csv") %>% file.remove)
 
   skip_pred_tools()
+  d <- test_data_dir()
 
   # load test data
     input <- file.path(d,
