@@ -427,10 +427,10 @@ sdt <- lapply(vcfs %>% seq_along, function(ivf){
     	}
 
     if ("CF" %chin% (vdt %>% names))
-      vdt <- data.table::setnames("CF", "cellular_fraction")
+      vdt %>% data.table::setnames("CF", "cellular_fraction")
 
     if ("AF" %chin% (vdt %>% names))
-      vdt <- data.table::setnames("AF", "allelic_fraction")
+      vdt %>% data.table::setnames("AF", "allelic_fraction")
 
     return(vdt)
     })
