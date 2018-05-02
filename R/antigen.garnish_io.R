@@ -363,7 +363,7 @@ sdt <- lapply(vcfs %>% seq_along, function(ivf){
 
   if (names(vdt) %like% "^V[0-9]+$" %>% any)
     vdt %>% data.table::setnames(names(vdt) %include% "^V[0-9]+$",
-              paste(names(vdt) %include% "^V[0-9]+$", ".x", sep = "")
+              paste(names(vdt) %include% "^V[0-9]+$", ".x", sep = ""))
 
   # check that VCF is SnpEff-annotated
 
