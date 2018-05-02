@@ -359,6 +359,12 @@ sdt <- lapply(vcfs %>% seq_along, function(ivf){
 
     vdt <- vcf %>% get_vcf_info_dt
 
+  # rename generic columns to prevent downstream errors
+
+  if (names(vdt) %like% "^V[0-9]+$" %>% any)
+    vdt %>% data.table::setnames(names(vdt) %include% "^V[0-9]+$",
+              paste(names(vdt) %include% "^V[0-9]+$", ".x", sep = "")
+
   # check that VCF is SnpEff-annotated
 
     if (
