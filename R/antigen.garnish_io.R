@@ -447,6 +447,7 @@ sdt <- lapply(vcfs %>% seq_along, function(ivf){
       vdt <- vdt[ALT == stringr::str_extract(ANN, pattern = "^[AGCT]+(?=\\|)")]
 
     }
+
     return(vdt)
     })
 
@@ -470,6 +471,12 @@ sdt %<>%
     warning("No samples returned protein coding variants.")
     return(NULL)
   }
+
+  if ("cellular_fraction" %chin% names(sdt))
+    sdt[, cellular_fraction := cellular_fraction %>% as.numeric]
+
+  if ("allelic_fraction" %chin% names(sdt))
+    sdt[, allelic_fraction := allelic_fraction %>% as.numeric]
 
   return(sdt)
 
