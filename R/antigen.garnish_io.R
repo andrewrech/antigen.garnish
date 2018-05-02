@@ -435,9 +435,18 @@ sdt <- lapply(vcfs %>% seq_along, function(ivf){
     if ("CF" %chin% (vdt %>% names))
       vdt %>% data.table::setnames("CF", "cellular_fraction")
 
-    if ("AF" %chin% (vdt %>% names))
-      vdt %>% data.table::setnames("AF", "allelic_fraction")
+    # AF is a GT field not an INFO field, and account for multiple alt alleles in this scenario
+    if ("TUMOR_AF" %chin% (vdt %>% names)){
 
+      vdt %>% data.table::setnames("TUMOR_AF", "allelic_fraction")
+
+      vdt %<>% tidyr::separate_rows(c("ALT", "allelic_fraction"), sep = ",")
+
+      # now keep only rows that match the previously split ANN field
+
+      vdt <- vdt[ALT == stringr::str_extract(ANN, pattern = "^[AGCT]+(?=\\|)")]
+
+    }
     return(vdt)
     })
 
