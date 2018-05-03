@@ -432,7 +432,7 @@ garnish_clonality <- function(dt){
       a <- dt[!is.na(cl_proportion) &
               !is.na(allelic_fraction) &
               pep_type != "wt", cl_proportion %>%
-              unique, by = c("sample_id", "var_uuid", "pep_type")]
+              unique, by = c("sample_id", "var_uuid", "pep_type", read_cols)]
 
       # filter by supporting reads
   		for (c in read_cols)
