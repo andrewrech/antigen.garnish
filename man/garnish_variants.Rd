@@ -12,7 +12,7 @@ garnish_variants(vcfs)
 \value{
 A data table with one unique SnpEff variant annotation per row, including:
 \itemize{
-\item \strong{sample_id}: sample identifier constructed from input \code{.bam} file names
+\item \strong{sample_id}: sample identifier constructed from input \code{.vcf} file names
 \item \strong{se}: SnpEff annotation
 \item \strong{effect_type}: SnpEff effect type
 \item \strong{ensembl_transcript_id}: transcript effected

@@ -265,7 +265,7 @@ dtnv <- parallel::mclapply(dt[, sample_id %>% unique], function(id){
 #' @param vcfs Paths to one or more VFC files to import. See details below.
 #'
 #' @return A data table with one unique SnpEff variant annotation per row, including:
-#' * **sample_id**: sample identifier constructed from input \code{.bam} file names
+#' * **sample_id**: sample identifier constructed from input \code{.vcf} file names
 #' * **se**: SnpEff annotation
 #' * **effect_type**: SnpEff effect type
 #' * **ensembl_transcript_id**: transcript effected
@@ -328,20 +328,20 @@ sdt <- lapply(vcfs %>% seq_along, function(ivf){
   # load dt
       vcf <-  vcfR::read.vcfR(vcfs[ivf], verbose = TRUE)
 
-     if (!is.null(vcf@gt)){
-      sample_id <- vcf@gt %>%
-      data.table::as.data.table %>%
-      names %>%
-      .[-1] %>% paste(collapse = ".")
-    }
+    #  if (!is.null(vcf@gt)){
+    #   sample_id <- vcf@gt %>%
+    #   data.table::as.data.table %>%
+    #   names %>%
+    #   .[-1] %>% paste(collapse = ".")
+    # }
 
   # fallback if sample names are missing
 
-			if (sample_id == ""){
-			  warning(paste0(
-			  "No sample names in ", vcfs[ivf], ", using file name."))
+			# if (sample_id == ""){
+			  # warning(paste0(
+			  # "No sample names in ", vcfs[ivf], ", using file name."))
 			  sample_id <- basename(vcfs[ivf])
-			  }
+			  # }
 
   # extract vcf type
 
