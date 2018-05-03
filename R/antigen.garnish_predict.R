@@ -36,7 +36,6 @@ if (suppressWarnings(system('which blastp 2> /dev/null', intern = TRUE)) %>%
 
   # generate fastas to query
 
-##### TODO
 lapply(dt[, spc %>% unique], function(s){
 
     dt <- dt[spc == s]
