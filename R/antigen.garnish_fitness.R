@@ -462,8 +462,8 @@ garnish_clonality <- function(dt){
       # clear column derived from allele fractions in dt
       dt[, cl_proportion := NULL]
 
-      dt <- merge(dt, a[, .SD %>% unique, .SDcol = c("sample_id", "var_uuid", "cl_proportion", "pep_type")],
-      all.x = TRUE, by = c("sample_id", "var_uuid", "pep_type"))
+      dt <- merge(dt, a[, .SD %>% unique, .SDcol = c("sample_id", "var_uuid", "cl_proportion", "pep_type", read_cols)],
+      all.x = TRUE, by = c("sample_id", "var_uuid", "pep_type", read_cols))
 
     }
 
