@@ -201,7 +201,6 @@ scores <-  parallel::mclapply(col1 %>% seq_along, function(i){
   # run blastp-short for iedb matches
   # https://www.ncbi.nlm.nih.gov/books/NBK279684/
   # flags here taken from Lukza et al.:
-  # -task blastp-short optimized blast for <30 AA, uses larger word sizes
   # -matrix use BLOSUM62 sub substitution matrix
   # -evalue expect value for saving hits
   # -gapopen, -gapextend, numeric cost to a gapped alignment and
@@ -212,14 +211,14 @@ scores <-  parallel::mclapply(col1 %>% seq_along, function(i){
     if (file.exists("Ms_nmer_fasta.fa"))
 
       system(paste0(
-        "blastp -query Ms_nmer_fasta.fa -task blastp-short -db antigen.garnish/Mu_iedb.fasta -evalue 100000000 -matrix BLOSUM62 -gapopen 11 -gapextend 1 -out iedbout_mu.csv -num_threads ", parallel::detectCores(),
+        "blastp -query Ms_nmer_fasta.fa -db antigen.garnish/Mu_iedb.fasta -evalue 100000000 -matrix BLOSUM62 -gapopen 11 -gapextend 1 -out iedbout_mu.csv -num_threads ", parallel::detectCores(),
         " -outfmt '10 qseqid sseqid qseq qstart qend sseq sstart send length mismatch pident evalue bitscore'"
       ))
 
     if (file.exists("Hu_nmer_fasta.fa"))
 
       system(paste0(
-        "blastp -query Hu_nmer_fasta.fa -task blastp-short -db antigen.garnish/iedb.bdb -evalue 100000000 -matrix BLOSUM62 -gapopen 11 -gapextend 1 -out iedbout_hu.csv -num_threads ", parallel::detectCores(),
+        "blastp -query Hu_nmer_fasta.fa -db antigen.garnish/iedb.bdb -evalue 100000000 -matrix BLOSUM62 -gapopen 11 -gapextend 1 -out iedbout_hu.csv -num_threads ", parallel::detectCores(),
         " -outfmt '10 qseqid sseqid qseq qstart qend sseq sstart send length mismatch pident evalue bitscore'"
       ))
 
@@ -254,7 +253,7 @@ scores <-  parallel::mclapply(col1 %>% seq_along, function(i){
 
     blastdt <- blastdt[, nmer := nmer %>% stringr::str_replace_all(pattern = "-|\\*", replacement = "")] %>%
                   .[, WT.peptide := WT.peptide %>% stringr::str_replace_all(pattern = "-|\\*", replacement = "")] %>%
-                    .[!is.na(nmer) & !is.na(WT.peptide) & nchar(nmer) > 2 & nchar(WT.peptide) > 2]
+                    .[!is.na(nmer) & !is.na(WT.peptide)]
 
     blastdt <- blastdt[nmer %like% "^[ARNDCQEGHILKMFPSTWYV]+$" & WT.peptide %like% "^[ARNDCQEGHILKMFPSTWYV]+$"]
 
