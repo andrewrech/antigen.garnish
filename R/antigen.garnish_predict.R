@@ -271,24 +271,27 @@ scores <-  parallel::mclapply(col1 %>% seq_along, function(i){
 
 modeleR <- function(als, a=26, k=4.86936){
 
-expo_sum <- function(vect){
-
-        m <- max(vect)
-
-        expos <- exp(vect - m) %>% sum %>% log
-
-        expos <- expos + m
-
-        return(expos)
-
-      }
+# expo_sum <- function(vect){
+#
+#         m <- max(vect)
+#
+#         expos <- exp(vect - m) %>% sum %>% log
+#
+#         expos <- expos + m
+#
+#         return(expos)
+#
+#       }
 
       be <- -k * (a - als)
 
-      lZ <- expo_sum(c(be, 0))
-      lGb <- expo_sum(be)
+      sumexp <- sum(exp(be))
 
-      R <- exp(lGb-lZ)
+      Zk <- 1 + sumexp
+      R <- sumexp / Zk
+
+      # lZ <- expo_sum(c(be, 0))
+      # lGb <- expo_sum(be)
 
     return(R)
 
