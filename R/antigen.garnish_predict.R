@@ -1586,25 +1586,23 @@ if (generate){
         # load global peptide database
     if (remove_wt){
 
+        d <- system.file(package = "antigen.garnish") %>% file.path(., "extdata")
+
           if (dt$MHC %likef% "HLA" %>% any &
               !dt$MHC %likef% "H-2" %>% any)
               {
                 pepv <-
-                "antigen.garnish_GRCh38_pep.RDS" %>%
-                {
-                  utils::download.file(paste0("http://get.rech.io/", .), .)
+                file.path(d,
+                  "antigen.garnish_GRCh38_pep.RDS") %>%
                   readRDS(.)
-                }
               }
           if (dt$MHC %likef% "H-2" %>% any &
               !dt$MHC %likef% "HLA" %>% any)
               {
                 pepv <-
-                "antigen.garnish_GRCm38_pep.RDS" %>%
-                {
-                  utils::download.file(paste0("http://get.rech.io/", .), .)
+                file.path(d,
+                  "antigen.garnish_GRCm38_pep.RDS") %>%
                   readRDS(.)
-                }
               }
 
           if (
@@ -1614,16 +1612,10 @@ if (generate){
               )
               {
                 pepv <- c(
-                "antigen.garnish_GRCm38_pep.RDS" %>%
-                {
-                  utils::download.file(paste0("http://get.rech.io/", .), .)
-                  readRDS(.)
-                },
-                "antigen.garnish_GRCh38_pep.RDS" %>%
-                {
-                  utils::download.file(paste0("http://get.rech.io/", .), .)
-                  readRDS(.)
-                }
+                  file.path(d, "antigen.garnish_GRCh38_pep.RDS") %>%
+                    readRDS(.),
+                    file.path(d, "antigen.garnish_GRCm38_pep.RDS") %>%
+                      readRDS(.)
                 )
               }
 
