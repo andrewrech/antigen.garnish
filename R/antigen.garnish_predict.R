@@ -1586,6 +1586,8 @@ if (generate){
         # load global peptide database
     if (remove_wt){
 
+      message("Filtering WT peptide matches.")
+
         d <- system.file(package = "antigen.garnish") %>% file.path(., "extdata")
 
           if (dt$MHC %likef% "HLA" %>% any &
