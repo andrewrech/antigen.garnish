@@ -16,9 +16,9 @@ README <- function(){
                       "HLA-A*01:47 HLA-DRB1*03:08")] %>%
                       garnish_affinity(save = FALSE)
 
-      testthat::expect_true(dt %>% nrow == 991)
-      testthat::expect_true(dt[iedb_score == 1] %>% nrow == 69)
-      testthat::expect_true(dt[, nmer %>% unique %>% length] == 574)
+      testthat::expect_true(dt %>% nrow == 883)
+      testthat::expect_true(dt[(iedb_score %>% signif(digits = 3)) == 1] %>% nrow == 111)
+      testthat::expect_true(dt[, nmer %>% unique %>% length] == 558)
     })
 }
 
@@ -140,14 +140,14 @@ peptides <- function(){
                       .[1:3] %>%
                       garnish_affinity(save = FALSE)
 
-      testthat::expect_true(dt %>% nrow == 929)
+      testthat::expect_true(dt %>% nrow == 774)
       testthat::expect_true(dt[pep_type %like% "mut",
                               garnish_score %>%
-                              unique %>% signif(digits = 3)] == 1.38)
+                              unique %>% signif(digits = 3)] == 0.79)
       testthat::expect_true(dt[, nmer %>%
-                            unique %>% length] == 566)
+                            unique %>% length] == 556)
       testthat::expect_true(dt[iedb_score %>% signif(digits = 3) == 1] %>%
-                            nrow == 42)
+                            nrow == 12)
       testthat::expect_true(dt[!is.na(cl_proportion), cl_proportion %>%
                             unique %>% length] == 2)
       })
