@@ -423,9 +423,35 @@ garnish_clonality <- function(dt){
 
     dt[pep_type == "wt", cl_proportion := as.numeric(NA)]
 
-    # if using allelic_fraction as surrogate clonality, recalculate allele fractions into cell population proportions
+    # return *exclusive* clone frequency (independent of subclones)
+    exclude_v <- function(v){
+
+      vu <- v %>% stats::na.omit %>% as.numeric
+
+      vu <- vu %>% unique %>% sort(decreasing = TRUE)
+
+      dt <- v %>% data.table::as.data.table
+
+      mu <- lapply(vu %>% seq_along, function(i){
+
+        if (i == length(vu)) return(vu[i])
+
+        m <- vu[i] - sum(vu[i + 1], na.rm = TRUE)
+
+      }) %>% unlist
+
+      b <- data.table::data.table(vu, mu)
+
+      # because not means clustered and ecdf, account for values < 1
+      b[mu < 0, mu := 0]
+
+      return(b[, mu][match(v, b[, vu])])
+
+    }
 
     read_cols <- dt %>% names %include% "_AD_(ref|alt)$"
+
+    # if using allelic_fraction as surrogate clonality, recalculate allele fractions into cell population proportions
 
     if (col == "allelic_fraction"){
 
@@ -459,32 +485,6 @@ garnish_clonality <- function(dt){
 
       a[, cl_proportion := V1 / ecdf, by = "sample_id"]
 
-      # return *exclusive* clone frequency (independent of subclones)
-      exclude_v <- function(v){
-
-        vu <- v %>% stats::na.omit %>% as.numeric
-
-        vu <- vu %>% unique %>% sort(decreasing = TRUE)
-
-        dt <- v %>% data.table::as.data.table
-
-        mu <- lapply(vu %>% seq_along, function(i){
-
-          if (i == length(vu)) return(vu[i])
-
-          m <- vu[i] - sum(vu[i + 1], na.rm = TRUE)
-
-        }) %>% unlist
-
-        b <- data.table::data.table(vu, mu)
-
-        # because not means clustered and ecdf, account for values < 1
-        b[mu < 0, mu := 0]
-
-        return(b[, mu][match(v, b[, vu])])
-
-      }
-
       a[, cl_proportion := cl_proportion %>% exclude_v, by = "sample_id"]
 
       # clear column derived from allele fractions in dt
@@ -494,6 +494,9 @@ garnish_clonality <- function(dt){
       all.x = TRUE, by = c("sample_id", "var_uuid", "pep_type", read_cols))
 
     }
+
+  if (col == "cellular_fraction")
+    dt[!is.na(cl_proportion), cl_proportion := cl_proportion %>% exclude_v, by = "sample_id"]
 
   dt[!is.na(cl_proportion), efit := exp(fitness_score %>% max(na.rm = TRUE)) * cl_proportion, by = c("sample_id", "clone_id")]
 

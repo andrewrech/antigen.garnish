@@ -19,7 +19,7 @@ testthat::test_that("garnish_clonality", {
   testthat::expect_equal(dto[, clone_id %>% as.numeric %>%
                          range(na.rm = TRUE)], c(1,2))
   testthat::expect_equal(dto[!is.na(cl_proportion), cl_proportion %>%
-                         range(na.rm = TRUE)], c(0.2720, 1.0484))
+                         range(na.rm = TRUE)], c(0.2720, 0.7764))
 
 # now check AF instead of CF
 
