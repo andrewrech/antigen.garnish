@@ -36,6 +36,6 @@ testthat::expect_equal(dt[, clone_id %>% as.numeric %>%
                        c(1,2))
 testthat::expect_equal(dt[!is.na(cl_proportion),
                        cl_proportion %>% range(na.rm = TRUE)] %>%
-                       signif(digits = 3), c(0.259, 1.000))
+                       signif(digits = 3), c(0.259, 0.741))
 
     })
