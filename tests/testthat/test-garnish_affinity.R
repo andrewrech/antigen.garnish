@@ -143,7 +143,7 @@ peptides <- function(){
       testthat::expect_true(dt %>% nrow == 774)
       testthat::expect_true(dt[pep_type %like% "mut",
                               garnish_score %>%
-                              unique %>% signif(digits = 3)] == 0.79)
+                              unique %>% signif(digits = 3)] == 2.17)
       testthat::expect_true(dt[, nmer %>%
                             unique %>% length] == 556)
       testthat::expect_true(dt[iedb_score %>% signif(digits = 3) == 1] %>%
