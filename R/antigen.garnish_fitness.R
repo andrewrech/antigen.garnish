@@ -498,7 +498,7 @@ garnish_clonality <- function(dt){
   if (col == "cellular_fraction")
     dt[!is.na(cl_proportion), cl_proportion := cl_proportion %>% exclude_v, by = "sample_id"]
 
-  dt[!is.na(cl_proportion), efit := exp(fitness_score %>% max(na.rm = TRUE)) * cl_proportion, by = c("sample_id", "clone_id")]
+  dt[!is.na(cl_proportion), efit := exp(max(fitness_score, na.rm = TRUE) * cl_proportion), by = c("sample_id", "clone_id")]
 
   dt[!is.na(efit), garnish_score := efit %>% unique %>% sum(na.rm = TRUE), by = "sample_id"]
 
