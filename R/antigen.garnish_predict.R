@@ -1745,13 +1745,18 @@ up <- lapply(dtl, function(x){x[[2]]}) %>% unlist
 
     }
 
-    if ("iedb_score" %chin% names(dt))
+    if ("iedb_score" %chin% names(dt)){
       dt[!is.na(iedb_score) & !is.na(min_DAI),
           fitness_score := min_DAI * iedb_score]
 
+      dt[pep_type != "wt" & !is.na(fitness_score) & Consensus_scores > 5000,
+        fitness_score := 0]
+
+        }
    }
 
-   if (any(c("cellular_fraction", "allelic_fraction") %chin% names(dt))) dt %<>% garnish_clonality
+   if (any(c("cellular_fraction", "allelic_fraction") %chin% names(dt)))
+    dt %<>% garnish_clonality
 
    if (save){
 
