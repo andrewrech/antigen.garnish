@@ -424,8 +424,8 @@ sdt <- lapply(vcfs %>% seq_along, function(ivf){
     	}
 
     # filter out NA
-    vdt %<>% .[!ensembl_transcript_id %>% is.na &
-               !cDNA_change %>% is.na]
+    vdt %<>% .[!cDNA_change %>% is.na &
+                (!is.na(ensembl_transcript_id) | !is.na(refseq_id))]
 
     if (vdt %>% nrow < 1){
       warning("No variants are present in the input file after filtering.")
