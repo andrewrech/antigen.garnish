@@ -457,7 +457,8 @@ get_vcf_snpeff_dt <- function(dt){
           stringr::str_extract("(?<=\\|)NM_[0-9]+")]
 
 			if (nrow(dt[!is.na(refseq_id)]) > 0)
-			 	warning("Annotations detected RefSeq identifiers, these will be returned but must be converted to Ensembl transcript IDs before garnish_affinity.")
+			 	warning("Annotations detected RefSeq identifiers, these will be converted to Ensembl transcript IDs, some data may be lost.
+				Please annotate vcfs with Ensembl transcript IDs.")
 
 			if (nrow(dt[!is.na(refseq_id)]) == 0) dt[, refseq_id := NULL]
 
