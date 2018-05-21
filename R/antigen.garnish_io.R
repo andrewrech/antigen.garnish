@@ -437,7 +437,9 @@ sdt <- lapply(vcfs %>% seq_along, function(ivf){
                             rs, all.x = TRUE, by = "refseq_id")
               ) %>% data.table::rbindlist(use.names = TRUE)
 
-      vdt %<>% .[!cDNA_change %>% is.na & !is.na(ensembl_transcript_id)]
+      # drop redundancy from multiple NCBI tx ids matching to same ensembl tx id
+      vdt %<>% .[!cDNA_change %>% is.na & !is.na(ensembl_transcript_id)] %>%
+                  unique(by = c("sample_id", "cDNA_change", "ensembl_transcript_id"))
 
               }
       else{

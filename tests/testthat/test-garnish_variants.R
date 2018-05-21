@@ -13,3 +13,20 @@ testthat::test_that("garnish_variants", {
     testthat::expect_equal(dt$cDNA_change, c("c.4988C>T", "c.1114T>G", "c.718T>A"))
 
 })
+
+testthat::test_that("garnish_variants with refseq_id", {
+
+  d <- test_data_dir()
+
+  # load test data
+     dt <- "antigen.garnish_hg19anno_example.vcf" %>%
+        file.path(d, .) %>%
+
+    # run test
+      garnish_variants
+
+    testthat::expect_equal(dt %>% class %>% .[1], "data.table")
+    testthat::expect_equal(dt$ensembl_transcript_id[c(1, 10, 16)],
+                            c("ENST00000623167", "ENST00000254821", "ENST00000424564"))
+
+})
