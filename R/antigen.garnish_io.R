@@ -427,6 +427,7 @@ sdt <- lapply(vcfs %>% seq_along, function(ivf){
     if (any(names(vdt) %like% "refseq")){
       vdt %<>% .[!cDNA_change %>% is.na &
                 (!is.na(ensembl_transcript_id) | !is.na(refseq_id))]
+              }
       else{
         vdt %<>% .[!cDNA_change %>% is.na & !is.na(ensembl_transcript_id)]
       }
