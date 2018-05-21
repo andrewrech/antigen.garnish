@@ -433,7 +433,7 @@ sdt <- lapply(vcfs %>% seq_along, function(ivf){
               data.table::fread
 
       vdt <- list(vdt[!is.na(ensembl_transcript_id)],
-                  merge(vdt[is.na(ensembl_transcript_id), ensembl_transcript_id := NULL],
+                  merge(vdt[is.na(ensembl_transcript_id)] %>% .[, ensembl_transcript_id := NULL],
                             rs, all.x = TRUE, by = "refseq_id")
               ) %>% data.table::rbindlist(use.names = TRUE)
 
