@@ -455,7 +455,7 @@ sdt <- lapply(vcfs %>% seq_along, function(ivf){
     sdt %<>% data.table::rbindlist(use.names = TRUE,
                                    fill = TRUE)
 
-  if (nrow(sdt) == 0){
+  if (nrow(sdt) == 0 || ncol(sdt) == 1){
     warning("No samples returned passing variants.")
     return(NULL)
   }

@@ -452,6 +452,15 @@ get_vcf_snpeff_dt <- function(dt){
       dt[, protein_coding := ANN %>%
           stringr::str_detect("protein_coding")]
 
+			## this is only for hg19
+			dt[, refseq_id := ANN %>%
+          stringr::str_extract("(?<=\\|)NM_[0-9]+")]
+
+			if (nrow(dt[!is.na(refseq_id)]) > 0)
+			 	warning("Annotations detected RefSeq identifiers, these will be returned but must be converted to Ensembl transcript IDs before garnish_affinity.")
+
+			if (nrow(dt[!is.na(refseq_id)]) == 0) dt[, refseq_id := NULL]
+
       return(dt)
 
         }
