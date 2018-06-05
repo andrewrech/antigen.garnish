@@ -4,10 +4,12 @@
 \alias{garnish_plot}
 \title{Graph \code{garnish_affinity} results.}
 \usage{
-garnish_plot(input)
+garnish_plot(input, ext = "pdf")
 }
 \arguments{
 \item{input}{Output from \code{garnish_affinity} to graph. \code{input} may be a data table object, list of data tables, or file path to a rio::import-compatible file type. If a list of data tables is provided, unique plots will be generated for each data table.}
+
+\item{ext}{File extension passed to ggplot2::ggsave, default is "pdf".}
 }
 \value{
 NULL

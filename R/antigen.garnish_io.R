@@ -656,6 +656,18 @@ type <- lapply(dt[, type %>% unique], function(x){
                                 replicate(ns, "MHC Class II")),
                         type = type,
                         N = 0) %>% unique
+
+      if ("binding" %chin% names(dt)){
+        gdt <- data.table::rbindlist(
+          list(
+          gdt %>% data.table::copy %>% .[, binding := "<1000nM"],
+          gdt %>% data.table::copy %>% .[, binding := "<500nM"],
+          gdt %>% data.table::copy %>% .[, binding := "<50nM"]
+
+        ), use.names = TRUE)
+      }
+
+
       return(gdt)
 
         }
@@ -760,7 +772,8 @@ lapply(input %>% seq_along, function(i){
     gdt <- dt_pl %>% gplot_missing_combn
 
     gg_dt <- merge(gg_dt, gdt, by = intersect(names(gg_dt), names(gdt)), all = TRUE) %>%
-      .[, N := max(N), by = c("sample_id", "binding", "MHC")] %>% unique %>%
+      .[, N := max(N), by = c("sample_id", "binding", "MHC")] %>%
+      unique(by = c("sample_id", "MHC", "binding", "N")) %>%
       .[!is.na(binding)]
 
     gg_dt %<>% gplot_names
@@ -796,7 +809,8 @@ lapply(input %>% seq_along, function(i){
     gdt <- dt_pl %>% gplot_missing_combn
 
     gg_dt <- merge(gg_dt, gdt, by = intersect(names(gg_dt), names(gdt)), all = TRUE) %>%
-      .[, N := max(N), by = c("sample_id", "binding", "MHC")] %>% unique %>%
+      .[, N := max(N), by = c("sample_id", "binding", "MHC")] %>%
+      unique(by = c("sample_id", "MHC", "binding", "N")) %>%
       .[!is.na(binding)]
 
     gg_dt %<>% gplot_names
