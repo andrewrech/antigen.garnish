@@ -509,6 +509,7 @@ sdt %<>%
 #' Plot ADN, CDN, priority, frameshift, and fusion derived `nmers` for class I and class II MHC by `sample_id`.
 #'
 #' @param input Output from `garnish_affinity` to graph. `input` may be a data table object, list of data tables, or file path to a rio::import-compatible file type. If a list of data tables is provided, unique plots will be generated for each data table.
+#' @param ext File extension passed to ggplot2::ggsave, default is "pdf".
 #'
 #' @seealso \code{\link{garnish_affinity}}
 #' @seealso \code{\link{garnish_summary}}
@@ -536,10 +537,12 @@ sdt %<>%
 #'
 #' @md
 
-garnish_plot <- function(input){
+garnish_plot <- function(input, ext = "pdf"){
 
   # magrittr version check, this will not hide the error, only the NULL return on successful exit
   invisible(check_dep_versions())
+
+  ext <- paste0(".", ext)
 
   # check input
   if (class(input)[1] == "list" & class(input[[1]])[1] != "data.table")
@@ -741,7 +744,7 @@ lapply(input %>% seq_along, function(i){
             ggplot2::ggsave(plot = g,
                   paste0("antigen.garnish_Neoepitopes_summary_",
                     gplot_fn,
-                    ".pdf")
+                    ext)
                   , height = 6, width = 9)
 
   if (nrow(dt[frameshift == TRUE]) > 0){
@@ -752,12 +755,13 @@ lapply(input %>% seq_along, function(i){
       .[Consensus_scores < 500, binding := "<500nM"] %>%
       .[Consensus_scores < 50, binding := "<50nM"]
 
-    gg_dt <- dt_pl[, .N, by = c("sample_id", "MHC", "binding")]
+    gg_dt <- dt_pl[!is.na(binding), .N, by = c("sample_id", "MHC", "binding")]
 
     gdt <- dt_pl %>% gplot_missing_combn
 
     gg_dt <- merge(gg_dt, gdt, by = intersect(names(gg_dt), names(gdt)), all = TRUE) %>%
-      .[, N := max(N), by = c("sample_id", "binding", "MHC")] %>% unique
+      .[, N := max(N), by = c("sample_id", "binding", "MHC")] %>% unique %>%
+      .[!is.na(binding)]
 
     gg_dt %<>% gplot_names
 
@@ -775,7 +779,7 @@ lapply(input %>% seq_along, function(i){
 
       ggplot2::ggsave(plot = g, paste0("antigen.garnish_Frameshift_summary_",
                         gplot_fn,
-                        ".pdf"), height = 6, width = 9)
+                        ext), height = 6, width = 9)
 
       }
 
@@ -787,12 +791,13 @@ lapply(input %>% seq_along, function(i){
       .[Consensus_scores < 500, binding := "<500nM"] %>%
       .[Consensus_scores < 50, binding := "<50nM"]
 
-    gg_dt <- dt_pl[, .N, by = c("sample_id", "MHC", "binding")]
+    gg_dt <- dt_pl[!is.na(binding), .N, by = c("sample_id", "MHC", "binding")]
 
     gdt <- dt_pl %>% gplot_missing_combn
 
     gg_dt <- merge(gg_dt, gdt, by = intersect(names(gg_dt), names(gdt)), all = TRUE) %>%
-      .[, N := max(N), by = c("sample_id", "binding", "MHC")] %>% unique
+      .[, N := max(N), by = c("sample_id", "binding", "MHC")] %>% unique %>%
+      .[!is.na(binding)]
 
     gg_dt %<>% gplot_names
 
@@ -811,7 +816,7 @@ lapply(input %>% seq_along, function(i){
       ggplot2::ggsave(plot = g,
                       paste0("antigen.garnish_Fusions_summary_",
                       gplot_fn,
-                      ".pdf"), height = 6, width = 9)
+                      ext), height = 6, width = 9)
       }
 
     })
@@ -854,7 +859,7 @@ lapply(input %>% seq_along, function(i){
       ggplot2::ggsave(plot = g,
         paste0("antigen.garnish_classic_scores_",
         gplot_fn,
-        ".pdf"), height = 6, width = 9)
+        ext), height = 6, width = 9)
 
       }
 
@@ -873,7 +878,7 @@ lapply(input %>% seq_along, function(i){
       ggplot2::ggsave(plot = g,
         paste0("antigen.garnish_alt_scores_",
         gplot_fn,
-        ".pdf"), height = 6, width = 9)
+        ext), height = 6, width = 9)
 
       }
 
@@ -892,7 +897,7 @@ lapply(input %>% seq_along, function(i){
       ggplot2::ggsave(plot = g,
         paste0("antigen.garnish_fitness_summary_",
         gplot_fn,
-        ".pdf"), height = 6, width = 9)
+        ext), height = 6, width = 9)
       }
 
   })
@@ -924,7 +929,7 @@ lapply(input %>% seq_along, function(i){
     ggplot2::ggsave(plot = g,
       paste0("antigen.garnish_garnish_score_",
       gplot_fn,
-      ".pdf"), height = 6, width = 9)
+      ext), height = 6, width = 9)
 
 })
 
