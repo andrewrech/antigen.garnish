@@ -136,12 +136,14 @@ gene_2 <- lapply(dtl, function(x){x[2]}) %>% unlist
             by = 1:nrow(dt)]
 
 
-    if (identical(Sys.getenv("TESTTHAT"), "true")) setwd("~")
+    metapath <- "antigen.garnish/GRChm38_meta.RDS"
 
-    if (!file.exists("antigen.garnish/GRChm38_meta.RDS"))
+    if (identical(Sys.getenv("TESTTHAT"), "true")) metapath <- "~/antigen.garnish/GRChm38_meta.RDS"
+
+    if (!file.exists(metapath))
         stop("Unable to locate metadata file. Please ensure antigen.garnish folder is present and untarred in working directory.")
 
-    var_dt <- readRDS("antigen.garnish/GRChm38_meta.RDS")
+    var_dt <- readRDS(metapath)
 
     # toss what we don't need here
     var_dt <- var_dt[external_gene_name %chin%

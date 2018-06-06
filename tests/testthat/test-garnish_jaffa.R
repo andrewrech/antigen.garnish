@@ -12,6 +12,6 @@ testthat::test_that("garnish_jaffa", {
   # run test
    dt <- garnish_jaffa(path = path, fasta_path = fasta_path)
 
-  testthat::expect_equal(dt %>% nrow, 21)
+  testthat::expect_equal(dt %>% nrow, 15)
   testthat::expect_equal(dt %>% length, 11)
     })
