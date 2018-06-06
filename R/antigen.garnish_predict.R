@@ -1121,8 +1121,6 @@ parallel::mcMap(function(x, y) (x %>% as.integer):(y %>% as.integer) %>%
 #' @param predict Logical. Predict binding affinities?
 #' @param blast Logical. Run BLASTp to find wild-type peptide and known IEDB matches?
 #' @param fitness Logical. Run model of [Luksza et al. *Nature* 2017](https://www.ncbi.nlm.nih.gov/pubmed/29132144) to predict neoepitope fitness?
-#' @param humandb Character vector. One of "GRCh37" or "GRCh38".
-#' @param mousedb Character vector. One of "GRCm37" or "GRCm38".
 #' @param save Logical. Save a copy of garnish_affinity output to the working directory as "ag_output.txt"? Default is `TRUE`.
 #' @param remove_wt Logical. Check all `nmer`s generated against wt peptidome and remove matches? Default is `TRUE`. If investigating wild-type sequences, set this to `FALSE`.
 #' @return A data table of binding predictions including:
@@ -1271,8 +1269,6 @@ garnish_affinity <- function(dt = NULL,
  														 predict = TRUE,
  														 blast = fitness,
  														 fitness = TRUE,
- 														 humandb = "GRCh38",
- 														 mousedb = "GRCm38",
  														 save = TRUE,
  														 remove_wt = TRUE){
 
@@ -1358,7 +1354,7 @@ if (fitness == TRUE & blast == FALSE)
 
 if (assemble & input_type == "transcript"){
 
-    dt %<>% get_metadata(humandb = humandb, mousedb = mousedb)
+    dt %<>% get_metadata
 
     if (!missing(counts)){
 

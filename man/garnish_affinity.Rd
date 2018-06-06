@@ -6,8 +6,7 @@
 \usage{
 garnish_affinity(dt = NULL, path = NULL, counts = NULL, min_counts = 1,
   assemble = TRUE, generate = TRUE, predict = TRUE, blast = fitness,
-  fitness = TRUE, humandb = "GRCh38", mousedb = "GRCm38", save = TRUE,
-  remove_wt = TRUE)
+  fitness = TRUE, save = TRUE, remove_wt = TRUE)
 }
 \arguments{
 \item{dt}{Data table. Input data table from \code{garnish_variants} or \code{garnish_jaffa}, or a data table in one of these forms:
@@ -47,10 +46,6 @@ MHC                         <same as above>
 \item{blast}{Logical. Run BLASTp to find wild-type peptide and known IEDB matches?}
 
 \item{fitness}{Logical. Run model of \href{https://www.ncbi.nlm.nih.gov/pubmed/29132144}{Luksza et al. Nature 2017} to predict neoepitope fitness?}
-
-\item{humandb}{Character vector. One of "GRCh37" or "GRCh38".}
-
-\item{mousedb}{Character vector. One of "GRCm37" or "GRCm38".}
 
 \item{save}{Logical. Save a copy of garnish_affinity output to the working directory as "ag_output.txt"? Default is \code{TRUE}.}
 

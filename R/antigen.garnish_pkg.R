@@ -39,7 +39,6 @@
 #' @importFrom Biostrings DNAString translate
 #' @importFrom Rdpack reprompt
 #' @importFrom ShortRead sread readFasta
-#' @importFrom biomaRt useMart getBM getSequence
 #' @importFrom magrittr %>% %T>% %$% %<>%
 #' @importFrom rio import
 #' @importFrom stats na.omit t.test ecdf quantile
