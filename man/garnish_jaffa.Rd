@@ -4,12 +4,10 @@
 \alias{garnish_jaffa}
 \title{Process gene fusions and return a data table for neoepitope prediction.}
 \usage{
-garnish_jaffa(path, db, fasta_path)
+garnish_jaffa(path, fasta_path)
 }
 \arguments{
 \item{path}{Path to \code{jaffa_results.csv}.}
-
-\item{db}{Character vector. One of \code{GRCm37}, \code{GRCm38}, \code{GRCh37}, or \code{GRCh38}.}
 
 \item{fasta_path}{Path to \code{jaffa_results.fasta}.}
 }
