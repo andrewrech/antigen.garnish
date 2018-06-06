@@ -3,12 +3,12 @@
 #'
 #' Implements the neoepitope fitness model of [Luksza et al. *Nature* 2017](https://www.ncbi.nlm.nih.gov/pubmed/29132144).
 #'
-#' @param dt Data table output from `garnish_predictions`.
-#' @param a Fitness model parameter. Binding curve horizontal displacement used to determine TCR recognition probability of a peptide compared to an IEDB near match.
-#' @param k Fitness model parameter. Steepness of the binding curve at `a`.
+#' @param dt Data table output from `garnish_affinity`.
+#' @param a Numeric fitness model parameter. Binding curve horizontal displacement used to determine TCR recognition probability of a peptide compared to an IEDB near match.
+#' @param k Numeric fitness model parameter. Steepness of the binding curve at `a`.
 #'
 #' @return A data table with added fitness model parameter columns:
-#' * **NeoantigenRecognitionPotential**: Neoantigen Recognition Potential calculated by the model.
+#' * **NeoantigenRecognitionPotential**: Neoantigen recognition potential calculated by the model.
 #'
 #' @export garnish_fitness
 #' @md
@@ -333,5 +333,177 @@ lapply(dtl %>% seq_along, function(i){
   if (length(dtls) == 1) dtloo <- dtloo[[1]] %>% unique
 
   return(dtloo)
+
+}
+
+
+## ---- garnish_clonality
+#' Internal function to integrate clonality data into final `garnish_score` parameter.
+#'
+#' Integrates clonality input for creation of a summary metric of tumor fitness similar to [Luksza et al. *Nature* 2017](https://www.ncbi.nlm.nih.gov/pubmed/29132144).
+#'
+#' @param dt Data table. Passed internally from garnish_affinity, requires allelic_fraction or cellular_fraction columns.
+#'
+#' @return A data table with added fitness model parameter columns:
+#' * **clone_id**: rank of the clone containing the variant (highest equals larger tumor fraction).
+#' * **cl_proportion**: estimated mean tumor fraction containing the clone.
+#' * **garnish_score**: the summary parameter of immunogenicity at the sample level, summed across top neoepitopes of each clone.
+#'
+#' @export garnish_clonality
+#' @md
+
+garnish_clonality <- function(dt){
+
+  if (!"cellular_fraction" %chin% names(dt) & !"allelic_fraction" %chin% names(dt)){
+
+    warnings("No cellular_fraction or allelic_fraction column found. Returning dt without computing garnish_score from clonality.")
+    return(dt)
+  }
+
+  if ("allelic_fraction" %chin% names(dt))
+  	col <- "allelic_fraction"
+
+  # prefer cellular_fraction if available
+
+  if ("cellular_fraction" %chin% names(dt))
+  	col <- "cellular_fraction"
+
+
+    b <- data.table::copy(dt)
+
+    b %>% setnames(col, "cf")
+
+    b[, cf := as.numeric(cf)]
+
+    match_clone <- function(cf, v){
+
+      dt <- lapply(cf, function(x){
+
+        abs <- abs(x - v)
+
+        a <- v[which(abs == min(abs))]
+
+        b <- names(v)[which(abs == min(abs))]
+
+        return(data.table(cl_proportion = a, clone_id = b))
+
+      }) %>% data.table::rbindlist
+
+      return(dt)
+
+    }
+
+    cdt <- lapply(b[, sample_id %>% unique], function(s){
+
+      dt <- b[!is.na(cf) & sample_id == s, cf, by = "var_uuid"] %>% unique
+
+      if (nrow(dt) == 0)
+      	return(NULL)
+
+      if (nrow(dt) == 1)
+      	return(dt[,  clone_id := 1] %>% .[, cl_proportion := cf])
+
+      x <-  mclust::Mclust(dt[, cf %>% as.numeric], verbose = FALSE)
+
+      vect <- x$parameters$mean
+
+      vect %<>% sort(decreasing = TRUE)
+
+      names(vect) <- 1:length(vect) %>% as.character
+
+      dt[, c("cl_proportion", "clone_id") := match_clone(cf, v = vect)]
+
+    }) %>% data.table::rbindlist(use.names = TRUE)
+
+    cdt %>% data.table::setnames("cf", col)
+
+    dt <- merge(dt, cdt, all.x = TRUE, by = c("var_uuid", col))
+
+    # remove cl_proportion from wt peptide rows because its meaningless and refers to matched mutant nmer
+
+    dt[pep_type == "wt", cl_proportion := as.numeric(NA)]
+
+    # return *exclusive* clone frequency (independent of subclones)
+    exclude_v <- function(v){
+
+      vu <- v %>% stats::na.omit %>% as.numeric
+
+      vu <- vu %>% unique %>% sort(decreasing = TRUE)
+
+      dt <- v %>% data.table::as.data.table
+
+      mu <- lapply(vu %>% seq_along, function(i){
+
+        if (i == length(vu)) return(vu[i])
+
+        m <- vu[i] - sum(vu[i + 1], na.rm = TRUE)
+
+      }) %>% unlist
+
+      b <- data.table::data.table(vu, mu)
+
+      # because not means clustered and ecdf, account for values < 1
+      b[mu < 0, mu := 0]
+
+      return(b[, mu][match(v, b[, vu])])
+
+    }
+
+    read_cols <- dt %>% names %include% "_AD_(ref|alt)$"
+
+    # if using allelic_fraction as surrogate clonality, recalculate allele fractions into cell population proportions
+
+    if (col == "allelic_fraction"){
+
+      a <- dt[!is.na(cl_proportion) &
+              !is.na(allelic_fraction) &
+              pep_type != "wt", cl_proportion %>%
+              unique, by = c("sample_id", "var_uuid", "pep_type", read_cols)]
+
+      # filter by supporting reads
+  		for (c in read_cols)
+  			a %<>% .[get(c) >= 15]
+
+      # too many NA checks never hurt anyone
+      calculate_ecdf <- function(x){
+
+			  if ((x %>% stats::na.omit %>% length) > 0){
+
+          v <- stats::ecdf(x)(x)
+
+          m <- x[which(v  > 0.9)] %>% mean(na.rm = TRUE)
+
+			    return(m)
+
+
+			  } else {
+			    return(NA %>% as.numeric)
+			  }
+			}
+
+      a[, ecdf := calculate_ecdf(V1), by = "sample_id"]
+
+      a[, cl_proportion := V1 / ecdf, by = "sample_id"]
+
+      a[, cl_proportion := cl_proportion %>% exclude_v, by = "sample_id"]
+
+      # clear column derived from allele fractions in dt
+      dt[, cl_proportion := NULL]
+
+      dt <- merge(dt, a[, .SD %>% unique, .SDcol = c("sample_id", "var_uuid", "cl_proportion", "pep_type", read_cols)],
+      all.x = TRUE, by = c("sample_id", "var_uuid", "pep_type", read_cols))
+
+    }
+
+  if (col == "cellular_fraction")
+    dt[!is.na(cl_proportion), cl_proportion := cl_proportion %>% exclude_v, by = "sample_id"]
+
+  dt[!is.na(cl_proportion), efit := exp(max(fitness_score, na.rm = TRUE) * cl_proportion), by = c("sample_id", "clone_id")]
+
+  dt[!is.na(efit), garnish_score := efit %>% unique %>% sum(na.rm = TRUE), by = "sample_id"]
+
+  dt[, efit := NULL]
+
+  return(dt)
 
 }

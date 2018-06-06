@@ -1,5 +1,7 @@
 testthat::test_that("garnish_fitness", {
 
+  d <- test_data_dir()
+
   if (suppressWarnings(system('which blastp 2> /dev/null', intern = TRUE)) %>%
           length == 0)
       testthat::skip("Skipping garnish_fitness because ncbiblast+ is not in PATH")
@@ -9,10 +11,11 @@ testthat::test_that("garnish_fitness", {
         }
 
     # load test data
-        dt <- data.table::fread("http://get.rech.io/antigen.garnish_example_output.txt") %>%
+        dt <- data.table::fread(file.path(d, "antigen.garnish_example_affinity_output.txt")) %>%
                 garnish_fitness
 
     # run test
+
         testthat::expect_true(dt[!is.na(NeoantigenRecognitionPotential), nmer %>% unique %>% length] == 32)
         testthat::expect_true(dt %>% nrow == 340)
         testthat::expect_true(dt[, nmer %>% unique %>% length] == 308)

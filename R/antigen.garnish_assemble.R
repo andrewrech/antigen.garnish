@@ -8,18 +8,15 @@
 
 check_dep_versions <- function(){
 
-  ver <- utils::packageVersion("magrittr")
+if (!utils::installed.packages() %>% data.table::as.data.table %>%
+	.[Package == "magrittr", Version %>%
+	stringr::str_replace_all("\\.", "") %>%
+	as.numeric >= 150])
+	stop("magrittr version >= 1.5.0 is required and can be installed with:
 
-  # have to unlist version because packageVersion class object will call 1.5.0 and 1.5 equivalent
+	     devtools::install_github(\"tidyverse/magrittr\")")
 
-  if (identical(as.numeric(unlist(ver)), c(1,5))) stop("CRAN version of `magrittr` package detected, please install `magrittr` from the tidyverse with `devtools::install_github(\"tidyverse/magrittr\")`")
-
-  # future proofing
-  if (!identical(as.numeric(unlist(ver)), c(1,5,0)))
-    message("Warning, could not confirm magrittr version, if the pipeline is returning errors,
-    consider installing `magrittr` from the tidyverse with `devtools::install_github(\"tidyverse/magrittr\")`")
-
-  return(NULL)
+	return(NULL)
 
 }
 
@@ -88,119 +85,38 @@ detect_mhc <- function(x, alleles){
 #' Internal function to add metadata by `ensembl_transcript_id`
 #'
 #' @param dt Data table with `INFO` column.
-#' @param humandb Character vector. One of `GRCh37` or `GRCh38`.
-#' @param mousedb Character vector. One of `GRCm37` or `GRCm38`.
 #'
 #' @export get_metadata
 #' @md
 
-get_metadata <- function(dt,
-                         humandb = "GRCh38",
-                         mousedb = "GRCm38"){
+get_metadata <- function(dt){
 
   if (!"ensembl_transcript_id" %chin%
       (dt %>% names))
   stop("ensembl_transcript_id column missing")
-
-
-  # set genome host
-  if (!humandb %chin% c("GRCh37", "GRCh38")) stop("humandb set incorrectly")
-  if (!mousedb %chin% c("GRCm37", "GRCm38")) stop("mousedb set incorrectly")
-
-  if (humandb == "GRCh38") hhost <- "aug2017.archive.ensembl.org"
-  if (humandb == "GRCh37") hhost <- "grch37.ensembl.org"
-  if (mousedb == "GRCm38") mhost <- "feb2014.archive.ensembl.org"
-  if (mousedb == "GRCm37") mhost <- "may2012.archive.ensembl.org"
 
     # remove version suffix
     dt[, ensembl_transcript_id :=
       ensembl_transcript_id %>%
       stringr::str_replace("\\.[0-9]$", "")]
 
-    bmds <- vector()
+		message("Reading local transcript metadata.")
 
-    if (dt[, ensembl_transcript_id %>%
-        stringr::str_detect("ENSMUST")] %>%
-          stats::na.omit %>%
-          unique %>%
-          any) bmds <- c(bmds, "mmusculus_gene_ensembl")
+		metapath <- "antigen.garnish/GRChm38_meta.RDS"
 
-    if (dt[, ensembl_transcript_id %>%
-        stringr::str_detect("ENST")] %>%
-          stats::na.omit %>%
-          unique %>%
-          any) bmds <- c(bmds, "hsapiens_gene_ensembl")
+		if (identical(Sys.getenv("TESTTHAT"), "true")) metapath <- "~/antigen.garnish/GRChm38_meta.RDS"
 
-    message("Obtaining cDNA and peptide sequences using biomaRt")
+		if (!file.exists(metapath))
+			stop("Unable to locate metadata file. Please ensure antigen.garnish folder is present and untarred in working directory.")
 
-var_dt <- lapply(bmds, function(i){
+		var_dt <- readRDS(metapath)
 
-      if (i == "hsapiens_gene_ensembl") {
-        host <- hhost
-        ensembl_attr = c("ensembl_transcript_id",
-                "hgnc_symbol", "ensembl_gene_id", "description", "chromosome_name",
-                "start_position", "end_position", "transcript_start", "transcript_end")
-      }
-
-      if (i == "mmusculus_gene_ensembl") {
-        host <- mhost
-        ensembl_attr = c("ensembl_transcript_id",
-                    "mgi_symbol", "ensembl_gene_id", "description", "chromosome_name",
-                    "start_position", "end_position", "transcript_start", "transcript_end")
-      }
-
-      mart <- biomaRt::useMart(biomart = "ENSEMBL_MART_ENSEMBL",
-                                                 dataset = i,
-                                                 host = host,
-                                               ensemblRedirect = FALSE)
-
-    if (i == "mmusculus_gene_ensembl"){
-        trn <- dt[, ensembl_transcript_id %include% "ENSMUST" %>%
-                  stats::na.omit %>%
-                  unique]
-              }
-
-    if (i == "hsapiens_gene_ensembl"){
-        trn <- dt[, ensembl_transcript_id %include% "ENST" %>%
-                  stats::na.omit %>%
-                  unique]
-              }
-
-   if (trn %>% length < 1) return(NULL)
-   if (trn %>% length >= 1){
-
-    # obtain transcript metadata
-      var_dt <- biomaRt::getBM(attributes = ensembl_attr,
-                         filters = c("ensembl_transcript_id"),
-                         values = list(trn),
-                         mart = mart) %>%
-            data.table::as.data.table
-
-   if (i == "mmusculus_gene_ensembl")
-    var_dt %>% data.table::setnames("mgi_symbol", "external_gene_name")
-
-    if (i == "hsapiens_gene_ensembl")
-     var_dt %>% data.table::setnames("hgnc_symbol", "external_gene_name")
-
-      # obtain transcript cDNA and peptide sequences
-
-seqdtl <- lapply(c("coding", "peptide"), function(j){
-         biomaRt::getSequence(type = "ensembl_transcript_id",
-                     id = trn,
-                     seqType = j,
-                     mart = mart) %>% data.table::as.data.table
-      })
-
-      seqdt <- merge(seqdtl[[1]], seqdtl[[2]], by = "ensembl_transcript_id")
-      var_dt <- merge(var_dt, seqdt, by = "ensembl_transcript_id")
-      }
-
-    return(var_dt)
-
-    }) %>% data.table::rbindlist
     dt <- merge(dt, var_dt, by = "ensembl_transcript_id")
 
+		rm(var_dt)
+
     return(dt)
+
 }
 
 
@@ -289,45 +205,181 @@ make_cDNA <- function(dt){
 
 
 
-## ---- get_snpeff
-#' Internal function to extract SnpEff annotation information to a data table.
+## ---- get_vcf_info_dt
+#' Internal function to extract a data table of variants with `INFO` fields in columns.
 #'
-#' @param dt Data table with INFO column from a SnpEff-annotated VCF file.
-#' @export get_snpeff
+#' @param vcf vcfR object to extract data from.
+#'
+#' @return Data table of variants with `INFO` fields in columns.
+#'
+#' @export get_vcf_info_dt
 #' @md
 
-get_snpeff <- function(dt){
+get_vcf_info_dt <- function(vcf){
 
-    if (!"INFO" %chin% (dt %>% names)) stop("dt must contain INFO column")
+	if (vcf %>% class %>% .[1] != "vcfR")
+		stop("vcf input is not a vcfR object.")
 
-    dt[, se := INFO %>%
-      stringr::str_extract("ANN.*") %>%
-      stringr::str_replace("ANN=[^\\|]+\\|", "")]
+	dt <- vcf@fix %>% data.table::as.data.table
 
-    # add a variant identifier
+	if (!"INFO" %chin% (dt %>% names))
+		stop("Error parsing input file INFO field.")
+
+		# loop over INFO field
+		# tolerant of variable length and content
+	v <- dt[, INFO %>% paste(collapse = ";@@@=@@@;")]
+	vd <- v %>%
+		stringr::str_replace_all("(?<=;)[^=;]+", "") %>%
+		stringr::str_replace_all(stringr::fixed("="), "")
+	vn <- v %>%
+		stringr::str_replace_all("(?<==)[^;]+", "") %>%
+		stringr::str_replace_all(stringr::fixed("="), "")
+
+	vd %<>% strsplit("@@@")
+	vn %<>% strsplit(("@@@"))
+
+	idt <- parallel::mclapply(1:length(vn[[1]]), function(i){
+
+		v <- vd[[1]][i] %>% strsplit(";") %>% .[[1]]
+		names(v) <- vn[[1]][i] %>% strsplit(";") %>% .[[1]]
+
+		return(v %>% as.list)
+
+	}) %>% rbindlist(fill = TRUE, use.names = TRUE)
+
+	if (
+	    (dt %>% nrow) !=
+	    (idt %>% nrow)
+	    )
+		stop("Error parsing input file INFO field.")
+
+	dt <- cbind(dt, idt)
+
+	return(dt)
+
+}
+
+
+
+## ---- get_vcf_sample_dt
+#' Internal function to extract a data table from sample `vcf` fields.
+#'
+#' @param vcf vcfR object to extract data from.
+#'
+#' @return Data table of variants with sample level fields in columns.
+#'
+#' @export get_vcf_sample_dt
+#' @md
+
+get_vcf_sample_dt <- function(vcf){
+
+	if (vcf %>% class %>% .[1] != "vcfR")
+		stop("vcf input is not a vcfR object.")
+
+	dt <- vcf@gt %>% data.table::as.data.table
+
+	if (!"FORMAT" %chin% (dt %>% names))
+		stop("Error parsing input file sample level info.")
+
+		names <- vcf@gt %>%
+						attributes %>%
+						.$dimnames %>%
+						unlist %excludef%
+						"FORMAT"
+
+		# loop over sample level data
+		# tolerant of variable length and content
+
+			idt <- parallel::mclapply(names, function(n){
+
+				ld <- dt[, get(n)]
+				ln <- dt[, FORMAT]
+
+				idt <- parallel::mclapply(1:length(ln), function(i){
+
+					l <- ld[i] %>% strsplit(":") %>% .[[1]]
+					names(l) <- ln[i] %>% strsplit(":") %>% .[[1]]
+
+
+					return(l %>% as.list)
+				}) %>% rbindlist(fill = TRUE, use.names = TRUE)
+
+				idt %>% data.table::setnames(
+                  idt %>% names,
+                  idt %>% names %>% paste0(n, "_", .))
+        return(idt)
+
+		  }) %>% do.call(cbind, .)
+
+		# assign ref and alt to individual columns
+
+			for (c in (idt %>% names %include% "_AD$")){
+				idt[, paste0(c, c("_ref", "_alt")) := get(c) %>%
+						data.table::tstrsplit(",")]
+				set(idt, j = c, value = NULL)
+		}
+
+	if (
+	    (dt %>% nrow) !=
+	    (idt %>% nrow)
+	    )
+		stop("Error parsing input file INFO field.")
+
+		dt <- cbind(dt, idt)
+
+	return(dt)
+
+}
+
+
+
+## ---- get_vcf_snpeff_dt
+#' Internal function to extract SnpEff annotation information to a data table.
+#'
+#' @param dt Data table with character vector `ANN` column, from `vcf` file.
+#'
+#' @return Data table with the `ANN` column parsed into additional rows.
+#'
+#' @export get_vcf_snpeff_dt
+#' @md
+
+get_vcf_snpeff_dt <- function(dt){
+
+		if (!"ANN" %chin% (dt %>% names))
+			stop("Error parsing input file ANN field from SnpEff.")
+
+		# add a variant identifier
     suppressWarnings(dt[, snpeff_uuid :=
                   lapply(1:nrow(dt),
                   uuid::UUIDgenerate) %>% unlist])
 
-    # abort if no variants passed filtering
-    if (dt %>% nrow < 1) return(NULL)
-
     # spread SnpEff annotation over rows
-    dt %>% tidyr::separate_rows("se", sep = ",")
+    dt %<>% tidyr::separate_rows("ANN", sep = ",")
 
     # extract info from snpeff annotation
-      dt[, effect_type := se %>%
-          stringr::str_extract("^[a-z0-9][^\\|]+")]
-      dt[, ensembl_transcript_id := se %>%
+      dt[, effect_type := ANN %>%
+          stringr::str_extract("^[^\\|]+\\|[^|]+") %>%
+          stringr::str_replace("^[^\\|]+\\|", "")]
+      dt[, ensembl_transcript_id := ANN %>%
           stringr::str_extract("(?<=\\|)(ENSMUST|ENST)[0-9]+")]
-      dt[, ensembl_gene_id := se %>%
+      dt[, ensembl_gene_id := ANN %>%
           stringr::str_extract("(?<=\\|)(ENSMUSG|ENSG)[0-9.]+(?=\\|)")]
-      dt[, protein_change := se %>%
+      dt[, protein_change := ANN %>%
           stringr::str_extract("p\\.[^\\|]+")]
-      dt[, cDNA_change := se %>%
+      dt[, cDNA_change := ANN %>%
           stringr::str_extract("c\\.[^\\|]+")]
-      dt[, protein_coding := se %>%
+      dt[, protein_coding := ANN %>%
           stringr::str_detect("protein_coding")]
+
+			## this is only for hg19
+			dt[, refseq_id := ANN %>%
+          stringr::str_extract("(?<=\\|)NM_[0-9]+")]
+
+			if (nrow(dt[!is.na(refseq_id)]) > 0)
+			 	warning("Annotations detected RefSeq identifiers, these will be converted to Ensembl transcript IDs, some data may be lost.
+				Please annotate vcfs with Ensembl transcript IDs.")
+
+			if (nrow(dt[!is.na(refseq_id)]) == 0) dt[, refseq_id := NULL]
 
       return(dt)
 

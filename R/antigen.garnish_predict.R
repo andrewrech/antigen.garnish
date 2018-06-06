@@ -22,7 +22,7 @@ if (identical(Sys.getenv("TESTTHAT"), "true")) setwd("~")
 
 if (suppressWarnings(system('which blastp 2> /dev/null', intern = TRUE)) %>%
           length == 0){
-            message("Skipping BLAST because ncbiblast+ is not in PATH")
+            warning("Skipping BLAST because ncbiblast+ is not in PATH")
           return(dti)
 
    }
@@ -36,7 +36,7 @@ if (suppressWarnings(system('which blastp 2> /dev/null', intern = TRUE)) %>%
 
   # generate fastas to query
 
-parallel::mclapply(dt[, spc %>% unique], function(s){
+lapply(dt[, spc %>% unique], function(s){
 
     dt <- dt[spc == s]
 
@@ -201,7 +201,6 @@ scores <-  parallel::mclapply(col1 %>% seq_along, function(i){
   # run blastp-short for iedb matches
   # https://www.ncbi.nlm.nih.gov/books/NBK279684/
   # flags here taken from Lukza et al.:
-  # -task blastp-short optimized blast for <30 AA, uses larger word sizes
   # -matrix use BLOSUM62 sub substitution matrix
   # -evalue expect value for saving hits
   # -gapopen, -gapextend, numeric cost to a gapped alignment and
@@ -212,14 +211,14 @@ scores <-  parallel::mclapply(col1 %>% seq_along, function(i){
     if (file.exists("Ms_nmer_fasta.fa"))
 
       system(paste0(
-        "blastp -query Ms_nmer_fasta.fa -task blastp-short -db antigen.garnish/Mu_iedb.fasta -evalue 100000000 -matrix BLOSUM62 -gapopen 11 -gapextend 1 -out iedbout_mu.csv -num_threads ", parallel::detectCores(),
+        "blastp -query Ms_nmer_fasta.fa -db antigen.garnish/Mu_iedb.fasta -evalue 100000000 -matrix BLOSUM62 -gapopen 11 -gapextend 1 -out iedbout_mu.csv -num_threads ", parallel::detectCores(),
         " -outfmt '10 qseqid sseqid qseq qstart qend sseq sstart send length mismatch pident evalue bitscore'"
       ))
 
     if (file.exists("Hu_nmer_fasta.fa"))
 
       system(paste0(
-        "blastp -query Hu_nmer_fasta.fa -task blastp-short -db antigen.garnish/iedb.bdb -evalue 100000000 -matrix BLOSUM62 -gapopen 11 -gapextend 1 -out iedbout_hu.csv -num_threads ", parallel::detectCores(),
+        "blastp -query Hu_nmer_fasta.fa -db antigen.garnish/iedb.bdb -evalue 100000000 -matrix BLOSUM62 -gapopen 11 -gapextend 1 -out iedbout_hu.csv -num_threads ", parallel::detectCores(),
         " -outfmt '10 qseqid sseqid qseq qstart qend sseq sstart send length mismatch pident evalue bitscore'"
       ))
 
@@ -254,7 +253,7 @@ scores <-  parallel::mclapply(col1 %>% seq_along, function(i){
 
     blastdt <- blastdt[, nmer := nmer %>% stringr::str_replace_all(pattern = "-|\\*", replacement = "")] %>%
                   .[, WT.peptide := WT.peptide %>% stringr::str_replace_all(pattern = "-|\\*", replacement = "")] %>%
-                    .[!is.na(nmer) & !is.na(WT.peptide) & nchar(nmer) > 2 & nchar(WT.peptide) > 2]
+                    .[!is.na(nmer) & !is.na(WT.peptide)]
 
     blastdt <- blastdt[nmer %like% "^[ARNDCQEGHILKMFPSTWYV]+$" & WT.peptide %like% "^[ARNDCQEGHILKMFPSTWYV]+$"]
 
@@ -269,30 +268,29 @@ scores <-  parallel::mclapply(col1 %>% seq_along, function(i){
 
     message("Done.")
 
-modeleR <- function(als,
-                            a=26,
-                            k=4.86936){
+modeleR <- function(als, a=26, k=4.86936){
 
-      message("Calculating microbial homology...")
-
-expo_sum <- function(vect){
-
-        m <- max(vect)
-
-        expos <- exp(vect - m) %>% sum %>% log
-
-        expos <- expos + m
-
-        return(expos)
-
-      }
+# expo_sum <- function(vect){
+#
+#         m <- max(vect)
+#
+#         expos <- exp(vect - m) %>% sum %>% log
+#
+#         expos <- expos + m
+#
+#         return(expos)
+#
+#       }
 
       be <- -k * (a - als)
 
-      lZ <- expo_sum(c(be, 0))
-      lGb <- expo_sum(be)
+      sumexp <- sum(exp(be))
 
-      R <- exp(lGb-lZ)
+      Zk <- 1 + sumexp
+      R <- sumexp / Zk
+
+      # lZ <- expo_sum(c(be, 0))
+      # lGb <- expo_sum(be)
 
     return(R)
 
@@ -338,8 +336,10 @@ expo_sum <- function(vect){
   blastdt %<>% unique(by = c("nmer_uuid", "WT.peptide"))
 
   # get full IEDB ref here
-  if (file.exists("Hu_nmer_fasta.fa")) db <- "antigen.garnish/iedb.fasta"
-  if (file.exists("Ms_nmer_fasta.fa")) db <- "antigen.garnish/Mu_iedb.fasta"
+  if (file.exists("Hu_nmer_fasta.fa"))
+    db <- "antigen.garnish/iedb.fasta"
+  if (file.exists("Ms_nmer_fasta.fa"))
+    db <- "antigen.garnish/Mu_iedb.fasta"
 
   fa <- Biostrings::readAAStringSet(db)
   f <- fa %>% data.table::as.data.table %>% .[, x]
@@ -371,7 +371,14 @@ blastdt[, IEDB_anno := parallel::mclapply(IEDB_anno, function(i){
 
     # to add WT.peptide (in this case IEDB epitope) back to table need nmer, nmer_i, nmer_l (nchar(nmer)), var_uuid, effect_type
 
-    vdt <- dto[, .SD %>% unique, .SDcols = c("nmer_uuid", "nmer_i", "nmer_l", "var_uuid", "sample_id", "effect_type", "MHC")]
+    vdt <- dto[, .SD %>% unique,
+      .SDcols = c("nmer_uuid",
+                  "nmer_i",
+                  "nmer_l",
+                  "var_uuid",
+                  "sample_id",
+                  "effect_type",
+                  "MHC")]
 
     vdt <- merge(vdt, blastdt, by = "nmer_uuid")
 
@@ -385,7 +392,8 @@ blastdt[, IEDB_anno := parallel::mclapply(IEDB_anno, function(i){
                   unique %>%
                     .[, pep_type := "wt"]
 
-    dto <- data.table::rbindlist(list(dto, vdt), fill = TRUE, use.names = TRUE)
+    dto <- data.table::rbindlist(list(dto, vdt),
+      fill = TRUE, use.names = TRUE)
 
     return(dto)
 
@@ -920,7 +928,8 @@ esl, function(es){
 
 write_mhcnuggets_nmers <- function(dt, alleles){
 
-  if (dt %>% nrow == 0) return(NULL)
+  if (dt %>% nrow == 0)
+  	return(NULL)
 
   if (!c("mhcnuggets", "nmer", "nmer_l") %chin% (dt %>% names) %>% any)
           stop("dt must contain mhcnuggets and nmer columns")
@@ -1007,7 +1016,8 @@ parallel::mclapply(mnug_dt[allele == i] %>% split(1:breakpoints), function(dt){
 #' @md
 
 write_netmhc_nmers <- function(dt, type){
-    if (dt %>% nrow == 0) return(NULL)
+    if (dt %>% nrow == 0)
+    	return(NULL)
     if (!c("nmer", "nmer_l") %chin% (dt %>% names) %>% any)
           stop("dt must contain nmer and nmer_l columns")
 
@@ -1066,18 +1076,16 @@ dto <- parallel::mclapply(dts %>% split(1:chunks), function(dtw){
 
 get_ss_str <- function(x, y){
 
-mcMap(function(x, y) (x %>% as.integer):(y %>% as.integer) %>%
+parallel::mcMap(function(x, y) (x %>% as.integer):(y %>% as.integer) %>%
           paste(collapse = " "), x, y) %>% unlist
     }
 
 
 
-## ---- garnish_predictions
+## ---- garnish_affinity
 #' Perform neoepitope prediction.
 #'
 #' Perform ensemble neoepitope prediction on a data table of missense mutations, insertions, deletions or gene fusions using netMHC, mhcflurry, and mhcnuggets.
-#' See `list_mhc` for compatible MHC allele syntax.  Multiple MHC alleles for a single sample_id should be space separated.
-#' Please keep **murine and human alleles in separate rows**, this will not affect computational speed but will ensure the correct IEDB file is chosen.  See example.
 #'
 #' @param path Path to input table ([acceptable formats](https://cran.r-project.org/web/packages/rio/vignettes/rio.html#supported_file_formats)).
 #' @param dt Data table. Input data table from `garnish_variants` or `garnish_jaffa`, or a data table in one of these forms:
@@ -1090,12 +1098,12 @@ mcMap(function(x, y) (x %>% as.integer):(y %>% as.integer) %>%
 #'     sample_id                   sample_1
 #'     ensembl_transcript_id       ENST00000311936
 #'     cDNA_change                 c.718T>A
-#'     MHC                         HLA-A02:01 HLA-A03:01
+#'     MHC                         HLA-A*02:01 HLA-A*03:01
 #'                                 H-2-Kb H-2-Kb
 #'                                 HLA-DRB111:07 [second type]
 #'
 #'
-#'dt with peptide:
+#'dt with peptide (standard amino-acid one-letter codes only):
 #'
 #'     Column name                 Example input
 #'
@@ -1106,15 +1114,15 @@ mcMap(function(x, y) (x %>% as.integer):(y %>% as.integer) %>%
 #'                                 7 13 14
 #'     MHC                         <same as above>
 #'
+#' @param counts Optional. A file path to an RNA count matrix. The first column must contain ENSEMBL transcript ids. All samples in the input table must be present in the count matrix.
+#' @param min_counts Integer. The minimum number of read counts that the transcript must be present to pass a variant. Default is 1.
 #' @param assemble Logical. Assemble data table?
 #' @param generate Logical. Generate peptides?
 #' @param predict Logical. Predict binding affinities?
 #' @param blast Logical. Run BLASTp to find wild-type peptide and known IEDB matches?
 #' @param fitness Logical. Run model of [Luksza et al. *Nature* 2017](https://www.ncbi.nlm.nih.gov/pubmed/29132144) to predict neoepitope fitness?
-#' @param humandb Character vector. One of "GRCh37" or "GRCh38".
-#' @param mousedb Character vector. One of "GRCm37" or "GRCm38".
-#' @param save2wd Logical. Save a copy of garnish_predictions output to the working directory as "ag_output.txt"? Default is `FALSE`.
-#' @param remove_wt Logical. Check all nmers peptides generated against wt peptidome and remove matches? Default is `TRUE`. If investigating wild-type sequences, set this to `FALSE`.
+#' @param save Logical. Save a copy of garnish_affinity output to the working directory as "ag_output.txt"? Default is `TRUE`.
+#' @param remove_wt Logical. Check all `nmer`s generated against wt peptidome and remove matches? Default is `TRUE`. If investigating wild-type sequences, set this to `FALSE`.
 #' @return A data table of binding predictions including:
 #' * **cDNA_seq**: mutant cDNA sequence
 #' * **cDNA_locs**: starting index of mutant cDNA
@@ -1137,14 +1145,20 @@ mcMap(function(x, y) (x %>% as.integer):(y %>% as.integer) %>%
 #' * **DAI**: Differential agretopicty index of missense and corresponding wild-type peptide, see `garnish_summary` for an explanation of DAI.
 #' * **BLAST_A**: Ratio of consensus binding affinity of mutant peptide / closest single AA mismatch from blastp results. Returned only if `blast = TRUE`.
 #'
+#' clonality info:
+#' * **clone_id**: rank of the clone containing the variant (highest equals larger tumor fraction).
+#' * **cl_proportion**: The estimated mean tumor fraction containing the clone. If allele fraction and not clonality is used, this is estimated.
+#'
 #' antigen.garnish fitness model results
 #' * **Consensus_scores**: average value of MHC binding affinity from all prediction tools that contributed output. 95\% confidence intervals are given by **Upper_CI**, **Lower_CI**.
 #' * **iedb_score**: R implementation of TCR recognition probability for peptide through summing of alignments in IEDB for corresponding organism.
 #' * **min_DAI**: Minimum of value of BLAST_A or DAI values, to provide the most conservative estimate differential binding between input and wildtype matches.
-#' * **fitness_score**: Product of min_DAI and iedb_score. The peptide with the highest value per sample is the dominant neoepitope. Does not apply to wildtype input.
+#' * **fitness_score**: Product of min_DAI and iedb_score. The peptide with the highest value per clone is the top neoepitope. Does not apply to wildtype input.
+#' * **garnish_score**: overall sample immunogenicity based on top clonal neoepitopes. Only if clonality or allele fraction data is present in the table. See ?garnish_variants.
 #'
 #' fitness model information [Luksza et al. *Nature* 2017](https://www.ncbi.nlm.nih.gov/pubmed/29132144):
 #' * **NeoantigenRecognitionPotential**: Product of A and R (amplitude, analogous to min_DAI, and TCR recognition probability components).
+#' * full raw output saved to the working directory.
 #'
 #' transcript description:
 #' * description
@@ -1154,7 +1168,12 @@ mcMap(function(x, y) (x %>% as.integer):(y %>% as.integer) %>%
 #' * transcript_length
 #' * transcript_start
 #' * peptide
-#'
+#' @details
+#' * dee `list_mhc` for compatible MHC allele syntax
+#' multiple MHC alleles for a single sample_id should be space separated. Murine and human alleles should be in separate rows
+#' * `garnish_score` is calculated if allelic fraction or tumor cellular fraction were provided
+#' @seealso \code{\link{garnish_variants}}
+#' @seealso \code{\link{list_mhc}}
 #' @seealso \code{\link{garnish_summary}}
 #'
 #' @examples
@@ -1177,7 +1196,7 @@ mcMap(function(x, y) (x %>% as.integer):(y %>% as.integer) %>%
 #'                    "HLA-A*01:47 HLA-DRB1*03:08")] %>%
 #'
 #'    # predict neoepitopes
-#'    antigen.garnish::garnish_predictions %>%
+#'    antigen.garnish::garnish_affinity %>%
 #'
 #'    # summarize predictions
 #'    antigen.garnish::garnish_summary %T>%
@@ -1203,7 +1222,7 @@ mcMap(function(x, y) (x %>% as.integer):(y %>% as.integer) %>%
 #'           MHC = c("HLA-A*02:01 HLA-DRB1*14:67",
 #'                   "H-2-Kb H-2-IAd",
 #'                   "HLA-A*01:47 HLA-DRB1*03:08")) %>%
-#'  antigen.garnish::garnish_predictions %T>%
+#'  antigen.garnish::garnish_affinity %T>%
 #'  str
 #' }
 #'
@@ -1219,39 +1238,39 @@ mcMap(function(x, y) (x %>% as.integer):(y %>% as.integer) %>%
 #'           pep_mut = "MTEYKLVVVGAGDVGKSALTIQLIQNHFVDEYDP",
 #'           mutant_index = "12",
 #'           MHC = "all") %>%
-#'  antigen.garnish::garnish_predictions %T>%
+#'  antigen.garnish::garnish_affinity %T>%
 #'  str
 #' }
 #'
 #'\dontrun{
-#'# input from Microsoft Excel
+#'# input from Microsoft excel
 #'
-#'    # download an example Excel file
+#'    # download an example excel file
 #'      path <- "antigen.garnish_test_input.xlsx" %T>%
 #'        utils::download.file("http://get.rech.io/antigen.garnish_test_input.xlsx", .)
 #'
 #'    # predict neoepitopes
-#'      dt <- antigen.garnish::garnish_predictions(path = path) %T>%
+#'      dt <- antigen.garnish::garnish_affinity(path = path) %T>%
 #'      str
 #' }
 #'
 #' @references
 #' Luksza, M, Riaz, N, Makarov, V, Balachandran VP, et al. 2017. A neoepitope fitness model predicts tumour response to checkpoint blockade immunotherapy. Nature. 23;551(7681):512-516
 #'
-#' @export garnish_predictions
+#' @export garnish_affinity
 #' @md
 
-garnish_predictions <- function(dt = NULL,
-                                path = NULL,
-                               assemble = TRUE,
-                               generate = TRUE,
-                               predict = TRUE,
-                               blast = fitness,
-                               fitness = TRUE,
-                               humandb = "GRCh38",
-                               mousedb = "GRCm38",
-                               save2wd = FALSE,
-                               remove_wt = TRUE){
+garnish_affinity <- function(dt = NULL,
+ 														 path = NULL,
+ 														 counts = NULL,
+ 														 min_counts = 1,
+ 														 assemble = TRUE,
+ 														 generate = TRUE,
+ 														 predict = TRUE,
+ 														 blast = fitness,
+ 														 fitness = TRUE,
+ 														 save = TRUE,
+ 														 remove_wt = TRUE){
 
   on.exit({
     message("Removing temporary files")
@@ -1277,11 +1296,11 @@ garnish_predictions <- function(dt = NULL,
   if (!"data.table" %chin% class(dt))
     stop("Input must be a data table.")
 
-  if (!"MHC" %chin% names(dt)) stop("Input must include MHC alleles, see ?garnish_predictions")
+  if (!"MHC" %chin% names(dt)) stop("Input must include MHC alleles, see ?garnish_affinity")
 
   # if class of MHC is a list column, it won't bug until first merge in make_BLAST_uuid, added this.
-  if (class(dt[, MHC]) == "list") stop("MHC column must be a character column, not a list, unlist the column and rerun garnish_predictions.")
-  
+  if (class(dt[, MHC]) == "list") stop("MHC column must be a character column, not a list, unlist the column and rerun garnish_affinity.")
+
   # remove double or more spaces in MHC string (will not bug until garnish_fitness)
   dt[, MHC %>% unique %>% stringr::str_replace_all("\\ +", " ")]
 
@@ -1335,7 +1354,44 @@ if (fitness == TRUE & blast == FALSE)
 
 if (assemble & input_type == "transcript"){
 
-    dt %<>% get_metadata(humandb = humandb, mousedb = mousedb)
+    dt %<>% get_metadata
+
+    if (!missing(counts)){
+
+      ct <- rio::import(counts) %>% data.table::as.data.table
+
+      col <- ct[, .SD, .SDcols = 1] %>% unlist
+
+      if (!all(col %>% stringr::str_detect(pattern = "ENS(MUS)?T")))
+        stop("Count matrix file first column must contain ENSEMBL transcript ids.")
+
+      if (any(is.na(col)) |
+      length(unique(col)) != length(col) |
+      any(stringr::str_detect(col, pattern = stringr::fixed("."))))
+        stop("Count matrix id column has transcript versions, non-unique, or NA values.")
+
+      ct %>% setnames(names(ct)[1], "ensembl_transcript_id")
+
+      ct %<>% melt(id.vars = "ensembl_transcript_id",
+ 									 variable.name = "sample_id",
+                   value.name = "counts",
+ 									 variable.factor = FALSE)
+
+      if(any(!dt[, sample_id %>% unique] %chin% ct[,  sample_id %>% unique]))
+        stop("Count matrix does not contain columns for all samples in input data.")
+
+      ct[, counts := counts > min_counts]
+
+      ct <- ct[counts == TRUE]
+
+      dt <- merge(dt, ct[, .SD %>% unique, .SDcols = c("sample_id", "ensembl_transcript_id")],
+                  by = c("sample_id", "ensembl_transcript_id"))
+
+      if(nrow(dt) == 0)
+        stop("No variants in any sample met RNA counts matrix threshold, check RNA count matrix input and transcript ids or run without a count matrix.")
+
+    }
+
 
     # extract cDNA changes and make cDNA
     dt %<>% extract_cDNA
@@ -1345,11 +1401,10 @@ if (assemble & input_type == "transcript"){
     dt[, pep_wt := coding %>% translate_cDNA]
     dt[, pep_mut := coding_mut %>% translate_cDNA]
 
-    message(paste(nrow(dt[is.na(pep_wt) | is.na(pep_mut)]),
-                "mutants could not be translated and were dropped."))
+    if (dt %>% nrow == 0)
+    	stop("No mutant peptides exist in the data table for affinity prediction.")
 
     dt <- dt[!is.na(pep_wt) & !is.na(pep_mut)]
-
 
     dt[, frameshift := FALSE]
 
@@ -1439,6 +1494,11 @@ if (assemble & input_type == "transcript"){
   }
 
 if (assemble & input_type == "peptide"){
+
+    message("Checking for non-standard AA one-letter codes in \"pep_mut\". Offending rows will be discarded.")
+
+    dt <- dt[pep_mut %like% "^[ARNDCQEGHILKMFPSTWYV]+$"]
+
     dt[mutant_index == "all", mutant_index :=
       get_ss_str(1, pep_mut %>% nchar)]
 }
@@ -1524,25 +1584,25 @@ if (generate){
         # load global peptide database
     if (remove_wt){
 
+      message("Filtering WT peptide matches.")
+
+        d <- system.file(package = "antigen.garnish") %>% file.path(., "extdata")
+
           if (dt$MHC %likef% "HLA" %>% any &
               !dt$MHC %likef% "H-2" %>% any)
               {
                 pepv <-
-                "antigen.garnish_GRCh38_pep.RDS" %>%
-                {
-                  utils::download.file(paste0("http://get.rech.io/", .), .)
+                file.path(d,
+                  "antigen.garnish_GRCh38_pep.RDS") %>%
                   readRDS(.)
-                }
               }
           if (dt$MHC %likef% "H-2" %>% any &
               !dt$MHC %likef% "HLA" %>% any)
               {
                 pepv <-
-                "antigen.garnish_GRCm38_pep.RDS" %>%
-                {
-                  utils::download.file(paste0("http://get.rech.io/", .), .)
+                file.path(d,
+                  "antigen.garnish_GRCm38_pep.RDS") %>%
                   readRDS(.)
-                }
               }
 
           if (
@@ -1552,16 +1612,10 @@ if (generate){
               )
               {
                 pepv <- c(
-                "antigen.garnish_GRCm38_pep.RDS" %>%
-                {
-                  utils::download.file(paste0("http://get.rech.io/", .), .)
-                  readRDS(.)
-                },
-                "antigen.garnish_GRCh38_pep.RDS" %>%
-                {
-                  utils::download.file(paste0("http://get.rech.io/", .), .)
-                  readRDS(.)
-                }
+                  file.path(d, "antigen.garnish_GRCh38_pep.RDS") %>%
+                    readRDS(.),
+                    file.path(d, "antigen.garnish_GRCm38_pep.RDS") %>%
+                      readRDS(.)
                 )
               }
 
@@ -1670,7 +1724,6 @@ up <- lapply(dtl, function(x){x[[2]]}) %>% unlist
    if (fitness & predict){
 
      message("Running garnish_fitness...")
-     message("N.B. fitness model will be run on nmers of all lengths, but original validation was for 9mers only.")
 
      dt %<>% garnish_fitness
 
@@ -1688,13 +1741,20 @@ up <- lapply(dtl, function(x){x[[2]]}) %>% unlist
 
     }
 
-    if ("iedb_score" %chin% names(dt))
+    if ("iedb_score" %chin% names(dt)){
       dt[!is.na(iedb_score) & !is.na(min_DAI),
           fitness_score := min_DAI * iedb_score]
 
+      dt[pep_type != "wt" & !is.na(fitness_score) & Consensus_scores > 5000,
+        fitness_score := 0]
+
+        }
    }
 
-   if (save2wd){
+   if (any(c("cellular_fraction", "allelic_fraction") %chin% names(dt)))
+    dt %<>% garnish_clonality
+
+   if (save){
 
      gplot_fn <- format(Sys.time(), "%d/%m/%y %H:%M:%OS") %>%
                    stringr::str_replace_all("[^A-Za-z0-9]", "_") %>%
@@ -1716,7 +1776,7 @@ up <- lapply(dtl, function(x){x[[2]]}) %>% unlist
 ## ---- make_nmers
 #' Internal function for parallelized `nmer` creation.
 #'
-#' @param dt Data table. Input data table from `garnish_predictions`.
+#' @param dt Data table. Input data table from `garnish_affinity`.
 #'
 #' @export make_nmers
 #' @md
@@ -1754,7 +1814,8 @@ nmer_dt <- lapply((15:8), function(pl){
         mut_frag_loc <- dt$mutant_index[n]
 
         # if the peptide is not long enough, return
-        if (!(mut_frag_t %>% length) >= pl) return(NULL)
+        if (!(mut_frag_t %>% length) >= pl)
+        	return(NULL)
 
           # re-register peptide if the mutant index
           # is not centered due to back truncation

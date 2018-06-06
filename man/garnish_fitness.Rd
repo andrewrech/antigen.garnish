@@ -7,16 +7,16 @@
 garnish_fitness(dt, a = 26, k = 4.86936)
 }
 \arguments{
-\item{dt}{Data table output from \code{garnish_predictions}.}
+\item{dt}{Data table output from \code{garnish_affinity}.}
 
-\item{a}{Fitness model parameter. Binding curve horizontal displacement used to determine TCR recognition probability of a peptide compared to an IEDB near match.}
+\item{a}{Numeric fitness model parameter. Binding curve horizontal displacement used to determine TCR recognition probability of a peptide compared to an IEDB near match.}
 
-\item{k}{Fitness model parameter. Steepness of the binding curve at \code{a}.}
+\item{k}{Numeric fitness model parameter. Steepness of the binding curve at \code{a}.}
 }
 \value{
 A data table with added fitness model parameter columns:
 \itemize{
-\item \strong{NeoantigenRecognitionPotential}: Neoantigen Recognition Potential calculated by the model.
+\item \strong{NeoantigenRecognitionPotential}: Neoantigen recognition potential calculated by the model.
 }
 }
 \description{

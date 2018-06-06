@@ -4,6 +4,7 @@ testthat::test_that("run_netMHC", {
   on.exit(list.files(pattern = "netMHC_.*csv") %>% file.remove)
 
   skip_pred_tools()
+  d <- test_data_dir()
 
   # load test data
     dt <- structure(
@@ -24,12 +25,15 @@ testthat::test_that("run_netMHC", {
         class = c("data.table", "data.frame"),
         row.names = c(NA, -3L
     ))
-    utils::download.file("http://get.rech.io/antigen.garnish_example_netMHC_906b84c7-7442-4371.csv",
-                         "antigen.garnish_example_netMHC_906b84c7-7442-4371.csv")
-    utils::download.file("http://get.rech.io/antigen.garnish_example_netMHCIIpan_af9b5685-733a-49c9.csv",
-                         "antigen.garnish_example_netMHCIIpan_af9b5685-733a-49c9.csv")
-    utils::download.file("http://get.rech.io/antigen.garnish_example_netMHCpan_5cf162b8-577c-44ae.csv",
-                         "antigen.garnish_example_netMHCpan_5cf162b8-577c-44ae.csv")
+
+    input <- file.path(d, c("antigen.garnish_example_netMHC_906b84c7-7442-4371.csv",
+    "antigen.garnish_example_netMHCIIpan_af9b5685-733a-49c9.csv",
+    "antigen.garnish_example_netMHCpan_5cf162b8-577c-44ae.csv"
+    ))
+
+    # copy to wd
+    file.copy(input, basename(input))
+    
   # run test
     dto <- run_netMHC(dt) %>% data.table::rbindlist(fill = TRUE)
 

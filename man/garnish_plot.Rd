@@ -2,17 +2,19 @@
 % Please edit documentation in R/antigen.garnish_io.R
 \name{garnish_plot}
 \alias{garnish_plot}
-\title{Graph \code{garnish_predictions} results.}
+\title{Graph \code{garnish_affinity} results.}
 \usage{
-garnish_plot(input)
+garnish_plot(input, ext = "pdf")
 }
 \arguments{
-\item{input}{Output from \code{garnish_predictions} to graph. \code{input} may be a data table object, list of data tables, or file path to a rio::import-compatible file type. If a list of data tables is provided, unique plots will be generated for each data table.}
+\item{input}{Output from \code{garnish_affinity} to graph. \code{input} may be a data table object, list of data tables, or file path to a rio::import-compatible file type. If a list of data tables is provided, unique plots will be generated for each data table.}
+
+\item{ext}{File extension passed to ggplot2::ggsave, default is "pdf".}
 }
 \value{
 NULL
 
-As a side effect: saves graph illustrating the number of neoepitopes in each sample to the working directory. The threshold for inclusion of fusion and frameshift-derived neoepitopes is \eqn{IC_{50}} < 1000nM.
+As a side effect: saves graph illustrating the number of neoepitopes in each sample and fitness model results to the working directory. The threshold for inclusion of fusion and frameshift-derived neoepitopes is \eqn{IC_{50}} < 1000nM.
 }
 \description{
 Plot ADN, CDN, priority, frameshift, and fusion derived \code{nmers} for class I and class II MHC by \code{sample_id}.
@@ -34,7 +36,7 @@ library(antigen.garnish)
 
 }
 \seealso{
-\code{\link{garnish_predictions}}
+\code{\link{garnish_affinity}}
 
 \code{\link{garnish_summary}}
 }

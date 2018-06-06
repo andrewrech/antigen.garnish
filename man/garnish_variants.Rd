@@ -4,17 +4,15 @@
 \alias{garnish_variants}
 \title{Process VCF variants and return a data table for epitope prediction.}
 \usage{
-garnish_variants(vcfs, intersect = TRUE)
+garnish_variants(vcfs)
 }
 \arguments{
-\item{vcfs}{Paths to VFC files to import.}
-
-\item{intersect}{Logical. Return only the intersection of variants in multiple \code{vcfs} with identical sample names? Intersection performed on \code{SnpEff} annotations. One \code{vcf} file per somatic variant caller-input samples pair is required.}
+\item{vcfs}{Paths to one or more VFC files to import. See details below.}
 }
 \value{
 A data table with one unique SnpEff variant annotation per row, including:
 \itemize{
-\item \strong{sample_id}: sample identifier constructed from input \code{.bam} file names
+\item \strong{sample_id}: sample identifier constructed from input \code{.vcf} file names
 \item \strong{se}: SnpEff annotation
 \item \strong{effect_type}: SnpEff effect type
 \item \strong{ensembl_transcript_id}: transcript effected
@@ -23,12 +21,26 @@ A data table with one unique SnpEff variant annotation per row, including:
 \item \strong{cDNA_change}: cDNA change in \href{http://varnomen.hgvs.org/recommendations/protein/}{HGVS} format
 \item \strong{protein_coding}: is the variant protein coding?
 }
+
+if CF or AF fields in provided in input VCFs, either:
+\itemize{
+\item \strong{cellular_fraction}: cell fraction taken from input, such as from clonality estimates from \href{http://www.github.com/lima1/PureCN}{PureCN}
+\item \strong{allelic_fraction}: allelic fraction taken from input
+}
 }
 \description{
-Process paired tumor-normal VCF variants annotated with \href{http://snpeff.sourceforge.net/}{SnpEff} for neoepitope prediction using \code{garnish_predictions}. VCFs from matched samples can be optionally intersected to select only variants present across input files.
+Process paired tumor-normal VCF variants annotated with \href{http://snpeff.sourceforge.net/}{SnpEff} for neoepitope prediction using \code{garnish_affinity}. VCFs from matched samples can be optionally intersected to select only variants present across input files.
 }
 \details{
-Recommended somatic variant callers: \href{https://github.com/broadinstitute/gatk}{MuTect2}, \href{https://github.com/Illumina/strelka}{Strelka2}
+\code{vcf}s can optionally contain an \code{AF} or \code{CF} \emph{INFO} field, in which case cellular fraction or allelic fraction is considered when ranking neoepitopes. \href{http://get.rech.io/antigen.garnish_example.vcf}{Example vcf}. Single samples are required. Multi-sample \code{vcf}s are not supported. \code{vcf}s must be annotated with \href{http://snpeff.sourceforge.net/}{SnpEff}.
+
+Recommended workflow:
+\enumerate{
+\item Call variants using \href{https://github.com/broadinstitute/gatk}{MuTect2} and \href{https://github.com/Illumina/strelka}{Strelka2}, \href{https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5394620/}{intersecting variants}.
+\item Variant filtering according to experimental specifications.
+\item Classification by somatic status and clonality using \href{http://www.github.com/lima1/PureCN}{PureCN}.
+\item Annotate variants using \href{http://snpeff.sourceforge.net/}{SnpEff} (\strong{required}).
+}
 }
 \examples{
 \dontrun{
@@ -46,8 +58,14 @@ library(antigen.garnish)
 
 }
 \references{
+Krøigård AB, Thomassen M, Lænkholm A-V, Kruse TA, Larsen MJ. 2016. Evaluation of Nine Somatic Variant Callers for Detection of Somatic Mutations in Exome and Targeted Deep Sequencing Data. PLoS ONE. 11(3):e0151664
+
+Cingolani P, Platts A, Wang LL, Coon M, Nguyen T, et al. 2012. A program for annotating and predicting the effects of single nucleotide polymorphisms, SnpEff: SNPs in the genome of Drosophila melanogaster strain w1118; iso-2; iso-3. Fly (Austin). 6(2):80–92
+
+Riester M, Singh AP, Brannon AR, Yu K, Campbell CD, et al. 2016. PureCN: copy number calling and SNV classification using targeted short read sequencing. Source Code Biol Med. 11(1):13
+
 Callari M, Sammut SJ, De Mattos-Arruda L, Bruna A, Rueda OM, Chin SF, and Caldas C. 2017. Intersect-then-combine approach: improving the performance of somatic variant calling in whole exome sequencing data using multiple aligners and callers. Genome Medicine. 9:35.
 }
 \seealso{
-\code{\link{garnish_predictions}}
+\code{\link{garnish_affinity}}
 }

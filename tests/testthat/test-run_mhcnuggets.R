@@ -4,19 +4,18 @@ testthat::test_that("run_mhcnuggets", {
   on.exit(list.files(pattern = "mhcnuggets_.*csv") %>% file.remove)
 
   skip_pred_tools()
+  d <- test_data_dir()
 
   # load test data
-    input <- c(
-      "antigen.garnish_example_mhcnuggets_input_gru_H-2-KB_e2bcc9b8-94fa-412b.csv",
+    input <- file.path(d,
+      c("antigen.garnish_example_mhcnuggets_input_gru_H-2-KB_e2bcc9b8-94fa-412b.csv",
       "antigen.garnish_example_mhcnuggets_input_gru_HLA-A0201_9efed71c-199b-44b3.csv",
       "antigen.garnish_example_mhcnuggets_input_lstm_H-2-KB_97739391-6066-4632.csv",
       "antigen.garnish_example_mhcnuggets_input_lstm_HLA-A0201_e4c2872d-c055-4a93.csv"
-      )
+    ))
 
-lapply(input, function(i){
-      i %>%
-      {utils::download.file(paste0("http://get.rech.io/", .), .)}
-      })
+    # temporarily copy these to working directory
+    file.copy(input, basename(input))
 
   # run test
     run_mhcnuggets()

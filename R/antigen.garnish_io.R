@@ -3,7 +3,7 @@
 #'
 #' Calculate neoepitope summary statistics for priority, classic, alternative, frameshift-derived, and fusion-derived neoepitopes for each sample.
 #'
-#' @param dt Data table. Prediction output from `garnish_predictions`.
+#' @param dt Data table. Prediction output from `garnish_affinity`.
 #'
 #' @examples
 #'\dontrun{
@@ -23,7 +23,7 @@
 #'                  "HLA-A*01:47 HLA-DRB1*03:08")] %>%
 #'
 #'  # predict neoepitopes
-#'    antigen.garnish::garnish_predictions %>%
+#'    antigen.garnish::garnish_affinity %>%
 #'
 #'  # summarize predictions
 #'    antigen.garnish::garnish_summary %T>%
@@ -45,6 +45,7 @@
 #' * **predictions**: wt and mutant predictions performed
 #' * **mhc_binders**: `nmers` predicted to at least minimally bind MHC (< 5000nM \eqn{IC_{50}})
 #' * **fitness_scores**: Sum of the top 3 fitness_score values per sample. See `?garnish_fitness`.
+#' * **garnish_score**: Sample level immune fitness. Derived by summing the exponential of `fitness_scores` for each top neoepitope across all clones in the tumor sample. See ?garnish_predicitons.
 #' * **variants**: total genomic variants evaluated
 #' * **transcripts**: total transcripts evaluated
 #'
@@ -58,7 +59,8 @@
 #'
 #'To better model potential for oligoclonal antitumor responses directed against neoepitopes, we additionally report a **top three neoepitope score**, which is defined as the sum of the top three affinity scores \eqn{\left(\frac{1}{IC_{50}}\right)} for CDNs or sum of top three DAI for ADNs. The top three was chosen in each case because this is the minimum number that captures the potential for an oligoclonal T cell response and mirrors experimentally confirmed oligoclonality of T cell responses against human tumors. Moreover, the top three score was the least correlated to total neoepitope load (vs. top 4 through top 15) in a large scale human analysis of neoepitope across 27 disease types (R-squared = 0.0495), and therefore not purely a derivative of total neoepitope load.
 #'
-#' @seealso \code{\link{garnish_plot}} for a sample level summary plotting function.
+#' @seealso \code{\link{garnish_affinity}}
+#' @seealso \code{\link{garnish_plot}}
 #' @export garnish_summary
 #'
 #' @references
@@ -81,6 +83,7 @@
 garnish_summary <- function(dt){
 
   # magrittr version check, this will not hide the error, only the NULL return on successful exit
+
   invisible(check_dep_versions())
 
 # summarize over unique nmers
@@ -97,7 +100,10 @@ garnish_summary <- function(dt){
     dt[is.na(DAI), DAI  := 0]
 
 
-  dt <- dt[DAI != Inf & DAI != -Inf & Consensus_scores != Inf & Consensus_scores != -Inf]
+  dt <- dt[DAI != Inf &
+					 DAI != -Inf &
+					 Consensus_scores != Inf &
+					 Consensus_scores != -Inf]
 
 # function to sum top values of a numeric vector
 
@@ -224,6 +230,10 @@ dtn <- parallel::mclapply(dt[, sample_id %>% unique], function(id){
 
   }
 
+  if ("garnish_score" %chin% names(dt))
+    dtn <- merge(dtn, dt[!is.na(garnish_score), .SD %>% unique, .SDcols = c("sample_id", "garnish_score")],
+      all.x = TRUE, by = "sample_id")
+
   if (c("ensembl_transcript_id", "var_uuid") %chin% (dt %>% names) %>% all) {
 
 dtnv <- parallel::mclapply(dt[, sample_id %>% unique], function(id){
@@ -250,15 +260,12 @@ dtnv <- parallel::mclapply(dt[, sample_id %>% unique], function(id){
 ## ---- garnish_variants
 #' Process VCF variants and return a data table for epitope prediction.
 #'
-#' Process paired tumor-normal VCF variants annotated with [SnpEff](http://snpeff.sourceforge.net/) for neoepitope prediction using `garnish_predictions`. VCFs from matched samples can be optionally intersected to select only variants present across input files.
+#' Process paired tumor-normal VCF variants annotated with [SnpEff](http://snpeff.sourceforge.net/) for neoepitope prediction using `garnish_affinity`. VCFs from matched samples can be optionally intersected to select only variants present across input files.
 #'
-#' Recommended somatic variant callers: [MuTect2](https://github.com/broadinstitute/gatk), [Strelka2](https://github.com/Illumina/strelka)
-#'
-#' @param vcfs Paths to VFC files to import.
-#' @param intersect Logical. Return only the intersection of variants in multiple `vcfs` with identical sample names? Intersection performed on `SnpEff` annotations. One `vcf` file per somatic variant caller-input samples pair is required.
+#' @param vcfs Paths to one or more VFC files to import. See details below.
 #'
 #' @return A data table with one unique SnpEff variant annotation per row, including:
-#' * **sample_id**: sample identifier constructed from input \code{.bam} file names
+#' * **sample_id**: sample identifier constructed from input \code{.vcf} file names
 #' * **se**: SnpEff annotation
 #' * **effect_type**: SnpEff effect type
 #' * **ensembl_transcript_id**: transcript effected
@@ -267,7 +274,20 @@ dtnv <- parallel::mclapply(dt[, sample_id %>% unique], function(id){
 #' * **cDNA_change**: cDNA change in [HGVS](http://varnomen.hgvs.org/recommendations/protein/) format
 #' * **protein_coding**: is the variant protein coding?
 #'
-#' @seealso \code{\link{garnish_predictions}}
+#' if CF or AF fields in provided in input VCFs, either:
+#' * **cellular_fraction**: cell fraction taken from input, such as from clonality estimates from [PureCN](http://www.github.com/lima1/PureCN)
+#' * **allelic_fraction**: allelic fraction taken from input
+#'
+#' @seealso \code{\link{garnish_affinity}}
+#'
+#' @details `vcf`s can optionally contain an `AF` or `CF` *INFO* field, in which case cellular fraction or allelic fraction is considered when ranking neoepitopes. [Example vcf](http://get.rech.io/antigen.garnish_example.vcf). Single samples are required. Multi-sample `vcf`s are not supported. `vcf`s must be annotated with [SnpEff](http://snpeff.sourceforge.net/).
+#'
+#' Recommended workflow:
+#'
+#' 1. Call variants using [MuTect2](https://github.com/broadinstitute/gatk) and [Strelka2](https://github.com/Illumina/strelka), [intersecting variants](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5394620/).
+#' 3. Variant filtering according to experimental specifications.
+#' 4. Classification by somatic status and clonality using [PureCN](http://www.github.com/lima1/PureCN).
+#' 5. Annotate variants using [SnpEff](http://snpeff.sourceforge.net/) (**required**).
 #'
 #' @examples
 #'\dontrun{
@@ -284,50 +304,66 @@ dtnv <- parallel::mclapply(dt[, sample_id %>% unique], function(id){
 #'}
 #'
 #' @references
+#' Krøigård AB, Thomassen M, Lænkholm A-V, Kruse TA, Larsen MJ. 2016. Evaluation of Nine Somatic Variant Callers for Detection of Somatic Mutations in Exome and Targeted Deep Sequencing Data. PLoS ONE. 11(3):e0151664
+#'
+#' Cingolani P, Platts A, Wang LL, Coon M, Nguyen T, et al. 2012. A program for annotating and predicting the effects of single nucleotide polymorphisms, SnpEff: SNPs in the genome of Drosophila melanogaster strain w1118; iso-2; iso-3. Fly (Austin). 6(2):80–92
+#'
+#' Riester M, Singh AP, Brannon AR, Yu K, Campbell CD, et al. 2016. PureCN: copy number calling and SNV classification using targeted short read sequencing. Source Code Biol Med. 11(1):13
+#'
 #' Callari M, Sammut SJ, De Mattos-Arruda L, Bruna A, Rueda OM, Chin SF, and Caldas C. 2017. Intersect-then-combine approach: improving the performance of somatic variant calling in whole exome sequencing data using multiple aligners and callers. Genome Medicine. 9:35.
 #'
 #' @export garnish_variants
 #' @md
 
-garnish_variants <- function(vcfs, intersect = TRUE){
+garnish_variants <- function(vcfs){
 
   # magrittr version check, this will not hide the error, only the NULL return on successful exit
+
   invisible(check_dep_versions())
 
   message("Loading VCFs")
 
-ivfdtl <- parallel::mclapply(vcfs %>% seq_along, function(ivf){
+sdt <- lapply(vcfs %>% seq_along, function(ivf){
 
   # load dt
       vcf <-  vcfR::read.vcfR(vcfs[ivf], verbose = TRUE)
 
-  # extract sample names from Mutect2 and Strelka command line for intersection
+    #  if (!is.null(vcf@gt)){
+    #   sample_id <- vcf@gt %>%
+    #   data.table::as.data.table %>%
+    #   names %>%
+    #   .[-1] %>% paste(collapse = ".")
+    # }
 
-      sample_id <- vcf@meta %>%
-                      stringr::str_extract_all("[^ ]+\\.bam") %>%
-                      unlist %>%
-                      unique %>%
-                      basename %>%
-                      sort %>%
-                      paste(collapse = "_") %>%
-                      stringr::str_replace("\\.bam", "")
+  # fallback if sample names are missing
 
-  # account for no bam names in header, as with VarScan
-      if (sample_id == "") sample_id <- basename(vcfs[ivf])
+			# if (sample_id == ""){
+			  # warning(paste0(
+			  # "No sample names in ", vcfs[ivf], ", using file name."))
+			  sample_id <- basename(vcfs[ivf])
+			  # }
 
   # extract vcf type
+
       vcf_type <- vcf@meta %>%
         unlist %>%
-        stringr::str_extract(stringr::regex("(Strelka)|(Mutect)|(VarScan)|(samtools mpileup)|(somaticsniper)|(freebayes)|(virmid)",
-          ignore_case = TRUE)) %>%
+        stringr::str_extract(stringr::regex("strelka|mutect|varscan|samtools|somaticsniper|freebayes|virmid",ignore_case = TRUE)) %>%
         stats::na.omit %>%
-                 unlist %>%
+        unlist %>%
         data.table::first
-      if (vcf_type %>% length == 0) vcf_type <- "other"
+
+      if (vcf_type %>% length == 0)
+      	vcf_type <- "unknown"
 
   # return a data table of variants
 
-    vdt <- vcf@fix %>% data.table::as.data.table
+    vdt <- vcf %>% get_vcf_info_dt
+
+  # rename generic columns to prevent downstream errors
+
+  if (names(vdt) %like% "^V[0-9]+$" %>% any)
+    vdt %>% data.table::setnames(names(vdt) %include% "^V[0-9]+$",
+              paste(names(vdt) %include% "^V[0-9]+$", ".x", sep = ""))
 
   # check that VCF is SnpEff-annotated
 
@@ -336,186 +372,130 @@ ivfdtl <- parallel::mclapply(vcfs %>% seq_along, function(ivf){
         !vdt[, INFO %>%
       stringr::str_detect(stringr::fixed("ANN=")) %>% all]
       )
-      stop(paste0("\nInput file \n", vcfs[ivf], "\nis missing INFO SnpEff annotations"))
+      stop(paste0("\nInput file \n",
+									vcfs[ivf],
+									"\nis missing INFO SnpEff annotations"))
 
-    if (vcf@gt %>% length > 0) vdt <- cbind(vdt, vcf@gt %>% data.table::as.data.table)
+  	# parse sample level info
 
-    if (vdt %>% nrow < 1) return(data.table::data.table(sample_id = sample_id))
+	    if (vcf@gt %>% length > 0)
+	      vdt %<>% cbind(vcf %>% get_vcf_sample_dt)
+
+    if (vdt %>% nrow < 1)
+    	return(data.table::data.table(sample_id = sample_id))
 
     vdt[, sample_id := sample_id]
     vdt[, vcf_type := vcf_type]
 
+
+		if (vdt %>% nrow < 1){
+			warning("No variants are present in the input file.")
+			return(data.table::data.table(sample_id = sample_id))
+			}
+
+
+		if (vdt %>% class %>%
+		     .[1] == "try-error"){
+		  warning("Error parsing input file INFO field.")
+		  return(data.table::data.table(sample_id = sample_id))
+      }
+
+		# parse ANN column
+
+		vdt %<>% get_vcf_snpeff_dt
+
+		if (vdt %>% class %>%
+		     .[1] == "try-error"){
+		  warning("Error parsing input file SnpEff ANN annotation.")
+		  return(data.table::data.table(sample_id = sample_id))
+      }
+
     # filter SnpEff warnings
 
-    vdt %<>% get_snpeff
+    vdt %<>% .[!ANN %like% "ERROR_.*CHROMOSOME"]
+    vdt %<>% .[!ANN %likef% "WARNING_SEQUENCE_NOT_AVAILABLE"]
+    vdt %<>% .[!ANN %likef% "WARNING_TRANSCRIPT_INCOMPLETE"]
+    vdt %<>% .[!ANN %likef% "WARNING_TRANSCRIPT_MULTIPLE_STOP_CODONS"]
+    vdt %<>% .[!ANN %likef% "WARNING_TRANSCRIPT_NO_START_CODON"]
 
-    vdt %<>% .[!se %like% "ERROR_.*CHROMOSOME"]
-    vdt %<>% .[!se %likef% "WARNING_SEQUENCE_NOT_AVAILABLE"]
-    vdt %<>% .[!se %likef% "WARNING_TRANSCRIPT_INCOMPLETE"]
-    vdt %<>% .[!se %likef% "WARNING_TRANSCRIPT_MULTIPLE_STOP_CODONS"]
-    vdt %<>% .[!se %likef% "WARNING_TRANSCRIPT_NO_START_CODON"]
-
-    if (vdt %>% nrow < 1) return(data.table::data.table(sample_id = sample_id))
+    if (vdt %>% nrow < 1){
+      warning("No variants are present in the input file after filtering.")
+    	return(data.table::data.table(sample_id = sample_id))
+    	}
 
     # filter out NA
-    vdt %<>% .[!ensembl_transcript_id %>% is.na &
-               !cDNA_change %>% is.na]
+    if (any(names(vdt) %like% "refseq")){
 
-    # this bugs downstream if nrow = 0 at this point, ie vcf of all intergenic
-    if (vdt %>% nrow < 1) return(data.table::data.table(sample_id = sample_id))
+      vdt %<>% .[!cDNA_change %>% is.na &
+                (!is.na(ensembl_transcript_id) | !is.na(refseq_id))]
+
+      rs <- system.file(package = "antigen.garnish") %>% file.path(., "extdata", "Refseq_ids.txt") %>%
+              data.table::fread
+
+      vdt <- list(vdt[!is.na(ensembl_transcript_id)],
+                  merge(vdt[is.na(ensembl_transcript_id)] %>% .[, ensembl_transcript_id := NULL],
+                            rs, all.x = TRUE, by = "refseq_id")
+              ) %>% data.table::rbindlist(use.names = TRUE)
+
+      # drop redundancy from multiple NCBI tx ids matching to same ensembl tx id
+      vdt %<>% .[!cDNA_change %>% is.na & !is.na(ensembl_transcript_id)] %>%
+                  unique(by = c("sample_id", "cDNA_change", "ensembl_transcript_id"))
+
+              }
+      else{
+        vdt %<>% .[!cDNA_change %>% is.na & !is.na(ensembl_transcript_id)]
+      }
+
+    if (vdt %>% nrow < 1){
+      warning("No variants are present in the input file after filtering.")
+    	return(data.table::data.table(sample_id = sample_id))
+    	}
+
+    if ("CF" %chin% (vdt %>% names))
+      vdt %>% data.table::setnames("CF", "cellular_fraction")
+
+    # AF is a GT field not an INFO field, and account for multiple alt alleles in this scenario
+    if ("TUMOR_AF" %chin% (vdt %>% names)){
+
+      vdt %>% data.table::setnames("TUMOR_AF", "allelic_fraction")
+
+      vdt %<>% tidyr::separate_rows(c("ALT", "allelic_fraction"), sep = ",")
+
+      # now keep only rows that match the previously split ANN field
+
+      vdt <- vdt[ALT == stringr::str_extract(ANN, pattern = "^[AGCT]+(?=\\|)")]
+
+    }
 
     return(vdt)
     })
 
-rename_vcf_fields <- function(dt1, dt2) {
+  if(class(sdt)[1] == "list")
+    sdt %<>% data.table::rbindlist(use.names = TRUE,
+                                   fill = TRUE)
 
-       # a function to rename VCF INFO and
-        # FORMAT fields for merging
-
-      for (common_col in c("INFO", "FORMAT")){
-
-          if (common_col %chin% (dt %>% names))
-            dt %>%
-              data.table::setnames(common_col,
-                paste0(common_col, "_", dt[, vcf_type[1]]))
-          if (common_col %chin% (dt2 %>% names))
-            dt2 %>%
-              data.table::setnames(common_col,
-                paste0(common_col, "_", dt2[, vcf_type[1]]))
-        }
-    }
-
-merge_vcf <- function(dt, dt2){
-
-    # a function to intersect annotated variants
-      # across VCFs using SnpEff
-
-      sdt <- merge(dt, dt2[, .SD,
-                 .SDcols = c("INFO",
-                             "FORMAT",
-                             "ensembl_transcript_id",
-                             "cDNA_change")],
-                 by = c("ensembl_transcript_id",
-                        "cDNA_change"))
-
-      sdt[, vcf_type := "intersect"]
-         return(sdt)
-
-  }
-
-union_vcf <- function(dt, dt2){
-
-    # a function to take the union of annotated variants
-      # across VCFs using SnpEff
-
-      rename_vcf_fields(dt, dt2)
-      mdt <- merge(dt, dt2[, .SD,
-                 .SDcols = c(dt2 %>% names %include% "^INFO",
-                             dt2 %>% names %include% "^FORMAT",
-                             "ensembl_transcript_id",
-                             "cDNA_change")],
-                  by = c("ensembl_transcript_id",
-                          "cDNA_change"))
-
-      overlaps <- mdt[, paste0(ensembl_transcript_id,
-                               cDNA_change) %>%
-                        unique]
-
-      sdt <- rbindlist(list(
-            mdt,
-            dt[!paste0(ensembl_transcript_id, cDNA_change) %chin%
-              overlaps],
-            dt2[!paste0(ensembl_transcript_id, cDNA_change) %chin%
-              overlaps]
-              ), use.names = TRUE, fill = TRUE)
-
-
-      sdt[, vcf_type := "union"]
-           return(sdt)
-
-  }
-
-sample_ids <- lapply(ivfdtl, function(dt){
-                    dt$sample_id %>% unique
-                      }) %>% unique
-
-    # drop vcfs that had no variants before intersect or union attempts to prevent .SDcols bugs
-
-drop <- lapply(ivfdtl, function(x){
-
-      names(x) %>% length
-
-    }) %>% unlist
-
-    if ((drop == 1) %>% any){
-
-      message(paste(vcfs[which(drop == 1)], "returned no suitable variants and will be excluded from output.\n", sep = " "))
-
-      ivfdtl <- ivfdtl[which(drop != 1)]
-
-      if (length(ivfdtl) == 0) return(NULL)
-
-    }
-
-
-    # return an intersected data table of variants
-
-      sdt <- parallel::mclapply(sample_ids,
-
-function(sn){
-
-        # find data tables with matching sample names
-
-sdt <- lapply(ivfdtl, function(dt){
-
-             dt[, sample_id %>% .[1]] == sn
-
-            }) %>% unlist
-
-      # merge all data tables with matching sample names
-
-        if (ivfdtl[sdt] %>% length == 1)
-          return(ivfdtl[[sdt %>% which]])
-
-        if ((ivfdtl[sdt] %>% length > 1) & intersect == TRUE) {
-
-          x <- ivfdtl[sdt] %>% Reduce(merge_vcf, .)
-
-          if (nrow(x) > 0) return(x)
-
-          if (nrow(x) == 0){
-
-            message(paste("No variants from", sn, "intersect. Returning union."))
-
-            return(ivfdtl[sdt] %>% Reduce(union_vcf, .))
-
-          }
-
-        }
-
-
-        if ((ivfdtl[sdt] %>% length > 1) & intersect == FALSE)
-          return(ivfdtl[sdt] %>% Reduce(union_vcf, .))
-
-
-      }) %>% data.table::rbindlist(use.names = TRUE, fill = TRUE)
-
-      if (nrow(sdt) == 0){
-        message("All samples returned no suitable variants and will be excluded from output.")
-        return(NULL)
-      }
-
-  # select protein coding variants without NA
-  sdt %<>%
-    .[protein_coding == TRUE &
-    !protein_change %>% is.na &
-    !effect_type %>% is.na &
-     effect_type %like% "insertion|deletion|missense|frameshift"]
-
-  if (nrow(sdt) == 0){
-    message("All samples returned no suitable variants and will be excluded from output.")
+  if (nrow(sdt) == 0 || ncol(sdt) == 1){
+    warning("No samples returned passing variants.")
     return(NULL)
   }
+
+# select protein coding variants without NA
+sdt %<>%
+  .[protein_coding == TRUE &
+  !protein_change %>% is.na &
+  !effect_type %>% is.na &
+  effect_type %like% "insertion|deletion|missense|frameshift"]
+
+  if (nrow(sdt) == 0){
+    warning("No samples returned protein coding variants.")
+    return(NULL)
+  }
+
+  if ("cellular_fraction" %chin% names(sdt))
+    sdt[, cellular_fraction := cellular_fraction %>% as.numeric]
+
+  if ("allelic_fraction" %chin% names(sdt))
+    sdt[, allelic_fraction := allelic_fraction %>% as.numeric]
 
   return(sdt)
 
@@ -524,13 +504,14 @@ sdt <- lapply(ivfdtl, function(dt){
 
 
 ## ---- garnish_plot
-#' Graph `garnish_predictions` results.
+#' Graph `garnish_affinity` results.
 #'
 #' Plot ADN, CDN, priority, frameshift, and fusion derived `nmers` for class I and class II MHC by `sample_id`.
 #'
-#' @param input Output from `garnish_predictions` to graph. `input` may be a data table object, list of data tables, or file path to a rio::import-compatible file type. If a list of data tables is provided, unique plots will be generated for each data table.
+#' @param input Output from `garnish_affinity` to graph. `input` may be a data table object, list of data tables, or file path to a rio::import-compatible file type. If a list of data tables is provided, unique plots will be generated for each data table.
+#' @param ext File extension passed to ggplot2::ggsave, default is "pdf".
 #'
-#' @seealso \code{\link{garnish_predictions}}
+#' @seealso \code{\link{garnish_affinity}}
 #' @seealso \code{\link{garnish_summary}}
 #'
 #' @examples
@@ -550,16 +531,18 @@ sdt <- lapply(ivfdtl, function(dt){
 #'
 #' @return NULL
 #'
-#' As a side effect: saves graph illustrating the number of neoepitopes in each sample to the working directory. The threshold for inclusion of fusion and frameshift-derived neoepitopes is \eqn{IC_{50}} < 1000nM.
+#' As a side effect: saves graph illustrating the number of neoepitopes in each sample and fitness model results to the working directory. The threshold for inclusion of fusion and frameshift-derived neoepitopes is \eqn{IC_{50}} < 1000nM.
 #'
 #' @export garnish_plot
 #'
 #' @md
 
-garnish_plot <- function(input){
+garnish_plot <- function(input, ext = "pdf"){
 
   # magrittr version check, this will not hide the error, only the NULL return on successful exit
   invisible(check_dep_versions())
+
+  ext <- paste0(".", ext)
 
   # check input
   if (class(input)[1] == "list" & class(input[[1]])[1] != "data.table")
@@ -673,6 +656,18 @@ type <- lapply(dt[, type %>% unique], function(x){
                                 replicate(ns, "MHC Class II")),
                         type = type,
                         N = 0) %>% unique
+
+      if ("binding" %chin% names(dt)){
+        gdt <- data.table::rbindlist(
+          list(
+          gdt %>% data.table::copy %>% .[, binding := "<1000nM"],
+          gdt %>% data.table::copy %>% .[, binding := "<500nM"],
+          gdt %>% data.table::copy %>% .[, binding := "<50nM"]
+
+        ), use.names = TRUE)
+      }
+
+
       return(gdt)
 
         }
@@ -761,7 +756,7 @@ lapply(input %>% seq_along, function(i){
             ggplot2::ggsave(plot = g,
                   paste0("antigen.garnish_Neoepitopes_summary_",
                     gplot_fn,
-                    ".pdf")
+                    ext)
                   , height = 6, width = 9)
 
   if (nrow(dt[frameshift == TRUE]) > 0){
@@ -772,12 +767,14 @@ lapply(input %>% seq_along, function(i){
       .[Consensus_scores < 500, binding := "<500nM"] %>%
       .[Consensus_scores < 50, binding := "<50nM"]
 
-    gg_dt <- dt_pl[, .N, by = c("sample_id", "MHC", "binding")]
+    gg_dt <- dt_pl[!is.na(binding), .N, by = c("sample_id", "MHC", "binding")]
 
     gdt <- dt_pl %>% gplot_missing_combn
 
     gg_dt <- merge(gg_dt, gdt, by = intersect(names(gg_dt), names(gdt)), all = TRUE) %>%
-      .[, N := max(N), by = c("sample_id", "binding", "MHC")] %>% unique
+      .[, N := max(N), by = c("sample_id", "binding", "MHC")] %>%
+      unique(by = c("sample_id", "MHC", "binding", "N")) %>%
+      .[!is.na(binding)]
 
     gg_dt %<>% gplot_names
 
@@ -795,7 +792,7 @@ lapply(input %>% seq_along, function(i){
 
       ggplot2::ggsave(plot = g, paste0("antigen.garnish_Frameshift_summary_",
                         gplot_fn,
-                        ".pdf"), height = 6, width = 9)
+                        ext), height = 6, width = 9)
 
       }
 
@@ -807,12 +804,14 @@ lapply(input %>% seq_along, function(i){
       .[Consensus_scores < 500, binding := "<500nM"] %>%
       .[Consensus_scores < 50, binding := "<50nM"]
 
-    gg_dt <- dt_pl[, .N, by = c("sample_id", "MHC", "binding")]
+    gg_dt <- dt_pl[!is.na(binding), .N, by = c("sample_id", "MHC", "binding")]
 
     gdt <- dt_pl %>% gplot_missing_combn
 
     gg_dt <- merge(gg_dt, gdt, by = intersect(names(gg_dt), names(gdt)), all = TRUE) %>%
-      .[, N := max(N), by = c("sample_id", "binding", "MHC")] %>% unique
+      .[, N := max(N), by = c("sample_id", "binding", "MHC")] %>%
+      unique(by = c("sample_id", "MHC", "binding", "N")) %>%
+      .[!is.na(binding)]
 
     gg_dt %<>% gplot_names
 
@@ -831,7 +830,7 @@ lapply(input %>% seq_along, function(i){
       ggplot2::ggsave(plot = g,
                       paste0("antigen.garnish_Fusions_summary_",
                       gplot_fn,
-                      ".pdf"), height = 6, width = 9)
+                      ext), height = 6, width = 9)
       }
 
     })
@@ -839,17 +838,20 @@ lapply(input %>% seq_along, function(i){
 lapply(input %>% seq_along, function(i){
 
       score_dt <- input[[i]] %>% garnish_summary
-      cols <- c("sample_id", names(score_dt) %include% "score")
+      cols <- c("sample_id", names(score_dt) %include% "score(s)?_")
       score_dt <- score_dt[, .SD, .SDcols = cols]
-      score_dt %<>% data.table::melt(id.vars = "sample_id",
-                                     measure.vars = names(score_dt) %include% "score")
+      score_dt %<>%
+      	data.table::melt(id.vars = "sample_id",
+			                   measure.vars = names(score_dt) %include%
+                                     "score")
 
       score_dt[, MHC := "MHC Class I"] %>%
         .[variable %like% "class_II", MHC := "MHC Class II"] %>%
-          .[, variable := variable %>%
+        .[, variable := variable %>%
             stringr::str_extract("^.*(?=(_class_))")]
 
-      if (score_dt %>% stats::na.omit %>% nrow < 1) return(NULL)
+      if (score_dt %>% stats::na.omit %>% nrow < 1)
+      	return(NULL)
 
       score_dt <- score_dt[!(MHC == "MHC Class II" & variable == "fitness_scores")]
 
@@ -859,7 +861,8 @@ lapply(input %>% seq_along, function(i){
 
       g <- ggplot2::ggplot(score_dt[variable == "classic_top_score"],
                            ggplot2::aes(x = sample_id, y = value)) +
-           ggplot2::geom_col(ggplot2::aes(fill = variable), col = "black", position = "dodge") +
+           ggplot2::geom_col(ggplot2::aes(fill = variable), col = "black",
+                             position = "dodge") +
            ggplot2::facet_wrap(~MHC) +
            ggplot2::scale_fill_manual(values = gplot_col[1]) +
            gplot_theme +
@@ -870,14 +873,15 @@ lapply(input %>% seq_along, function(i){
       ggplot2::ggsave(plot = g,
         paste0("antigen.garnish_classic_scores_",
         gplot_fn,
-        ".pdf"), height = 6, width = 9)
+        ext), height = 6, width = 9)
 
       }
 
       if (nrow(score_dt[variable == "alt_top_score"]) != 0){
 
       g <- ggplot2::ggplot(score_dt[variable == "alt_top_score"], ggplot2::aes(x = sample_id, y = value)) +
-           ggplot2::geom_col(ggplot2::aes(fill = variable), col = "black", position = "dodge") +
+           ggplot2::geom_col(ggplot2::aes(fill = variable), col = "black",
+                             position = "dodge") +
            ggplot2::facet_wrap(~MHC) +
            ggplot2::scale_fill_manual(values = gplot_col[2]) +
            gplot_theme +
@@ -888,14 +892,15 @@ lapply(input %>% seq_along, function(i){
       ggplot2::ggsave(plot = g,
         paste0("antigen.garnish_alt_scores_",
         gplot_fn,
-        ".pdf"), height = 6, width = 9)
+        ext), height = 6, width = 9)
 
       }
 
       if (nrow(score_dt[variable == "fitness_scores"]) != 0){
 
       g <- ggplot2::ggplot(score_dt[variable == "fitness_scores"], ggplot2::aes(x = sample_id, y = value)) +
-           ggplot2::geom_col(ggplot2::aes(fill = variable), col = "black", position = "dodge") +
+           ggplot2::geom_col(ggplot2::aes(fill = variable), col = "black",
+                             position = "dodge") +
            ggplot2::facet_wrap(~MHC) +
            ggplot2::scale_fill_manual(values = gplot_col[3]) +
            gplot_theme +
@@ -906,11 +911,87 @@ lapply(input %>% seq_along, function(i){
       ggplot2::ggsave(plot = g,
         paste0("antigen.garnish_fitness_summary_",
         gplot_fn,
-        ".pdf"), height = 6, width = 9)
+        ext), height = 6, width = 9)
       }
 
   })
 
+  lapply(input %>% seq_along, function(i){
+
+    score_dt <- input[[i]] %>% garnish_summary
+
+    if (!"garnish_score" %chin% names(score_dt))
+    	return(NULL)
+
+    score_dt %<>% .[, .SD %>% unique, .SDcols = c("sample_id", "garnish_score")]
+
+    if (score_dt %>% stats::na.omit %>% nrow < 1)
+    	return(NULL)
+
+    score_dt[is.na(garnish_score), garnish_score := 0]
+
+    score_dt %<>% gplot_names
+
+    g <- ggplot2::ggplot(score_dt,
+                         ggplot2::aes(x = sample_id, y = garnish_score)) +
+         ggplot2::geom_col(fill = gplot_col[1], col = "black", position = "dodge") +
+         gplot_theme +
+         ggplot2::labs(x = "", y = "garnish_score") +
+         ggplot2::theme(legend.position = "none") +
+         ggplot2::ggtitle(paste0("antigen_garnish_score"))
+
+    ggplot2::ggsave(plot = g,
+      paste0("antigen.garnish_garnish_score_",
+      gplot_fn,
+      ext), height = 6, width = 9)
+
+})
+
   return(NULL)
+
+}
+
+
+## ---- garnish_antigens
+#' List top neoepitopes for each sample and/or by clones within each sample..
+#'
+#' @param dt An output data table from `garnish_affinity`.
+#'
+#' @return A data table with the top neoepitope per sample, and if possible per clone, in rank order of clone frequency.
+#'
+#' @export garnish_antigens
+#' @md
+
+garnish_antigens <- function(dt){
+
+  if (class(dt)[1] == "character") dt <- dt %>%
+  rio::import %>%
+    data.table::as.data.table
+
+  if (class(dt)[1] == "data.frame") dt %<>%
+    data.table::as.data.table
+
+  dt %<>% data.table::copy
+
+  c <- c("clone_id", "cl_proportion")
+
+  if (!"clone_id" %chin% names(dt)) c <- NULL
+
+  dt[, fs := max(fitness_score, na.rm = TRUE), by = c("sample_id", c[1])]
+
+  dt <- dt[fitness_score == fs]
+
+  n <- names(dt)[which(names(dt) %chin% c("cDNA_change", "protein_change"))]
+
+  if (length(n) < 1) n <- NULL
+
+  dt <- dt[, .SD %>% unique, .SDcols = c("sample_id", "nmer", "MHC", "external_gene_name", n,
+                                        "Consensus_scores", "fitness_score", "iedb_score", "min_DAI", c)]
+
+  if (!"clone_id" %chin% names(dt)) dt <- dt %>% .[order(sample_id)]
+
+  if ("clone_id" %chin% names(dt)) dt <- dt %>% .[order(sample_id, clone_id)]
+
+  return(dt[Consensus_scores < 1000])
 
 }

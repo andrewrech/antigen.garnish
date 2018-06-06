@@ -4,12 +4,10 @@
 \alias{garnish_jaffa}
 \title{Process gene fusions and return a data table for neoepitope prediction.}
 \usage{
-garnish_jaffa(path, db, fasta_path)
+garnish_jaffa(path, fasta_path)
 }
 \arguments{
 \item{path}{Path to \code{jaffa_results.csv}.}
-
-\item{db}{Character vector. One of \code{GRCm37}, \code{GRCm38}, \code{GRCh37}, or \code{GRCh38}.}
 
 \item{fasta_path}{Path to \code{jaffa_results.fasta}.}
 }
@@ -30,7 +28,7 @@ A data table of mutant peptides, including:
 }
 }
 \description{
-Process \href{https://github.com/Oshlack/JAFFA}{JAFFA} gene fusion \code{fasta} and \code{results.csv} output for neoepitope prediction using \code{garnish_predictions}.
+Process \href{https://github.com/Oshlack/JAFFA}{JAFFA} gene fusion \code{fasta} and \code{results.csv} output for neoepitope prediction using \code{garnish_affinity}.
 }
 \examples{
 \dontrun{
@@ -50,7 +48,7 @@ library(antigen.garnish)
    .[, MHC := "H-2-Kb"] \%>\%
 
  # get predictions
-   antigen.garnish::garnish_predictions \%>\%
+   antigen.garnish::garnish_affinity \%>\%
 
  # summarize predictions
    antigen.garnish::garnish_summary \%T>\%
@@ -59,5 +57,5 @@ library(antigen.garnish)
 
 }
 \seealso{
-\code{\link{garnish_predictions}}
+\code{\link{garnish_affinity}}
 }

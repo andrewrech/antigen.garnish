@@ -1,10 +1,9 @@
 ## ---- garnish_jaffa
 #' Process gene fusions and return a data table for neoepitope prediction.
 #'
-#' Process [JAFFA](https://github.com/Oshlack/JAFFA) gene fusion `fasta` and `results.csv` output for neoepitope prediction using `garnish_predictions`.
+#' Process [JAFFA](https://github.com/Oshlack/JAFFA) gene fusion `fasta` and `results.csv` output for neoepitope prediction using `garnish_affinity`.
 #'
 #' @param path Path to `jaffa_results.csv`.
-#' @param db Character vector. One of `GRCm37`, `GRCm38`, `GRCh37`, or `GRCh38`.
 #' @param fasta_path Path to `jaffa_results.fasta`.
 #' @return A data table of mutant peptides, including:
 #' * **sample_id**: sample id
@@ -19,7 +18,7 @@
 #' * **pep_wt**: wt cDNA sequence of peptide from 5' fusion gene.
 #' * **fus_tx**: cDNA sequence of predicted fusion product
 #'
-#' @seealso \code{\link{garnish_predictions}}
+#' @seealso \code{\link{garnish_affinity}}
 #'
 #' @examples
 #'\dontrun{
@@ -39,7 +38,7 @@
 #'    .[, MHC := "H-2-Kb"] %>%
 #'
 #'  # get predictions
-#'    antigen.garnish::garnish_predictions %>%
+#'    antigen.garnish::garnish_affinity %>%
 #'
 #'  # summarize predictions
 #'    antigen.garnish::garnish_summary %T>%
@@ -49,20 +48,11 @@
 #' @export garnish_jaffa
 #' @md
 
-garnish_jaffa <- function(path, db, fasta_path){
+garnish_jaffa <- function(path, fasta_path){
 
   # check input
-    if (missing(db) | !(db %chin% c("GRCm38",
-                                    "GRCh38",
-                                    "GRCm37",
-                                    "GRCh37"))) stop("db must be one of GRCm37, GRCm38, GRCh37, or GRCh38)")
     if (!file.exists(fasta_path)) stop("fasta_path does not exist")
     if (!file.exists(path)) stop("path file does not exist")
-
-    if (db == "GRCh38") host <- "aug2017.archive.ensembl.org"
-    if (db == "GRCh37") host <- "grch37.ensembl.org"
-    if (db == "GRCm38") host <- "feb2014.archive.ensembl.org"
-    if (db == "GRCm37") host <- "may2012.archive.ensembl.org"
 
     # magrittr version check, this will not hide the error, only the NULL return on successful exit
     invisible(check_dep_versions())
@@ -146,64 +136,18 @@ gene_2 <- lapply(dtl, function(x){x[2]}) %>% unlist
             by = 1:nrow(dt)]
 
 
-  # prep biomaRt
-    if (grepl("GRCh", db)) bmds <- "hsapiens_gene_ensembl"
-    if (grepl("GRCm", db)) bmds <- "mmusculus_gene_ensembl"
+    metapath <- "antigen.garnish/GRChm38_meta.RDS"
 
-    mart <- biomaRt::useMart(biomart = "ENSEMBL_MART_ENSEMBL",
-                             dataset = bmds,
-                             host = host,
-                            ensemblRedirect = FALSE)
+    if (identical(Sys.getenv("TESTTHAT"), "true")) metapath <- "~/antigen.garnish/GRChm38_meta.RDS"
 
-    gn <- c(dt[, gene_1], dt[, gene_2]) %>% unique
+    if (!file.exists(metapath))
+        stop("Unable to locate metadata file. Please ensure antigen.garnish folder is present and untarred in working directory.")
 
-  if (bmds == "hsapiens_gene_ensembl")
-   query_n <- "hgnc_symbol"
+    var_dt <- readRDS(metapath)
 
-  if (bmds == "mmusculus_gene_ensembl")
-   query_n <- "mgi_symbol"
-
-  # obtain transcript metadata
-    var_dt <- biomaRt::getBM(
-               attributes = c("ensembl_transcript_id",
-                              query_n,
-                              "ensembl_gene_id",
-                              "description",
-                              "chromosome_name",
-                              "start_position",
-                              "end_position",
-                              "transcript_start",
-                              "transcript_end",
-                              "refseq_mrna"),
-                             filters = query_n,
-                             values = list(gn),
-                             mart = mart) %>%
-      data.table::as.data.table
-
- if (bmds == "mmusculus_gene_ensembl")
-  var_dt %>% data.table::setnames("mgi_symbol", "external_gene_name")
-
-  if (bmds == "hsapiens_gene_ensembl")
-   var_dt %>% data.table::setnames("hgnc_symbol", "external_gene_name")
-
-      trn <- var_dt[, ensembl_transcript_id %>% unique]
-
-  # obtain coding and wt sequences
-
-seqdtl <- lapply(c("coding", "peptide"), function(j){
-
-    dt <- biomaRt::getSequence(type = "ensembl_transcript_id",
-                               id = trn,
-                               seqType = j,
-                               mart = mart) %>%
-                               data.table::as.data.table
-                      return(dt)
-                    })
-
-
-    seqdt <- merge(seqdtl[[1]], seqdtl[[2]], by = "ensembl_transcript_id")
-    var_dt <- merge(var_dt, seqdt, by = "ensembl_transcript_id")
-
+    # toss what we don't need here
+    var_dt <- var_dt[external_gene_name %chin%
+    c(dt[, gene_1 %>% unique], dt[, gene_2 %>% unique])]
   # add ensembl_gene_id to jaffa dt
   # generate unique row for each transcript id
   # for first gene of fusion and then for second
