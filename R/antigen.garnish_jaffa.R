@@ -142,6 +142,10 @@ gene_2 <- lapply(dtl, function(x){x[2]}) %>% unlist
         stop("Unable to locate metadata file. Please ensure antigen.garnish folder is present and untarred in working directory.")
 
     var_dt <- readRDS("antigen.garnish/GRChm38_meta.RDS")
+
+    # toss what we don't need here
+    var_dt <- var_dt[external_gene_name %chin%
+    c(dt[, gene_1 %>% unique], dt[, gene_2 %>% unique])]
   # add ensembl_gene_id to jaffa dt
   # generate unique row for each transcript id
   # for first gene of fusion and then for second
