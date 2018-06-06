@@ -104,10 +104,10 @@ get_metadata <- function(dt){
 
 		if (identical(Sys.getenv("TESTTHAT"), "true")) setwd("~")
 
-		if (!file.exists("antigen.garnish/GRChm38.RDS"))
+		if (!file.exists("antigen.garnish/GRChm38_meta.RDS"))
 			stop("Unable to locate metadata file. Please ensure antigen.garnish folder is present and untarred in working directory.")
 
-		var_dt <- readRDS("antigen.garnish/GRChm38.RDS")
+		var_dt <- readRDS("antigen.garnish/GRChm38_meta.RDS")
 
     dt <- merge(dt, var_dt, by = "ensembl_transcript_id")
 
