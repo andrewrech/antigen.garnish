@@ -8,6 +8,7 @@
 * updated summary and plot functions with better output
 * added wiki with installation instructions
 * numerous edge case bug fixes
+* remove biomaRt dependencies
 
 # antigen.garnish 0.0.5
 

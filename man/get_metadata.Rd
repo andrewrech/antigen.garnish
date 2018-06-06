@@ -4,14 +4,10 @@
 \alias{get_metadata}
 \title{Internal function to add metadata by \code{ensembl_transcript_id}}
 \usage{
-get_metadata(dt, humandb = "GRCh38", mousedb = "GRCm38")
+get_metadata(dt)
 }
 \arguments{
 \item{dt}{Data table with \code{INFO} column.}
-
-\item{humandb}{Character vector. One of \code{GRCh37} or \code{GRCh38}.}
-
-\item{mousedb}{Character vector. One of \code{GRCm37} or \code{GRCm38}.}
 }
 \description{
 Internal function to add metadata by \code{ensembl_transcript_id}

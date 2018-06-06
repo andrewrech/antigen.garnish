@@ -85,119 +85,36 @@ detect_mhc <- function(x, alleles){
 #' Internal function to add metadata by `ensembl_transcript_id`
 #'
 #' @param dt Data table with `INFO` column.
-#' @param humandb Character vector. One of `GRCh37` or `GRCh38`.
-#' @param mousedb Character vector. One of `GRCm37` or `GRCm38`.
 #'
 #' @export get_metadata
 #' @md
 
-get_metadata <- function(dt,
-                         humandb = "GRCh38",
-                         mousedb = "GRCm38"){
+get_metadata <- function(dt){
 
   if (!"ensembl_transcript_id" %chin%
       (dt %>% names))
   stop("ensembl_transcript_id column missing")
-
-
-  # set genome host
-  if (!humandb %chin% c("GRCh37", "GRCh38")) stop("humandb set incorrectly")
-  if (!mousedb %chin% c("GRCm37", "GRCm38")) stop("mousedb set incorrectly")
-
-  if (humandb == "GRCh38") hhost <- "www.ensembl.org"
-  if (humandb == "GRCh37") hhost <- "grch37.ensembl.org"
-  if (mousedb == "GRCm38") mhost <- "www.ensembl.org"
-  if (mousedb == "GRCm37") mhost <- "may2012.archive.ensembl.org"
 
     # remove version suffix
     dt[, ensembl_transcript_id :=
       ensembl_transcript_id %>%
       stringr::str_replace("\\.[0-9]$", "")]
 
-    bmds <- vector()
+		message("Reading local transcript metadata.")
 
-    if (dt[, ensembl_transcript_id %>%
-        stringr::str_detect("ENSMUST")] %>%
-          stats::na.omit %>%
-          unique %>%
-          any) bmds <- c(bmds, "mmusculus_gene_ensembl")
+		if (identical(Sys.getenv("TESTTHAT"), "true")) setwd("~")
 
-    if (dt[, ensembl_transcript_id %>%
-        stringr::str_detect("ENST")] %>%
-          stats::na.omit %>%
-          unique %>%
-          any) bmds <- c(bmds, "hsapiens_gene_ensembl")
+		if (!file.exists("antigen.garnish/GRChm38.RDS"))
+			stop("Unable to locate metadata file. Please ensure antigen.garnish folder is present and untarred in working directory.")
 
-    message("Obtaining cDNA and peptide sequences using biomaRt")
+		var_dt <- readRDS("antigen.garnish/GRChm38.RDS")
 
-var_dt <- lapply(bmds, function(i){
-
-      if (i == "hsapiens_gene_ensembl") {
-        host <- hhost
-        ensembl_attr = c("ensembl_transcript_id",
-                "hgnc_symbol", "ensembl_gene_id", "description", "chromosome_name",
-                "start_position", "end_position", "transcript_start", "transcript_end")
-      }
-
-      if (i == "mmusculus_gene_ensembl") {
-        host <- mhost
-        ensembl_attr = c("ensembl_transcript_id",
-                    "mgi_symbol", "ensembl_gene_id", "description", "chromosome_name",
-                    "start_position", "end_position", "transcript_start", "transcript_end")
-      }
-
-      mart <- biomaRt::useMart(biomart = "ENSEMBL_MART_ENSEMBL",
-                                                 dataset = i,
-                                                 host = host,
-                                               ensemblRedirect = FALSE)
-
-    if (i == "mmusculus_gene_ensembl"){
-        trn <- dt[, ensembl_transcript_id %include% "ENSMUST" %>%
-                  stats::na.omit %>%
-                  unique]
-              }
-
-    if (i == "hsapiens_gene_ensembl"){
-        trn <- dt[, ensembl_transcript_id %include% "ENST" %>%
-                  stats::na.omit %>%
-                  unique]
-              }
-
-   if (trn %>% length < 1) return(NULL)
-   if (trn %>% length >= 1){
-
-    # obtain transcript metadata
-      var_dt <- biomaRt::getBM(attributes = ensembl_attr,
-                         filters = c("ensembl_transcript_id"),
-                         values = list(trn),
-                         mart = mart) %>%
-            data.table::as.data.table
-
-   if (i == "mmusculus_gene_ensembl")
-    var_dt %>% data.table::setnames("mgi_symbol", "external_gene_name")
-
-    if (i == "hsapiens_gene_ensembl")
-     var_dt %>% data.table::setnames("hgnc_symbol", "external_gene_name")
-
-      # obtain transcript cDNA and peptide sequences
-
-seqdtl <- lapply(c("coding", "peptide"), function(j){
-         biomaRt::getSequence(type = "ensembl_transcript_id",
-                     id = trn,
-                     seqType = j,
-                     mart = mart) %>% data.table::as.data.table
-      })
-
-      seqdt <- merge(seqdtl[[1]], seqdtl[[2]], by = "ensembl_transcript_id")
-      var_dt <- merge(var_dt, seqdt, by = "ensembl_transcript_id")
-      }
-
-    return(var_dt)
-
-    }) %>% data.table::rbindlist
     dt <- merge(dt, var_dt, by = "ensembl_transcript_id")
 
+		rm(var_dt)
+
     return(dt)
+
 }
 
 

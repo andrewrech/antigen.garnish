@@ -146,64 +146,12 @@ gene_2 <- lapply(dtl, function(x){x[2]}) %>% unlist
             by = 1:nrow(dt)]
 
 
-  # prep biomaRt
-    if (grepl("GRCh", db)) bmds <- "hsapiens_gene_ensembl"
-    if (grepl("GRCm", db)) bmds <- "mmusculus_gene_ensembl"
+    if (identical(Sys.getenv("TESTTHAT"), "true")) setwd("~")
 
-    mart <- biomaRt::useMart(biomart = "ENSEMBL_MART_ENSEMBL",
-                             dataset = bmds,
-                             host = host,
-                            ensemblRedirect = FALSE)
+    if (!file.exists("antigen.garnish/GRChm38.RDS"))
+        stop("Unable to locate metadata file. Please ensure antigen.garnish folder is present and untarred in working directory.")
 
-    gn <- c(dt[, gene_1], dt[, gene_2]) %>% unique
-
-  if (bmds == "hsapiens_gene_ensembl")
-   query_n <- "hgnc_symbol"
-
-  if (bmds == "mmusculus_gene_ensembl")
-   query_n <- "mgi_symbol"
-
-  # obtain transcript metadata
-    var_dt <- biomaRt::getBM(
-               attributes = c("ensembl_transcript_id",
-                              query_n,
-                              "ensembl_gene_id",
-                              "description",
-                              "chromosome_name",
-                              "start_position",
-                              "end_position",
-                              "transcript_start",
-                              "transcript_end",
-                              "refseq_mrna"),
-                             filters = query_n,
-                             values = list(gn),
-                             mart = mart) %>%
-      data.table::as.data.table
-
- if (bmds == "mmusculus_gene_ensembl")
-  var_dt %>% data.table::setnames("mgi_symbol", "external_gene_name")
-
-  if (bmds == "hsapiens_gene_ensembl")
-   var_dt %>% data.table::setnames("hgnc_symbol", "external_gene_name")
-
-      trn <- var_dt[, ensembl_transcript_id %>% unique]
-
-  # obtain coding and wt sequences
-
-seqdtl <- lapply(c("coding", "peptide"), function(j){
-
-    dt <- biomaRt::getSequence(type = "ensembl_transcript_id",
-                               id = trn,
-                               seqType = j,
-                               mart = mart) %>%
-                               data.table::as.data.table
-                      return(dt)
-                    })
-
-
-    seqdt <- merge(seqdtl[[1]], seqdtl[[2]], by = "ensembl_transcript_id")
-    var_dt <- merge(var_dt, seqdt, by = "ensembl_transcript_id")
-
+    var_dt <- readRDS("antigen.garnish/GRChm38.RDS")
   # add ensembl_gene_id to jaffa dt
   # generate unique row for each transcript id
   # for first gene of fusion and then for second
