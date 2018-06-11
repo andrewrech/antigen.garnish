@@ -400,7 +400,7 @@ garnish_clonality <- function(dt){
       if (nrow(dt) == 0)
       	return(NULL)
 
-      if (nrow(dt) == 1)
+      if (dt[, cf %>% unique %>% length] == 1)
       	return(dt[,  clone_id := 1] %>% .[, cl_proportion := cf])
 
       x <-  mclust::Mclust(dt[, cf %>% as.numeric], verbose = FALSE)
