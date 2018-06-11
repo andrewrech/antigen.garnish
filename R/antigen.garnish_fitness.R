@@ -462,7 +462,12 @@ garnish_clonality <- function(dt){
 
       # filter by supporting reads
   		for (c in read_cols)
-  			a %<>% .[get(c) >= 15]
+  			a %<>% .[get(c) >= 10]
+
+      if (nrow(a) == 0){
+        warning("No variants met allelic depth of 10.  Returning table without clonality calculations.")
+        return(dt)
+      }
 
       # too many NA checks never hurt anyone
       calculate_ecdf <- function(x){
