@@ -14,7 +14,7 @@ run_mhcflurry <- function(){
     list.files(pattern = "mhcflurry_input.*csv") %>%
 
 mclapply(., function(x){
-      paste0("mhcflurry-predict ", x, " > ", x %>%
+      paste0("mhcflurry-predict ", x, " --out ", x %>%
             stringr::str_replace("input", "output")) %>%
       system
           })
