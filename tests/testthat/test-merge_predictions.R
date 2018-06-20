@@ -7,10 +7,10 @@ testthat::test_that("merge_predictions", {
 
   # load test data
     output <- file.path(d, c(
-    "antigen.garnish_ex_mhcf_out_42c5.csv",
-    "antigen.garnish_ex_mhcf_out_47f2.csv",
-    "antigen.garnish_ex_mhcn_out_gru_HLA-A0201_4033.csv",
-    "antigen.garnish_ex_mhcn_out_lstm_HLA-A0201_4930.csv"
+    "antigen.garnish_example_mhcf_out_42c5.csv",
+    "antigen.garnish_example_mhcf_out_47f2.csv",
+    "antigen.garnish_example_mhcnuggets_output_gru_HLA-A0201_4033.csv",
+    "antigen.garnish_example_mhcnuggets_output_lstm_HLA-A0201_4930.csv"
   ))
 
   # put these in home dir for testing
