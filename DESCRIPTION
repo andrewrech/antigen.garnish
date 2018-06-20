@@ -13,7 +13,6 @@ LazyData: true
 RemoteUrl: http://neoepitopes.io
 Imports: Rdpack,
                    ShortRead,
-                   biomaRt,
                    colorspace,
                    data.table,
                    dt.inflix,
