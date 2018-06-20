@@ -9,7 +9,7 @@ testthat::test_that("run_mhcnuggets", {
   # load test data
     input <- file.path(d,
       c("antigen.garnish_example_mhcnuggets_input_gru_H-2-KB_412b.csv",
-      "antigen.garnish_example_mhcnuggets_input_gru_44b3.csv",
+      "antigen.garnish_example_mhcnuggets_input_gru_HLA-A0201_44b3.csv",
       "antigen.garnish_example_mhcnuggets_input_lstm_H-2-KB_4632.csv",
       "antigen.garnish_example_mhcnuggets_input_lstm_HLA-A0201_4a93.csv"
     ))
