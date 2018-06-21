@@ -1021,6 +1021,7 @@ write_netmhc_nmers <- function(dt, type){
     if (!c("nmer", "nmer_l") %chin% (dt %>% names) %>% any)
           stop("dt must contain nmer and nmer_l columns")
 
+    # as originally written, this bugs when not all nmer lengths exist for all mhc types
     combs <- data.table::CJ(dt[, get(type)] %>% unique,
                             dt[, nmer_l] %>% unique)
 
@@ -1028,6 +1029,8 @@ dto <- parallel::mclapply(1:nrow(combs), function(i){
 
       dts <- dt[get(type) == combs$V1[i] & nmer_l == combs$V2[i]] %>%
       unique
+
+      if (nrow(dts) == 0) return(NULL)
 
       # parallelize over 100 peptide chunks
       chunks <- ((dts %>% nrow)/100) %>% ceiling
