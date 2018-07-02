@@ -616,7 +616,7 @@ nugdt <- lapply(f_mhcnuggets, function(x){
           # keep blast match that will give most conservative BLAST_A value
 
           dt[!is.na(blast_uuid) & pep_type == "wt",
-              match := Consensus_scores %>% as.numeric %>% min(na.rm = TRUE), by = "blast_uuid"] %>%
+              match := Consensus_scores %>% as.numeric %>% min(na.rm = TRUE), by = c("blast_uuid", "MHC")] %>%
                 .[Consensus_scores == match, match := 0]
 
           dt <- dt[is.na(match) | match == 0]
@@ -637,7 +637,7 @@ nugdt <- lapply(f_mhcnuggets, function(x){
           # keep blast match that will give most conservative IEDB_A value
 
           dt[!is.na(iedb_uuid) & effect_type == "IEDB_source",
-              match := Consensus_scores %>% as.numeric %>% min(na.rm = TRUE), by = "iedb_uuid"] %>%
+              match := Consensus_scores %>% as.numeric %>% min(na.rm = TRUE), by = c("iedb_uuid", "MHC")] %>%
                 .[Consensus_scores == match, match := 0]
 
           dt <- dt[is.na(match) | match == 0]
