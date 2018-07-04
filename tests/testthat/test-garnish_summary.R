@@ -9,7 +9,7 @@ testthat::test_that("garnish_summary", {
 
   # run test
      testthat::expect_equal(dto$nmers, 154)
-     testthat::expect_equal(dto$mhc_binders_class_I, 3)
+     testthat::expect_equal(dto$mhc_binders_class_I, 2)
      testthat::expect_equal(dto$variants, 2)
      testthat::expect_equal(ncol(dto), 21)
 
@@ -18,7 +18,7 @@ testthat::test_that("garnish_summary", {
     dto2 <- garnish_summary(dt)
 
     testthat::expect_equal(dto2$nmers, 269)
-    testthat::expect_equal(dto2$mhc_binders_class_I, 8)
+    testthat::expect_equal(dto2$mhc_binders_class_I, 6)
     testthat::expect_equal(dto2$variants, 4)
     testthat::expect_equal(ncol(dto2), 24)
     testthat::expect_equal(dto2$garnish_score %>% signif(digits = 3), 74900)

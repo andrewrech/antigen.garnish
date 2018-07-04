@@ -14,7 +14,7 @@ garnish_plot(input, ext = "pdf")
 \value{
 NULL
 
-As a side effect: saves graph illustrating the number of neoepitopes in each sample and fitness model results to the working directory. The threshold for inclusion of fusion and frameshift-derived neoepitopes is \eqn{IC_{50}} < 1000nM.
+As a side effect: saves graph illustrating the number of neoepitopes in each sample and fitness model results to the working directory. The threshold for inclusion of fusion and frameshift-derived neoepitopes is \eqn{IC_{50}} < 500nM.
 }
 \description{
 Plot ADN, CDN, priority, frameshift, and fusion derived \code{nmers} for class I and class II MHC by \code{sample_id}.

@@ -23,7 +23,7 @@ A summary data table of \code{dt} by \code{sample_id} with the following columns
 \item \strong{fusion_neos}: mutant \code{nmers} derived from fusion variants predicted to bind MHC with < 500nM \eqn{IC_{50}}
 \item \strong{nmers}: total mutant \code{nmers} created
 \item \strong{predictions}: wt and mutant predictions performed
-\item \strong{mhc_binders}: \code{nmers} predicted to at least minimally bind MHC (< 5000nM \eqn{IC_{50}})
+\item \strong{mhc_binders}: \code{nmers} predicted to at least minimally bind MHC (< 500nM \eqn{IC_{50}})
 \item \strong{fitness_scores}: Sum of the top 3 fitness_score values per sample. See \code{?garnish_fitness}.
 \item \strong{garnish_score}: Sample level immune fitness. Derived by summing the exponential of \code{fitness_scores} for each top neoepitope across all clones in the tumor sample. See ?garnish_predicitons.
 \item \strong{variants}: total genomic variants evaluated
@@ -34,7 +34,7 @@ A summary data table of \code{dt} by \code{sample_id} with the following columns
 
 \strong{Differential agretopicity index (DAI)} expresses the degree to which peptide binding to MHC class I or II differ due to the presence of a non-synonymous mutation. \strong{Alternatively defined neoepitopes (ADNs)} are mutant peptides predicted to bind MHC class I or II with greatly improved affinity relative to non-mutated counterparts (\emph{i.e.} peptides with high DAI). In mice, selection of peptides with high DAI results in a substantially improved rate of experimentally validated epitopes that mediate protection from tumor growth.
 
-To determine DAI, mutant peptides that at least minimally bind MHC class I or II (> 5000nM \eqn{IC_{50}}) are selected and then DAI is calculated as the fold-change in binding affinity between non-mutant and mutant peptides. ADNs are identified as mutant peptides with DAI > 10 for MHC class I and > 4 for class II.
+To determine DAI, mutant peptides that at least minimally bind MHC class I or II (> 500nM \eqn{IC_{50}}) are selected and then DAI is calculated as the fold-change in binding affinity between non-mutant and mutant peptides. ADNs are identified as mutant peptides with DAI > 10 for MHC class I and > 4 for class II.
 
 ADNs are generated from selective mutations in the peptide-MHC anchor position (\emph{i.e.} the agretope) rather than mutations randomly occurring across the peptide sequence. This feature leads to two potentially important and unique immunological characteristics of ADNs. First, unlike CDNs, the TCR-facing peptide sequence in ADNs is likely the same as the corresponding non-mutant peptide. Second, the MHC binding of the corresponding non-mutant peptide may be so low that its presentation in the thymus is minimal and central tolerance may be bypassed. Functionally, there is evidence of strong immunogenicity of ADNs. Peptides, which in retrospect satisfy ADN selection criteria, are common among human tumor antigens that have been experimentally confirmed to be immunogenic. A recent extensive analysis of tumor immunity in a patient with ovarian carcinoma showed that the top five reactive mutant peptides had substantially higher mutant to non-mutant predicted MHC class I binding affinity. Moreover, a re-analysis of validated neoepitopes from non-small cell lung carcinoma or melanoma patients showed that one third of these were ADNs (resulting from an anchor position substitution that improved MHC affinity > 10-fold).
 

@@ -1,4 +1,4 @@
-## ---- garnish_summary
+500## ---- garnish_summary
 #' Summarize neoepitope prediction.
 #'
 #' Calculate neoepitope summary statistics for priority, classic, alternative, frameshift-derived, and fusion-derived neoepitopes for each sample.
@@ -43,7 +43,7 @@
 #' * **fusion_neos**: mutant `nmers` derived from fusion variants predicted to bind MHC with < 500nM \eqn{IC_{50}}
 #' * **nmers**: total mutant `nmers` created
 #' * **predictions**: wt and mutant predictions performed
-#' * **mhc_binders**: `nmers` predicted to at least minimally bind MHC (< 5000nM \eqn{IC_{50}})
+#' * **mhc_binders**: `nmers` predicted to at least minimally bind MHC (< 500nM \eqn{IC_{50}})
 #' * **fitness_scores**: Sum of the top 3 fitness_score values per sample. See `?garnish_fitness`.
 #' * **garnish_score**: Sample level immune fitness. Derived by summing the exponential of `fitness_scores` for each top neoepitope across all clones in the tumor sample. See ?garnish_predicitons.
 #' * **variants**: total genomic variants evaluated
@@ -53,7 +53,7 @@
 #'
 #'**Differential agretopicity index (DAI)** expresses the degree to which peptide binding to MHC class I or II differ due to the presence of a non-synonymous mutation. **Alternatively defined neoepitopes (ADNs)** are mutant peptides predicted to bind MHC class I or II with greatly improved affinity relative to non-mutated counterparts (*i.e.* peptides with high DAI). In mice, selection of peptides with high DAI results in a substantially improved rate of experimentally validated epitopes that mediate protection from tumor growth.
 #'
-#'To determine DAI, mutant peptides that at least minimally bind MHC class I or II (> 5000nM \eqn{IC_{50}}) are selected and then DAI is calculated as the fold-change in binding affinity between non-mutant and mutant peptides. ADNs are identified as mutant peptides with DAI > 10 for MHC class I and > 4 for class II.
+#'To determine DAI, mutant peptides that at least minimally bind MHC class I or II (> 500nM \eqn{IC_{50}}) are selected and then DAI is calculated as the fold-change in binding affinity between non-mutant and mutant peptides. ADNs are identified as mutant peptides with DAI > 10 for MHC class I and > 4 for class II.
 #'
 #'ADNs are generated from selective mutations in the peptide-MHC anchor position (*i.e.* the agretope) rather than mutations randomly occurring across the peptide sequence. This feature leads to two potentially important and unique immunological characteristics of ADNs. First, unlike CDNs, the TCR-facing peptide sequence in ADNs is likely the same as the corresponding non-mutant peptide. Second, the MHC binding of the corresponding non-mutant peptide may be so low that its presentation in the thymus is minimal and central tolerance may be bypassed. Functionally, there is evidence of strong immunogenicity of ADNs. Peptides, which in retrospect satisfy ADN selection criteria, are common among human tumor antigens that have been experimentally confirmed to be immunogenic. A recent extensive analysis of tumor immunity in a patient with ovarian carcinoma showed that the top five reactive mutant peptides had substantially higher mutant to non-mutant predicted MHC class I binding affinity. Moreover, a re-analysis of validated neoepitopes from non-small cell lung carcinoma or melanoma patients showed that one third of these were ADNs (resulting from an anchor position substitution that improved MHC affinity > 10-fold).
 #'
@@ -150,46 +150,46 @@ dtn <- parallel::mclapply(dt[, sample_id %>% unique], function(id){
                                       data.table::as.data.table %>%  nrow,
           classic_top_score_class_I = dt[class == "I" &
                                       pep_type == "mutnfs" &
-                                      Consensus_scores < 1000, (1/Consensus_scores) %>% sum_top_v],
+                                      Consensus_scores < 500, (1/Consensus_scores) %>% sum_top_v],
           classic_top_score_class_II = dt[class == "II" &
                                       pep_type == "mutnfs" &
-                                      Consensus_scores < 1000, (1/Consensus_scores) %>% sum_top_v],
+                                      Consensus_scores < 500, (1/Consensus_scores) %>% sum_top_v],
           alt_neos_class_I = dt[class == "I" &
                                       !is.na(DAI) &
-                                      Consensus_scores < 1000 &
+                                      Consensus_scores < 500 &
                                       DAI > 10] %>%
                                       data.table::as.data.table %>% nrow,
           alt_neos_class_II = dt[class == "II" &
                                       !is.na(DAI) &
-                                      Consensus_scores < 1000 &
+                                      Consensus_scores < 500 &
                                       DAI > 10] %>%
                                       data.table::as.data.table %>%  nrow,
           alt_top_score_class_I = dt[class == "I" &
                                       !is.na(DAI) &
-                                      Consensus_scores < 1000, DAI %>% sum_top_v],
+                                      Consensus_scores < 500, DAI %>% sum_top_v],
           alt_top_score_class_II = dt[class == "II" &
                                       !is.na(DAI) &
-                                      Consensus_scores < 1000, DAI %>% sum_top_v],
+                                      Consensus_scores < 500, DAI %>% sum_top_v],
           fs_neos_class_I = dt[class == "I" &
                                       effect_type %like% "frameshift" &
-                                      Consensus_scores < 1000] %>%
+                                      Consensus_scores < 500] %>%
                                       data.table::as.data.table %>% nrow,
           fs_neos_class_II = dt[class == "II" &
                                       effect_type %like% "frameshift" &
-                                      Consensus_scores < 1000]  %>%
+                                      Consensus_scores < 500]  %>%
                                       data.table::as.data.table %>% nrow,
           fusion_neos_class_I = dt[class == "I" &
                                       !is.na(fusion_uuid) &
-                                      Consensus_scores < 1000] %>%
+                                      Consensus_scores < 500] %>%
                                       data.table::as.data.table %>% nrow,
           fusion_neos_class_II = dt[class == "II" &
                                       !is.na(fusion_uuid) &
-                                      Consensus_scores < 1000]  %>%
+                                      Consensus_scores < 500]  %>%
                                       data.table::as.data.table %>% nrow,
-          mhc_binders_class_I = dt[class == "I" &
-                                      Consensus_scores < 1000] %>% nrow,
-          mhc_binders_class_II = dt[class == "II" &
-                                      Consensus_scores < 1000] %>% nrow,
+          mhc_binders_class_I = dt[class == "I" & pep_type != "wt" &
+                                      Consensus_scores < 500] %>% nrow,
+          mhc_binders_class_II = dt[class == "II" & pep_type != "wt" &
+                                      Consensus_scores < 500] %>% nrow,
           predictions = dt[pep_type %like% "mut"] %>% nrow,
           nmers = dt[pep_type %like% "mut", nmer %>% unique] %>% length
           ))
@@ -531,7 +531,7 @@ sdt %<>%
 #'
 #' @return NULL
 #'
-#' As a side effect: saves graph illustrating the number of neoepitopes in each sample and fitness model results to the working directory. The threshold for inclusion of fusion and frameshift-derived neoepitopes is \eqn{IC_{50}} < 1000nM.
+#' As a side effect: saves graph illustrating the number of neoepitopes in each sample and fitness model results to the working directory. The threshold for inclusion of fusion and frameshift-derived neoepitopes is \eqn{IC_{50}} < 500nM.
 #'
 #' @export garnish_plot
 #'
@@ -719,7 +719,7 @@ lapply(input %>% seq_along, function(i){
 
   # check if anything is left in the dt
     if (nrow(dt) < 1){
-      warning(paste0("No neoeptiopes with Consensus_scores < 5000nM or that meet minimum classification criteria in input # ", i, " skipping to next input."))
+      warning(paste0("No neoeptiopes with Consensus_scores < 1000nM or that meet minimum classification criteria in input # ", i, " skipping to next input."))
 
       return(NULL)
     }
@@ -992,6 +992,6 @@ garnish_antigens <- function(dt){
 
   if ("clone_id" %chin% names(dt)) dt <- dt %>% .[order(sample_id, clone_id)]
 
-  return(dt[Consensus_scores < 1000])
+  return(dt[Consensus_scores < 500])
 
 }
