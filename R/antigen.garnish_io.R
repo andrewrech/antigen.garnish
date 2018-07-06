@@ -1,4 +1,4 @@
-500## ---- garnish_summary
+## ---- garnish_summary
 #' Summarize neoepitope prediction.
 #'
 #' Calculate neoepitope summary statistics for priority, classic, alternative, frameshift-derived, and fusion-derived neoepitopes for each sample.
