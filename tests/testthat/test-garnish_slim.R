@@ -18,7 +18,7 @@ testthat::test_that("garnish_slim", {
   testthat::expect_equal(max_iedb_score, 5.94051e-05)
 
   max_NeoRecPotenial <- max(dto$NeoantigenRecognitionPotential, na.rm = TRUE)
-  testthat::expect_equal(max_NeoRecPotenial, 2.368751)
+  testthat::expect_equal(round(max_NeoRecPotenial,4), 2.3688)
 
   testthat::expect_equal(length(names(dto)), 32)
 
