@@ -1,4 +1,4 @@
-    ## ---- garnish_summary
+## ---- garnish_summary
 #' Summarize neoepitope prediction.
 #'
 #' Calculate neoepitope summary statistics for priority, classic, alternative, frameshift-derived, and fusion-derived neoepitopes for each sample.
@@ -259,33 +259,6 @@ dtnv <- parallel::mclapply(dt[, sample_id %>% unique], function(id){
 ## ---- garnish_slim
 #' Return minimal neoepitope prediction information for all peptides.
 #'
-#' @examples
-#' \dontrun{
-#' library(magrittr)
-#' library(antigen.garnish)
-#' library(data.table)
-#'
-#'  # download an example VCF
-#'    dt <- "antigen.garnish_example.vcf" %T>%
-#'    utils::download.file("http://get.rech.io/antigen.garnish_example.vcf", .) %>%
-#'
-#'  # extract variants
-#'    garnish_variants %>%
-#'
-#'  # add test MHC types
-#'      .[, MHC := c("HLA-A*02:01 HLA-DRB1*14:67",
-#'                   "H-2-Kb H-2-IAd",
-#'                  "HLA-A*01:47 HLA-DRB1*03:08")] %>%
-#'
-#'  # predict neoepitopes
-#'    garnish_affinity %>%
-#'
-#'  # print slim predictions
-#'  garnish_slim %T>%
-#'  print
-#' }
-#' @return
-#'
 #' Slim table description:
 #'
 #' A 'slim' data table of `dt` of garnish_affinity() output with minimal information
@@ -320,7 +293,32 @@ dtnv <- parallel::mclapply(dt[, sample_id %>% unique], function(id){
 #' * **min_DAI**
 #' * **fitness_score**
 #' * **NeoantigenRecognitionPotential**
-#' *
+#'
+#' @examples
+#' \dontrun{
+#' library(magrittr)
+#' library(data.table)
+#' library(antigen.garnish)
+#'
+#'  # download an example VCF
+#'  dt <- "antigen.garnish_example.vcf" %T>%
+#'  utils::download.file("http://get.rech.io/antigen.garnish_example.vcf", .) %>%
+#'
+#'  # extract variants
+#'  antigen.garnish::garnish_variants %>%
+#'
+#'  # add test MHC types
+#'      .[, MHC := c("HLA-A*02:01 HLA-DRB1*14:67",
+#'                   "H-2-Kb H-2-IAd",
+#'                  "HLA-A*01:47 HLA-DRB1*03:08")] %>%
+#'
+#'  # print slim predictions
+#'  garnish_slim %T>%
+#'  print
+#'}
+#'
+#' @export garnish_slim
+#' @md
 
 garnish_slim <- function(dt){
 
