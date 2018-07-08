@@ -322,68 +322,75 @@ dtnv <- parallel::mclapply(dt[, sample_id %>% unique], function(id){
 
 garnish_slim <- function(dt){
 
-    # magrittr version check, this will not hide the erro, only the NULL return on succesful exit
-    invisible(check_dep_versions())
+  # magrittr version check, this will not hide the erro, only the NULL return on succesful exit
+  invisible(check_dep_versions())
 
-    if (!"data.table" %chin% class(dt))
+  if (!"data.table" %chin% class(dt))
     stop("Input must be a data table.")
 
-    # selected columns for slim MHC Class I predictionas
-    class_I_prediction_cols <- c(
-        "mhcflurry_prediction", "mhcflurry_prediction_low",
-        "mhcflurry_prediction_high", "mhcflurry_prediction_percentile",
-        "mhcnuggets_pred_lstm", "mhcnuggets_pred_gru",
-        "affinity(nM)_netMHC", "affinity(nM)_netMHCpan",
-        "%Rank_netMHC", "%Rank_netMHCpan"
-        )
+  # selected columns for slim MHC Class I predictionas
+  class_I_prediction_cols <- c(
+    "mhcflurry_prediction", "mhcflurry_prediction_low",
+    "mhcflurry_prediction_high", "mhcflurry_prediction_percentile",
+    "mhcnuggets_pred_lstm", "mhcnuggets_pred_gru",
+    "affinity(nM)_netMHC", "affinity(nM)_netMHCpan",
+    "%Rank_netMHC", "%Rank_netMHCpan"
+  )
 
-    # selected columns for slim MHC Class II predictionas
-    class_II_prediction_cols <- c(
-        "affinity(nM)_netMHCII", "affinity(nM)_netMHCIIpan",
-        "%Random_netMHCII",  "%Rank_netMHCIIpan"
-        )
+  # selected columns for slim MHC Class II predictionas
+  netmhcIIpan_cols <- c("affinity(nM)_netMHCIIpan", "%Rank_netMHCIIpan")
+  netmhcII_cols <- c("affinity(nM)_netMHCII", "%Random_netMHCII")
 
-    # determine if Class I, Class II or both predictions are present
-    if ("class" %chin%  (dt %>% names)) {
-        if (dt[class == "I"] %>% nrow > 0 & dt[class == "II"] %>% nrow > 0) {
-            prediction_columns <- c(class_I_prediction_cols, class_II_prediction_cols)
-        } else if (dt[class == "I"] %>% nrow > 0 & dt[class == "II"] %>% nrow == 0) {
-            prediction_columns <- class_I_prediction_cols
-        } else if (dt[class == "I"] %>% nrow == 0 & dt[class == "II"] %>% nrow > 0) {
-            prediction_columns <- class_II_prediction_cols
-        } else {
-            stop("Input dt is missing MHC Class I and Class II predictions.")
-        }
+  # determine which MHC Class II tools were used (depends on input MHC Class II alleles)
+  if (("netMHCIIpan" %chin% (dt %>% names)) & ("netMHCIIpan" %chin% (dt %>% names))){
+    class_II_prediction_cols <- c(netmhcIIpan_cols, netmhcII_cols)
+  } else if (("netMHCIIpan" %chin% (dt %>% names)) & !("netMHCIIpan" %chin% (dt %>% names))){
+    class_II_prediction_cols <- netmhcIIpan_cols
+  } else if (!("netMHCIIpan" %chin% (dt %>% names)) & ("netMHCIIpan" %chin% (dt %>% names))){
+    class_II_prediction_cols <- netmhcII_cols
+  }
+
+  # determine if Class I, Class II or both predictions are present
+  if ("class" %chin%  (dt %>% names)) {
+    if (dt[class == "I"] %>% nrow > 0 & dt[class == "II"] %>% nrow > 0) {
+      prediction_columns <- c(class_I_prediction_cols, class_II_prediction_cols)
+    } else if (dt[class == "I"] %>% nrow > 0 & dt[class == "II"] %>% nrow == 0) {
+      prediction_columns <- class_I_prediction_cols
+    } else if (dt[class == "I"] %>% nrow == 0 & dt[class == "II"] %>% nrow > 0) {
+      prediction_columns <- class_II_prediction_cols
+    } else {
+      stop("Input dt is missing MHC Class I and Class II predictions.")
     }
+  }
 
+  if (c("sample_id", "ensembl_transcript_id", "cDNA_change", "MHC") %chin%
+      (dt %>% names) %>% all) {
+    cols_to_keep = c("sample_id", "vcf_type", "external_gene_name",
+                     "ensembl_transcript_id", "cDNA_change", "effect_type",
+                     "class", "pep_type", "nmer", "MHC", prediction_columns,
+                     "best_netMHC", "Consensus_scores",
+                     "DAI", "BLAST_A", 'iedb_score', "min_DAI",
+                     "fitness_score", "NeoantigenRecognitionPotential"
+    )
+  } else if (c("sample_id", "pep_mut", "mutant_index", "MHC") %chin%
+             (dt %>% names) %>% all) {
+    cols_to_keep = c("sample_id", "pep_mut", "mutant_index",
+                     "class", "nmer", "MHC", prediction_columns,
+                     "best_netMHC", "Consensus_scores",
+                     "DAI", "BLAST_A", "iedb_score", "min_DAI",
+                     "fitness_score", "NeoantigenRecognitionPotential"
+    )
+  }
 
-    if (c("sample_id", "ensembl_transcript_id", "cDNA_change", "MHC") %chin%
-        (dt %>% names) %>% all) {
-        cols_to_keep = c("sample_id", "vcf_type", "external_gene_name",
-                         "ensembl_transcript_id", "cDNA_change", "effect_type",
-                         "class", "pep_type", "nmer", "MHC", prediction_columns,
-                         "best_netMHC", "Consensus_scores",
-                          "DAI", "BLAST_A", 'iedb_score', "min_DAI",
-                         "fitness_score", "NeoantigenRecognitionPotential"
-                         )
-    } else if (c("sample_id", "pep_mut", "mutant_index", "MHC") %chin%
-        (dt %>% names) %>% all) {
-        cols_to_keep = c("sample_id", "pep_mut", "mutant_index",
-                         "class", "nmer", "MHC", prediction_columns,
-                         "best_netMHC", "Consensus_scores",
-                         "DAI", "BLAST_A", "iedb_score", "min_DAI",
-                         "fitness_score", "NeoantigenRecognitionPotential"
-                         )
-    }
+  if (!(cols_to_keep) %chin% names(dt) %>% any){
+    missing_name <- setdiff(cols_to_keep, names(dt))
+    stop("Missing ", paste0(missing_name), " column(s) from neoepitope prediction table. Stopping and not returning.")
+  }
 
-    if (!(cols_to_keep) %chin% names(dt) %>% any){
-        missing_name <- setdiff(cols_to_keep, names(dt))
-        stop("Missing ", paste0(missing_name), " column(s) from neoepitope prediction table. Stopping and not returning.")
-    }
-
-    dt_slim <- dt[, ..cols_to_keep]
-    return(dt_slim)
+  dt_slim <- dt[, ..cols_to_keep]
+  return(dt_slim)
 }
+
 
 
 ## ---- garnish_variants
