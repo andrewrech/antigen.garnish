@@ -4,10 +4,19 @@
 \alias{garnish_slim}
 \title{Return minimal neoepitope prediction information for all peptides.}
 \usage{
-garnish_slim(dt)
+garnish_slim(dt, slimmer = TRUE)
+}
+\arguments{
+\item{dt}{Input data.table from \code{garnish_affinity} output.}
+
+\item{slimmer}{Logical. Default is TRUE, set to false to return percentile/ranks of predictions from prediction tools.}
+}
+\value{
+A data table object.
 }
 \description{
-Slim table description:
+This function reduces \code{\link{garnish_affinity}} output to a more manageable table, dropping columns with less critical information and removing wild-type peptide rows.
+For sample-level summary statistics, see \code{\link{garnish_summary}}, and for highest priority epitopes per sample, see \code{\link{garnish_antigens}}.
 }
 \examples{
 \dontrun{
@@ -20,16 +29,22 @@ library(antigen.garnish)
  utils::download.file("http://get.rech.io/antigen.garnish_example.vcf", .) \%>\%
 
  # extract variants
- antigen.garnish::garnish_variants \%>\%
+ garnish_variants \%>\%
 
  # add test MHC types
      .[, MHC := c("HLA-A*02:01 HLA-DRB1*14:67",
                   "H-2-Kb H-2-IAd",
                  "HLA-A*01:47 HLA-DRB1*03:08")] \%>\%
 
+   garnish_affinity \%>\%
+
  # print slim predictions
  garnish_slim \%T>\%
  print
 }
+}
+\seealso{
+\code{\link{garnish_summary}}
 
+\code{\link{garnish_antigens}}
 }

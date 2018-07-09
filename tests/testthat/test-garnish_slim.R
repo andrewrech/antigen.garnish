@@ -9,17 +9,18 @@ testthat::test_that("garnish_slim", {
   dto <- garnish_slim(dt)
 
   # run test
-  testthat::expect_equal(nrow(dto), 724)
+  testthat::expect_equal(nrow(dto), 281)
 
-  unique_dai_scores <- length(unique(dto$DAI))
-  testthat::expect_equal(unique_dai_scores, 276)
+  testthat::expect_equal(max(dto$iedb_score, na.rm = TRUE), 5.94051e-05)
 
-  max_iedb_score <- max(dto$iedb_score, na.rm = TRUE)
-  testthat::expect_equal(max_iedb_score, 5.94051e-05)
+  testthat::expect_equal(round(max(dto$NeoantigenRecognitionPotential, na.rm = TRUE), 4), 2.3688)
 
-  max_NeoRecPotenial <- max(dto$NeoantigenRecognitionPotential, na.rm = TRUE)
-  testthat::expect_equal(round(max_NeoRecPotenial,4), 2.3688)
+  testthat::expect_equal(length(names(dto)), 20)
 
-  testthat::expect_equal(length(names(dto)), 32)
+  testthat::expect_equal(nrow(dto[!is.na(antigen.garnish_class)]), 4)
+
+  dto <- garnish_slim(dt, slimmer = FALSE)
+
+  testthat::expect_equal(length(names(dto)), 25)
 
 })

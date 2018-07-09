@@ -259,25 +259,22 @@ dtnv <- parallel::mclapply(dt[, sample_id %>% unique], function(id){
 ## ---- garnish_slim
 #' Return minimal neoepitope prediction information for all peptides.
 #'
+#' This function reduces \code{\link{garnish_affinity}} output to a more manageable table, dropping columns with less critical information and removing wild-type peptide rows.
+#' For sample-level summary statistics, see \code{\link{garnish_summary}}, and for highest priority epitopes per sample, see \code{\link{garnish_antigens}}.
+#'
 #' Slim table description:
 #'
-#' A 'slim' data table of `dt` of garnish_affinity() output with minimal information
-#' for each peptide prediction.  Contains the following columns:
+#' A "slim" data table from `garnish_affinity` output with minimal information
+#' for each peptide prediction.  Contains (at most) the following columns:
 #'
 #' For standard input of vcf file:
-#' * **sample_id**:
-#' * **vcf_type**:
-#' * **external_gene_name**:
-#' * **ensembl_transcript_id**
-#' * **cDNA_change**
-#' * **effect_type**
-#' * **class**
-#' * **pep_type**
+#' * **sample_id**
+#' * **external_gene_name**
+#' * **protein_change**
 #' * **nmer**
 #' * **MHC**
+#' * **class**: MHC class I or II
 #' * **mhcflurry_prediction**
-#' * **hcflurry_prediction_low**
-#' * **mhcflurry_prediction_high**
 #' * **mhcflurry_prediction_percentile**
 #' * **mhcnuggets_pred_lstm**
 #' * **mhcnuggets_pred_gru**
@@ -285,14 +282,19 @@ dtnv <- parallel::mclapply(dt[, sample_id %>% unique], function(id){
 #' * **affinity(nM)_netMHCpan**
 #' * **%Rank_netMHC**
 #' * **%Rank_netMHCpan**
-#' * **best_netMHC**
 #' * **Consensus_scores**
-#' * **DAI**
-#' * **BLAST_A**
+#' * **DAI**: Differential agretopicity of variant to corresponding wild-type, see \code{\link{garnish_summary}}.
+#' * **min_DAI**: The most conservative DAI value based on a global alignment to the wild-type proteome
 #' * **iedb_score**
-#' * **min_DAI**
 #' * **fitness_score**
-#' * **NeoantigenRecognitionPotential**
+#' * **NeoantigenRecognitionPotential**: analogous to fitness_score, Python implementation of fitness model from Luksza et al. *Nature* 2017
+#' * **cl_fraction**: clonal cell fraction composed by the variant
+#' * **antigen.garnish_class**: epitope class, one of "Classic", "Alternative", "Priority", "Fusion", or "Frameshift".
+#'
+#' See `?garnish_affinity` for more column descriptions.
+#'
+#' @param dt Input data.table from `garnish_affinity` output.
+#' @param slimmer Logical. Default is TRUE, set to false to return percentile/ranks of predictions from prediction tools.
 #'
 #' @examples
 #' \dontrun{
@@ -305,90 +307,117 @@ dtnv <- parallel::mclapply(dt[, sample_id %>% unique], function(id){
 #'  utils::download.file("http://get.rech.io/antigen.garnish_example.vcf", .) %>%
 #'
 #'  # extract variants
-#'  antigen.garnish::garnish_variants %>%
+#'  garnish_variants %>%
 #'
 #'  # add test MHC types
 #'      .[, MHC := c("HLA-A*02:01 HLA-DRB1*14:67",
 #'                   "H-2-Kb H-2-IAd",
 #'                  "HLA-A*01:47 HLA-DRB1*03:08")] %>%
 #'
+#'    garnish_affinity %>%
+#'
 #'  # print slim predictions
 #'  garnish_slim %T>%
 #'  print
-#'}
+#' }
+#' @seealso \code{\link{garnish_summary}}
+#' @seealso \code{\link{garnish_antigens}}
+#'
+#' @return A data table object.
 #'
 #' @export garnish_slim
 #' @md
 
-garnish_slim <- function(dt){
+garnish_slim <- function(dt, slimmer = TRUE){
 
-  # magrittr version check, this will not hide the erro, only the NULL return on succesful exit
+  # magrittr version check, this will not hide the error, only the NULL return on succesful exit
   invisible(check_dep_versions())
 
-  if (!"data.table" %chin% class(dt))
+  if (!"data.table" %chin% class(dt)[1])
     stop("Input must be a data table.")
 
+  min_cols <- c("sample_id", "nmer", "MHC", "Consensus_scores", "class")
+
+  if (!min_cols %chin% names(dt) %>% any)
+    stop(paste("Table must at a minimum contain the columns:", min_cols))
+
+  # don't damage input table and operate on mutant rows only for speed
+  dt <- dt %>% data.table::copy %>% .[pep_type != "wt"]
+
+  addl_cols <- c("external_gene_name", "protein_change", "NeoantigenRecognitionPotential",
+                  "DAI", "min_DAI", "cl_proportion", "fitness_score", "iedb_score")
+
+  addl_cols <- addl_cols[which(addl_cols %chin% names(dt))]
+
   # selected columns for slim MHC Class I predictionas
-  class_I_prediction_cols <- c(
-    "mhcflurry_prediction", "mhcflurry_prediction_low",
-    "mhcflurry_prediction_high", "mhcflurry_prediction_percentile",
-    "mhcnuggets_pred_lstm", "mhcnuggets_pred_gru",
-    "affinity(nM)_netMHC", "affinity(nM)_netMHCpan",
-    "%Rank_netMHC", "%Rank_netMHCpan"
-  )
+  class_I_prediction_cols <- c("mhcflurry_prediction", "mhcflurry_prediction_percentile",
+                              "mhcnuggets_pred_lstm", "mhcnuggets_pred_gru",
+                              "affinity(nM)_netMHC", "%Rank_netMHC",
+                              "affinity(nM)_netMHCpan", "%Rank_netMHCpan")
+
+  if (slimmer)
+    class_I_prediction_cols %<>% .[which(!class_I_prediction_cols %like% "(%Ran)|(percentile)")]
 
   # selected columns for slim MHC Class II predictionas
   netmhcIIpan_cols <- c("affinity(nM)_netMHCIIpan", "%Rank_netMHCIIpan")
   netmhcII_cols <- c("affinity(nM)_netMHCII", "%Random_netMHCII")
 
   # determine which MHC Class II tools were used (depends on input MHC Class II alleles)
-  if (("netMHCIIpan" %chin% (dt %>% names)) & ("netMHCIIpan" %chin% (dt %>% names))){
+  if (("netMHCIIpan" %chin% (dt %>% names)) & ("netMHCII" %chin% (dt %>% names))){
     class_II_prediction_cols <- c(netmhcIIpan_cols, netmhcII_cols)
-  } else if (("netMHCIIpan" %chin% (dt %>% names)) & !("netMHCIIpan" %chin% (dt %>% names))){
+  } else if (("netMHCIIpan" %chin% (dt %>% names)) & !("netMHCII" %chin% (dt %>% names))){
     class_II_prediction_cols <- netmhcIIpan_cols
-  } else if (!("netMHCIIpan" %chin% (dt %>% names)) & ("netMHCIIpan" %chin% (dt %>% names))){
+  } else if (!("netMHCIIpan" %chin% (dt %>% names)) & ("netMHCII" %chin% (dt %>% names))){
     class_II_prediction_cols <- netmhcII_cols
   }
 
+  if (slimmer) class_II_prediction_cols %<>% .[which(!class_II_prediction_cols %like% "(%Ran)|(percentile)")]
+
   # determine if Class I, Class II or both predictions are present
   if ("class" %chin%  (dt %>% names)) {
-    if (dt[class == "I"] %>% nrow > 0 & dt[class == "II"] %>% nrow > 0) {
+    if ((dt[class == "I"] %>% nrow) > 0 & (dt[class == "II"] %>% nrow) > 0) {
       prediction_columns <- c(class_I_prediction_cols, class_II_prediction_cols)
-    } else if (dt[class == "I"] %>% nrow > 0 & dt[class == "II"] %>% nrow == 0) {
+    } else if ((dt[class == "I"] %>% nrow) > 0 & (dt[class == "II"] %>% nrow) == 0) {
       prediction_columns <- class_I_prediction_cols
-    } else if (dt[class == "I"] %>% nrow == 0 & dt[class == "II"] %>% nrow > 0) {
+    } else if ((dt[class == "I"] %>% nrow) == 0 & (dt[class == "II"] %>% nrow) > 0) {
       prediction_columns <- class_II_prediction_cols
     } else {
       stop("Input dt is missing MHC Class I and Class II predictions.")
     }
   }
 
-  if (c("sample_id", "ensembl_transcript_id", "cDNA_change", "MHC") %chin%
-      (dt %>% names) %>% all) {
-    cols_to_keep = c("sample_id", "vcf_type", "external_gene_name",
-                     "ensembl_transcript_id", "cDNA_change", "effect_type",
-                     "class", "pep_type", "nmer", "MHC", prediction_columns,
-                     "best_netMHC", "Consensus_scores",
-                     "DAI", "BLAST_A", 'iedb_score', "min_DAI",
-                     "fitness_score", "NeoantigenRecognitionPotential"
-    )
-  } else if (c("sample_id", "pep_mut", "mutant_index", "MHC") %chin%
-             (dt %>% names) %>% all) {
-    cols_to_keep = c("sample_id", "pep_mut", "mutant_index",
-                     "class", "nmer", "MHC", prediction_columns,
-                     "best_netMHC", "Consensus_scores",
-                     "DAI", "BLAST_A", "iedb_score", "min_DAI",
-                     "fitness_score", "NeoantigenRecognitionPotential"
-    )
+  # classify as many neos as possible
+  dt[, antigen.garnish_class := as.character(NA)]
+
+  if (c("DAI", "min_DAI") %chin% names(dt) %>% any){
+
+    if ("min_DAI" %chin% names(dt))
+      dt[min_DAI > 10 & Consensus_scores < 500, antigen.garnish_class := "Alternative"]
+    if ("DAI" %chin% names(dt) & !"min_DAI" %chin% names(dt))
+      dt[DAI > 10 & Consensus_scores < 500, antigen.garnish_class := "Alternative"]
+
   }
+  dt[Consensus_scores < 50 & antigen.garnish_class == "Alternative", antigen.garnish_class := "Priority"]
+  dt[Consensus_scores < 50 & is.na(antigen.garnish_class), antigen.garnish_class := "Classic"]
+  if ("protein_change" %chin% names(dt))
+    dt[protein_change %like% "fs" & Consensus_scores < 500, antigen.garnish_class := "Frameshift"]
+  if ("fusion_uuid" %chin% names(dt))
+      dt[!is.na(fusion_uuid) & Consensus_scores < 500, antigen.garnish_class := "Frameshift"]
+
+  cols_to_keep <- c(min_cols,
+                    prediction_columns,
+                    addl_cols,
+                    "antigen.garnish_class")
 
   if (!(cols_to_keep) %chin% names(dt) %>% any){
     missing_name <- setdiff(cols_to_keep, names(dt))
     stop("Missing ", paste0(missing_name), " column(s) from neoepitope prediction table. Stopping and not returning.")
   }
 
-  dt_slim <- dt[, ..cols_to_keep]
+  dt_slim <- dt[, .SD, .SDcols = cols_to_keep] %>% .[order(sample_id, Consensus_scores)]
+
   return(dt_slim)
+
 }
 
 
