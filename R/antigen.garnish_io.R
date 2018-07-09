@@ -262,10 +262,9 @@ dtnv <- parallel::mclapply(dt[, sample_id %>% unique], function(id){
 #' This function reduces \code{\link{garnish_affinity}} output to a more manageable table, dropping columns with less critical information and removing wild-type peptide rows.
 #' For sample-level summary statistics, see \code{\link{garnish_summary}}, and for highest priority epitopes per sample, see \code{\link{garnish_antigens}}.
 #'
-#' @return
-#'
-#' A slimmed down data table from `garnish_affinity` output with minimal information for each peptide prediction.  Contains at most the following columns:
-#'
+#' @param dt Input data.table from `garnish_affinity` output.
+#' @param slimmer Logical. Default is TRUE, set to false to return percentile/ranks of predictions from prediction tools.
+#' @return A slimmed down data table from `garnish_affinity` output with minimal information for each peptide prediction. Contains at most the following columns:
 #' * **sample_id**
 #' * **external_gene_name**
 #' * **protein_change**
@@ -278,24 +277,21 @@ dtnv <- parallel::mclapply(dt[, sample_id %>% unique], function(id){
 #' * **mhcnuggets_pred_gru**
 #' * **affinity(nM)_netMHC**
 #' * **affinity(nM)_netMHCpan**
-#' * **%Rank_netMHC**
-#' * **%Rank_netMHCpan**
+#' * **\%Rank_netMHC**
+#' * **\%Rank_netMHCpan**
 #' * **Consensus_scores**
 #' * **DAI**: Differential agretopicity of variant to corresponding wild-type, see `garnish_summary`.
-#' * **min_DAI**: The most conservative DAI value based on a global alignment to the wild-type proteome
+#' * **min_DAI**: The most conservative DAI value based on a global alignment to the wild-type proteome.
 #' * **iedb_score**
 #' * **fitness_score**
-#' * **NeoantigenRecognitionPotential**: analogous to fitness_score, Python implementation of fitness model from Luksza et al. *Nature* 2017
+#' * **NeoantigenRecognitionPotential**: analogous to fitness_score, source code from Luksza et al. *Nature* 2017.
 #' * **cl_proportion**: clonal cell fraction composed by the variant
 #' * **antigen.garnish_class**: epitope class, one of "Classic", "Alternative", "Priority", "Fusion", or "Frameshift".
 #'
 #' See `garnish_affinity` for more column descriptions.
 #'
-#' @param dt Input data.table from `garnish_affinity` output.
-#' @param slimmer Logical. Default is TRUE, set to false to return percentile/ranks of predictions from prediction tools.
-#'
 #' @examples
-#' \dontrun{
+#'\dontrun{
 #' library(magrittr)
 #' library(data.table)
 #' library(antigen.garnish)
@@ -317,7 +313,7 @@ dtnv <- parallel::mclapply(dt[, sample_id %>% unique], function(id){
 #'  # print slim predictions
 #'  garnish_slim %T>%
 #'  print
-#' }
+#'}
 #' @seealso \code{\link{garnish_summary}}
 #' @seealso \code{\link{garnish_antigens}}
 #'

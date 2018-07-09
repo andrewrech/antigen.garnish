@@ -11,6 +11,35 @@ garnish_slim(dt, slimmer = TRUE)
 
 \item{slimmer}{Logical. Default is TRUE, set to false to return percentile/ranks of predictions from prediction tools.}
 }
+\value{
+A slimmed down data table from \code{garnish_affinity} output with minimal information for each peptide prediction. Contains at most the following columns:
+\itemize{
+\item \strong{sample_id}
+\item \strong{external_gene_name}
+\item \strong{protein_change}
+\item \strong{nmer}
+\item \strong{MHC}
+\item \strong{class}: MHC class I or II
+\item \strong{mhcflurry_prediction}
+\item \strong{mhcflurry_prediction_percentile}
+\item \strong{mhcnuggets_pred_lstm}
+\item \strong{mhcnuggets_pred_gru}
+\item \strong{affinity(nM)_netMHC}
+\item \strong{affinity(nM)_netMHCpan}
+\item \strong{\%Rank_netMHC}
+\item \strong{\%Rank_netMHCpan}
+\item \strong{Consensus_scores}
+\item \strong{DAI}: Differential agretopicity of variant to corresponding wild-type, see \code{garnish_summary}.
+\item \strong{min_DAI}: The most conservative DAI value based on a global alignment to the wild-type proteome.
+\item \strong{iedb_score}
+\item \strong{fitness_score}
+\item \strong{NeoantigenRecognitionPotential}: analogous to fitness_score, source code from Luksza et al. \emph{Nature} 2017.
+\item \strong{cl_proportion}: clonal cell fraction composed by the variant
+\item \strong{antigen.garnish_class}: epitope class, one of "Classic", "Alternative", "Priority", "Fusion", or "Frameshift".
+}
+
+See \code{garnish_affinity} for more column descriptions.
+}
 \description{
 This function reduces \code{\link{garnish_affinity}} output to a more manageable table, dropping columns with less critical information and removing wild-type peptide rows.
 For sample-level summary statistics, see \code{\link{garnish_summary}}, and for highest priority epitopes per sample, see \code{\link{garnish_antigens}}.
