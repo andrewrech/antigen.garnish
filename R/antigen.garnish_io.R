@@ -262,12 +262,10 @@ dtnv <- parallel::mclapply(dt[, sample_id %>% unique], function(id){
 #' This function reduces \code{\link{garnish_affinity}} output to a more manageable table, dropping columns with less critical information and removing wild-type peptide rows.
 #' For sample-level summary statistics, see \code{\link{garnish_summary}}, and for highest priority epitopes per sample, see \code{\link{garnish_antigens}}.
 #'
-#' Slim table description:
+#' @return
 #'
-#' A "slim" data table from `garnish_affinity` output with minimal information
-#' for each peptide prediction.  Contains (at most) the following columns:
+#' A slimmed down data table from `garnish_affinity` output with minimal information for each peptide prediction.  Contains at most the following columns:
 #'
-#' For standard input of vcf file:
 #' * **sample_id**
 #' * **external_gene_name**
 #' * **protein_change**
@@ -283,15 +281,15 @@ dtnv <- parallel::mclapply(dt[, sample_id %>% unique], function(id){
 #' * **%Rank_netMHC**
 #' * **%Rank_netMHCpan**
 #' * **Consensus_scores**
-#' * **DAI**: Differential agretopicity of variant to corresponding wild-type, see \code{\link{garnish_summary}}.
+#' * **DAI**: Differential agretopicity of variant to corresponding wild-type, see `garnish_summary`.
 #' * **min_DAI**: The most conservative DAI value based on a global alignment to the wild-type proteome
 #' * **iedb_score**
 #' * **fitness_score**
 #' * **NeoantigenRecognitionPotential**: analogous to fitness_score, Python implementation of fitness model from Luksza et al. *Nature* 2017
-#' * **cl_fraction**: clonal cell fraction composed by the variant
+#' * **cl_proportion**: clonal cell fraction composed by the variant
 #' * **antigen.garnish_class**: epitope class, one of "Classic", "Alternative", "Priority", "Fusion", or "Frameshift".
 #'
-#' See `?garnish_affinity` for more column descriptions.
+#' See `garnish_affinity` for more column descriptions.
 #'
 #' @param dt Input data.table from `garnish_affinity` output.
 #' @param slimmer Logical. Default is TRUE, set to false to return percentile/ranks of predictions from prediction tools.
@@ -323,7 +321,6 @@ dtnv <- parallel::mclapply(dt[, sample_id %>% unique], function(id){
 #' @seealso \code{\link{garnish_summary}}
 #' @seealso \code{\link{garnish_antigens}}
 #'
-#' @return A data table object.
 #'
 #' @export garnish_slim
 #' @md

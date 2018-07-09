@@ -11,9 +11,6 @@ garnish_slim(dt, slimmer = TRUE)
 
 \item{slimmer}{Logical. Default is TRUE, set to false to return percentile/ranks of predictions from prediction tools.}
 }
-\value{
-A data table object.
-}
 \description{
 This function reduces \code{\link{garnish_affinity}} output to a more manageable table, dropping columns with less critical information and removing wild-type peptide rows.
 For sample-level summary statistics, see \code{\link{garnish_summary}}, and for highest priority epitopes per sample, see \code{\link{garnish_antigens}}.
