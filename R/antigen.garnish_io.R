@@ -860,18 +860,13 @@ lapply(input %>% seq_along, function(i){
       .[pep_type == "mutnfs" & Consensus_scores < 50, type := "CDN"] %>%
       .[!is.na(DAI) & DAI > 10, type := "ADN"] %>%
       .[Consensus_scores < 50 & DAI > 10, type := "priority"] %>%
-      .[frameshift == TRUE & Consensus_scores < 1000, type := "frameshift"]
+      .[frameshift == TRUE & Consensus_scores < 500, type := "frameshift"]
 
   # check if fusions present in input dt
     if (names(dt) %like% "fusion_uuid" %>% any)
       dt[!is.na(fusion_uuid) & fusion_uuid != "" &
-         Consensus_scores < 1000,
+         Consensus_scores < 500,
          type := "fusion"]
-
-    if ("fitness_score" %chin% names(dt))
-      dt[Consensus_scores < 50 & DAI > 10 &
-          (fitness_score >= 1 | nchar(nmer) != 9),
-            type := "priority"]
 
     dt <- dt[!is.na(type)]
 
@@ -956,7 +951,7 @@ lapply(input %>% seq_along, function(i){
 
   if ("fusion" %chin% dt[, type %>% unique]%>% any){
 
-    dt_pl <- dt[type == "fusion"]
+    dt_pl <- dt[!is.na(fusion_uuid) & fusion_uuid != ""]
 
     dt_pl[, binding := "<1000nM"] %>%
       .[Consensus_scores < 500, binding := "<500nM"] %>%
