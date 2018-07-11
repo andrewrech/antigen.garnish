@@ -833,10 +833,11 @@ type <- lapply(dt[, type %>% unique], function(x){
 lapply(input %>% seq_along, function(i){
 
     dt <- input[[i]]
-    dt <- data.table::copy(dt) %>%
-      unique(by = c("pep_type",
+    dt %<>% .[pep_type != "wt"] %>%
+        unique(by = c("pep_type",
                     "MHC",
-                    "nmer"))
+                    "nmer",
+                    "sample_id"))
 
       if (!(c("nmer",
               "MHC",
@@ -846,9 +847,6 @@ lapply(input %>% seq_along, function(i){
               "Consensus_scores") %chin% names(dt)) %>% any)
         stop("'sample_id', 'nmer', 'MHC', 'frameshift', 'DAI', and 'Consensus_scores' columns are required in all inputs.")
 
-
-    # create and filter data table
-    dt <- dt[pep_type != "wt"] %>% unique
 
     if (!"dai_uuid" %chin% names(dt)) dt[, DAI := NA %>% as.numeric]
 
