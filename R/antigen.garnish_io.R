@@ -870,7 +870,7 @@ lapply(input %>% seq_along, function(i){
 
   # check if anything is left in the dt
     if (nrow(dt) < 1){
-      warning(paste0("No neoeptiopes with Consensus_scores < 1000nM or that meet minimum classification criteria in input # ", i, " skipping to next input."))
+      warning(paste0("No neoepitopes with Consensus_scores < 1000nM or that meet minimum classification criteria in input # ", i, " skipping to next input."))
 
       return(NULL)
     }
