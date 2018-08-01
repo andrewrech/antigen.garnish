@@ -50,9 +50,10 @@ curl -fsSL http://get.rech.io/antigen.garnish.sh | sudo sh
 * `garnish_variants`: process missense / indel VCF variants from [SnpEff](http://snpeff.sourceforge.net/)
 * `garnish_jaffa`: process gene fusions from [JAFFA](https://github.com/Oshlack/JAFFA)
 * `garnish_affinity`: perform ensemble neoepitope prediction
-* `garnish_summary`: summarize and rank results
+* `garnish_summary`: summarize and rank results at sample-level
 * `garnish_antigens`: list top neoepitope sequences, sources, and properties for each[clone](https://github.com/lima1/PureCN) and sample
-* `garnish_plot`: generate summary plots
+* `garnish_plot`: generate sample-level summary plots
+* `garnish_slim`: reduce an output table to fewest columns containing minimal prediction information
 
 ### Examples
 

@@ -1172,7 +1172,7 @@ parallel::mcMap(function(x, y) (x %>% as.integer):(y %>% as.integer) %>%
 #' * transcript_start
 #' * peptide
 #' @details
-#' * dee `list_mhc` for compatible MHC allele syntax
+#' * see `list_mhc` for compatible MHC allele syntax
 #' multiple MHC alleles for a single sample_id should be space separated. Murine and human alleles should be in separate rows
 #' * `garnish_score` is calculated if allelic fraction or tumor cellular fraction were provided
 #' @seealso \code{\link{garnish_variants}}
@@ -1304,8 +1304,8 @@ garnish_affinity <- function(dt = NULL,
   # if class of MHC is a list column, it won't bug until first merge in make_BLAST_uuid, added this.
   if (class(dt[, MHC]) == "list") stop("MHC column must be a character column, not a list, unlist the column and rerun garnish_affinity.")
 
-  # remove double or more spaces in MHC string (will not bug until garnish_fitness)
-  dt[, MHC %>% unique %>% stringr::str_replace_all("\\ +", " ")]
+  # remove double or more spaces in MHC string (will not bug until garnish_fitness or will segfault netMHC)
+  dt[, MHC := MHC %>% unique %>% stringr::str_replace_all("\\ +", " ")]
 
   input_type <- vector()
 

@@ -113,7 +113,7 @@ Perform ensemble neoepitope prediction on a data table of missense mutations, in
 }
 \details{
 \itemize{
-\item dee \code{list_mhc} for compatible MHC allele syntax
+\item see \code{list_mhc} for compatible MHC allele syntax
 multiple MHC alleles for a single sample_id should be space separated. Murine and human alleles should be in separate rows
 \item \code{garnish_score} is calculated if allelic fraction or tumor cellular fraction were provided
 }
