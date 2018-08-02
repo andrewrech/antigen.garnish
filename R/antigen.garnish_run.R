@@ -123,7 +123,9 @@ check_pred_tools <- function(){
                 mhcnuggets = TRUE
                 )
 
-  Sys.setenv(PATH = paste0(default_path, ":", Sys.getenv("PATH")))
+  # conditional to prevent infinitely growing path when running in long loops
+  if(!grepl(pattern = default_path, x = Sys.getenv("PATH"), fixed = TRUE))
+    Sys.setenv(PATH = paste0(default_path, ":", Sys.getenv("PATH")))
 
     if (suppressWarnings(system('which mhcflurry-predict 2> /dev/null', intern = TRUE)) %>%
           length == 0){
