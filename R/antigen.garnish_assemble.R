@@ -9,14 +9,14 @@
 check_dep_versions <- function(){
 
 if (!utils::installed.packages() %>% data.table::as.data.table %>%
-	.[Package == "magrittr", Version %>%
-	stringr::str_replace_all("\\.", "") %>%
-	as.numeric >= 150])
-	stop("magrittr version >= 1.5.0 is required and can be installed with:
+  .[Package == "magrittr", Version %>%
+  stringr::str_replace_all("\\.", "") %>%
+  as.numeric >= 150])
+  stop("magrittr version >= 1.5.0 is required and can be installed with:
 
-	     devtools::install_github(\"tidyverse/magrittr\")")
+       devtools::install_github(\"tidyverse/magrittr\")")
 
-	return(NULL)
+  return(NULL)
 
 }
 
@@ -100,20 +100,20 @@ get_metadata <- function(dt){
       ensembl_transcript_id %>%
       stringr::str_replace("\\.[0-9]$", "")]
 
-		message("Reading local transcript metadata.")
+    message("Reading local transcript metadata.")
 
-		metapath <- "antigen.garnish/GRChm38_meta.RDS"
+    metapath <- "antigen.garnish/GRChm38_meta.RDS"
 
-		if (identical(Sys.getenv("TESTTHAT"), "true")) metapath <- "~/antigen.garnish/GRChm38_meta.RDS"
+    if (identical(Sys.getenv("TESTTHAT"), "true")) metapath <- "~/antigen.garnish/GRChm38_meta.RDS"
 
-		if (!file.exists(metapath))
-			stop("Unable to locate metadata file. Please ensure antigen.garnish folder is present and untarred in working directory.")
+    if (!file.exists(metapath))
+      stop("Unable to locate metadata file. Please ensure antigen.garnish folder is present and untarred in working directory.")
 
-		var_dt <- readRDS(metapath)
+    var_dt <- readRDS(metapath)
 
     dt <- merge(dt, var_dt, by = "ensembl_transcript_id")
 
-		rm(var_dt)
+    rm(var_dt)
 
     return(dt)
 
@@ -217,45 +217,45 @@ make_cDNA <- function(dt){
 
 get_vcf_info_dt <- function(vcf){
 
-	if (vcf %>% class %>% .[1] != "vcfR")
-		stop("vcf input is not a vcfR object.")
+  if (vcf %>% class %>% .[1] != "vcfR")
+    stop("vcf input is not a vcfR object.")
 
-	dt <- vcf@fix %>% data.table::as.data.table
+  dt <- vcf@fix %>% data.table::as.data.table
 
-	if (!"INFO" %chin% (dt %>% names))
-		stop("Error parsing input file INFO field.")
+  if (!"INFO" %chin% (dt %>% names))
+    stop("Error parsing input file INFO field.")
 
-		# loop over INFO field
-		# tolerant of variable length and content
-	v <- dt[, INFO %>% paste(collapse = ";@@@=@@@;")]
-	vd <- v %>%
-		stringr::str_replace_all("(?<=;)[^=;]+", "") %>%
-		stringr::str_replace_all(stringr::fixed("="), "")
-	vn <- v %>%
-		stringr::str_replace_all("(?<==)[^;]+", "") %>%
-		stringr::str_replace_all(stringr::fixed("="), "")
+    # loop over INFO field
+    # tolerant of variable length and content
+  v <- dt[, INFO %>% paste(collapse = ";@@@=@@@;")]
+  vd <- v %>%
+    stringr::str_replace_all("(?<=;)[^=;]+", "") %>%
+    stringr::str_replace_all(stringr::fixed("="), "")
+  vn <- v %>%
+    stringr::str_replace_all("(?<==)[^;]+", "") %>%
+    stringr::str_replace_all(stringr::fixed("="), "")
 
-	vd %<>% strsplit("@@@")
-	vn %<>% strsplit(("@@@"))
+  vd %<>% strsplit("@@@")
+  vn %<>% strsplit(("@@@"))
 
-	idt <- parallel::mclapply(1:length(vn[[1]]), function(i){
+  idt <- parallel::mclapply(1:length(vn[[1]]), function(i){
 
-		v <- vd[[1]][i] %>% strsplit(";") %>% .[[1]]
-		names(v) <- vn[[1]][i] %>% strsplit(";") %>% .[[1]]
+    v <- vd[[1]][i] %>% strsplit(";") %>% .[[1]]
+    names(v) <- vn[[1]][i] %>% strsplit(";") %>% .[[1]]
 
-		return(v %>% as.list)
+    return(v %>% as.list)
 
-	}) %>% rbindlist(fill = TRUE, use.names = TRUE)
+  }) %>% rbindlist(fill = TRUE, use.names = TRUE)
 
-	if (
-	    (dt %>% nrow) !=
-	    (idt %>% nrow)
-	    )
-		stop("Error parsing input file INFO field.")
+  if (
+      (dt %>% nrow) !=
+      (idt %>% nrow)
+      )
+    stop("Error parsing input file INFO field.")
 
-	dt <- cbind(dt, idt)
+  dt <- cbind(dt, idt)
 
-	return(dt)
+  return(dt)
 
 }
 
@@ -273,61 +273,61 @@ get_vcf_info_dt <- function(vcf){
 
 get_vcf_sample_dt <- function(vcf){
 
-	if (vcf %>% class %>% .[1] != "vcfR")
-		stop("vcf input is not a vcfR object.")
+  if (vcf %>% class %>% .[1] != "vcfR")
+    stop("vcf input is not a vcfR object.")
 
-	dt <- vcf@gt %>% data.table::as.data.table
+  dt <- vcf@gt %>% data.table::as.data.table
 
-	if (!"FORMAT" %chin% (dt %>% names))
-		stop("Error parsing input file sample level info.")
+  if (!"FORMAT" %chin% (dt %>% names))
+    stop("Error parsing input file sample level info.")
 
-		names <- vcf@gt %>%
-						attributes %>%
-						.$dimnames %>%
-						unlist %excludef%
-						"FORMAT"
+    names <- vcf@gt %>%
+            attributes %>%
+            .$dimnames %>%
+            unlist %excludef%
+            "FORMAT"
 
-		# loop over sample level data
-		# tolerant of variable length and content
+    # loop over sample level data
+    # tolerant of variable length and content
 
-			idt <- parallel::mclapply(names, function(n){
+      idt <- parallel::mclapply(names, function(n){
 
-				ld <- dt[, get(n)]
-				ln <- dt[, FORMAT]
+        ld <- dt[, get(n)]
+        ln <- dt[, FORMAT]
 
-				idt <- parallel::mclapply(1:length(ln), function(i){
+        idt <- parallel::mclapply(1:length(ln), function(i){
 
-					l <- ld[i] %>% strsplit(":") %>% .[[1]]
-					names(l) <- ln[i] %>% strsplit(":") %>% .[[1]]
+          l <- ld[i] %>% strsplit(":") %>% .[[1]]
+          names(l) <- ln[i] %>% strsplit(":") %>% .[[1]]
 
 
-					return(l %>% as.list)
-				}) %>% rbindlist(fill = TRUE, use.names = TRUE)
+          return(l %>% as.list)
+        }) %>% rbindlist(fill = TRUE, use.names = TRUE)
 
-				idt %>% data.table::setnames(
+        idt %>% data.table::setnames(
                   idt %>% names,
                   idt %>% names %>% paste0(n, "_", .))
         return(idt)
 
-		  }) %>% do.call(cbind, .)
+      }) %>% do.call(cbind, .)
 
-		# assign ref and alt to individual columns
+    # assign ref and alt to individual columns
 
-			for (c in (idt %>% names %include% "_AD$")){
-				idt[, paste0(c, c("_ref", "_alt")) := get(c) %>%
-						data.table::tstrsplit(",")]
-				set(idt, j = c, value = NULL)
-		}
+      for (c in (idt %>% names %include% "_AD$")){
+        idt[, paste0(c, c("_ref", "_alt")) := get(c) %>%
+            data.table::tstrsplit(",")]
+        set(idt, j = c, value = NULL)
+    }
 
-	if (
-	    (dt %>% nrow) !=
-	    (idt %>% nrow)
-	    )
-		stop("Error parsing input file INFO field.")
+  if (
+      (dt %>% nrow) !=
+      (idt %>% nrow)
+      )
+    stop("Error parsing input file INFO field.")
 
-		dt <- cbind(dt, idt)
+    dt <- cbind(dt, idt)
 
-	return(dt)
+  return(dt)
 
 }
 
@@ -345,10 +345,10 @@ get_vcf_sample_dt <- function(vcf){
 
 get_vcf_snpeff_dt <- function(dt){
 
-		if (!"ANN" %chin% (dt %>% names))
-			stop("Error parsing input file ANN field from SnpEff.")
+    if (!"ANN" %chin% (dt %>% names))
+      stop("Error parsing input file ANN field from SnpEff.")
 
-		# add a variant identifier
+    # add a variant identifier
     suppressWarnings(dt[, snpeff_uuid :=
                   lapply(1:nrow(dt),
                   uuid::UUIDgenerate) %>% unlist])
@@ -371,15 +371,15 @@ get_vcf_snpeff_dt <- function(dt){
       dt[, protein_coding := ANN %>%
           stringr::str_detect("protein_coding")]
 
-			## this is only for hg19
-			dt[, refseq_id := ANN %>%
+      ## this is only for hg19
+      dt[, refseq_id := ANN %>%
           stringr::str_extract("(?<=\\|)NM_[0-9]+")]
 
-			if (nrow(dt[!is.na(refseq_id)]) > 0)
-			 	warning("Annotations detected RefSeq identifiers, these will be converted to Ensembl transcript IDs, some data may be lost.
-				Please annotate vcfs with Ensembl transcript IDs.")
+      if (nrow(dt[!is.na(refseq_id)]) > 0)
+         warning("Annotations detected RefSeq identifiers, these will be converted to Ensembl transcript IDs, some data may be lost.
+        Please annotate vcfs with Ensembl transcript IDs.")
 
-			if (nrow(dt[!is.na(refseq_id)]) == 0) dt[, refseq_id := NULL]
+      if (nrow(dt[!is.na(refseq_id)]) == 0) dt[, refseq_id := NULL]
 
       return(dt)
 

@@ -322,7 +322,7 @@ modeleR <- function(als, a=26, k=4.86936){
 
   if (nrow(shortdt) != 0) {
 
-  	shortdt <- shortdt[!nmer_uuid %chin% blastdt[, nmer_uuid %>% unique]]
+    shortdt <- shortdt[!nmer_uuid %chin% blastdt[, nmer_uuid %>% unique]]
     dto <- merge(dto,
                 shortdt[, .SD %>% unique, .SDcols = c("nmer_uuid", "iedb_score")],
                                       by = "nmer_uuid",
@@ -929,7 +929,7 @@ esl, function(es){
 write_mhcnuggets_nmers <- function(dt, alleles){
 
   if (dt %>% nrow == 0)
-  	return(NULL)
+    return(NULL)
 
   if (!c("mhcnuggets", "nmer", "nmer_l") %chin% (dt %>% names) %>% any)
           stop("dt must contain mhcnuggets and nmer columns")
@@ -1017,7 +1017,7 @@ parallel::mclapply(mnug_dt[allele == i] %>% split(1:breakpoints), function(dt){
 
 write_netmhc_nmers <- function(dt, type){
     if (dt %>% nrow == 0)
-    	return(NULL)
+      return(NULL)
     if (!c("nmer", "nmer_l") %chin% (dt %>% names) %>% any)
           stop("dt must contain nmer and nmer_l columns")
 
@@ -1264,16 +1264,16 @@ parallel::mcMap(function(x, y) (x %>% as.integer):(y %>% as.integer) %>%
 #' @md
 
 garnish_affinity <- function(dt = NULL,
- 														 path = NULL,
- 														 counts = NULL,
- 														 min_counts = 1,
- 														 assemble = TRUE,
- 														 generate = TRUE,
- 														 predict = TRUE,
- 														 blast = fitness,
- 														 fitness = TRUE,
- 														 save = TRUE,
- 														 remove_wt = TRUE){
+                              path = NULL,
+                              counts = NULL,
+                              min_counts = 1,
+                              assemble = TRUE,
+                              generate = TRUE,
+                              predict = TRUE,
+                              blast = fitness,
+                              fitness = TRUE,
+                              save = TRUE,
+                              remove_wt = TRUE){
 
   on.exit({
     message("Removing temporary files")
@@ -1376,9 +1376,9 @@ if (assemble & input_type == "transcript"){
       ct %>% setnames(names(ct)[1], "ensembl_transcript_id")
 
       ct %<>% melt(id.vars = "ensembl_transcript_id",
- 									 variable.name = "sample_id",
+                    variable.name = "sample_id",
                    value.name = "counts",
- 									 variable.factor = FALSE)
+                    variable.factor = FALSE)
 
       if(any(!dt[, sample_id %>% unique] %chin% ct[,  sample_id %>% unique]))
         stop("Count matrix does not contain columns for all samples in input data.")
@@ -1405,7 +1405,7 @@ if (assemble & input_type == "transcript"){
     dt[, pep_mut := coding_mut %>% translate_cDNA]
 
     if (dt %>% nrow == 0)
-    	stop("No mutant peptides exist in the data table for affinity prediction.")
+      stop("No mutant peptides exist in the data table for affinity prediction.")
 
     dt <- dt[!is.na(pep_wt) & !is.na(pep_mut)]
 
@@ -1818,7 +1818,7 @@ nmer_dt <- lapply((15:8), function(pl){
 
         # if the peptide is not long enough, return
         if (!(mut_frag_t %>% length) >= pl)
-        	return(NULL)
+          return(NULL)
 
           # re-register peptide if the mutant index
           # is not centered due to back truncation

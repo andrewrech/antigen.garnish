@@ -188,10 +188,10 @@ the following columns:
 
 dtloo <- lapply(dtls, function(dti){
 
-	# hold out non-9mers
-	dt_holdout <- dt[nchar(nmer) != 9]
+  # hold out non-9mers
+  dt_holdout <- dt[nchar(nmer) != 9]
 
-	# perform Lukza modeling
+  # perform Lukza modeling
 
     dti <- dti[nchar(WT.Peptide) == 9 & nchar(MT.Peptide) == 9]
 
@@ -361,12 +361,12 @@ garnish_clonality <- function(dt){
   }
 
   if ("allelic_fraction" %chin% names(dt))
-  	col <- "allelic_fraction"
+    col <- "allelic_fraction"
 
   # prefer cellular_fraction if available
 
   if ("cellular_fraction" %chin% names(dt))
-  	col <- "cellular_fraction"
+    col <- "cellular_fraction"
 
 
     b <- data.table::copy(dt)
@@ -398,10 +398,10 @@ garnish_clonality <- function(dt){
       dt <- b[!is.na(cf) & sample_id == s, cf, by = "var_uuid"] %>% unique
 
       if (nrow(dt) == 0)
-      	return(NULL)
+        return(NULL)
 
       if (dt[, cf %>% unique %>% length] == 1)
-      	return(dt[,  clone_id := 1] %>% .[, cl_proportion := cf])
+        return(dt[,  clone_id := 1] %>% .[, cl_proportion := cf])
 
       x <-  mclust::Mclust(dt[, cf %>% as.numeric], verbose = FALSE)
 
@@ -461,8 +461,8 @@ garnish_clonality <- function(dt){
               unique, by = c("sample_id", "var_uuid", "pep_type", read_cols)]
 
       # filter by supporting reads
-  		for (c in read_cols)
-  			a %<>% .[get(c) >= 10]
+      for (c in read_cols)
+        a %<>% .[get(c) >= 10]
 
       if (nrow(a) == 0){
         warning("No variants met allelic depth of 10.  Returning table without clonality calculations.")
@@ -472,19 +472,19 @@ garnish_clonality <- function(dt){
       # too many NA checks never hurt anyone
       calculate_ecdf <- function(x){
 
-			  if ((x %>% stats::na.omit %>% length) > 0){
+        if ((x %>% stats::na.omit %>% length) > 0){
 
           v <- stats::ecdf(x)(x)
 
           m <- x[which(v  > 0.9)] %>% mean(na.rm = TRUE)
 
-			    return(m)
+          return(m)
 
 
-			  } else {
-			    return(NA %>% as.numeric)
-			  }
-			}
+        } else {
+          return(NA %>% as.numeric)
+        }
+      }
 
       a[, ecdf := calculate_ecdf(V1), by = "sample_id"]
 

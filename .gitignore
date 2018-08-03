@@ -2,3 +2,5 @@ raw_figures/
 *html
 *docx
 *pdf
+*sync-conflict*
+ *.syncthing.*

@@ -101,9 +101,9 @@ garnish_summary <- function(dt){
 
 
   dt <- dt[DAI != Inf &
-					 DAI != -Inf &
-					 Consensus_scores != Inf &
-					 Consensus_scores != -Inf]
+           DAI != -Inf &
+           Consensus_scores != Inf &
+           Consensus_scores != -Inf]
 
 # function to sum top values of a numeric vector
 
@@ -495,11 +495,11 @@ sdt <- lapply(vcfs %>% seq_along, function(ivf){
 
   # fallback if sample names are missing
 
-			# if (sample_id == ""){
-			  # warning(paste0(
-			  # "No sample names in ", vcfs[ivf], ", using file name."))
-			  sample_id <- basename(vcfs[ivf])
-			  # }
+      # if (sample_id == ""){
+        # warning(paste0(
+        # "No sample names in ", vcfs[ivf], ", using file name."))
+        sample_id <- basename(vcfs[ivf])
+        # }
 
   # extract vcf type
 
@@ -511,7 +511,7 @@ sdt <- lapply(vcfs %>% seq_along, function(ivf){
         data.table::first
 
       if (vcf_type %>% length == 0)
-      	vcf_type <- "unknown"
+        vcf_type <- "unknown"
 
   # return a data table of variants
 
@@ -531,41 +531,41 @@ sdt <- lapply(vcfs %>% seq_along, function(ivf){
       stringr::str_detect(stringr::fixed("ANN=")) %>% all]
       )
       stop(paste0("\nInput file \n",
-									vcfs[ivf],
-									"\nis missing INFO SnpEff annotations"))
+                  vcfs[ivf],
+                  "\nis missing INFO SnpEff annotations"))
 
-  	# parse sample level info
+    # parse sample level info
 
-	    if (vcf@gt %>% length > 0)
-	      vdt %<>% cbind(vcf %>% get_vcf_sample_dt)
+      if (vcf@gt %>% length > 0)
+        vdt %<>% cbind(vcf %>% get_vcf_sample_dt)
 
     if (vdt %>% nrow < 1)
-    	return(data.table::data.table(sample_id = sample_id))
+      return(data.table::data.table(sample_id = sample_id))
 
     vdt[, sample_id := sample_id]
     vdt[, vcf_type := vcf_type]
 
 
-		if (vdt %>% nrow < 1){
-			warning("No variants are present in the input file.")
-			return(data.table::data.table(sample_id = sample_id))
-			}
-
-
-		if (vdt %>% class %>%
-		     .[1] == "try-error"){
-		  warning("Error parsing input file INFO field.")
-		  return(data.table::data.table(sample_id = sample_id))
+    if (vdt %>% nrow < 1){
+      warning("No variants are present in the input file.")
+      return(data.table::data.table(sample_id = sample_id))
       }
 
-		# parse ANN column
 
-		vdt %<>% get_vcf_snpeff_dt
+    if (vdt %>% class %>%
+         .[1] == "try-error"){
+      warning("Error parsing input file INFO field.")
+      return(data.table::data.table(sample_id = sample_id))
+      }
 
-		if (vdt %>% class %>%
-		     .[1] == "try-error"){
-		  warning("Error parsing input file SnpEff ANN annotation.")
-		  return(data.table::data.table(sample_id = sample_id))
+    # parse ANN column
+
+    vdt %<>% get_vcf_snpeff_dt
+
+    if (vdt %>% class %>%
+         .[1] == "try-error"){
+      warning("Error parsing input file SnpEff ANN annotation.")
+      return(data.table::data.table(sample_id = sample_id))
       }
 
     # filter SnpEff warnings
@@ -578,8 +578,8 @@ sdt <- lapply(vcfs %>% seq_along, function(ivf){
 
     if (vdt %>% nrow < 1){
       warning("No variants are present in the input file after filtering.")
-    	return(data.table::data.table(sample_id = sample_id))
-    	}
+      return(data.table::data.table(sample_id = sample_id))
+      }
 
     # filter out NA
     if (any(names(vdt) %like% "refseq")){
@@ -606,8 +606,8 @@ sdt <- lapply(vcfs %>% seq_along, function(ivf){
 
     if (vdt %>% nrow < 1){
       warning("No variants are present in the input file after filtering.")
-    	return(data.table::data.table(sample_id = sample_id))
-    	}
+      return(data.table::data.table(sample_id = sample_id))
+      }
 
     if ("CF" %chin% (vdt %>% names))
       vdt %>% data.table::setnames("CF", "cellular_fraction")
@@ -992,8 +992,8 @@ lapply(input %>% seq_along, function(i){
       cols <- c("sample_id", names(score_dt) %include% "score(s)?_")
       score_dt <- score_dt[, .SD, .SDcols = cols]
       score_dt %<>%
-      	data.table::melt(id.vars = "sample_id",
-			                   measure.vars = names(score_dt) %include%
+        data.table::melt(id.vars = "sample_id",
+                         measure.vars = names(score_dt) %include%
                                      "score")
 
       score_dt[, MHC := "MHC Class I"] %>%
@@ -1002,7 +1002,7 @@ lapply(input %>% seq_along, function(i){
             stringr::str_extract("^.*(?=(_class_))")]
 
       if (score_dt %>% stats::na.omit %>% nrow < 1)
-      	return(NULL)
+        return(NULL)
 
       score_dt <- score_dt[!(MHC == "MHC Class II" & variable == "fitness_scores")]
 
@@ -1072,12 +1072,12 @@ lapply(input %>% seq_along, function(i){
     score_dt <- input[[i]] %>% garnish_summary
 
     if (!"garnish_score" %chin% names(score_dt))
-    	return(NULL)
+      return(NULL)
 
     score_dt %<>% .[, .SD %>% unique, .SDcols = c("sample_id", "garnish_score")]
 
     if (score_dt %>% stats::na.omit %>% nrow < 1)
-    	return(NULL)
+      return(NULL)
 
     score_dt[is.na(garnish_score), garnish_score := 0]
 

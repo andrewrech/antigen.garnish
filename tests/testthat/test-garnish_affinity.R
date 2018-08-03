@@ -195,10 +195,10 @@ peptides <- function(){
   }
 
 parallel::mclapply(list(README,
-									 transcripts,
-									 excel,
-									 jaffa,
-									 peptides,
-									 cellular_fraction,
-									 RNA_test),
-									 test_runner)
+                   transcripts,
+                   excel,
+                   jaffa,
+                   peptides,
+                   cellular_fraction,
+                   RNA_test),
+                   test_runner)
