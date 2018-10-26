@@ -4,6 +4,7 @@
 #' Process [JAFFA](https://github.com/Oshlack/JAFFA) gene fusion `fasta` and `results.csv` output for neoepitope prediction using `garnish_affinity`.
 #'
 #' @param path Path to `jaffa_results.csv`.
+#' @param db One of "GRCm38" or "GRCh38", murine and human reference genomes respectively.
 #' @param fasta_path Path to `jaffa_results.fasta`.
 #' @return A data table of mutant peptides, including:
 #' * **sample_id**: sample id
@@ -48,11 +49,12 @@
 #' @export garnish_jaffa
 #' @md
 
-garnish_jaffa <- function(path, fasta_path){
+garnish_jaffa <- function(path, db, fasta_path){
 
   # check input
     if (!file.exists(fasta_path)) stop("fasta_path does not exist")
     if (!file.exists(path)) stop("path file does not exist")
+    if (!db %chin% c("GRCm38", "GRCh38")) stop("db must be either GRCm38 (murine) or GRCh38 (human).")
 
     # magrittr version check, this will not hide the error, only the NULL return on successful exit
     invisible(check_dep_versions())
@@ -144,6 +146,10 @@ gene_2 <- lapply(dtl, function(x){x[2]}) %>% unlist
         stop("Unable to locate metadata file. Please ensure antigen.garnish folder is present and untarred in working directory.")
 
     var_dt <- readRDS(metapath)
+
+    # get species specific table here.
+    if (db == "GRCh38") var_dt <- var_dt[ensembl_gene_id %likef% "ENSG"]
+    if (db == "GRCm38") var_dt <- var_dt[ensembl_gene_id %likef% "ENSMUSG"]
 
     # toss what we don't need here
     var_dt <- var_dt[external_gene_name %chin%
