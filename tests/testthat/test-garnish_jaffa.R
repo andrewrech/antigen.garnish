@@ -10,7 +10,7 @@ testthat::test_that("garnish_jaffa", {
     fasta_path <- file.path(d, "antigen.garnish_jaffa_results.fasta")
 
   # run test
-   dt <- garnish_jaffa(path = path, fasta_path = fasta_path)
+   dt <- garnish_jaffa(path = path, db = "GRCm38", fasta_path = fasta_path)
 
   testthat::expect_equal(dt %>% nrow, 15)
   testthat::expect_equal(dt %>% length, 11)
