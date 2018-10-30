@@ -152,7 +152,7 @@ library(antigen.garnish)
 * [Lee P. Richman](http://www.med.upenn.edu/apps/faculty/index.php/g275/p1073)
 * [David Balli](https://www.linkedin.com/in/davidballi1)
 * [Robert H. Vonderheide](https://www.med.upenn.edu/apps/faculty/index.php/g20000320/p1073)
-* [Andrew J. Rech](http://rech.io)
+* [Andrew J. Rech](https://rech.io)
 
 ## Citation
 
