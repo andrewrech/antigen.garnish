@@ -4,9 +4,9 @@
 \alias{garnish_affinity}
 \title{Perform neoepitope prediction.}
 \usage{
-garnish_affinity(dt = NULL, path = NULL, counts = NULL, min_counts = 1,
-  assemble = TRUE, generate = TRUE, predict = TRUE, blast = fitness,
-  fitness = TRUE, save = TRUE, remove_wt = TRUE)
+garnish_affinity(dt = NULL, path = NULL, counts = NULL,
+  min_counts = 1, assemble = TRUE, generate = TRUE, predict = TRUE,
+  blast = fitness, fitness = TRUE, save = TRUE, remove_wt = TRUE)
 }
 \arguments{
 \item{dt}{Data table. Input data table from \code{garnish_variants} or \code{garnish_jaffa}, or a data table in one of these forms:

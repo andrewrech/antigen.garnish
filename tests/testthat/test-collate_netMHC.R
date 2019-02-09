@@ -4,7 +4,7 @@ testthat::test_that("collate_netMHC", {
     esl <- list(
            list("netMHC -p -l 8 -a HLA-A0201 -f netMHC_906b84c7-7442-4371-a94b-f0f1b1c80107.csv",
         c("# /root/netMHC/netMHC-4.0/Linux_x86_64/bin/netMHC -p -l 8 -a HLA-A0201 -f netMHC_906b84c7-7442-4371-a94b-f0f1b1c80107.csv",
-        "# Fri Aug 11 07:26:12 2017", "# User: root", "# PWD : /mnt/raid/Scratch",
+        "# Fri Aug 11 07:26:12 2017", "# User: root", "# PWD : /mnt/ajr/Scratch",
         "# Host: Linux master 4.4.0-1030-aws x86_64", "# -p       1                    Switch on if input is a list of peptides (Peptide format)",
         "# -l       8                    Peptide length (multiple lengths separated by comma e.g. 8,9,10)",
         "# -a       HLA-A0201            HLA allele name", "# -f       netMHC_906b84c7-7442-4371-a94b-f0f1b1c80107.csv Input file (by default in FASTA format)",

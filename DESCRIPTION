@@ -35,4 +35,4 @@ Imports: Rdpack,
 Depends: R (>= 3.4.0)
 RdMacros: Rdpack
 LazyLoad: yes
-RoxygenNote: 6.0.1.9000
+RoxygenNote: 6.1.1
