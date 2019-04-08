@@ -62,9 +62,12 @@ curl -fsSL http://get.rech.io/antigen.garnish.sh | sudo sh
 library(magrittr)
 library(antigen.garnish)
 
-  # download an example VCF
-    dt <- "antigen.garnish_example.vcf" %T>%
-    utils::download.file("http://get.rech.io/antigen.garnish_example.vcf", .) %>%
+  # load an example VCF
+		dir <- system.file(package = "antigen.garnish") %>%
+			file.path(., "extdata/testdata")
+
+    dt <- "antigen.garnish_example.vcf" %>%
+    file.path(dir, .) %>%
 
   # extract variants
     garnish_variants %>%
@@ -95,11 +98,14 @@ library(antigen.garnish)
 library(magrittr)
 library(antigen.garnish)
 
+	dir <- system.file(package = "antigen.garnish") %>%
+		file.path(., "extdata/testdata")
+
   # load example jaffa output
-    path <- "antigen.garnish_jaffa_results.csv" %T>%
-      utils::download.file("http://get.rech.io/antigen.garnish_jaffa_results.csv", .)
-    fasta_path <- "antigen.garnish_jaffa_results.fasta" %T>%
-      utils::download.file("http://get.rech.io/antigen.garnish_jaffa_results.fasta", .)
+  path <- "antigen.garnish_jaffa_results.csv" %>%
+      file.path(dir, .)
+  fasta_path <- "antigen.garnish_jaffa_results.fasta" %>%
+      file.path(dir, .)
 
   # get predictions
     dt <- garnish_jaffa(path, db = "GRCm38", fasta_path) %>%
