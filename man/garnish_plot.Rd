@@ -24,10 +24,12 @@ Plot ADN, CDN, priority, frameshift, and fusion derived \code{nmers} for class I
 library(magrittr)
 library(antigen.garnish)
 
- # download example output
-   "antigen.garnish_example_jaffa_output.txt" \%T>\%
-   utils::download.file(
-    "http://get.rech.io/antigen.garnish_example_jaffa_output.txt", .) \%>\%
+ # load example output
+ dir <- system.file(package = "antigen.garnish") \%>\%
+   file.path(., "extdata/testdata")
+
+   "antigen.garnish_example_jaffa_output.txt" \%>\%
+   file.path(dir, .) \%>\%
 
  # create plot
    antigen.garnish::garnish_plot

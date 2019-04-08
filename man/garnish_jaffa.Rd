@@ -38,10 +38,13 @@ library(magrittr)
 library(antigen.garnish)
 
  # load example jaffa output
-   path <- "antigen.garnish_jaffa_results.csv" \%T>\%
-     utils::download.file("http://get.rech.io/antigen.garnish_jaffa_results.csv", .)
-   fasta_path <- "antigen.garnish_jaffa_results.fasta" \%T>\%
-     utils::download.file("http://get.rech.io/antigen.garnish_jaffa_results.fasta", .)
+ dir <- system.file(package = "antigen.garnish") \%>\%
+   file.path(., "extdata/testdata")
+
+   path <- "antigen.garnish_jaffa_results.csv" \%>\%
+     file.path(dir, .)
+   fasta_path <- "antigen.garnish_jaffa_results.fasta" \%>\%
+     file.path(dir, .)
 
  # get predictions
    dt <- antigen.garnish::garnish_jaffa(path, db = "GRCm38", fasta_path) \%>\%

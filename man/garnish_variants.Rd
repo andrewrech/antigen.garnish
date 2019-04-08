@@ -47,9 +47,12 @@ Recommended workflow:
 library(magrittr)
 library(antigen.garnish)
 
- # download an example VCF
-   dt <- "antigen.garnish_example.vcf" \%T>\%
-   utils::download.file("http://get.rech.io/antigen.garnish_example.vcf", .) \%>\%
+ # load an example VCF
+ dir <- system.file(package = "antigen.garnish") \%>\%
+   file.path(., "extdata/testdata")
+
+   dt <- "antigen.garnish_example.vcf" \%>\%
+   file.path(dir, .) \%>\%
 
  # extract variants
    garnish_variants \%T>\%
