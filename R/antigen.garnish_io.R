@@ -10,9 +10,12 @@
 #'library(magrittr)
 #'library(antigen.garnish)
 #'
-#'  # download an example VCF
-#'    dt <- "antigen.garnish_example.vcf" %T>%
-#'    utils::download.file("http://get.rech.io/antigen.garnish_example.vcf", .) %>%
+#'  # load an example VCF
+#'  dir <- system.file(package = "antigen.garnish") %>%
+#'    file.path(., "extdata/testdata")
+#'
+#'    dt <- "antigen.garnish_example.vcf" %>%
+#'    file.path(dir, .) %>%
 #'
 #'  # extract variants
 #'    antigen.garnish::garnish_variants %>%
@@ -296,9 +299,12 @@ dtnv <- parallel::mclapply(dt[, sample_id %>% unique], function(id){
 #' library(data.table)
 #' library(antigen.garnish)
 #'
-#'  # download an example VCF
-#'  dt <- "antigen.garnish_example.vcf" %T>%
-#'  utils::download.file("http://get.rech.io/antigen.garnish_example.vcf", .) %>%
+#'  # load an example VCF
+#'  dir <- system.file(package = "antigen.garnish") %>%
+#'    file.path(., "extdata/testdata")
+#'
+#'  dt <- "antigen.garnish_example.vcf" %>%
+#'  file.path(dir, .) %>%
 #'
 #'  # extract variants
 #'  garnish_variants %>%
@@ -452,9 +458,12 @@ garnish_slim <- function(dt, slimmer = TRUE){
 #'library(magrittr)
 #'library(antigen.garnish)
 #'
-#'  # download an example VCF
-#'    dt <- "antigen.garnish_example.vcf" %T>%
-#'    utils::download.file("http://get.rech.io/antigen.garnish_example.vcf", .) %>%
+#'  # load an example VCF
+#'  dir <- system.file(package = "antigen.garnish") %>%
+#'    file.path(., "extdata/testdata")
+#'
+#'    dt <- "antigen.garnish_example.vcf" %>%
+#'    file.path(dir, .) %>%
 #'
 #'  # extract variants
 #'    garnish_variants %T>%
@@ -677,10 +686,12 @@ sdt %<>%
 #'library(magrittr)
 #'library(antigen.garnish)
 #'
-#'  # download example output
-#'    "antigen.garnish_example_jaffa_output.txt" %T>%
-#'    utils::download.file(
-#'     "http://get.rech.io/antigen.garnish_example_jaffa_output.txt", .) %>%
+#'  # load example output
+#'  dir <- system.file(package = "antigen.garnish") %>%
+#'    file.path(., "extdata/testdata")
+#'
+#'    "antigen.garnish_example_jaffa_output.txt" %>%
+#'    file.path(dir, .) %>%
 #'
 #'  # create plot
 #'    antigen.garnish::garnish_plot

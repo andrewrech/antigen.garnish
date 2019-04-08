@@ -44,7 +44,7 @@ curl -fsSL http://get.rech.io/antigen.garnish.sh | sudo sh
 
 - detailed installation instructions can be found in the [wiki](https://github.com/andrewrech/antigen.garnish/wiki).
 
-## [Package documentation](http://get.rech.io/antigen.garnish.pdf)
+## Package functions
 
 - `garnish_variants`: process missense / indel VCF variants from [SnpEff](http://snpeff.sourceforge.net/)
 - `garnish_jaffa`: process gene fusions from [JAFFA](https://github.com/Oshlack/JAFFA)

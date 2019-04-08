@@ -1186,9 +1186,12 @@ parallel::mcMap(function(x, y) (x %>% as.integer):(y %>% as.integer) %>%
 #'
 #'# run full pipeline
 #'
-#'    # download an example VCF
-#'    dt <- "antigen.garnish_example.vcf" %T>%
-#'    utils::download.file("http://get.rech.io/antigen.garnish_example.vcf", .) %>%
+#'    # load an example VCF
+#'  dir <- system.file(package = "antigen.garnish") %>%
+#'    file.path(., "extdata/testdata")
+#'
+#'    dt <- "antigen.garnish_example.vcf" %>%
+#'    file.path(dir, .) %>%
 #'
 #'    # extract variants
 #'    antigen.garnish::garnish_variants %>%
@@ -1248,9 +1251,12 @@ parallel::mcMap(function(x, y) (x %>% as.integer):(y %>% as.integer) %>%
 #'\dontrun{
 #'# input from Microsoft excel
 #'
-#'    # download an example excel file
-#'      path <- "antigen.garnish_test_input.xlsx" %T>%
-#'        utils::download.file("http://get.rech.io/antigen.garnish_test_input.xlsx", .)
+#'  # load an example excel file
+#'  dir <- system.file(package = "antigen.garnish") %>%
+#'    file.path(., "extdata/testdata")
+#'
+#'      path <- "antigen.garnish_test_input.xlsx" %>%
+#'        file.path(dir, .)
 #'
 #'    # predict neoepitopes
 #'      dt <- antigen.garnish::garnish_affinity(path = path) %T>%
