@@ -17,11 +17,11 @@ An R package for [neoepitope](http://science.sciencemag.org/content/348/6230/69)
 		* human and mouse
 		* ensemble MHC class I/II binding prediction using [mhcflurry](https://github.com/hammerlab/mhcflurry), [mhcnuggets](https://github.com/KarchinLab/mhcnuggets), [netMHC](http://www.cbs.dtu.dk/services/NetMHC/), [netMHCII](http://www.cbs.dtu.dk/services/NetMHCII/), [netMHCpan](http://www.cbs.dtu.dk/services/NetMHCpan/) and [netMHCIIpan](http://www.cbs.dtu.dk/services/NetMHCIIpan/i)
 		* ranked by
-			* MHC I/II binding affinity
-			* clonality
-			* RNA expression
-			* dissimilarity to the normal peptidome
-			* similarity to known immunogenic antigens
+			 * MHC I/II binding affinity
+			 * clonality
+			 * RNA expression
+			 * dissimilarity to the normal peptidome
+			 * similarity to known immunogenic antigens
 1. **Speed and simplicity**:
 		* 1000 variants are ranked in a single step in less than five minutes
 1. **Integration with R/Bioconductor**
