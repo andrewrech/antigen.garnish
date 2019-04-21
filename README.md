@@ -2,30 +2,31 @@
 
 # antigen.garnish
 
-Ensemble neoepitope prediction from DNA variants in R.
+Ensemble neoepitope prediction and multi-parameter quality analysis from direct input, SNVs, indels, and fusions variants in R.
 
 ![](http://get.rech.io/antigen.garnish_flowchart.svg)
 
 ## Description
 
-An R package for [neoepitope](http://science.sciencemag.org/content/348/6230/69) analysis that takes human or murine DNA missense mutations, insertions, deletions, and gene fusions and performs ensemble neoepitope prediction using 7 algorithms. Input is a VCF file or table of peptides. Output is ranked neoepitopes and a summary of neoepitope load and fitness by sample. Neoepitopes are ranked by MHC I/II binding affinity, clonality, RNA expression, dissimilarity to the normal peptidome, and similarity to known immunogenic antigens. [Package schematic](https://github.com/andrewrech/antigen.garnish/wiki/Package-schematic). [More information.](http://antigen-garnish-presentation.s3-website-us-east-1.amazonaws.com)
+An R package for [neoepitope](http://science.sciencemag.org/content/348/6230/69) analysis that takes human or murine DNA missense mutations, insertions, deletions, and RNASeq-derived gene fusions and performs ensemble neoepitope prediction using up to 7 algorithms. Input is a VCF file, [JAFFA](https://github.com/Oshlack/JAFFA) output, or table of peptides or transcripts. Outputs are ranked and classified neoepitopes and a summary of neoepitope burden by sample. Neoepitopes are ranked by MHC I/II binding affinity, clonality, RNA expression, dissimilarity to the normal peptidome, and similarity to known immunogenic antigens.
 
 ### Advantages
 
 1. **Thoroughness**:
-  * missense mutations, insertions, deletions, and gene fusions
-	* human and mouse	
+	* missense mutations, insertions, deletions, and gene fusions
+	* human and mouse
 	* ensemble MHC class I/II binding prediction using [mhcflurry](https://github.com/hammerlab/mhcflurry), [mhcnuggets](https://github.com/KarchinLab/mhcnuggets), [netMHC](http://www.cbs.dtu.dk/services/NetMHC/), [netMHCII](http://www.cbs.dtu.dk/services/NetMHCII/), [netMHCpan](http://www.cbs.dtu.dk/services/NetMHCpan/) and [netMHCIIpan](http://www.cbs.dtu.dk/services/NetMHCIIpan/i)
-		* ranked by
-		  * MHC I/II binding affinity
-		  * clonality
-		  * RNA expression
-		  * dissimilarity to the normal peptidome (not presently in this in open source version prior to publication)
-		  * similarity to known immunogenic antigens
-2. **Speed and simplicity**:
-  * 1000 variants are ranked in a single step in less than five minutes
-3. **Integration with R/Bioconductor**
-  * upstream/VCF processing
+	* ranked by
+		* MHC I/II binding affinity
+		* clonality
+		* RNA expression
+		* dissimilarity to the normal peptidome (not presentely in this open source version prior to publication)
+		* similarity to known immunogenic antigens
+1. **Speed and simplicity**:
+	* 1000 variants are ranked in a single step in less than five minutes
+	* parallelized using [`parallel::mclapply`](https://stat.ethz.ch/R-manual/R-devel/library/parallel/html/mclapply.html) and [data.table::setDTthreads](https://github.com/Rdatatable/data.table/wiki), see respective links for information on setting multicore usage
+1. **Integration with R/Bioconductor**
+	* upstream/VCF processing
 	* exploratory data analysis, visualization
 
 ## Installation
@@ -35,25 +36,37 @@ An R package for [neoepitope](http://science.sciencemag.org/content/348/6230/69)
 - Linux
 - R &ge; 3.4
 - python-pip
+- `sudo` is required to install dependencies
+
+or
+
+- a Docker image is available, please contact us
 
 ### Install prediction tools and `antigen.garnish`
+
+- detailed installation instructions for bootstrapping a fresh AWS instance can be found in the [wiki](https://github.com/immune-health/antigen.garnish/wiki)
+
+- please note that netMHC, netMHCpan, netMHCII, and netMHCIIpan require academic-use only licenses
+
+One-line complete install command from the shell:
 
 ```sh
 curl -fsSL http://get.rech.io/antigen.garnish.sh | sudo sh
 ```
 
-- detailed installation instructions can be found in the [wiki](https://github.com/immune-health/antigen.garnish/wiki).
-- `sudo` is required to install prediction tools; you can inspect the installation script at the above link or [here](https://github.com/immune-health/antigen.garnish/blob/master/inst/extdata/install.sh)
+## [Package documentation](https://neoantigens.rech.io/reference/index.html) ([pdf](https://get.rech.io/antigen.garnish.pdf))
 
-## Package functions
+### Workflow
 
-- `garnish_variants`: process missense / indel VCF variants from [SnpEff](http://snpeff.sourceforge.net/)
-- `garnish_jaffa`: process gene fusions from [JAFFA](https://github.com/Oshlack/JAFFA)
-- `garnish_affinity`: perform ensemble neoepitope prediction
-- `garnish_summary`: summarize and rank results at sample-level
-- `garnish_antigens`: list top neoepitope sequences, sources, and properties for each[clone](https://github.com/lima1/PureCN) and sample
-- `garnish_plot`: generate sample-level summary plots
-- `garnish_slim`: reduce an output table to fewest columns containing minimal prediction information
+  1. Prepare input for MHC affinity prediction and quality analysis:
+
+		* VCF input - `garnish_variants`
+		* Fusions from RNASeq via [JAFFA](https://github.com/Oshlack/JAFFA)- `garnish_jaffa`
+		* Prepare table of direct transcript or peptide input - see manual page for `?garnish_affinity`
+
+  1. Add MHC alleles of interest - see examples below.
+  1. Run ensemble prediction method and perform antigen quality analysis including dissimilarity, IEDB alignment score, and proteome-wide differential agretopicity - `garnish_affinity`.
+  1. Summarize output at the sample level with `garnish_summary` and `garnish_plot`, and prioritize the highest quality neoantigens per clone per sample with `garnish_antigens`.
 
 ### Examples
 
@@ -61,14 +74,15 @@ curl -fsSL http://get.rech.io/antigen.garnish.sh | sudo sh
 
 ```r
 library(magrittr)
+library(data.table)
 library(antigen.garnish)
 
-  # load an example VCF
-		dir <- system.file(package = "antigen.garnish") %>%
-			file.path(., "extdata/testdata")
+# load an example VCF
+	dir <- system.file(package = "antigen.garnish") %>%
+		file.path(., "extdata/testdata")
 
-    dt <- "antigen.garnish_example.vcf" %>%
-    file.path(dir, .) %>%
+	dt <- "antigen.garnish_example.vcf" %>%
+	file.path(dir, .) %>%
 
   # extract variants
     garnish_variants %>%
@@ -91,22 +105,28 @@ library(antigen.garnish)
 
   # generate summary graphs
     dt %>% garnish_plot
+
+  # rank results by therapeutic potential
+    dt %>%
+     garnish_antigens %T>%
+      print
 ```
 
 #### Predict neoepitopes from gene fusions
 
 ```r
 library(magrittr)
+library(data.table)
 library(antigen.garnish)
 
+  # load example jaffa output
 	dir <- system.file(package = "antigen.garnish") %>%
 		file.path(., "extdata/testdata")
 
-  # load example jaffa output
-  path <- "antigen.garnish_jaffa_results.csv" %>%
-      file.path(dir, .)
-  fasta_path <- "antigen.garnish_jaffa_results.fasta" %>%
-      file.path(dir, .)
+	path <- "antigen.garnish_jaffa_results.csv" %>%
+			file.path(dir, .)
+	fasta_path <- "antigen.garnish_jaffa_results.fasta" %>%
+			file.path(dir, .)
 
   # get predictions
     dt <- garnish_jaffa(path, db = "GRCm38", fasta_path) %>%
@@ -127,9 +147,7 @@ library(antigen.garnish)
 #### Automated testing
 
 ```r
-  library(testthat)
   testthat::test_package("antigen.garnish")
-
 ```
 
 #### How are peptides generated?
@@ -151,14 +169,10 @@ library(antigen.garnish)
     make_nmers %T>% print
 ```
 
-## Bugs
+## Plots and summary tables
 
-## Authors
-
-- [Lee P. Richman](http://www.med.upenn.edu/apps/faculty/index.php/g275/p1073)
-- [David Balli](https://www.linkedin.com/in/davidballi1)
-- [Robert H. Vonderheide](https://www.med.upenn.edu/apps/faculty/index.php/g20000320/p1073)
-- [Andrew J. Rech](https://rech.io)
+- [`garnish_plot`](http://get.rech.io/antigen.garnish_example_plot.pdf)
+- [`garnish_antigens`](http://get.rech.io/antigen.garnish_summary_table.png)
 
 ## Citation
 
@@ -166,8 +180,17 @@ _Under review._
 
 ## Contributing
 
-We welcome contributions and feedback via Github or [email](mailto:rech@rech.io).
+We welcome contributions and feedback via [Github](https://github.com/immune-health/antigen.garnish/issues) or [email](mailto:leepr@upenn.edu).
+
+## Acknowledgments
+
+We thank the follow individuals for contributions and helpful discussion:
+
+- [David Balli](https://www.linkedin.com/in/davidballi1)
+- [Adham Bear](https://www.med.upenn.edu/apps/faculty/index.php/g20001100/p1073)
+- [Katelyn Byrne](https://www.parkerici.org/person/katelyn-byrne/)
+- [Danny Wells](http://dannykwells.com/)
 
 ## License
 
-GNU General Public License v3.0
+GNU Lesser General Public License v3.0
