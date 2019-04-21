@@ -13,20 +13,20 @@ An R package for [neoepitope](http://science.sciencemag.org/content/348/6230/69)
 ### Advantages
 
 1. **Thoroughness**:
-		* missense mutations, insertions, deletions, and gene fusions
-		* human and mouse
-		* ensemble MHC class I/II binding prediction using [mhcflurry](https://github.com/hammerlab/mhcflurry), [mhcnuggets](https://github.com/KarchinLab/mhcnuggets), [netMHC](http://www.cbs.dtu.dk/services/NetMHC/), [netMHCII](http://www.cbs.dtu.dk/services/NetMHCII/), [netMHCpan](http://www.cbs.dtu.dk/services/NetMHCpan/) and [netMHCIIpan](http://www.cbs.dtu.dk/services/NetMHCIIpan/i)
+  * missense mutations, insertions, deletions, and gene fusions
+	* human and mouse	
+	* ensemble MHC class I/II binding prediction using [mhcflurry](https://github.com/hammerlab/mhcflurry), [mhcnuggets](https://github.com/KarchinLab/mhcnuggets), [netMHC](http://www.cbs.dtu.dk/services/NetMHC/), [netMHCII](http://www.cbs.dtu.dk/services/NetMHCII/), [netMHCpan](http://www.cbs.dtu.dk/services/NetMHCpan/) and [netMHCIIpan](http://www.cbs.dtu.dk/services/NetMHCIIpan/i)
 		* ranked by
-			 * MHC I/II binding affinity
-			 * clonality
-			 * RNA expression
-			 * dissimilarity to the normal peptidome
-			 * similarity to known immunogenic antigens
-1. **Speed and simplicity**:
-		* 1000 variants are ranked in a single step in less than five minutes
-1. **Integration with R/Bioconductor**
-		* upstream/VCF processing
-		* exploratory data analysis, visualization
+		  * MHC I/II binding affinity
+		  * clonality
+		  * RNA expression
+		  * dissimilarity to the normal peptidome (not presently in this in open source version prior to publication)
+		  * similarity to known immunogenic antigens
+2. **Speed and simplicity**:
+  * 1000 variants are ranked in a single step in less than five minutes
+3. **Integration with R/Bioconductor**
+  * upstream/VCF processing
+	* exploratory data analysis, visualization
 
 ## Installation
 
@@ -42,7 +42,8 @@ An R package for [neoepitope](http://science.sciencemag.org/content/348/6230/69)
 curl -fsSL http://get.rech.io/antigen.garnish.sh | sudo sh
 ```
 
-- detailed installation instructions can be found in the [wiki](https://github.com/andrewrech/antigen.garnish/wiki).
+- detailed installation instructions can be found in the [wiki](https://github.com/immune-health/antigen.garnish/wiki).
+- `sudo` is required to install prediction tools; you can inspect the installation script at the above link or [here](https://github.com/immune-health/antigen.garnish/blob/master/inst/extdata/install.sh)
 
 ## Package functions
 
@@ -161,7 +162,7 @@ library(antigen.garnish)
 
 ## Citation
 
-Rech AJ, Balli D, Stanger BZ, Vonderheide RH. Tumor immunity and survival as a function of alternative neoepitopes in human cancer. Cancer Immunology Research, 2018 Jan 16. pii: canimm.0559.2017. PMID: [29339376](https://www.ncbi.nlm.nih.gov/pubmed/29339376)
+_Under review._
 
 ## Contributing
 
