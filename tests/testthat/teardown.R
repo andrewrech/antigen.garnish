@@ -13,7 +13,6 @@
       "Ms_ag_nmer_fasta.fa",
       "msblastpout.csv",
       "antigen.garnish_test_input.xlsx",
-      "Luksza_model_output.txt",
       "antigen.garnish_PureCN_example_output.txt",
       "antigen.garnish_rna_temp.txt"), function(i){
 
@@ -21,7 +20,7 @@
           file.remove(i)
     })
 
-  list.files(pattern = "^ag_output|^a\\.g_ex.*csv$") %>% unlink(force = TRUE)
+  list.files(pattern = "^Luksza_model|^ag_output|^a\\.g_ex.*csv$") %>% unlink(force = TRUE)
 
   list.dirs(path = ".") %>%
     stringr::str_extract(".*[a-f0-9]{18}") %>% na.omit %>%

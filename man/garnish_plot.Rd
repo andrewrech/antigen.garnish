@@ -29,7 +29,7 @@ library(antigen.garnish)
  dir <- system.file(package = "antigen.garnish") \%>\%
    file.path(., "extdata/testdata")
 
-   "antigen.garnish_example_jaffa_output.txt" \%>\%
+   "antigen.garnish_PureCN_example_output.txt" \%>\%
    file.path(dir, .) \%>\%
 
 # create plot
