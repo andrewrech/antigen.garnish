@@ -1,6 +1,6 @@
 
 
-## ---- check_dep_versions
+
 #' Internal function to check for dev version of magrittr.
 #'
 #' @export check_dep_versions
@@ -22,8 +22,8 @@ if (!utils::installed.packages() %>% data.table::as.data.table %>%
 
 
 
-## ---- list_mhc
-#' List available MHC types using standard nomenclature
+
+#' Return a data table of available MHC types.
 #'
 #' @export list_mhc
 #' @md
@@ -45,8 +45,8 @@ list_mhc <- function(){
 
 
 
-## ---- detect_mhc
-#' Replace MHC with matching prediction tool MHC syntax
+
+#' Internal function to replace MHC with matching prediction tool MHC syntax
 #'
 #' @param x Vector of HLA types named for program to convert to.
 #' @param alleles Data table of 2 columns, 1. formatted allele names 2. prediction tool name (e.g. mhcflurry, mhcnuggets, netMHC).
@@ -81,7 +81,7 @@ detect_mhc <- function(x, alleles){
 
 
 
-## ---- get_metadata
+
 #' Internal function to add metadata by `ensembl_transcript_id`
 #'
 #' @param dt Data table with `INFO` column.
@@ -95,6 +95,7 @@ get_metadata <- function(dt){
       (dt %>% names))
   stop("ensembl_transcript_id column missing")
 
+
     # remove version suffix
     dt[, ensembl_transcript_id :=
       ensembl_transcript_id %>%
@@ -102,14 +103,31 @@ get_metadata <- function(dt){
 
     message("Reading local transcript metadata.")
 
-    metapath <- "antigen.garnish/GRChm38_meta.RDS"
+  # detect/set AG_DATA_DIR environmental variable
+  check_pred_tools()
 
-    if (identical(Sys.getenv("TESTTHAT"), "true")) metapath <- "~/antigen.garnish/GRChm38_meta.RDS"
+  # load metadata
+   metafile <- file.path(Sys.getenv("AG_DATA_DIR"), "/GRChm38_meta.RDS")
 
-    if (!file.exists(metapath))
-      stop("Unable to locate metadata file. Please ensure antigen.garnish folder is present and untarred in working directory.")
+  if (!file.exists(metafile)){
+    err <- paste(
+    "Unable to locate metadata file.",
+    "Paths searched are $AG_DATA_DIR, $HOME, and the current working directory.",
+    "To set a custom path to the antigen.garnish data folder",
+    "set environomental variable AG_DATA_DIR from the shell",
+    "or from R using Sys.setenv",
+    "",
+    "Re-download installation data:",
+    '$ curl -fsSL "http://get.rech.io/antigen.garnish.tar.gz" | tar -xvz',
+    "",
+    "Documentation:",
+    "https://neoantigens.io",
+    sep = "\n"
+    )
+    stop(err)
+  }
 
-    var_dt <- readRDS(metapath)
+    var_dt <- readRDS(metafile)
 
     dt <- merge(dt, var_dt, by = "ensembl_transcript_id")
 
@@ -121,7 +139,7 @@ get_metadata <- function(dt){
 
 
 
-## ---- make_cDNA
+
 #' Internal function to create cDNA from HGVS notation
 #'
 #' @param dt Data table with INFO column.
@@ -205,7 +223,7 @@ make_cDNA <- function(dt){
 
 
 
-## ---- get_vcf_info_dt
+
 #' Internal function to extract a data table of variants with `INFO` fields in columns.
 #'
 #' @param vcf vcfR object to extract data from.
@@ -238,7 +256,7 @@ get_vcf_info_dt <- function(vcf){
   vd %<>% strsplit("@@@")
   vn %<>% strsplit(("@@@"))
 
-  idt <- parallel::mclapply(1:length(vn[[1]]), function(i){
+  idt <- lapply(1:length(vn[[1]]), function(i){
 
     v <- vd[[1]][i] %>% strsplit(";") %>% .[[1]]
     names(v) <- vn[[1]][i] %>% strsplit(";") %>% .[[1]]
@@ -261,7 +279,7 @@ get_vcf_info_dt <- function(vcf){
 
 
 
-## ---- get_vcf_sample_dt
+
 #' Internal function to extract a data table from sample `vcf` fields.
 #'
 #' @param vcf vcfR object to extract data from.
@@ -290,15 +308,23 @@ get_vcf_sample_dt <- function(vcf){
     # loop over sample level data
     # tolerant of variable length and content
 
-      idt <- parallel::mclapply(names, function(n){
+    # This used to  be doubly parallelized over samples in the vcf
+    # would get weird recycling consistently with test data so I pulled this off.
+    # this is will not substantially affect speed, only 2 samples to fork anyways.
+      idt <- lapply(names, function(n){
 
         ld <- dt[, get(n)]
         ln <- dt[, FORMAT]
 
-        idt <- parallel::mclapply(1:length(ln), function(i){
+        idt <- lapply(1:length(ln), function(i){
 
+          #  account for format columns longer than provided values, as in NORMAL vs. TUMOR with mutant
+          # only one value is provided in tumor column for some values, like SA_POST_PROB  etc.
+          nl <- ln[i] %>% strsplit(":") %>% .[[1]]
           l <- ld[i] %>% strsplit(":") %>% .[[1]]
-          names(l) <- ln[i] %>% strsplit(":") %>% .[[1]]
+
+          names(l) <- nl[1:length(l)]
+
 
 
           return(l %>% as.list)
@@ -333,7 +359,7 @@ get_vcf_sample_dt <- function(vcf){
 
 
 
-## ---- get_vcf_snpeff_dt
+
 #' Internal function to extract SnpEff annotation information to a data table.
 #'
 #' @param dt Data table with character vector `ANN` column, from `vcf` file.
@@ -354,7 +380,10 @@ get_vcf_snpeff_dt <- function(dt){
                   uuid::UUIDgenerate) %>% unlist])
 
     # spread SnpEff annotation over rows
-    dt %<>% tidyr::separate_rows("ANN", sep = ",")
+    # transform to data frame intermediate to avoid
+    # data.taable invalid .internal.selfref
+    df <- dt %>% as.data.frame %>% tidyr::separate_rows("ANN", sep = ",")
+    dt <- df %>% data.table::as.data.table
 
     # extract info from snpeff annotation
       dt[, effect_type := ANN %>%
@@ -376,7 +405,7 @@ get_vcf_snpeff_dt <- function(dt){
           stringr::str_extract("(?<=\\|)NM_[0-9]+")]
 
       if (nrow(dt[!is.na(refseq_id)]) > 0)
-         warning("Annotations detected RefSeq identifiers, these will be converted to Ensembl transcript IDs, some data may be lost.
+         message("Annotations detected RefSeq identifiers, these will be converted to Ensembl transcript IDs, some data may be lost.
         Please annotate vcfs with Ensembl transcript IDs.")
 
       if (nrow(dt[!is.na(refseq_id)]) == 0) dt[, refseq_id := NULL]
@@ -387,7 +416,7 @@ get_vcf_snpeff_dt <- function(dt){
 
 
 
-## ---- extract_cDNA
+
 #' Internal function to extract cDNA changes from HGVS notation
 #'
 #' @param dt Data table with INFO column.
@@ -436,7 +465,7 @@ extract_cDNA <- function(dt){
 
 
 
-## ---- translate_cDNA
+
 #' Internal function to translate cDNA to peptides
 #'
 #' @param v cDNA character vector without ambiguous bases.
@@ -446,7 +475,7 @@ extract_cDNA <- function(dt){
 
 translate_cDNA <- function(v){
 
-parallel::mclapply(v, function(p){
+lapply(v, function(p){
 
      # protect vector length
        tryCatch({
@@ -454,9 +483,8 @@ parallel::mclapply(v, function(p){
           p %>%
             Biostrings::DNAString() %>%
             Biostrings::translate() %>%
-                as.vector %>%
-                as.character %>%
-                paste(collapse = "")
+                as.character
+
 
 }, error = function(e){
               return(NA)

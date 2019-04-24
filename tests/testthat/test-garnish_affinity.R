@@ -4,21 +4,29 @@ README <- function(){
   testthat::test_that("garnish_affinity strict README example", {
   skip_pred_tools()
 
-  d <- test_data_dir()
+# extact copy of README
 
-      # load test data
-        dt <- file.path(d, "antigen.garnish_example.vcf") %>%
+  # load an example VCF
+    dir <- system.file(package = "antigen.garnish") %>%
+      file.path(., "extdata/testdata")
 
-      # run test
-        garnish_variants %>%
-          .[, MHC := c("HLA-A*02:01 HLA-DRB1*14:67",
-                       "H-2-Kb H-2-IAd",
-                      "HLA-A*01:47 HLA-DRB1*03:08")] %>%
-                      garnish_affinity(save = FALSE)
+    dt <- "antigen.garnish_example.vcf" %>%
+    file.path(dir, .) %>%
 
-      testthat::expect_true(dt %>% nrow == 883)
-      testthat::expect_true(dt[(iedb_score %>% signif(digits = 3)) == 1] %>% nrow == 111)
-      testthat::expect_true(dt[, nmer %>% unique %>% length] == 558)
+    # extract variants
+      garnish_variants %>%
+
+    # add space separated MHC types
+    # see list_mhc() for nomenclature of supported alleles
+
+        .[, MHC := c("HLA-A*01:47 HLA-A*02:01 HLA-DRB1*14:67")] %>%
+
+    # predict neoantigens
+      garnish_affinity
+
+      testthat::expect_true(dt %>% nrow == 483)
+      testthat::expect_true(dt[, nmer %>% unique %>% length] == 184)
+
     })
 }
 
@@ -27,33 +35,24 @@ transcripts <- function(){
   testthat::test_that("garnish_affinity from transcripts, diverse MHC", {
   skip_pred_tools()
 
-  d <- test_data_dir()
-
   # load test data
     dt <- data.table::data.table(
          sample_id = "test",
          ensembl_transcript_id =
-         c("ENSMUST00000128119",
-           "ENSMUST00000044250",
-           "ENSMUST00000018743"),
-         cDNA_change = c("c.4988C>T",
-                         "c.1114T>G",
-                         "c.718T>A"),
-         MHC = c("HLA-A*02:01 HLA-DRB1*14:67",
-                 "H-2-Kb H-2-IAd",
-                 "HLA-C*14:02")) %>%
+         c("ENSMUST00000128119"),
+         cDNA_change = c("c.4988C>T"),
+         MHC = c("HLA-A*02:01 HLA-DRB1*14:67")) %>%
     # run test
       garnish_affinity(blast = FALSE,
                           fitness = FALSE,
                           save = FALSE)
 
-    testthat::expect_equal(dt$cDNA_change %>% unique %>% length, 3)
-    testthat::expect_equal(dt$MHC %>% unique %>% sort,
-        c("H-2-IAd",
-          "H-2-Kb",
-          "HLA-A*02:01",
-          "HLA-C*14:02",
-          "HLA-DRB1*14:67"))
+    testthat::expect_equal(dt[, .N, by = "MHC"]  %>% .[order(MHC)],
+    structure(list(MHC = c("HLA-A*02:01", "HLA-DRB1*14:67"),
+                    N = c(153L, 30L)),
+                    row.names = c(NA, -2L),
+                    class = c("data.table", "data.frame"))
+                      )
     })
 }
 
@@ -136,20 +135,19 @@ peptides <- function(){
 
       # run test
         garnish_variants %>%
-          .[, MHC := c("HLA-A*02:01 HLA-DRB1*14:67")] %>%
-                      .[1:3] %>%
+          .[, MHC := c("HLA-A*02:01")] %>%
+          # keep the test small
+                      .[1:2] %>%
                       garnish_affinity(save = FALSE)
 
-      testthat::expect_true(dt %>% nrow == 774)
+      testthat::expect_true(dt %>% nrow == 426)
       testthat::expect_true(dt[pep_type %like% "mut",
-                              garnish_score %>%
-                              unique %>% signif(digits = 3)] == 2.17)
-      testthat::expect_true(dt[, nmer %>%
-                            unique %>% length] == 556)
-      testthat::expect_true(dt[iedb_score %>% signif(digits = 3) == 1] %>%
-                            nrow == 12)
-      testthat::expect_true(dt[!is.na(cl_proportion), cl_proportion %>%
-                            unique %>% length] == 2)
+                              cl_proportion %>%
+                              unique %>% signif(digits = 3)] == 0.272)
+      testthat::expect_true(dt[pep_type %like% "mut", nmer %>%
+                            unique %>% length] == 154)
+      testthat::expect_true(dt[!is.na(iedb_score)] %>%
+                            nrow == 4)
       })
   }
 
@@ -168,37 +166,41 @@ peptides <- function(){
            cDNA_change = c("c.4988C>T",
                            "c.1114T>G",
                            "c.718T>A"),
-           MHC = "H-2-Kb H-2-IAd")
+           MHC = "H-2-Kb")
 
       data.table::data.table(
         id =
         c("ENSMUST00000128119",
         "ENSMUST00000044250",
         "ENSMUST00000018743"),
-        test = c(100, 10, 1)) %>%
+        test = c(100, 5, 1)) %>%
         data.table::fwrite("antigen.garnish_rna_temp.txt", sep = "\t",
                             quote = FALSE, row.names = FALSE)
 
       # run test
         dt <- garnish_affinity(dt,
                             counts = "antigen.garnish_rna_temp.txt",
+                            min_counts = 10,
                             blast = FALSE,
                             fitness = FALSE,
                             save = FALSE)
 
       testthat::expect_equal(dt$ensembl_transcript_id %>%
-                             unique %>% length, 2)
+                             unique %>% length, 1)
       testthat::expect_true(all(!dt$ensembl_transcript_id %chin%
-                                "ENSMUST00000018743"))
+                                c("ENSMUST00000018743", "ENSMUST00000044250")))
 
       })
   }
 
-parallel::mclapply(list(README,
-                   transcripts,
-                   excel,
-                   jaffa,
-                   peptides,
-                   cellular_fraction,
-                   RNA_test),
-                   test_runner)
+README()
+transcripts()
+excel()
+jaffa()
+peptides()
+cellular_fraction()
+RNA_test()
+
+list.dirs(path = ".") %>% stringr::str_extract("ag_[a-f0-9]{18}") %>% na.omit %>% lapply(., function(dir){
+         unlink(dir, recursive = TRUE, force = TRUE)
+        })

@@ -2,10 +2,10 @@
 % Please edit documentation in R/antigen.garnish_assemble.R
 \name{list_mhc}
 \alias{list_mhc}
-\title{List available MHC types using standard nomenclature}
+\title{Return a data table of available MHC types.}
 \usage{
 list_mhc()
 }
 \description{
-List available MHC types using standard nomenclature
+Return a data table of available MHC types.
 }

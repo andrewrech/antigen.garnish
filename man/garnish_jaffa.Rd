@@ -2,7 +2,7 @@
 % Please edit documentation in R/antigen.garnish_jaffa.R
 \name{garnish_jaffa}
 \alias{garnish_jaffa}
-\title{Process gene fusions and return a data table for neoepitope prediction.}
+\title{Process gene fusions and return a data table for neoantigen prediction.}
 \usage{
 garnish_jaffa(path, db, fasta_path)
 }
@@ -30,7 +30,7 @@ A data table of mutant peptides, including:
 }
 }
 \description{
-Process \href{https://github.com/Oshlack/JAFFA}{JAFFA} gene fusion \code{fasta} and \code{results.csv} output for neoepitope prediction using \code{garnish_affinity}.
+Process \href{https://github.com/Oshlack/JAFFA}{JAFFA} gene fusion \code{fasta} and \code{results.csv} output for neoantigen prediction using \code{garnish_affinity}.
 }
 \examples{
 \dontrun{
@@ -47,20 +47,24 @@ library(antigen.garnish)
      file.path(dir, .)
 
  # get predictions
-   dt <- antigen.garnish::garnish_jaffa(path, db = "GRCm38", fasta_path) \%>\%
+   dt <- garnish_jaffa(path, db = "GRCm38", fasta_path) \%>\%
 
- # add MHC info with antigen.garnish::list_mhc() compatible names
+ # add MHC info with list_mhc() compatible names
    .[, MHC := "H-2-Kb"] \%>\%
 
  # get predictions
-   antigen.garnish::garnish_affinity \%>\%
+   garnish_affinity \%>\%
 
  # summarize predictions
-   antigen.garnish::garnish_summary \%T>\%
+   garnish_summary \%T>\%
    print
 }
 
 }
 \seealso{
+\code{\link{garnish_variants}}
+
 \code{\link{garnish_affinity}}
+
+\code{\link{garnish_summary}}
 }

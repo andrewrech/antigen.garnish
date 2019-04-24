@@ -2,11 +2,12 @@
 % Please edit documentation in R/antigen.garnish_predict.R
 \name{garnish_affinity}
 \alias{garnish_affinity}
-\title{Perform neoepitope prediction.}
+\title{Perform neoantigen prediction.}
 \usage{
-garnish_affinity(dt = NULL, path = NULL, counts = NULL,
-  min_counts = 1, assemble = TRUE, generate = TRUE, predict = TRUE,
-  blast = fitness, fitness = TRUE, save = TRUE, remove_wt = TRUE)
+garnish_affinity(dt = NULL, path = NULL, binding_cutoff = 500,
+  counts = NULL, min_counts = 1, assemble = TRUE, generate = TRUE,
+  predict = TRUE, blast = TRUE, fitness = TRUE, save = TRUE,
+  remove_wt = TRUE)
 }
 \arguments{
 \item{dt}{Data table. Input data table from \code{garnish_variants} or \code{garnish_jaffa}, or a data table in one of these forms:
@@ -33,9 +34,11 @@ MHC                         <same as above>
 
 \item{path}{Path to input table (\href{https://cran.r-project.org/web/packages/rio/vignettes/rio.html#supported_file_formats}{acceptable formats}).}
 
+\item{binding_cutoff}{Numeric. Maximum consensus MHC-binding affinity that will be passed for IEDB and dissimilarity analysis. Default is 500 (nM).}
+
 \item{counts}{Optional. A file path to an RNA count matrix. The first column must contain ENSEMBL transcript ids. All samples in the input table must be present in the count matrix.}
 
-\item{min_counts}{Integer. The minimum number of read counts that the transcript must be present to pass a variant. Default is 1.}
+\item{min_counts}{Integer. The minimum number of estimated read counts for a transcript to be considered for neoantigen prediction. Default is 1.}
 
 \item{assemble}{Logical. Assemble data table?}
 
@@ -43,9 +46,9 @@ MHC                         <same as above>
 
 \item{predict}{Logical. Predict binding affinities?}
 
-\item{blast}{Logical. Run BLASTp to find wild-type peptide and known IEDB matches?}
+\item{blast}{Logical. Run \code{BLASTp} to find wild-type peptide and known IEDB matches?}
 
-\item{fitness}{Logical. Run model of \href{https://www.ncbi.nlm.nih.gov/pubmed/29132144}{Luksza et al. Nature 2017} to predict neoepitope fitness?}
+\item{fitness}{Logical. Run model of \href{https://www.ncbi.nlm.nih.gov/pubmed/29132144}{Luksza et al. Nature 2017} to predict neoantigen fitness? \strong{Note:} Neoantigens not compatible with Python source code are silently dropped.}
 
 \item{save}{Logical. Save a copy of garnish_affinity output to the working directory as "ag_output.txt"? Default is \code{TRUE}.}
 
@@ -84,11 +87,12 @@ clonality info:
 
 antigen.garnish fitness model results
 \itemize{
-\item \strong{Consensus_scores}: average value of MHC binding affinity from all prediction tools that contributed output. 95\% confidence intervals are given by \strong{Upper_CI}, \strong{Lower_CI}.
+\item \strong{Ensemble_score}: average value of MHC binding affinity from all prediction tools that contributed output. 95\% confidence intervals are given by \strong{Upper_CI}, \strong{Lower_CI}.
 \item \strong{iedb_score}: R implementation of TCR recognition probability for peptide through summing of alignments in IEDB for corresponding organism.
-\item \strong{min_DAI}: Minimum of value of BLAST_A or DAI values, to provide the most conservative estimate differential binding between input and wildtype matches.
-\item \strong{fitness_score}: Product of min_DAI and iedb_score. The peptide with the highest value per clone is the top neoepitope. Does not apply to wildtype input.
-\item \strong{garnish_score}: overall sample immunogenicity based on top clonal neoepitopes. Only if clonality or allele fraction data is present in the table. See ?garnish_variants.
+\item \strong{IEDB_anno}: The best alignment from the IEDB database queried for the sample if applicable.
+\item \strong{min_DAI}: Minimum of value of BLAST_A or DAI values, to provide the most conservative proteome-wide estimate of differential binding between input and wildtype matches.
+\item \strong{fitness_score}: Product of min_DAI and iedb_score. The peptide with the highest value per clone is the top neoantigen. Does not apply to wildtype input.
+\item \strong{garnish_score}: overall sample immunogenicity based on top clonal neoantigens. Only if clonality or allele fraction data is present in the table. See ?garnish_variants.
 }
 
 fitness model information \href{https://www.ncbi.nlm.nih.gov/pubmed/29132144}{Luksza et al. Nature 2017}:
@@ -109,43 +113,46 @@ transcript description:
 }
 }
 \description{
-Perform ensemble neoepitope prediction on a data table of missense mutations, insertions, deletions or gene fusions using netMHC, mhcflurry, and mhcnuggets.
+Perform ensemble neoantigen prediction on a data table of missense mutations, insertions, deletions or gene fusions using netMHC, mhcflurry, and mhcnuggets.
 }
 \details{
 \itemize{
 \item see \code{list_mhc} for compatible MHC allele syntax
-multiple MHC alleles for a single sample_id should be space separated. Murine and human alleles should be in separate rows
+\item multiple MHC alleles for a single \code{sample_id} muar be space separated. Murine and human alleles muat be in separate rows. See \href{http://neoantigens.rech.io.s3-website-us-east-1.amazonaws.com/index.html#predict-neoantigens-from-missense-mutations-insertions-and-deletions}{README example}.
 \item \code{garnish_score} is calculated if allelic fraction or tumor cellular fraction were provided
 }
 }
 \examples{
 \dontrun{
 library(magrittr)
+library(data.table)
 library(antigen.garnish)
 
-# run full pipeline
+# load an example VCF
+dir <- system.file(package = "antigen.garnish") \%>\%
+	file.path(., "extdata/testdata")
 
-   # load an example VCF
- dir <- system.file(package = "antigen.garnish") \%>\%
-   file.path(., "extdata/testdata")
+dt <- "antigen.garnish_example.vcf" \%>\%
+file.path(dir, .) \%>\%
 
-   dt <- "antigen.garnish_example.vcf" \%>\%
-   file.path(dir, .) \%>\%
+# extract variants
+   garnish_variants \%>\%
 
-   # extract variants
-   antigen.garnish::garnish_variants \%>\%
+# add space separated MHC types
+# see list_mhc() for nomenclature of supported alleles
 
-   # add space separataed MHC types with antigen.garnish::list_mhc() compatible names
-       .[, MHC := c("HLA-A*02:01 HLA-DRB1*14:67",
-                   "H-2-Kb H-2-IAd",
-                   "HLA-A*01:47 HLA-DRB1*03:08")] \%>\%
+    .[, MHC := c("HLA-A*01:47 HLA-A*02:01 HLA-DRB1*14:67")] \%>\%
 
-   # predict neoepitopes
-   antigen.garnish::garnish_affinity \%>\%
+# predict neoantigens
+   garnish_affinity
 
-   # summarize predictions
-   antigen.garnish::garnish_summary \%T>\%
-   print
+# summarize predictions
+  dt \%>\%
+    garnish_summary \%T>\%
+      print
+
+# generate summary graphs
+  dt \%>\% garnish_plot
 
 }
 
@@ -153,6 +160,7 @@ library(antigen.garnish)
 # input a data table of transcripts
 
 library(magrittr)
+library(data.table)
 library(antigen.garnish)
 
  dt <- data.table::data.table(
@@ -167,15 +175,15 @@ library(antigen.garnish)
           MHC = c("HLA-A*02:01 HLA-DRB1*14:67",
                   "H-2-Kb H-2-IAd",
                   "HLA-A*01:47 HLA-DRB1*03:08")) \%>\%
- antigen.garnish::garnish_affinity \%T>\%
+ garnish_affinity \%T>\%
  str
 }
 
 \dontrun{
 # input a data table of peptides for all MHC types
 
-library(data.table)
 library(magrittr)
+library(data.table)
 library(antigen.garnish)
 
  dt <- data.table::data.table(
@@ -183,23 +191,27 @@ library(antigen.garnish)
           pep_mut = "MTEYKLVVVGAGDVGKSALTIQLIQNHFVDEYDP",
           mutant_index = "12",
           MHC = "all") \%>\%
- antigen.garnish::garnish_affinity \%T>\%
+ garnish_affinity \%T>\%
  str
 }
 
 \dontrun{
 # input from Microsoft excel
 
- # load an example excel file
+library(magrittr)
+library(data.table)
+library(antigen.garnish)
+
+# load an example excel file
  dir <- system.file(package = "antigen.garnish") \%>\%
-   file.path(., "extdata/testdata")
+ file.path(., "extdata/testdata")
 
-     path <- "antigen.garnish_test_input.xlsx" \%>\%
-       file.path(dir, .)
+ path <- "antigen.garnish_test_input.xlsx" \%>\%
+ v file.path(dir, .)
 
-   # predict neoepitopes
-     dt <- antigen.garnish::garnish_affinity(path = path) \%T>\%
-     str
+# predict neoantigens
+ dt <- garnish_affinity(path = path) \%T>\%
+   str
 }
 
 }

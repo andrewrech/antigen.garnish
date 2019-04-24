@@ -1,14 +1,16 @@
-[![Build Status](http://get.rech.io/build.passing.svg)](http://18.194.224.158:8080/job/antigen.garnish/lastBuild/consoleFull) [![codecov.io](https://codecov.io/github/andrewrech/antigen.garnish/coverage.svg?branch=master)](https://codecov.io/github/andrewrech/antigen.garnish?branch=master) ![](https://img.shields.io/badge/version-0.0.6-blue.svg)
+[![rech.io](https://s3.amazonaws.com/get.rech.io/antigen.garnish_build_status.svg)](https://s3.amazonaws.com/get.rech.io/antigen.garnish.test.txt) | [![rech.io](https://img.shields.io/badge/endpoint.svg?url=https://s3.amazonaws.com/get.rech.io/antigen.garnish_coverage.json)](https://s3.amazonaws.com/get.rech.io/antigen.garnish_coverage.html) | ![](https://img.shields.io/badge/version-1.0.0-blue.svg) | ![](https://img.shields.io/docker/pulls/leeprichman/antigen_garnish.svg)
 
 # antigen.garnish
 
-Ensemble neoepitope prediction and multi-parameter quality analysis from direct input, SNVs, indels, and fusions variants in R.
+Ensemble tumor neoantigen prediction and multi-parameter quality analysis from direct input, SNVs, indels, or gene fusion variants.
 
-![](http://get.rech.io/antigen.garnish_flowchart.svg)
+![](https://get.rech.io/antigen.garnish_flowchart.svg)
+
+[Detailed flowchart.](https://get.rech.io/antigen.garnish_flowchart_detailed.svg)
 
 ## Description
 
-An R package for [neoepitope](http://science.sciencemag.org/content/348/6230/69) analysis that takes human or murine DNA missense mutations, insertions, deletions, and RNASeq-derived gene fusions and performs ensemble neoepitope prediction using up to 7 algorithms. Input is a VCF file, [JAFFA](https://github.com/Oshlack/JAFFA) output, or table of peptides or transcripts. Outputs are ranked and classified neoepitopes and a summary of neoepitope burden by sample. Neoepitopes are ranked by MHC I/II binding affinity, clonality, RNA expression, dissimilarity to the normal peptidome, and similarity to known immunogenic antigens.
+An R package for [neoantigen](http://science.sciencemag.org/content/348/6230/69) analysis that takes human or murine DNA missense mutations, insertions, deletions, or RNASeq-derived gene fusions and performs ensemble neoantigen prediction using 7 algorithms. Input is a VCF file, [JAFFA](https://github.com/Oshlack/JAFFA) output, or table of peptides or transcripts. Outputs are ranked and summarized by sample. Neoantigens are ranked by MHC I/II binding affinity, clonality, RNA expression, similarity to known immunogenic antigens, and dissimilarity to the normal peptidome.
 
 ### Advantages
 
@@ -20,12 +22,12 @@ An R package for [neoepitope](http://science.sciencemag.org/content/348/6230/69)
 		* MHC I/II binding affinity
 		* clonality
 		* RNA expression
-		* dissimilarity to the normal peptidome (not presentely in this open source version prior to publication)
 		* similarity to known immunogenic antigens
-1. **Speed and simplicity**:
+		* dissimilarity to the normal peptidome (_please note_: not in public repo prior to publication, current dummy function returns NA for all peptides)
+2. **Speed and simplicity**:
 	* 1000 variants are ranked in a single step in less than five minutes
 	* parallelized using [`parallel::mclapply`](https://stat.ethz.ch/R-manual/R-devel/library/parallel/html/mclapply.html) and [data.table::setDTthreads](https://github.com/Rdatatable/data.table/wiki), see respective links for information on setting multicore usage
-1. **Integration with R/Bioconductor**
+3. **Integration with R/Bioconductor**
 	* upstream/VCF processing
 	* exploratory data analysis, visualization
 
@@ -35,24 +37,31 @@ An R package for [neoepitope](http://science.sciencemag.org/content/348/6230/69)
 
 - Linux
 - R &ge; 3.4
+  - see [documentation](https://get.rech.io/antigen.garnish.pdf) `Imports` for R, Bioconductor package dependencies
 - python-pip
-- `sudo` is required to install dependencies
+- `sudo` is required to install prediction tool dependencies
 
 or
 
-- a Docker image is available, please contact us
+- a Docker image is available, please see the [wiki](https://github.com/immune-health/antigen.garnish/wiki) or [contact us](mailto:leepr@upenn.edu)
 
-### Install prediction tools and `antigen.garnish`
+### Install all dependencies, prediction tools, and `antigen.garnish`
 
-- detailed installation instructions for bootstrapping a fresh AWS instance can be found in the [wiki](https://github.com/immune-health/antigen.garnish/wiki)
-
-- please note that netMHC, netMHCpan, netMHCII, and netMHCIIpan require academic-use only licenses
-
-One-line complete install command from the shell:
+One-line [installation script](http://get.rech.io/antigen.garnish.sh):
 
 ```sh
-curl -fsSL http://get.rech.io/antigen.garnish.sh | sudo sh
+$ curl -fsSL http://get.rech.io/antigen.garnish.sh | sudo sh
 ```
+
+- if installing without using the above installation script, set `$AG_DATA_DIR` to the [required data directory](http://get.rech.io/antigen.garnish.tar.gz):
+
+```sh
+$ curl -fsSL "http://get.rech.io/antigen.garnish.tar.gz" | tar -xvz
+$ export AG_DATA_DIR="$PWD/antigen.garnish"
+```
+
+- detailed installation instructions for bootstrapping a fresh AWS instance can be found in the [wiki](https://github.com/immune-health/antigen.garnish/wiki)
+- please note that netMHC, netMHCpan, netMHCII, and netMHCIIpan require academic-use only licenses
 
 ## [Package documentation](https://neoantigens.rech.io/reference/index.html) ([pdf](https://get.rech.io/antigen.garnish.pdf))
 
@@ -62,22 +71,22 @@ curl -fsSL http://get.rech.io/antigen.garnish.sh | sudo sh
 
 		* VCF input - `garnish_variants`
 		* Fusions from RNASeq via [JAFFA](https://github.com/Oshlack/JAFFA)- `garnish_jaffa`
-		* Prepare table of direct transcript or peptide input - see manual page for `?garnish_affinity`
+		* Prepare table of direct transcript or peptide input - see manual page in R (`?garnish_affinity`)
 
   1. Add MHC alleles of interest - see examples below.
-  1. Run ensemble prediction method and perform antigen quality analysis including dissimilarity, IEDB alignment score, and proteome-wide differential agretopicity - `garnish_affinity`.
-  1. Summarize output at the sample level with `garnish_summary` and `garnish_plot`, and prioritize the highest quality neoantigens per clone per sample with `garnish_antigens`.
+  1. Run ensemble prediction method and perform antigen quality analysis including proteome-wide differential agretopicity, IEDB alignment score, and dissimilarity: `garnish_affinity`.
+  1. Summarize output by sample level with `garnish_summary` and `garnish_plot`, and prioritize the highest quality neoantigens per clone and sample with `garnish_antigens`.
 
 ### Examples
 
-#### Predict neoepitopes from missense mutations, insertions, and deletions
+#### Predict neoantigens from missense mutations, insertions, and deletions
 
 ```r
 library(magrittr)
 library(data.table)
 library(antigen.garnish)
 
-# load an example VCF
+  # load an example VCF
 	dir <- system.file(package = "antigen.garnish") %>%
 		file.path(., "extdata/testdata")
 
@@ -89,13 +98,10 @@ library(antigen.garnish)
 
   # add space separated MHC types
   # see list_mhc() for nomenclature of supported alleles
-  # separate murine and human alleles into separate rows, even if same sample_id.
 
-      .[, MHC := c("HLA-A*02:01 HLA-DRB1*14:67",
-                   "H-2-Kb H-2-IAd",
-                   "HLA-A*01:47 HLA-DRB1*03:08")] %>%
+      .[, MHC := c("HLA-A*01:47 HLA-A*02:01 HLA-DRB1*14:67")] %>%
 
-  # predict neoepitopes
+  # predict neoantigens
     garnish_affinity
 
   # summarize predictions
@@ -105,14 +111,9 @@ library(antigen.garnish)
 
   # generate summary graphs
     dt %>% garnish_plot
-
-  # rank results by therapeutic potential
-    dt %>%
-     garnish_antigens %T>%
-      print
 ```
 
-#### Predict neoepitopes from gene fusions
+#### Predict neoantigens from gene fusions
 
 ```r
 library(magrittr)
@@ -142,18 +143,39 @@ library(antigen.garnish)
     print
 ```
 
-### Tests
+#### Get full MHC affinity output from a Microsoft Excel file of variants
+
+```r
+library(magrittr)
+library(data.table)
+library(antigen.garnish)
+
+  # load example Microsoft Excel file
+  dir <- system.file(package = "antigen.garnish") %>%
+    file.path(., "extdata/testdata")
+
+  path <- "antigen.garnish_test_input.xlsx" %>%
+    file.path(dir, .)
+
+  # predict neoantigens
+    dt <- garnish_affinity(path = path) %T>%
+      str
+```
 
 #### Automated testing
 
+From ./`<Github repo>`:
+
 ```r
-  testthat::test_package("antigen.garnish")
+  devtools::test(reporter = "summary")
 ```
 
 #### How are peptides generated?
 
 ```r
   library(magrittr)
+  library(data.table)
+  library(antigen.garnish)
 
   # generate a fake peptide
     dt <- data.table::data.table(
@@ -171,8 +193,13 @@ library(antigen.garnish)
 
 ## Plots and summary tables
 
-- [`garnish_plot`](http://get.rech.io/antigen.garnish_example_plot.pdf)
-- [`garnish_antigens`](http://get.rech.io/antigen.garnish_summary_table.png)
+* `garnish_plot` output:
+
+![](https://get.rech.io/antigen.garnish_example_plot.png)
+
+* `garnish_antigens` output:
+
+![](https://get.rech.io/antigen.garnish_summary_table.png)
 
 ## Citation
 

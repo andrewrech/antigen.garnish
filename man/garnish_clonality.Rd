@@ -14,7 +14,7 @@ A data table with added fitness model parameter columns:
 \itemize{
 \item \strong{clone_id}: rank of the clone containing the variant (highest equals larger tumor fraction).
 \item \strong{cl_proportion}: estimated mean tumor fraction containing the clone.
-\item \strong{garnish_score}: the summary parameter of immunogenicity at the sample level, summed across top neoepitopes of each clone.
+\item \strong{garnish_score}: the summary parameter of immunogenicity at the sample level, summed across top neoantigens of each clone.
 }
 }
 \description{

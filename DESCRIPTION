@@ -1,38 +1,43 @@
 Package: antigen.garnish
-Version: 0.0.6
+Version: 1.0.0
 Title: Ensemble Neoepitope Prediction from DNA Variants in R
-Description: An R package for neoepitope analysis that takes human or murine DNA missense mutations, insertions, deletions, and gene fusions and performs ensemble neoepitope prediction using 7 algorithms. Input is a VCF file or table of peptides. Output is ranked neoepitopes and a summary of neoepitope load and fitness by sample. Neoepitopes are ranked by MHC I/II binding affinity, clonality, RNA expression, dissimilarity to the normal peptidome, and similarity to known immunogenic antigens.
+Description: An R package for neoantigen analysis that takes human or murine DNA missense mutations, insertions, deletions, or RNASeq-derived gene fusions and performs ensemble neoantigen prediction using 7 algorithms. Input is a VCF file, JAFFA output, or table of peptides or transcripts. Outputs are ranked and summarized by sample. Neoantigens are ranked by MHC I/II binding affinity, clonality, RNA expression, similarity to known immunogenic antigens, and dissimilarity to the normal peptidome.
 Authors@R: c(
-          person("Lee", "Richman", email = "leepr@upenn.edu", role = c("aut")),
-          person("David", "Balli", email = "balli@advaxis.com", role = c("aut")),
-          person("Robert", "Vonderheide", email = "rhv@upenn.edu", role = c("aut")),
-          person("Andrew", "Rech", email = "rech@rech.io", role = c("aut", "cre")))
-License: GPL-3
+          person("Lee", "Richman", "P.", email = "leepr@upenn.edu", role = c("aut", "cre")),
+          person("Robert", "Vonderheide", "H.", email = "rhv@upenn.edu", role = c("aut")),
+          person("Andrew", "Rech", "J.", email = "rech@rech.io", role = c("aut")))
+License: LGPL-3
 Encoding: UTF-8
 LazyData: true
-RemoteUrl: http://neoepitopes.io
-Imports: Rdpack,
-                   ShortRead,
-                   colorspace,
-                   data.table,
-                   dt.inflix,
-                   ggplot2,
-                   knitr,
-                   magrittr,
-                   mclust,
-                   parallel,
-                   rio,
-                   stats,
-                   stringi,
-                   stringr,
-                   testthat,
-                   tidyr,
-                   utils,
-                   uuid,
-                   vcfR,
-                   zoo,
-                   Biostrings
+RemoteUrl: https://neoantigens.io
 Depends: R (>= 3.4.0)
 RdMacros: Rdpack
 LazyLoad: yes
+Imports: colorspace,
+       data.table,
+       dt.inflix,
+       ggplot2,
+       knitr,
+       mclust,
+       mclust,
+       parallel,
+       stringr,
+       testthat,
+       Biostrings,
+       Rdpack,
+       magrittr,
+       rio,
+       stats,
+       stringi,
+       tidyr,
+       utils,
+       uuid,
+       vcfR,
+       zoo,
+       stringr,
+       data.table,
+       magrittr,
+       stringr,
+       data.table,
+       magrittr
 RoxygenNote: 6.1.1

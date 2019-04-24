@@ -2,7 +2,7 @@
 % Please edit documentation in R/antigen.garnish_io.R
 \name{garnish_summary}
 \alias{garnish_summary}
-\title{Summarize neoepitope prediction.}
+\title{Summarize neoantigen prediction.}
 \usage{
 garnish_summary(dt)
 }
@@ -14,9 +14,9 @@ Summary table description:
 
 A summary data table of \code{dt} by \code{sample_id} with the following columns:
 \itemize{
-\item \strong{classic_neos}: classically defined neoepitopes (CDNs); defined as mutant \code{nmers} predicted to bind MHC with high affinity (< 50nM \eqn{IC_{50}})
+\item \strong{classic_neos}: classically defined neoantigens (CDNs); defined as mutant \code{nmers} predicted to bind MHC with high affinity (< 50nM \eqn{IC_{50}})
 \item \strong{classic_top_score}: sum of the top three mutant \code{nmer} affinity scores (see below)
-\item \strong{alt_neos}: alternatively defined neoepitopes (ADNs); defined as mutant \code{nmers} predicted to bind MHC with greatly improved affinity relative to non-mutated counterparts (10x for MHC class I and 4x for MHC class II) (see below)
+\item \strong{alt_neos}: alternatively defined neoantigens (ADNs); defined as mutant \code{nmers} predicted to bind MHC with greatly improved affinity relative to non-mutated counterparts (10x for MHC class I and 4x for MHC class II) (see below)
 \item \strong{alt_top_score}: sum of the top three mutant \code{nmer} differential agretopicity indices; differential agretopicity index (DAI) is the ratio of MHC binding affinity between mutant and wt peptide (see below). If the peptide is fusion- or frameshift-derived, the binding affinity of the closest wt peptide determined by BLAST is used to calculate DAI.
 \item \strong{priority_neos}: mutant peptides that meet both ADN and CDN criteria, and if applicable, have a fitness_score of >= 1.
 \item \strong{fs_neos}: mutant \code{nmers} derived from frameshift variants predicted to bind MHC with < 500nM \eqn{IC_{50}}
@@ -25,50 +25,55 @@ A summary data table of \code{dt} by \code{sample_id} with the following columns
 \item \strong{predictions}: wt and mutant predictions performed
 \item \strong{mhc_binders}: \code{nmers} predicted to at least minimally bind MHC (< 500nM \eqn{IC_{50}})
 \item \strong{fitness_scores}: Sum of the top 3 fitness_score values per sample. See \code{?garnish_fitness}.
-\item \strong{garnish_score}: Sample level immune fitness. Derived by summing the exponential of \code{fitness_scores} for each top neoepitope across all clones in the tumor sample. See ?garnish_predicitons.
+\item \strong{garnish_score}: Sample level immune fitness. Derived by summing the exponential of \code{fitness_scores} for each top neoantigen across all clones in the tumor sample. See ?garnish_predicitons.
 \item \strong{variants}: total genomic variants evaluated
 \item \strong{transcripts}: total transcripts evaluated
 }
 
 \strong{Additional information}
 
-\strong{Differential agretopicity index (DAI)} expresses the degree to which peptide binding to MHC class I or II differ due to the presence of a non-synonymous mutation. \strong{Alternatively defined neoepitopes (ADNs)} are mutant peptides predicted to bind MHC class I or II with greatly improved affinity relative to non-mutated counterparts (\emph{i.e.} peptides with high DAI). In mice, selection of peptides with high DAI results in a substantially improved rate of experimentally validated epitopes that mediate protection from tumor growth.
+\strong{Differential agretopicity index (DAI)} expresses the degree to which peptide binding to MHC class I or II differ due to the presence of a non-synonymous mutation. \strong{Alternatively defined neoantigens (ADNs)} are mutant peptides predicted to bind MHC class I or II with greatly improved affinity relative to non-mutated counterparts (\emph{i.e.} peptides with high DAI). In mice, selection of peptides with high DAI results in a substantially improved rate of experimentally validated epitopes that mediate protection from tumor growth.
 
 To determine DAI, mutant peptides that at least minimally bind MHC class I or II (> 500nM \eqn{IC_{50}}) are selected and then DAI is calculated as the fold-change in binding affinity between non-mutant and mutant peptides. ADNs are identified as mutant peptides with DAI > 10 for MHC class I and > 4 for class II.
 
-ADNs are generated from selective mutations in the peptide-MHC anchor position (\emph{i.e.} the agretope) rather than mutations randomly occurring across the peptide sequence. This feature leads to two potentially important and unique immunological characteristics of ADNs. First, unlike CDNs, the TCR-facing peptide sequence in ADNs is likely the same as the corresponding non-mutant peptide. Second, the MHC binding of the corresponding non-mutant peptide may be so low that its presentation in the thymus is minimal and central tolerance may be bypassed. Functionally, there is evidence of strong immunogenicity of ADNs. Peptides, which in retrospect satisfy ADN selection criteria, are common among human tumor antigens that have been experimentally confirmed to be immunogenic. A recent extensive analysis of tumor immunity in a patient with ovarian carcinoma showed that the top five reactive mutant peptides had substantially higher mutant to non-mutant predicted MHC class I binding affinity. Moreover, a re-analysis of validated neoepitopes from non-small cell lung carcinoma or melanoma patients showed that one third of these were ADNs (resulting from an anchor position substitution that improved MHC affinity > 10-fold).
+ADNs are generated from selective mutations in the peptide-MHC anchor position (\emph{i.e.} the agretope) rather than mutations randomly occurring across the peptide sequence. This feature leads to two potentially important and unique immunological characteristics of ADNs. First, unlike CDNs, the TCR-facing peptide sequence in ADNs is likely the same as the corresponding non-mutant peptide. Second, the MHC binding of the corresponding non-mutant peptide may be so low that its presentation in the thymus is minimal and central tolerance may be bypassed. Functionally, there is evidence of strong immunogenicity of ADNs. Peptides, which in retrospect satisfy ADN selection criteria, are common among human tumor antigens that have been experimentally confirmed to be immunogenic. A recent extensive analysis of tumor immunity in a patient with ovarian carcinoma showed that the top five reactive mutant peptides had substantially higher mutant to non-mutant predicted MHC class I binding affinity. Moreover, a re-analysis of validated neoantigens from non-small cell lung carcinoma or melanoma patients showed that one third of these were ADNs (resulting from an anchor position substitution that improved MHC affinity > 10-fold).
 
-To better model potential for oligoclonal antitumor responses directed against neoepitopes, we additionally report a \strong{top three neoepitope score}, which is defined as the sum of the top three affinity scores \eqn{\left(\frac{1}{IC_{50}}\right)} for CDNs or sum of top three DAI for ADNs. The top three was chosen in each case because this is the minimum number that captures the potential for an oligoclonal T cell response and mirrors experimentally confirmed oligoclonality of T cell responses against human tumors. Moreover, the top three score was the least correlated to total neoepitope load (vs. top 4 through top 15) in a large scale human analysis of neoepitope across 27 disease types (R-squared = 0.0495), and therefore not purely a derivative of total neoepitope load.
+To better model potential for oligoclonal antitumor responses directed against neoantigens, we additionally report a \strong{top three neoantigen score}, which is defined as the sum of the top three affinity scores \eqn{\left(\frac{1}{IC_{50}}\right)} for CDNs or sum of top three DAI for ADNs. The top three was chosen in each case because this is the minimum number that captures the potential for an oligoclonal T cell response and mirrors experimentally confirmed oligoclonality of T cell responses against human tumors. Moreover, the top three score was the least correlated to total neoantigen load (vs. top 4 through top 15) in a large scale human analysis of neoantigen across 27 disease types (R-squared = 0.0495), and therefore not purely a derivative of total neoantigen load.
 }
 \description{
-Calculate neoepitope summary statistics for priority, classic, alternative, frameshift-derived, and fusion-derived neoepitopes for each sample.
+Calculate neoantigen summary statistics for priority, classic, alternative, frameshift-derived, and fusion-derived neoantigens for each sample.
 }
 \examples{
 \dontrun{
 library(magrittr)
+library(data.table)
 library(antigen.garnish)
 
- # load an example VCF
- dir <- system.file(package = "antigen.garnish") \%>\%
-   file.path(., "extdata/testdata")
+# load an example VCF
+dir <- system.file(package = "antigen.garnish") \%>\%
+	file.path(., "extdata/testdata")
 
-   dt <- "antigen.garnish_example.vcf" \%>\%
-   file.path(dir, .) \%>\%
+dt <- "antigen.garnish_example.vcf" \%>\%
+file.path(dir, .) \%>\%
 
- # extract variants
-   antigen.garnish::garnish_variants \%>\%
+# extract variants
+   garnish_variants \%>\%
 
- # add test MHC types
-     .[, MHC := c("HLA-A*02:01 HLA-DRB1*14:67",
-                  "H-2-Kb H-2-IAd",
-                 "HLA-A*01:47 HLA-DRB1*03:08")] \%>\%
+# add space separated MHC types
+# see list_mhc() for nomenclature of supported alleles
 
- # predict neoepitopes
-   antigen.garnish::garnish_affinity \%>\%
+    .[, MHC := c("HLA-A*01:47 HLA-A*02:01 HLA-DRB1*14:67")] \%>\%
 
- # summarize predictions
-   antigen.garnish::garnish_summary \%T>\%
-   print
+# predict neoantigens
+   garnish_affinity
+
+# summarize predictions
+  dt \%>\%
+    garnish_summary \%T>\%
+      print
+
+# generate summary graphs
+  dt \%>\% garnish_plot
 }
 }
 \references{
@@ -90,4 +95,6 @@ Verdegaal EME, de Miranda NFCC, Visser M, Harryvan T, van Buuren MM, et al. 2016
 \code{\link{garnish_affinity}}
 
 \code{\link{garnish_plot}}
+
+\code{\link{garnish_antigens}}
 }

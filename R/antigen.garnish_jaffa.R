@@ -1,7 +1,7 @@
-## ---- garnish_jaffa
-#' Process gene fusions and return a data table for neoepitope prediction.
+
+#' Process gene fusions and return a data table for neoantigen prediction.
 #'
-#' Process [JAFFA](https://github.com/Oshlack/JAFFA) gene fusion `fasta` and `results.csv` output for neoepitope prediction using `garnish_affinity`.
+#' Process [JAFFA](https://github.com/Oshlack/JAFFA) gene fusion `fasta` and `results.csv` output for neoantigen prediction using `garnish_affinity`.
 #'
 #' @param path Path to `jaffa_results.csv`.
 #' @param db One of "GRCm38" or "GRCh38", murine and human reference genomes respectively.
@@ -19,7 +19,9 @@
 #' * **pep_wt**: wt cDNA sequence of peptide from 5' fusion gene.
 #' * **fus_tx**: cDNA sequence of predicted fusion product
 #'
+#' @seealso \code{\link{garnish_variants}}
 #' @seealso \code{\link{garnish_affinity}}
+#' @seealso \code{\link{garnish_summary}}
 #'
 #' @examples
 #'\dontrun{
@@ -36,16 +38,16 @@
 #'      file.path(dir, .)
 #'
 #'  # get predictions
-#'    dt <- antigen.garnish::garnish_jaffa(path, db = "GRCm38", fasta_path) %>%
+#'    dt <- garnish_jaffa(path, db = "GRCm38", fasta_path) %>%
 #'
-#'  # add MHC info with antigen.garnish::list_mhc() compatible names
+#'  # add MHC info with list_mhc() compatible names
 #'    .[, MHC := "H-2-Kb"] %>%
 #'
 #'  # get predictions
-#'    antigen.garnish::garnish_affinity %>%
+#'    garnish_affinity %>%
 #'
 #'  # summarize predictions
-#'    antigen.garnish::garnish_summary %T>%
+#'    garnish_summary %T>%
 #'    print
 #'}
 #'
@@ -94,14 +96,13 @@ garnish_jaffa <- function(path, db, fasta_path){
              inframe == TRUE]
 
 
-    dt[, fusion_uuid := parallel::mclapply(1:nrow(dt),
-                                uuid::UUIDgenerate) %>% unlist]
+    dt[, fusion_uuid := uuid::UUIDgenerate(), by = 1:nrow(dt)]
 
   # split up gene fusion components
 
 unfuse_genes <- function(col){
 
-dtl <- parallel::mclapply(1:length(col), function(i){
+dtl <- lapply(1:length(col), function(i){
                strsplit(col[i], split = ":", fixed = TRUE) %>% unlist
                })
 
@@ -115,14 +116,14 @@ gene_2 <- lapply(dtl, function(x){x[2]}) %>% unlist
   dt[, c("gene_1", "gene_2") := unfuse_genes(`fusion genes`)]
 
   # incorporate fasta file input, split contigs at breakpoint
-    fasta <- ShortRead::readFasta(fasta_path)
+    fasta <- Biostrings::readDNAStringSet(fasta_path)
 
-    seqs <- fasta@sread %>% data.table::as.data.table %>% .[, x %>% toupper] %>%
+    seqs <- fasta %>% as.character %>%
       data.table::as.data.table %>%
       data.table::setnames(".", "sread")
 
-    contig <- fasta@id %>% data.table::as.data.table %>% .[, x] %>%
-      data.table::as.data.table %>%
+    contig <- fasta %>% as.character %>% names %>%
+              data.table::as.data.table %>%
       data.table::setnames(".", "contig")
 
     contig_dt <- data.table::data.table(seqs, contig) %>%
@@ -141,14 +142,31 @@ gene_2 <- lapply(dtl, function(x){x[2]}) %>% unlist
             by = 1:nrow(dt)]
 
 
-    metapath <- "antigen.garnish/GRChm38_meta.RDS"
+  # detect/set AG_DATA_DIR environmental variable
+  check_pred_tools()
 
-    if (identical(Sys.getenv("TESTTHAT"), "true")) metapath <- "~/antigen.garnish/GRChm38_meta.RDS"
+  # load metadata
+   metafile <- file.path(Sys.getenv("AG_DATA_DIR"), "/", "GRChm38_meta.RDS")
 
-    if (!file.exists(metapath))
-        stop("Unable to locate metadata file. Please ensure antigen.garnish folder is present and untarred in working directory.")
+  if (!file.exists(metafile)){
+    err <- paste(
+    "Unable to locate metadata file.",
+    "Paths searched are $AG_DATA_DIR, $HOME, and the current working directory.",
+    "To set a custom path to the antigen.garnish data folder",
+    "set environomental variable AG_DATA_DIR from the shell",
+    "or from R using Sys.setenv",
+    "",
+    "Re-download installation data:",
+    '$ curl -fsSL "http://get.rech.io/antigen.garnish.tar.gz" | tar -xvz',
+    "",
+    "Documentation:",
+    "https://neoantigens.io",
+    sep = "\n"
+    )
+    stop(err)
+  }
 
-    var_dt <- readRDS(metapath)
+    var_dt <- readRDS(metafile)
 
     # get species specific table here.
     if (db == "GRCh38") var_dt <- var_dt[ensembl_gene_id %likef% "ENSG"]
@@ -181,7 +199,7 @@ gene_2 <- lapply(dtl, function(x){x[2]}) %>% unlist
   # collapse transcripts to then separate rows after
     tx_dt <- var_dt[, c("ensembl_gene_id", "ensembl_transcript_id")] %>% unique
 
-tx_dt <- parallel::mclapply(tx_dt[, ensembl_gene_id %>% unique], function(i){
+tx_dt <- lapply(tx_dt[, ensembl_gene_id %>% unique], function(i){
       row <- tx_dt[ensembl_gene_id == i] %>%
             .[, txs := .[, ensembl_transcript_id] %>%
                 paste0(collapse = ";")] %>%
@@ -226,12 +244,12 @@ tx_dt <- parallel::mclapply(tx_dt[, ensembl_gene_id %>% unique], function(i){
   # grep appropriate read/contig pattern
   # remove transcript ids that could not have produced read
 
-dt <- dt[, keep := parallel::mclapply(1:nrow(dt), function(i){
+dt <- dt[, keep := lapply(1:nrow(dt), function(i){
                   grepl(pattern = contig_1[i], x = coding_wt_1[i],
                         fixed = TRUE)
                   }) %>% unlist][keep == TRUE]
 
-dt <- dt[, keep := parallel::mclapply(1:nrow(dt), function(i){
+dt <- dt[, keep := lapply(1:nrow(dt), function(i){
                   grepl(pattern = contig_2[i], x = coding_wt_2[i],
                         fixed = TRUE)
                     }) %>% unlist][keep == TRUE]

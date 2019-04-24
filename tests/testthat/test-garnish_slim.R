@@ -17,7 +17,7 @@ testthat::test_that("garnish_slim", {
 
   testthat::expect_equal(length(names(dto)), 20)
 
-  testthat::expect_equal(nrow(dto[!is.na(antigen.garnish_class)]), 4)
+  testthat::expect_equal(nrow(dto[antigen.garnish_class != "Unclassified"]), 3)
 
   dto <- garnish_slim(dt, slimmer = FALSE)
 

@@ -2,7 +2,7 @@
 % Please edit documentation in R/antigen.garnish_io.R
 \name{garnish_slim}
 \alias{garnish_slim}
-\title{Return minimal neoepitope prediction information for all peptides.}
+\title{Return minimal neoantigen prediction information for all peptides.}
 \usage{
 garnish_slim(dt, slimmer = TRUE)
 }
@@ -28,14 +28,15 @@ A slimmed down data table from \code{garnish_affinity} output with minimal infor
 \item \strong{affinity(nM)_netMHCpan}
 \item \strong{\%Rank_netMHC}
 \item \strong{\%Rank_netMHCpan}
-\item \strong{Consensus_scores}
+\item \strong{Ensemble_score}
 \item \strong{DAI}: Differential agretopicity of variant to corresponding wild-type, see \code{garnish_summary}.
 \item \strong{min_DAI}: The most conservative DAI value based on a global alignment to the wild-type proteome.
 \item \strong{iedb_score}
+\item \strong{dissimilarity}
 \item \strong{fitness_score}
 \item \strong{NeoantigenRecognitionPotential}: analogous to fitness_score, source code from Luksza et al. \emph{Nature} 2017.
 \item \strong{cl_proportion}: clonal cell fraction composed by the variant
-\item \strong{antigen.garnish_class}: epitope class, one of "Classic", "Alternative", "Priority", "Fusion", or "Frameshift".
+\item \strong{antigen.garnish_class}: epitope class, one of "Classic", "Alternative", "IEDB high", "high dissimilarity".
 }
 
 See \code{garnish_affinity} for more column descriptions.
@@ -50,29 +51,37 @@ library(magrittr)
 library(data.table)
 library(antigen.garnish)
 
- # load an example VCF
- dir <- system.file(package = "antigen.garnish") \%>\%
-   file.path(., "extdata/testdata")
+# load an example VCF
+dir <- system.file(package = "antigen.garnish") \%>\%
+	file.path(., "extdata/testdata")
 
- dt <- "antigen.garnish_example.vcf" \%>\%
- file.path(dir, .) \%>\%
+dt <- "antigen.garnish_example.vcf" \%>\%
+file.path(dir, .) \%>\%
 
- # extract variants
- garnish_variants \%>\%
+# extract variants
+   garnish_variants \%>\%
 
- # add test MHC types
-     .[, MHC := c("HLA-A*02:01 HLA-DRB1*14:67",
-                  "H-2-Kb H-2-IAd",
-                 "HLA-A*01:47 HLA-DRB1*03:08")] \%>\%
+# add space separated MHC types
+# see list_mhc() for nomenclature of supported alleles
 
-   garnish_affinity \%>\%
+    .[, MHC := c("HLA-A*01:47 HLA-A*02:01 HLA-DRB1*14:67")] \%>\%
 
- # print slim predictions
- garnish_slim \%T>\%
- print
+# predict neoantigens
+   garnish_affinity
+
+# summarize predictions
+  dt \%>\%
+    garnish_summary \%T>\%
+      print
+
+# generate summary graphs
+  dt \%>\% garnish_plot
 }
+
 }
 \seealso{
+\code{\link{garnish_affinity}}
+
 \code{\link{garnish_summary}}
 
 \code{\link{garnish_antigens}}

@@ -2,16 +2,23 @@
 % Please edit documentation in R/antigen.garnish_io.R
 \name{garnish_antigens}
 \alias{garnish_antigens}
-\title{List top neoepitopes for each sample and/or by clones within each sample..}
+\title{List top neoantigens for each sample and/or by clones within each sample.}
 \usage{
-garnish_antigens(dt)
+garnish_antigens(dt, nhits = 2)
 }
 \arguments{
-\item{dt}{An output data table from \code{garnish_affinity}.}
+\item{dt}{An output data table from \code{garnish_affinity}, either a data table object or path to a file.}
+
+\item{nhits}{Integer. Maximum number of prioritized neoantigens per clone to return, default is 2.}
 }
 \value{
-A data table with the top neoepitope per sample, and if possible per clone, in rank order of clone frequency.
+A data table with the top neoantigen per sample, and if possible per clone, in rank order of clone frequency. Neoantigens are prioritized by permissive dissimilarity and iedb_score thresholds and then by differential agretopicity.
 }
 \description{
-List top neoepitopes for each sample and/or by clones within each sample..
+List top neoantigens for each sample and/or by clones within each sample.
+}
+\seealso{
+\code{\link{garnish_affinity}}
+
+\code{\link{garnish_summary}}
 }

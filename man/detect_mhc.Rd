@@ -2,7 +2,7 @@
 % Please edit documentation in R/antigen.garnish_assemble.R
 \name{detect_mhc}
 \alias{detect_mhc}
-\title{Replace MHC with matching prediction tool MHC syntax}
+\title{Internal function to replace MHC with matching prediction tool MHC syntax}
 \usage{
 detect_mhc(x, alleles)
 }
@@ -12,5 +12,5 @@ detect_mhc(x, alleles)
 \item{alleles}{Data table of 2 columns, 1. formatted allele names 2. prediction tool name (e.g. mhcflurry, mhcnuggets, netMHC).}
 }
 \description{
-Replace MHC with matching prediction tool MHC syntax
+Internal function to replace MHC with matching prediction tool MHC syntax
 }

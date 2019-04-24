@@ -2,7 +2,7 @@
 % Please edit documentation in R/antigen.garnish_fitness.R
 \name{garnish_fitness}
 \alias{garnish_fitness}
-\title{Generate neoepitope fitness model}
+\title{Generate neoantigen fitness model}
 \usage{
 garnish_fitness(dt, a = 26, k = 4.86936)
 }
@@ -20,5 +20,12 @@ A data table with added fitness model parameter columns:
 }
 }
 \description{
-Implements the neoepitope fitness model of \href{https://www.ncbi.nlm.nih.gov/pubmed/29132144}{Luksza et al. Nature 2017}.
+Implements the neoantigen fitness model of \href{https://www.ncbi.nlm.nih.gov/pubmed/29132144}{Luksza et al. Nature 2017}.
+}
+\seealso{
+\code{\link{garnish_variants}}
+
+\code{\link{garnish_affinity}}
+
+\code{\link{garnish_summary}}
 }

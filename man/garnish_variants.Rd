@@ -4,10 +4,12 @@
 \alias{garnish_variants}
 \title{Process VCF variants and return a data table for epitope prediction.}
 \usage{
-garnish_variants(vcfs)
+garnish_variants(vcfs, tumor_sample_name = "TUMOR")
 }
 \arguments{
 \item{vcfs}{Paths to one or more VFC files to import. See details below.}
+
+\item{tumor_sample_name}{Character, name of column in vcf of tumor sample, used to determine mutant allelic fraction of neoantigens.}
 }
 \value{
 A data table with one unique SnpEff variant annotation per row, including:
@@ -29,10 +31,10 @@ if CF or AF fields in provided in input VCFs, either:
 }
 }
 \description{
-Process paired tumor-normal VCF variants annotated with \href{http://snpeff.sourceforge.net/}{SnpEff} for neoepitope prediction using \code{garnish_affinity}. VCFs from matched samples can be optionally intersected to select only variants present across input files.
+Process paired tumor-normal VCF variants annotated with \href{http://snpeff.sourceforge.net/}{SnpEff} for neoantigen prediction using \code{garnish_affinity}.
 }
 \details{
-\code{vcf}s can optionally contain an \code{AF} or \code{CF} \emph{INFO} field, in which case cellular fraction or allelic fraction is considered when ranking neoepitopes. \href{http://get.rech.io/antigen.garnish_example.vcf}{Example vcf}. Single samples are required. Multi-sample \code{vcf}s are not supported. \code{vcf}s must be annotated with \href{http://snpeff.sourceforge.net/}{SnpEff}.
+\code{vcf}s must be annotated with \href{http://snpeff.sourceforge.net/}{SnpEff}. \code{vcf}s can optionally contain an \code{AF} or \code{CF} \emph{INFO} field, in which case cellular fraction or allelic fraction is considered when ranking neoantigens. See \href{http://get.rech.io/antigen.garnish_example.vcf}{example vcf}. Single samples are required. Multi-sample \code{vcf}s are not supported.
 
 Recommended workflow:
 \enumerate{
@@ -45,6 +47,7 @@ Recommended workflow:
 \examples{
 \dontrun{
 library(magrittr)
+library(data.table)
 library(antigen.garnish)
 
  # load an example VCF
@@ -71,4 +74,6 @@ Callari M, Sammut SJ, De Mattos-Arruda L, Bruna A, Rueda OM, Chin SF, and Caldas
 }
 \seealso{
 \code{\link{garnish_affinity}}
+
+\code{\link{garnish_summary}}
 }

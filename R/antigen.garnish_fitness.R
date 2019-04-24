@@ -1,7 +1,7 @@
-## ---- garnish_fitness
-#' Generate neoepitope fitness model
+
+#' Generate neoantigen fitness model
 #'
-#' Implements the neoepitope fitness model of [Luksza et al. *Nature* 2017](https://www.ncbi.nlm.nih.gov/pubmed/29132144).
+#' Implements the neoantigen fitness model of [Luksza et al. *Nature* 2017](https://www.ncbi.nlm.nih.gov/pubmed/29132144).
 #'
 #' @param dt Data table output from `garnish_affinity`.
 #' @param a Numeric fitness model parameter. Binding curve horizontal displacement used to determine TCR recognition probability of a peptide compared to an IEDB near match.
@@ -9,6 +9,10 @@
 #'
 #' @return A data table with added fitness model parameter columns:
 #' * **NeoantigenRecognitionPotential**: Neoantigen recognition potential calculated by the model.
+#'
+#' @seealso \code{\link{garnish_variants}}
+#' @seealso \code{\link{garnish_affinity}}
+#' @seealso \code{\link{garnish_summary}}
 #'
 #' @export garnish_fitness
 #' @md
@@ -23,12 +27,12 @@ garnish_fitness <- function(dt,
     on.exit({
           message("Removing temporary files")
           try(
-          list.files(pattern = "neoepitopes.txt") %>% file.remove, silent = TRUE)
+          list.files(pattern = "neoantigens.txt") %>% file.remove, silent = TRUE)
           try(
           unlink(list.files(pattern = "Lukza_model_[0-9]+"), recursive = TRUE, force = TRUE), silent = TRUE)
                               })
 
-  if (identical(Sys.getenv("TESTTHAT"), "true")) setwd("~")
+  if (identical(Sys.getenv("TESTTHAT"), "true")) setwd(Sys.getenv("HOME"))
 
   # check input
 
@@ -36,7 +40,7 @@ garnish_fitness <- function(dt,
       stop("Input must be a data table.")
 
     if(!(c("var_uuid",
-           "Consensus_scores",
+           "Ensemble_score",
            "MHC",
            "nmer",
            "nmer_uuid",
@@ -46,7 +50,7 @@ Input data table must include
 the following columns:
 
   var_uuid
-  Consensus_scores
+  Ensemble_score
   MHC
   nmer
   nmer_uuid
@@ -64,14 +68,14 @@ the following columns:
                                   "sample_id",
                                   "nmer",
                                   "MHC",
-                                  "Consensus_scores",
+                                  "Ensemble_score",
                                   "dai_uuid")] %>%
             data.table::setnames(c("nmer_uuid",
                                    "var_uuid",
                                    "sample_id",
                                    "nmer",
                                    "MHC",
-                                   "Consensus_scores",
+                                   "Ensemble_score",
                                    "dai_uuid"),
                                  c("ID",
                                    "MUTATION_ID",
@@ -87,7 +91,7 @@ the following columns:
                                   "sample_id",
                                   "nmer",
                                   "MHC",
-                                  "Consensus_scores",
+                                  "Ensemble_score",
                                   "dai_uuid")] %>%
               data.table::setnames(
                                 c("nmer_uuid",
@@ -95,7 +99,7 @@ the following columns:
                                   "sample_id",
                                   "nmer",
                                   "MHC",
-                                  "Consensus_scores",
+                                  "Ensemble_score",
                                   "dai_uuid"),
                                 c("ID",
                                   "MUTATION_ID",
@@ -121,14 +125,14 @@ the following columns:
                                   "sample_id",
                                   "nmer",
                                   "MHC",
-                                  "Consensus_scores",
+                                  "Ensemble_score",
                                   "blast_uuid")] %>%
            data.table::setnames(c("nmer_uuid",
                                   "var_uuid",
                                   "sample_id",
                                   "nmer",
                                   "MHC",
-                                  "Consensus_scores",
+                                  "Ensemble_score",
                                   "blast_uuid"),
                                 c("ID",
                                   "MUTATION_ID",
@@ -145,7 +149,7 @@ the following columns:
                                   "sample_id",
                                   "nmer",
                                   "MHC",
-                                  "Consensus_scores",
+                                  "Ensemble_score",
                                   "blast_uuid")] %>%
              data.table::setnames(
                                 c("nmer_uuid",
@@ -153,7 +157,7 @@ the following columns:
                                   "sample_id",
                                   "nmer",
                                   "MHC",
-                                  "Consensus_scores",
+                                  "Ensemble_score",
                                   "blast_uuid"),
                                 c("ID",
                                   "MUTATION_ID",
@@ -204,8 +208,35 @@ dtloo <- lapply(dtls, function(dti){
 
     dti[, spc := NULL]
 
-    if (db == "Ms") db <- "antigen.garnish/Mu_iedb.fasta"
-    if (db == "Hu") db <- "antigen.garnish/iedb.bdb"
+    if (db == "Ms") db <- "/Mu_iedb.fasta.pin"
+    if (db == "Hu") db <- "/iedb.bdb.pin"
+
+    # detect/set AG_DATA_DIR environmental variable
+    check_pred_tools()
+
+    # load metadata
+      db <- file.path(Sys.getenv("AG_DATA_DIR"), db)
+
+    if (!file.exists(db)){
+      err <- paste(
+      "Unable to locate IEDB fitness database file.",
+      "Paths searched are $AG_DATA_DIR, $HOME, and the current working directory.",
+      "To set a custom path to the antigen.garnish data folder",
+      "set environomental variable AG_DATA_DIR from the shell",
+      "or from R using Sys.setenv",
+      "",
+      "Re-download installation data:",
+      '$ curl -fsSL "http://get.rech.io/antigen.garnish.tar.gz" | tar -xvz',
+      "",
+      "Documentation:",
+      "https://neoantigens.io",
+      sep = "\n"
+      )
+    stop(err)
+    }
+
+
+    db %<>% stringr::str_replace("\\.pin", "")
 
     dti <- dti[, ID := link_uuid, by = 1:nrow(dti)]
 
@@ -231,7 +262,7 @@ dti[, ID := ID %>% (function(id){
                 "MT.Score",
                 "HLA",
                 "chop_score")] %>%
-            data.table::fwrite("neoepitopes.txt",
+            data.table::fwrite("neoantigens.txt",
                                 sep = "\t",
                                 quote = FALSE,
                                 col.names = TRUE,
@@ -268,12 +299,24 @@ lapply(dtl %>% seq_along, function(i){
     # -outfmt, out put a csv with colums, seqids for query and database seuqnence, start and end of sequence match,
     # length of overlap, number of mismatches, percent identical, expected value, bitscore
 
-      system(
-        paste(
-      "blastp -query", filename, "-db", db, "-num_threads", parallel::detectCores(), "-outfmt 5 -evalue 100000000 -gapopen 11 -gapextend 1 >",
-      filename %>% stringr::str_replace("\\.fasta", replacement = "_iedb.xml"),
-        sep = " ")
-      )
+      cmd <- paste(
+                "blastp -query",
+                filename,
+                "-db",
+                db,
+                "-num_threads",
+                parallel::detectCores(),
+                "-outfmt 5 -evalue 100000000 -gapopen 11 -gapextend 1 >",
+                filename %>% stringr::str_replace("\\.fasta",
+                replacement = "_iedb.xml"),
+                sep = " ")
+
+      cmd %>% message
+
+      result <- cmd %>% system
+
+      if (!result == 0)
+        warnings("Blastp-short to find close matches for differential agretopicity calculation had a non-zero exit status")
 
     })
 
@@ -281,12 +324,12 @@ lapply(dtl %>% seq_along, function(i){
 
     py_path <- system.file(package = "antigen.garnish") %>% file.path(., "extdata/src/main.py")
 
-    on <- paste(9, "_neoantigens_Lukza_model_output.txt", sep = "")
+    on <- "Luksza_model_output.txt"
 
     system(
     paste("python",
           py_path,
-          "neoepitopes.txt",
+          "neoantigens.txt",
           dn,
           a,
           k,
@@ -337,7 +380,7 @@ lapply(dtl %>% seq_along, function(i){
 }
 
 
-## ---- garnish_clonality
+
 #' Internal function to integrate clonality data into final `garnish_score` parameter.
 #'
 #' Integrates clonality input for creation of a summary metric of tumor fitness similar to [Luksza et al. *Nature* 2017](https://www.ncbi.nlm.nih.gov/pubmed/29132144).
@@ -347,7 +390,7 @@ lapply(dtl %>% seq_along, function(i){
 #' @return A data table with added fitness model parameter columns:
 #' * **clone_id**: rank of the clone containing the variant (highest equals larger tumor fraction).
 #' * **cl_proportion**: estimated mean tumor fraction containing the clone.
-#' * **garnish_score**: the summary parameter of immunogenicity at the sample level, summed across top neoepitopes of each clone.
+#' * **garnish_score**: the summary parameter of immunogenicity at the sample level, summed across top neoantigens of each clone.
 #'
 #' @export garnish_clonality
 #' @md
@@ -503,11 +546,15 @@ garnish_clonality <- function(dt){
   if (col == "cellular_fraction")
     dt[!is.na(cl_proportion), cl_proportion := cl_proportion %>% exclude_v, by = "sample_id"]
 
-  dt[!is.na(cl_proportion), efit := exp(max(fitness_score, na.rm = TRUE) * cl_proportion), by = c("sample_id", "clone_id")]
+  if ("fitness_score" %chin% names(dt)){
 
-  dt[!is.na(efit), garnish_score := efit %>% unique %>% sum(na.rm = TRUE), by = "sample_id"]
+   dt[!is.na(cl_proportion), efit := exp(max(fitness_score, na.rm = TRUE) * cl_proportion), by = c("sample_id", "clone_id")]
 
-  dt[, efit := NULL]
+   dt[!is.na(efit), garnish_score := efit %>% unique %>% sum(na.rm = TRUE), by = "sample_id"]
+
+   dt[, efit := NULL]
+
+ }
 
   return(dt)
 

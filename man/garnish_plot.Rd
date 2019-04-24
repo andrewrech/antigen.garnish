@@ -14,7 +14,7 @@ garnish_plot(input, ext = "pdf")
 \value{
 NULL
 
-As a side effect: saves graph illustrating the number of neoepitopes in each sample and fitness model results to the working directory. The threshold for inclusion of fusion and frameshift-derived neoepitopes is \eqn{IC_{50}} < 500nM.
+As a side effect: saves graph illustrating the number of neoantigens in each sample and fitness model results to the working directory. The threshold for inclusion of fusion and frameshift-derived neoantigens is \eqn{IC_{50}} < 500nM.
 }
 \description{
 Plot ADN, CDN, priority, frameshift, and fusion derived \code{nmers} for class I and class II MHC by \code{sample_id}.
@@ -22,17 +22,18 @@ Plot ADN, CDN, priority, frameshift, and fusion derived \code{nmers} for class I
 \examples{
 \dontrun{
 library(magrittr)
+library(data.table)
 library(antigen.garnish)
 
- # load example output
+# load example output
  dir <- system.file(package = "antigen.garnish") \%>\%
    file.path(., "extdata/testdata")
 
    "antigen.garnish_example_jaffa_output.txt" \%>\%
    file.path(dir, .) \%>\%
 
- # create plot
-   antigen.garnish::garnish_plot
+# create plot
+   garnish_plot
 
 }
 

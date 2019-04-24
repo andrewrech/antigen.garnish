@@ -1,8 +1,252 @@
 
+#' Return iedb_scores for a vector of nmers.
+#'
+#' @param v Character. Vector of nmers.
+#' @param db Character. One of c("mouse", "human")
+#'
+#' @import stringr
+#' @import data.table
+#' @import magrittr
+#'
+#' @return Data table of nmers and corresponding iedb_score values.
+#'
+#' @export iedb_score
+#' @md
+
+iedb_score <- function(v, db){
+
+  if (!db %chin% c("mouse", "human")) stop("db must be \"human\" or \"mouse\"")
+
+  on.exit({
+        message("Removing temporary fasta files")
+        try(
+        list.files(pattern = "iedb_score|blastp") %>% file.remove
+        )
+                            })
+
+if (suppressWarnings(system('which blastp 2> /dev/null', intern = TRUE)) %>%
+          length == 0){
+            warning("Skipping BLAST because ncbiblast+ is not in PATH")
+          return(data.table::data.table(nmer = v))
+
+   }
+
+check_pred_tools()
+
+  # generate fastas to query
+
+    names(v) <- 1:length(v) %>% as.character
+
+    sdt <- v %>% data.table::as.data.table %>% .[, nmer_id := names(v)]
+
+    AA <- Biostrings::AAStringSet(v, use.names = TRUE)
+    Biostrings::writeXStringSet(AA, file = "iedb_score_fasta.fa", format = "fasta")
+
+  # run blastp-short for iedb matches
+  # https://www.ncbi.nlm.nih.gov/books/NBK279684/
+  # flags here taken from Lukza et al.:
+  # -task blastp-short optimized blast for <30 AA, uses larger word sizes
+  # -matrix use BLOSUM62 sub substitution matrix
+  # -evalue expect value for saving hits
+  # -gapopen, -gapextend, numeric cost to a gapped alignment and
+  # -outfmt, out put a csv with colums, seqids for query and database seuqnence, start and end of sequence match,
+  # length of overlap, number of mismatches, percent identical, expected value, bitscore
+
+    message("Running blastp for homology to IEDB antigens.")
+
+    ag_dir <- Sys.getenv("AG_DATA_DIR")
+
+    if (db == "mouse") db <- paste0(ag_dir, "/Mu_iedb.fasta.pin")
+
+    if (db == "human") db <-  paste0(ag_dir, "/iedb.bdb.pin")
+
+    if (!file.exists(db)){
+      warn <- paste(
+      "Skipping IEDB_score because BLAST database cannot be found.",
+      "To set a custom path to the antigen.garnish data folder",
+      "set environomental variable AG_DATA_DIR from the shell",
+      "or from R using Sys.setenv",
+      "",
+      "Re-download installation data:",
+      '$ curl -fsSL "http://get.rech.io/antigen.garnish.tar.gz" | tar -xvz',
+      "",
+      "Documentation:",
+      "https://neoantigens.io",
+      sep = "\n"
+      )
+      warnings(warn)
+      return(data.table::data.table(nmer = v))
+    }
+
+    db <- paste("-db",  db %>% stringr::str_replace("\\.pin", ""), sep = " ")
+
+    system(paste0(
+        "blastp -query iedb_score_fasta.fa ", db, " -evalue 100000000 -matrix BLOSUM62 -gapopen 11 -gapextend 1 -out blastp_iedbout.csv -num_threads ", parallel::detectCores(),
+        " -outfmt '10 qseqid sseqid qseq qstart qend sseq sstart send length mismatch pident evalue bitscore'"
+      ))
+
+SW_align <- function(col1,
+                     col2,
+                     gap_open = -11,
+                     gap_extend = -1){
+
+scores <-  lapply(col1 %>% seq_along, function(i){
+
+        aa1 <- Biostrings::AAString(col1[i])
+        aa2 <- Biostrings::AAString(col2[i])
+
+        al <- Biostrings::pairwiseAlignment(aa1, aa2,
+                                  substitutionMatrix = "BLOSUM62",
+                                  gapOpening = gap_open,
+                                  gapExtension = gap_extend,
+                                  type = "local",
+                                  scoreOnly = TRUE)
+
+        return(al)
+
+    }) %>% unlist
+
+    return(scores)
+
+  }
+
+    blastdt <- list.files(pattern = "iedbout\\.csv")
+
+    if (length(blastdt) == 0){
+      message("No blast output against IEDB returned.")
+      return(data.table::data.table(nmer = v))
+    }
+
+    if (all(file.info(blastdt)$size == 0)){
+      message("No IEDB matches found by blast.")
+      return(data.table::data.table(nmer = v, iedb_score = 0))
+    }
+
+    blastdt <- blastdt %>% data.table::fread
+
+    blastdt %>% data.table::setnames(names(.),
+                                        c("nmer_id",
+                                        "IEDB_anno",
+                                        "nmer",
+                                        "q_start",
+                                        "q_stop",
+                                        "WT.peptide",
+                                        "s_start",
+                                        "s_end",
+                                        "overlap_length",
+                                        "mismatch_length",
+                                        "pident",
+                                        "evalue",
+                                        "bitscore"))
+
+    blastdt <- blastdt[, nmer := nmer %>% stringr::str_replace_all(pattern = "-|\\*", replacement = "")] %>%
+                  .[, WT.peptide := WT.peptide %>% stringr::str_replace_all(pattern = "-|\\*", replacement = "")] %>%
+                    .[!is.na(nmer) & !is.na(WT.peptide)]
+
+    blastdt <- blastdt[nmer %like% "^[ARNDCQEGHILKMFPSTWYV]+$" & WT.peptide %like% "^[ARNDCQEGHILKMFPSTWYV]+$"]
+
+    if (nrow(blastdt) == 0){
+      message(paste("No IEDB matches found with cannonical AAs, can't compute IEDB score...."))
+      return(data.table::data.table(nmer = v))
+    }
+
+    message("Summing IEDB local alignments...")
+    message("This may be sped up by setting `setDTthreads()` to maximum.")
+
+    blastdt[, SW := SW_align(nmer, WT.peptide)]
+
+    message("Done.")
+
+    modeleR <- function(als, a=26, k=4.86936){
+
+          be <- -k * (a - als)
+
+          sumexp <- sum(exp(be))
+
+          Zk <- 1 + sumexp
+          R <- sumexp / Zk
+
+        return(R)
+
+        }
+
+    blastdt[, iedb_score := SW %>% modeleR, by = "nmer_id"]
+
+    # get full IEDB ref here
+    fa <- Biostrings::readAAStringSet(db %>%
+                                      stringr::str_replace("bdb$", "fasta") %>%
+                                      stringr::str_replace("^-db\\ ", ""))
+    f <- fa %>% as.character
+    names(f) <- names(fa)
+
+    blastdt[, IEDB_anno := lapply(IEDB_anno, function(i){
+
+        mv <- f[which(stringr::str_detect(pattern = stringr::fixed(i), names(f)))]
+        mv <- mv[which(stringr::str_detect(pattern = stringr::fixed(WT.peptide), mv))]
+        return(paste(names(mv), WT.peptide, collapse = "|"))
+
+    }), by = 1:nrow(blastdt)]
+
+    anndt <- blastdt[, .SD %>% unique, .SDcols = c("nmer_id",
+                                                    "nmer",
+                                                    "IEDB_anno",
+                                                    "iedb_score",
+                                                     "SW")]
+
+    blastdt <- blastdt[, .SD %>% unique, .SDcols = c("nmer_id", "iedb_score")]
+
+    sdt[, nmer_id := as.character(nmer_id)]
+    blastdt[, nmer_id := as.character(nmer_id)]
+
+    sdt <- merge(sdt, blastdt, by = "nmer_id")
+
+    sdt %>% data.table::setnames(".", "nmer")
+
+    anndt <- anndt[, msw := max(SW), by = "nmer_id"] %>%
+             .[SW == msw] %>%
+             .[, .SD %>% unique, .SDcols = c("nmer_id", "IEDB_anno")]
+
+    # merge equally good IEDB_annos into one
+    anndt[, IEDB_anno := paste(IEDB_anno %>% unique, collapse = "|"), by = "nmer_id"]
+
+    anndt %<>% unique
+
+    anndt[, nmer_id := as.character(nmer_id)]
+
+    sdt <- merge(sdt, anndt, by = "nmer_id", all.x = TRUE)
+
+    sdt <- sdt[, .SD %>% unique, .SDcols = c("nmer", "iedb_score", "IEDB_anno")]
+
+    return(sdt)
+
+}
 
 
-## ---- make_BLAST_uuid
-#' Internal function to categorize mutant and wild-type peptides by similarity using `BLAST` to calculate neoepitope amplitude and homology to IEDB antigens.
+
+#' Return dissimilarity (to reference proteome) values for a vector of nmers.
+#'
+#' @param v Character. Vector of nmers.
+#' @param db Character. One of c("mouse", "human").
+#'
+#' @import stringr
+#' @import data.table
+#' @import magrittr
+#'
+#' @return Placeholder data table of nmers and corresponding dissimilarity NA values.
+#'
+#' @export garnish_dissimilarity
+#' @md
+
+garnish_dissimilarity <- function(v, db){
+
+  message("\n\n###############\nNOTE:\nSkipping neoantigen dissimilarity metric.\nNot in public repo prior to publication,\ncurrent dummy function returns NA for all peptides.\n###############\n\n")
+
+  return(data.table::data.table(nmer = v, dissimilarity = as.numeric(NA)))
+
+}
+
+
+#' Internal function to categorize mutant and wild-type peptides by similarity using `BLAST` to calculate neoantigen amplitude and homology to IEDB antigens.
 #'
 #' @param dti Data table of nmers.
 #'
@@ -14,11 +258,13 @@ make_BLAST_uuid <- function(dti){
   on.exit({
         message("Removing temporary fasta files")
         try(
-        list.files(pattern = "(Ms|Hu)_nmer_fasta|iedb_query|blastpout|iedbout") %>% file.remove
+        list.files(pattern = "(Ms|Hu)_nmer_fasta") %>% file.remove
         )
+        try(
+        list.files(pattern = "dai_blastdt_[0-9]+") %>% file.remove
+        )
+        try(blast_out %>% file.remove)
                             })
-
-if (identical(Sys.getenv("TESTTHAT"), "true")) setwd("~")
 
 if (suppressWarnings(system('which blastp 2> /dev/null', intern = TRUE)) %>%
           length == 0){
@@ -26,6 +272,9 @@ if (suppressWarnings(system('which blastp 2> /dev/null', intern = TRUE)) %>%
           return(dti)
 
    }
+
+# check for data directory
+check_pred_tools()
 
   dt <- dti[pep_type != "wt" & !is.na(pep_type)]
 
@@ -49,7 +298,7 @@ lapply(dt[, spc %>% unique], function(s){
       .[, nmer_uuid]
 
     AA <- Biostrings::AAStringSet(fa_v, use.names = TRUE)
-    Biostrings::writeXStringSet(AA, file = paste(s, "_nmer_fasta.fa", sep = ""), format = "fasta")
+    Biostrings::writeXStringSet(AA, file = paste(s, "_ag_nmer_fasta.fa", sep = ""), format = "fasta")
 
   })
 
@@ -61,21 +310,57 @@ lapply(dt[, spc %>% unique], function(s){
   # length of overlap, number of mismatches, percent identical, expected value, bitscore
   # PAM30 is default substitution matrix here
 
-  if (file.exists("Ms_nmer_fasta.fa"))
-    system(paste0(
-      "blastp -query Ms_nmer_fasta.fa -task blastp-short -db antigen.garnish/mouse.bdb -out msblastpout.csv -num_threads ", parallel::detectCores(),
-      " -outfmt '10 qseqid sseqid qseq qstart qend sseq sstart send length mismatch pident evalue bitscore'"
-      ))
+  message("Running blastp-short to find close matches for differential agretopicity calculation.")
 
-  if (file.exists("Hu_nmer_fasta.fa"))
-    system(paste0(
-      "blastp -query Hu_nmer_fasta.fa -task blastp-short -db antigen.garnish/human.bdb -out hublastpout.csv -num_threads ", parallel::detectCores(),
+  blast_out <- paste(dt[, spc %>% unique],
+    uuid::UUIDgenerate() %>% substr(1,18) %>% stringr::str_replace_all("-", ""),
+    "_blastpout.csv",
+    sep = "")
+
+  if (file.exists("Ms_ag_nmer_fasta.fa")){
+
+    cmd <- paste0(
+      "blastp -query Ms_ag_nmer_fasta.fa -task blastp-short -db ",
+      Sys.getenv("AG_DATA_DIR"),
+      "/mouse.bdb -out ",
+      blast_out[blast_out %like% "Ms"],
+      " -num_threads ", parallel::detectCores(),
       " -outfmt '10 qseqid sseqid qseq qstart qend sseq sstart send length mismatch pident evalue bitscore'"
-    ))
+      )
+
+      cmd %>% message
+
+      result <- cmd %>% system
+
+      if (!result == 0)
+        warnings("Blastp-short to find close matches for differential agretopicity calculation had a non-zero exit status")
+
+  }
+
+  if (file.exists("Hu_ag_nmer_fasta.fa")){
+
+    cmd <- paste0(
+      "blastp -query Hu_ag_nmer_fasta.fa -task blastp-short -db ",
+      Sys.getenv("AG_DATA_DIR"),
+      "/human.bdb -out ",
+      blast_out[blast_out %like% "Hu"],
+      " -num_threads ", parallel::detectCores(),
+      " -outfmt '10 qseqid sseqid qseq qstart qend sseq sstart send length mismatch pident evalue bitscore'"
+    )
+
+      cmd %>% message
+
+      result <- cmd %>% system
+
+      if (!result == 0)
+        warnings("Blastp-short to find close matches for differential agretopicity calculation had a non-zero exit status")
+
+  }
+
 
   # read in CSV
 
-    blastdt <- list.files(pattern = "blastpout\\.csv")
+    blastdt <- blast_out
 
     if (length(blastdt) == 0 ||
         all(file.info(blastdt)$size == 0)){
@@ -90,7 +375,7 @@ lapply(dt[, spc %>% unique], function(s){
 
 
     blastdt <- lapply(blastdt, data.table::fread) %>%
-                  data.table::rbindlist %>%
+                  data.table::rbindlist(use.names =  TRUE) %>%
                     data.table::setnames(names(.),
                                         c("nmer_uuid",
                                         "ensembl_prot_id",
@@ -132,7 +417,7 @@ SW_align <- function(col1,
                       gap_open = -11,
                       gap_extend = -1){
 
-scores <-  parallel::mclapply(col1 %>% seq_along, function(i){
+scores <-  lapply(col1 %>% seq_along, function(i){
 
         aa1 <- Biostrings::AAString(col1[i])
         aa2 <- Biostrings::AAString(col2[i])
@@ -152,9 +437,47 @@ scores <-  parallel::mclapply(col1 %>% seq_along, function(i){
 
   }
 
-  message("Calculating local alignment to WT peptides.")
+  message("Calculating local alignment to WT peptides for proteome-wide differential agretopicity predictions.")
+  message("This may be sped up by setting `setDTthreads()` to maximum.")
 
-  blastdt[, SW := SW_align(nmer, WT.peptide)]
+  # this is memory intense, lets split it up and stitch it back
+  suppressWarnings(
+    blastdt <- blastdt %>% split(1:(nrow(blastdt) / 100))
+  )
+
+  blastdt <- lapply(blastdt %>% seq_along, function(i){
+
+    fn <- paste("dai_blastdt_", i, ".txt", sep = "")
+
+    blastdt[[i]] %>% data.table::fwrite(fn, sep  = "\t")
+
+    return(fn)
+
+  }) %>% unlist
+
+  lapply(blastdt %>% seq_along, function(i){
+
+    print(paste("Alignment subset", i, "of", length(blastdt)))
+
+    b <- blastdt[i] %>% data.table::fread
+
+    b[, SW := SW_align(nmer, WT.peptide)]
+
+    b %>% data.table::fwrite(blastdt[i], sep  = "\t")
+
+    return(NULL)
+
+  })
+
+  blastdt <- lapply(blastdt, function(f){
+
+    dt <- data.table::fread(f)
+
+    file.remove(f)
+
+    return(dt)
+
+  }) %>% data.table::rbindlist(use.names = TRUE)
 
   message("Done.")
 
@@ -198,210 +521,13 @@ scores <-  parallel::mclapply(col1 %>% seq_along, function(i){
 
     dto <- data.table::rbindlist(list(dti, vdt), fill = TRUE, use.names = TRUE)
 
-  # run blastp-short for iedb matches
-  # https://www.ncbi.nlm.nih.gov/books/NBK279684/
-  # flags here taken from Lukza et al.:
-  # -matrix use BLOSUM62 sub substitution matrix
-  # -evalue expect value for saving hits
-  # -gapopen, -gapextend, numeric cost to a gapped alignment and
-  # -outfmt, out put a csv with colums, seqids for query and database seuqnence, start and end of sequence match,
-  # length of overlap, number of mismatches, percent identical, expected value, bitscore
-    message("Running blastp for homology to IEDB antigens.")
-
-    if (file.exists("Ms_nmer_fasta.fa"))
-
-      system(paste0(
-        "blastp -query Ms_nmer_fasta.fa -db antigen.garnish/Mu_iedb.fasta -evalue 100000000 -matrix BLOSUM62 -gapopen 11 -gapextend 1 -out iedbout_mu.csv -num_threads ", parallel::detectCores(),
-        " -outfmt '10 qseqid sseqid qseq qstart qend sseq sstart send length mismatch pident evalue bitscore'"
-      ))
-
-    if (file.exists("Hu_nmer_fasta.fa"))
-
-      system(paste0(
-        "blastp -query Hu_nmer_fasta.fa -db antigen.garnish/iedb.bdb -evalue 100000000 -matrix BLOSUM62 -gapopen 11 -gapextend 1 -out iedbout_hu.csv -num_threads ", parallel::detectCores(),
-        " -outfmt '10 qseqid sseqid qseq qstart qend sseq sstart send length mismatch pident evalue bitscore'"
-      ))
-
-    blastdt <- list.files(pattern = "iedbout(_mu|_hu)\\.csv") %>%
-                  file.info %>%
-                    data.table::as.data.table(keep.rownames = TRUE) %>%
-                      .[size != 0, rn]
-
-    if (length(blastdt) == 0){
-      message(paste("No IEDB matches found, returning BLAST against reference proteome(s) only...."))
-      return(dto)
-    }
-
-    if (length(blastdt) == 2) blastdt <- lapply(blastdt, data.table::fread) %>% data.table::rbindlist
-
-    if (length(blastdt) == 1) blastdt <- blastdt %>% data.table::fread
-
-    blastdt %>% data.table::setnames(names(.),
-                                        c("nmer_uuid",
-                                        "IEDB_anno",
-                                        "nmer",
-                                        "q_start",
-                                        "q_stop",
-                                        "WT.peptide",
-                                        "s_start",
-                                        "s_end",
-                                        "overlap_length",
-                                        "mismatch_length",
-                                        "pident",
-                                        "evalue",
-                                        "bitscore"))
-
-    blastdt <- blastdt[, nmer := nmer %>% stringr::str_replace_all(pattern = "-|\\*", replacement = "")] %>%
-                  .[, WT.peptide := WT.peptide %>% stringr::str_replace_all(pattern = "-|\\*", replacement = "")] %>%
-                    .[!is.na(nmer) & !is.na(WT.peptide)]
-
-    blastdt <- blastdt[nmer %like% "^[ARNDCQEGHILKMFPSTWYV]+$" & WT.peptide %like% "^[ARNDCQEGHILKMFPSTWYV]+$"]
-
-    if (nrow(blastdt) == 0){
-      message(paste("No IEDB matches found, returning BLAST against reference proteome(s) only...."))
-      return(dto)
-    }
-
-    message("Summing IEDB local alignments...")
-
-    blastdt[, SW := SW_align(nmer, WT.peptide)]
-
-    message("Done.")
-
-modeleR <- function(als, a=26, k=4.86936){
-
-# expo_sum <- function(vect){
-#
-#         m <- max(vect)
-#
-#         expos <- exp(vect - m) %>% sum %>% log
-#
-#         expos <- expos + m
-#
-#         return(expos)
-#
-#       }
-
-      be <- -k * (a - als)
-
-      sumexp <- sum(exp(be))
-
-      Zk <- 1 + sumexp
-      R <- sumexp / Zk
-
-      # lZ <- expo_sum(c(be, 0))
-      # lGb <- expo_sum(be)
-
-    return(R)
-
-    }
-
-    blastdt[, iedb_score := SW %>% modeleR, by = "nmer_uuid"]
-
-    blastdt[, highest := max(SW), by = "nmer_uuid"]
-
-    blastdt <- blastdt[highest == SW] %>%
-                .[, highest := NULL]
-
-    # account for IEDB matches but none long enough to pass to prediction
-    if (nrow(blastdt[nchar(WT.peptide) > 7 & nchar(nmer) > 7]) == 0){
-      return(
-        merge(dto,
-        blastdt[, .SD %>% unique, .SDcols = c("nmer_uuid", "iedb_score")],
-        by = "nmer_uuid",
-        all.x = TRUE)
-      )
-    }
-
-  # return iedb_score for short matches only before continuing
-  shortmerge <- NULL
-  shortdt <- blastdt[nchar(WT.peptide) < 7 & nchar(nmer) > 7]
-
-  blastdt %<>% .[nchar(WT.peptide) > 7 & nchar(nmer) > 7]
-
-
-  if (nrow(shortdt) != 0) {
-
-    shortdt <- shortdt[!nmer_uuid %chin% blastdt[, nmer_uuid %>% unique]]
-    dto <- merge(dto,
-                shortdt[, .SD %>% unique, .SDcols = c("nmer_uuid", "iedb_score")],
-                                      by = "nmer_uuid",
-                                      all.x = TRUE)
-    shortmerge <- "iedb_score"
-
-  }
-
-  # dedupe but retain multiple equally good SW scoring matches by sequence (not by match source)
-  blastdt %>% data.table::setkey(nmer_uuid, WT.peptide)
-  blastdt %<>% unique(by = c("nmer_uuid", "WT.peptide"))
-
-  # get full IEDB ref here
-  if (file.exists("Hu_nmer_fasta.fa"))
-    db <- "antigen.garnish/iedb.fasta"
-  if (file.exists("Ms_nmer_fasta.fa"))
-    db <- "antigen.garnish/Mu_iedb.fasta"
-
-  fa <- Biostrings::readAAStringSet(db)
-  f <- fa %>% data.table::as.data.table %>% .[, x]
-  names(f) <- fa@ranges@NAMES
-
-blastdt[, IEDB_anno := parallel::mclapply(IEDB_anno, function(i){
-
-      mv <- f[which(stringr::str_detect(pattern = stringr::fixed(i), names(f)))]
-      mv <- mv[which(stringr::str_detect(pattern = stringr::fixed(WT.peptide), mv))]
-      return(paste(names(mv), WT.peptide, collapse = "|"))
-
-    }), by = 1:nrow(blastdt)]
-
-  blastdt <- blastdt[, .SD %>% unique, .SDcols = c("nmer_uuid",
-                                                     "nmer",
-                                                     "WT.peptide",
-                                                     "IEDB_anno",
-                                                     "iedb_score")]
-
-  blastdt[, iedb_uuid := uuid::UUIDgenerate(), by = c("nmer_uuid",
-                                                        "WT.peptide")]
-
-    dto <- merge(dto, blastdt[, .SD, .SDcols = c("nmer_uuid",
-                                                 "iedb_uuid",
-                                                 "IEDB_anno",
-                                                 "iedb_score")],
-           by = c("nmer_uuid", shortmerge),
-           all.x = TRUE)
-
-    # to add WT.peptide (in this case IEDB epitope) back to table need nmer, nmer_i, nmer_l (nchar(nmer)), var_uuid, effect_type
-
-    vdt <- dto[, .SD %>% unique,
-      .SDcols = c("nmer_uuid",
-                  "nmer_i",
-                  "nmer_l",
-                  "var_uuid",
-                  "sample_id",
-                  "effect_type",
-                  "MHC")]
-
-    vdt <- merge(vdt, blastdt, by = "nmer_uuid")
-
-    vdt %>% .[, nmer := NULL] %>% .[, nmer_uuid := NULL]
-
-    vdt[, effect_type := "IEDB_source"]
-
-    vdt <- vdt[, nmer_l := nchar(WT.peptide)] %>%
-            data.table::setnames("WT.peptide", "nmer") %>%
-              .[, nmer_uuid := uuid::UUIDgenerate(), by = c("nmer", "var_uuid")] %>%
-                  unique %>%
-                    .[, pep_type := "wt"]
-
-    dto <- data.table::rbindlist(list(dto, vdt),
-      fill = TRUE, use.names = TRUE)
-
     return(dto)
 
 }
 
 
 
-## ---- make_DAI_uuid
+
 #' Internal function to pair peptides from missense sites by a common UUID for DAI calculations
 #'
 #' @param dt Data table of nmers.
@@ -439,7 +565,7 @@ make_DAI_uuid <- function(dt){
      by = c("var_uuid", "nmer_i", "nmer_l"))
       } %>%
       # create a DAI uuid
-     .[, dai_uuid := parallel::mclapply(1:nrow(.),
+     .[, dai_uuid := lapply(1:nrow(.),
                      uuid::UUIDgenerate) %>% unlist] %>%
 
       # bind back into one table
@@ -465,7 +591,7 @@ make_DAI_uuid <- function(dt){
 
 
 
-## ---- merge_predictions
+
 #' Internal function to merge input data table and prediction results
 #'
 #' @param l Output list from run_netMHC
@@ -564,7 +690,7 @@ nugdt <- lapply(f_mhcnuggets, function(x){
         dt %<>% unique
 
       # calculate netMHC consensus score, preferring non-*net tools
-         for (col in (dt %>% names %include% "aff|[Rr]ank|Consensus_scores")){
+         for (col in (dt %>% names %include% "aff|[Rr]ank|Ensemble_score")){
               suppressWarnings({
               set(dt, j = col, value = dt[, get(col) %>% as.numeric])
               })
@@ -593,7 +719,7 @@ nugdt <- lapply(f_mhcnuggets, function(x){
 
         # take average of mhcflurry, mhcnuggets, and best available netMHC tool
         cols <- cols <- dt %>% names %include% "(best_netMHC)|(mhcflurry_prediction$)|(mhcnuggets_pred_gru)|(mhcnuggets_pred_lstm)"
-        dt[, Consensus_scores := mean(as.numeric(.SD), na.rm = TRUE),
+        dt[, Ensemble_score := mean(as.numeric(.SD), na.rm = TRUE),
                                         by = 1:nrow(dt), .SDcols = cols]
 
         dt[, DAI := NA %>% as.numeric]
@@ -602,13 +728,13 @@ nugdt <- lapply(f_mhcnuggets, function(x){
 
         # dai_uuid is always length 2
         # calculate DAI by dividing
-        # correct WT affinity per Lukza et al., "* (1 / (1 + (0.0003 * Consensus_scores[2])))".
+        # correct WT affinity per Lukza et al., "* (1 / (1 + (0.0003 * Ensemble_score[2])))".
         # only affects large WT kD that would otherwise overestimate amplitude value (affinity prediction algorithms are right skewed.)
 
         dt[!dai_uuid %>% is.na,
-           DAI := (Consensus_scores[2] /
-                     Consensus_scores[1]) *
-             (1 / (1 + (0.0003 * Consensus_scores[2]))),
+           DAI := (Ensemble_score[2] /
+                     Ensemble_score[1]) *
+             (1 / (1 + (0.0003 * Ensemble_score[2]))),
            by = c("dai_uuid", "MHC")]
 
         if ("blast_uuid" %chin% names(dt)){
@@ -616,8 +742,8 @@ nugdt <- lapply(f_mhcnuggets, function(x){
           # keep blast match that will give most conservative BLAST_A value
 
           dt[!is.na(blast_uuid) & pep_type == "wt",
-              match := Consensus_scores %>% as.numeric %>% min(na.rm = TRUE), by = c("blast_uuid", "MHC")] %>%
-                .[Consensus_scores == match, match := 0]
+              match := Ensemble_score %>% as.numeric %>% min(na.rm = TRUE), by = c("blast_uuid", "MHC")] %>%
+                .[Ensemble_score == match, match := 0]
 
           dt <- dt[is.na(match) | match == 0]
 
@@ -626,9 +752,9 @@ nugdt <- lapply(f_mhcnuggets, function(x){
           data.table::setkey(dt, pep_type, blast_uuid)
 
           dt[!blast_uuid %>% is.na,
-             BLAST_A := (Consensus_scores[2] /
-                           Consensus_scores[1]) *
-               (1 / (1 + (0.0003 * Consensus_scores[2]))),
+             BLAST_A := (Ensemble_score[2] /
+                           Ensemble_score[1]) *
+               (1 / (1 + (0.0003 * Ensemble_score[2]))),
              by = c("blast_uuid", "MHC")]
         }
 
@@ -637,8 +763,8 @@ nugdt <- lapply(f_mhcnuggets, function(x){
           # keep blast match that will give most conservative IEDB_A value
 
           dt[!is.na(iedb_uuid) & effect_type == "IEDB_source",
-              match := Consensus_scores %>% as.numeric %>% min(na.rm = TRUE), by = c("iedb_uuid", "MHC")] %>%
-                .[Consensus_scores == match, match := 0]
+              match := Ensemble_score %>% as.numeric %>% min(na.rm = TRUE), by = c("iedb_uuid", "MHC")] %>%
+                .[Ensemble_score == match, match := 0]
 
           dt <- dt[is.na(match) | match == 0]
 
@@ -647,9 +773,9 @@ nugdt <- lapply(f_mhcnuggets, function(x){
           data.table::setkey(dt, pep_type, iedb_uuid)
 
           dt[!iedb_uuid %>% is.na,
-             IEDB_A := (Consensus_scores[2] /
-                           Consensus_scores[1]) *
-               (1 / (1 + (0.0003 * Consensus_scores[2]))),
+             IEDB_A := (Ensemble_score[2] /
+                           Ensemble_score[1]) *
+               (1 / (1 + (0.0003 * Ensemble_score[2]))),
              by = c("iedb_uuid", "MHC")]
         }
 
@@ -658,8 +784,8 @@ nugdt <- lapply(f_mhcnuggets, function(x){
 
 
 
-## ---- get_pred_commands
-#' Internal function to create commands for neoepitope prediction.
+
+#' Internal function to create commands for neoantigen prediction.
 #'
 #' @param dt Data.table of predictions to run.
 #' @export get_pred_commands
@@ -682,7 +808,7 @@ get_pred_commands <- function(dt){
   if (dt[, MHC %>% unique] %>%
       stringr::str_detect(" ") %>% any) dt %<>%
       tidyr::separate_rows("MHC", sep = " ")
-      dt <- copy(dt)
+      dt <- data.table::copy(dt)
       dt[, class :=
             ifelse(MHC %>% stringr::str_detect("(HLA-[ABC]\\*)|(H-2-[A-Z][a-z])"),
             "I", "II")]
@@ -825,7 +951,7 @@ get_pred_commands <- function(dt){
 
 
 
-## ---- collate_netMHC
+
 #' Internal function to collate results from netMHC prediction
 #'
 #' @param esl List of outputs from netMHC.
@@ -834,12 +960,17 @@ get_pred_commands <- function(dt){
 
 collate_netMHC <- function(esl){
 
+  message("Collating netMHC output...")
+
    dtl <- parallel::mclapply(
 
 esl, function(es){
 
           command <- es[[1]]
-          es <- es[[2]]
+          fn <- es[[2]]
+
+          # read temp file
+          es <- scan(file = fn, what = "character", sep = "\n")
 
           # parse results
             # isolate table and header
@@ -910,14 +1041,17 @@ esl, function(es){
             dt %>%
               data.table::setnames("allele", ptype)
 
+            file.remove(fn)
+
             return(dt)
+
                      })
    return(dtl)
  }
 
 
 
-## ---- write_mhcnuggets_nmers
+
 #' Internal function to output nmers for mhcnuggets prediction to disk
 #'
 #' @param dt Data table of nmers.
@@ -950,7 +1084,7 @@ write_mhcnuggets_nmers <- function(dt, alleles){
            for (i in mnug_dt[, allele %>% unique]){
             breakpoints <- ((mnug_dt[allele == i] %>% nrow)/100) %>% ceiling
 
-parallel::mclapply(mnug_dt[allele == i] %>% split(1:breakpoints), function(dt){
+lapply(mnug_dt[allele == i] %>% split(1:breakpoints), function(dt){
 
             filename <- paste0("mhcnuggets_input_gru_",
                                i,
@@ -984,7 +1118,7 @@ parallel::mclapply(mnug_dt[allele == i] %>% split(1:breakpoints), function(dt){
            for (i in mnug_dt[, allele %>% unique]){
             breakpoints <- ((mnug_dt[allele == i] %>% nrow)/100) %>% ceiling
 
-parallel::mclapply(mnug_dt[allele == i] %>% split(1:breakpoints), function(dt){
+lapply(mnug_dt[allele == i] %>% split(1:breakpoints), function(dt){
 
             filename <- paste0("mhcnuggets_input_lstm_",
                                i,
@@ -1006,7 +1140,7 @@ parallel::mclapply(mnug_dt[allele == i] %>% split(1:breakpoints), function(dt){
 
 
 
-## ---- write_netmhc_nmers
+
 #' Internal function to output nmers for netMHC prediction to disk
 #'
 #' @param dt Data table of nmers.
@@ -1025,7 +1159,7 @@ write_netmhc_nmers <- function(dt, type){
     combs <- data.table::CJ(dt[, get(type)] %>% unique,
                             dt[, nmer_l] %>% unique)
 
-dto <- parallel::mclapply(1:nrow(combs), function(i){
+dto <- lapply(1:nrow(combs), function(i){
 
       dts <- dt[get(type) == combs$V1[i] & nmer_l == combs$V2[i]] %>%
       unique
@@ -1037,7 +1171,7 @@ dto <- parallel::mclapply(1:nrow(combs), function(i){
 
   suppressWarnings(
 
-dto <- parallel::mclapply(dts %>% split(1:chunks), function(dtw){
+dto <- lapply(dts %>% split(1:chunks), function(dtw){
 
         filename <- paste0(type, "_",
                     uuid::UUIDgenerate() %>% substr(1, 18), ".csv")
@@ -1068,7 +1202,7 @@ dto <- parallel::mclapply(dts %>% split(1:chunks), function(dtw){
 
 
 
-## ---- get_ss_str
+
 #' Parallelized function to create a space-separated character string between two integers
 #'
 #' @param x Integer. Starting integer.
@@ -1085,10 +1219,10 @@ parallel::mcMap(function(x, y) (x %>% as.integer):(y %>% as.integer) %>%
 
 
 
-## ---- garnish_affinity
-#' Perform neoepitope prediction.
+
+#' Perform neoantigen prediction.
 #'
-#' Perform ensemble neoepitope prediction on a data table of missense mutations, insertions, deletions or gene fusions using netMHC, mhcflurry, and mhcnuggets.
+#' Perform ensemble neoantigen prediction on a data table of missense mutations, insertions, deletions or gene fusions using netMHC, mhcflurry, and mhcnuggets.
 #'
 #' @param path Path to input table ([acceptable formats](https://cran.r-project.org/web/packages/rio/vignettes/rio.html#supported_file_formats)).
 #' @param dt Data table. Input data table from `garnish_variants` or `garnish_jaffa`, or a data table in one of these forms:
@@ -1117,13 +1251,14 @@ parallel::mcMap(function(x, y) (x %>% as.integer):(y %>% as.integer) %>%
 #'                                 7 13 14
 #'     MHC                         <same as above>
 #'
+#' @param binding_cutoff Numeric. Maximum consensus MHC-binding affinity that will be passed for IEDB and dissimilarity analysis. Default is 500 (nM).
 #' @param counts Optional. A file path to an RNA count matrix. The first column must contain ENSEMBL transcript ids. All samples in the input table must be present in the count matrix.
-#' @param min_counts Integer. The minimum number of read counts that the transcript must be present to pass a variant. Default is 1.
+#' @param min_counts Integer. The minimum number of estimated read counts for a transcript to be considered for neoantigen prediction. Default is 1.
 #' @param assemble Logical. Assemble data table?
 #' @param generate Logical. Generate peptides?
 #' @param predict Logical. Predict binding affinities?
-#' @param blast Logical. Run BLASTp to find wild-type peptide and known IEDB matches?
-#' @param fitness Logical. Run model of [Luksza et al. *Nature* 2017](https://www.ncbi.nlm.nih.gov/pubmed/29132144) to predict neoepitope fitness?
+#' @param blast Logical. Run `BLASTp` to find wild-type peptide and known IEDB matches?
+#' @param fitness Logical. Run model of [Luksza et al. *Nature* 2017](https://www.ncbi.nlm.nih.gov/pubmed/29132144) to predict neoantigen fitness? **Note:** Neoantigens not compatible with Python source code are silently dropped.
 #' @param save Logical. Save a copy of garnish_affinity output to the working directory as "ag_output.txt"? Default is `TRUE`.
 #' @param remove_wt Logical. Check all `nmer`s generated against wt peptidome and remove matches? Default is `TRUE`. If investigating wild-type sequences, set this to `FALSE`.
 #' @return A data table of binding predictions including:
@@ -1153,11 +1288,12 @@ parallel::mcMap(function(x, y) (x %>% as.integer):(y %>% as.integer) %>%
 #' * **cl_proportion**: The estimated mean tumor fraction containing the clone. If allele fraction and not clonality is used, this is estimated.
 #'
 #' antigen.garnish fitness model results
-#' * **Consensus_scores**: average value of MHC binding affinity from all prediction tools that contributed output. 95\% confidence intervals are given by **Upper_CI**, **Lower_CI**.
+#' * **Ensemble_score**: average value of MHC binding affinity from all prediction tools that contributed output. 95\% confidence intervals are given by **Upper_CI**, **Lower_CI**.
 #' * **iedb_score**: R implementation of TCR recognition probability for peptide through summing of alignments in IEDB for corresponding organism.
-#' * **min_DAI**: Minimum of value of BLAST_A or DAI values, to provide the most conservative estimate differential binding between input and wildtype matches.
-#' * **fitness_score**: Product of min_DAI and iedb_score. The peptide with the highest value per clone is the top neoepitope. Does not apply to wildtype input.
-#' * **garnish_score**: overall sample immunogenicity based on top clonal neoepitopes. Only if clonality or allele fraction data is present in the table. See ?garnish_variants.
+#' * **IEDB_anno**: The best alignment from the IEDB database queried for the sample if applicable.
+#' * **min_DAI**: Minimum of value of BLAST_A or DAI values, to provide the most conservative proteome-wide estimate of differential binding between input and wildtype matches.
+#' * **fitness_score**: Product of min_DAI and iedb_score. The peptide with the highest value per clone is the top neoantigen. Does not apply to wildtype input.
+#' * **garnish_score**: overall sample immunogenicity based on top clonal neoantigens. Only if clonality or allele fraction data is present in the table. See ?garnish_variants.
 #'
 #' fitness model information [Luksza et al. *Nature* 2017](https://www.ncbi.nlm.nih.gov/pubmed/29132144):
 #' * **NeoantigenRecognitionPotential**: Product of A and R (amplitude, analogous to min_DAI, and TCR recognition probability components).
@@ -1173,8 +1309,9 @@ parallel::mcMap(function(x, y) (x %>% as.integer):(y %>% as.integer) %>%
 #' * peptide
 #' @details
 #' * see `list_mhc` for compatible MHC allele syntax
-#' multiple MHC alleles for a single sample_id should be space separated. Murine and human alleles should be in separate rows
+#' * multiple MHC alleles for a single `sample_id` muar be space separated. Murine and human alleles muat be in separate rows. See [`README` example](http://neoantigens.rech.io.s3-website-us-east-1.amazonaws.com/index.html#predict-neoantigens-from-missense-mutations-insertions-and-deletions).
 #' * `garnish_score` is calculated if allelic fraction or tumor cellular fraction were provided
+#'
 #' @seealso \code{\link{garnish_variants}}
 #' @seealso \code{\link{list_mhc}}
 #' @seealso \code{\link{garnish_summary}}
@@ -1182,31 +1319,34 @@ parallel::mcMap(function(x, y) (x %>% as.integer):(y %>% as.integer) %>%
 #' @examples
 #'\dontrun{
 #'library(magrittr)
+#'library(data.table)
 #'library(antigen.garnish)
 #'
-#'# run full pipeline
+#'# load an example VCF
+#'	dir <- system.file(package = "antigen.garnish") %>%
+#'		file.path(., "extdata/testdata")
 #'
-#'    # load an example VCF
-#'  dir <- system.file(package = "antigen.garnish") %>%
-#'    file.path(., "extdata/testdata")
+#'	dt <- "antigen.garnish_example.vcf" %>%
+#'	file.path(dir, .) %>%
 #'
-#'    dt <- "antigen.garnish_example.vcf" %>%
-#'    file.path(dir, .) %>%
+#'# extract variants
+#'    garnish_variants %>%
 #'
-#'    # extract variants
-#'    antigen.garnish::garnish_variants %>%
+#'# add space separated MHC types
+#' # see list_mhc() for nomenclature of supported alleles
 #'
-#'    # add space separataed MHC types with antigen.garnish::list_mhc() compatible names
-#'        .[, MHC := c("HLA-A*02:01 HLA-DRB1*14:67",
-#'                    "H-2-Kb H-2-IAd",
-#'                    "HLA-A*01:47 HLA-DRB1*03:08")] %>%
+#'     .[, MHC := c("HLA-A*01:47 HLA-A*02:01 HLA-DRB1*14:67")] %>%
 #'
-#'    # predict neoepitopes
-#'    antigen.garnish::garnish_affinity %>%
+#'# predict neoantigens
+#'    garnish_affinity
 #'
-#'    # summarize predictions
-#'    antigen.garnish::garnish_summary %T>%
-#'    print
+#'# summarize predictions
+#'   dt %>%
+#'     garnish_summary %T>%
+#'       print
+#'
+#'# generate summary graphs
+#'   dt %>% garnish_plot
 #'
 #'}
 #'
@@ -1214,6 +1354,7 @@ parallel::mcMap(function(x, y) (x %>% as.integer):(y %>% as.integer) %>%
 #'# input a data table of transcripts
 #'
 #'library(magrittr)
+#'library(data.table)
 #'library(antigen.garnish)
 #'
 #'  dt <- data.table::data.table(
@@ -1228,15 +1369,15 @@ parallel::mcMap(function(x, y) (x %>% as.integer):(y %>% as.integer) %>%
 #'           MHC = c("HLA-A*02:01 HLA-DRB1*14:67",
 #'                   "H-2-Kb H-2-IAd",
 #'                   "HLA-A*01:47 HLA-DRB1*03:08")) %>%
-#'  antigen.garnish::garnish_affinity %T>%
+#'  garnish_affinity %T>%
 #'  str
 #' }
 #'
 #'\dontrun{
 #'# input a data table of peptides for all MHC types
 #'
-#'library(data.table)
 #'library(magrittr)
+#'library(data.table)
 #'library(antigen.garnish)
 #'
 #'  dt <- data.table::data.table(
@@ -1244,23 +1385,27 @@ parallel::mcMap(function(x, y) (x %>% as.integer):(y %>% as.integer) %>%
 #'           pep_mut = "MTEYKLVVVGAGDVGKSALTIQLIQNHFVDEYDP",
 #'           mutant_index = "12",
 #'           MHC = "all") %>%
-#'  antigen.garnish::garnish_affinity %T>%
+#'  garnish_affinity %T>%
 #'  str
 #' }
 #'
 #'\dontrun{
 #'# input from Microsoft excel
 #'
-#'  # load an example excel file
+#'library(magrittr)
+#'library(data.table)
+#'library(antigen.garnish)
+#'
+#'# load an example excel file
 #'  dir <- system.file(package = "antigen.garnish") %>%
-#'    file.path(., "extdata/testdata")
+#'  file.path(., "extdata/testdata")
 #'
-#'      path <- "antigen.garnish_test_input.xlsx" %>%
-#'        file.path(dir, .)
+#'  path <- "antigen.garnish_test_input.xlsx" %>%
+#'  v file.path(dir, .)
 #'
-#'    # predict neoepitopes
-#'      dt <- antigen.garnish::garnish_affinity(path = path) %T>%
-#'      str
+#'# predict neoantigens
+#'  dt <- garnish_affinity(path = path) %T>%
+#'    str
 #' }
 #'
 #' @references
@@ -1269,17 +1414,28 @@ parallel::mcMap(function(x, y) (x %>% as.integer):(y %>% as.integer) %>%
 #' @export garnish_affinity
 #' @md
 
-garnish_affinity <- function(dt = NULL,
-                              path = NULL,
-                              counts = NULL,
-                              min_counts = 1,
-                              assemble = TRUE,
-                              generate = TRUE,
-                              predict = TRUE,
-                              blast = fitness,
-                              fitness = TRUE,
-                              save = TRUE,
-                              remove_wt = TRUE){
+garnish_affinity <- function(dt             = NULL,
+                             path           = NULL,
+                             binding_cutoff = 500,
+                             counts         = NULL,
+                             min_counts     = 1,
+                             assemble       = TRUE,
+                             generate       = TRUE,
+                             predict        = TRUE,
+                             blast          = TRUE,
+                             fitness        = TRUE,
+                             save           = TRUE,
+                             remove_wt      = TRUE){
+
+  # generate tempdir info to use later, set early to prevent downstream errors when
+  # assemble, generate, and predict steps are run separately.
+  original_dir <- getwd()
+
+  ndir <- paste("ag",
+                uuid::UUIDgenerate() %>%
+                stringr::str_replace_all("-", "") %>%
+                substr(1,18), sep = "_")
+
 
   on.exit({
     message("Removing temporary files")
@@ -1290,6 +1446,7 @@ garnish_affinity <- function(dt = NULL,
                          destfile = "/dev/null",
                          quiet = TRUE),
     silent = TRUE)
+    setwd(original_dir)
   })
 
   # magrittr version check, this will not hide the error, only the NULL return on successful exit
@@ -1310,8 +1467,12 @@ garnish_affinity <- function(dt = NULL,
   # if class of MHC is a list column, it won't bug until first merge in make_BLAST_uuid, added this.
   if (class(dt[, MHC]) == "list") stop("MHC column must be a character column, not a list, unlist the column and rerun garnish_affinity.")
 
+  # make sample_ids character to avoid downstream merge failure for column types
+  dt[, sample_id := as.character(sample_id)]
+
   # remove double or more spaces in MHC string (will not bug until garnish_fitness or will segfault netMHC)
-  dt[, MHC := MHC %>% unique %>% stringr::str_replace_all("\\ +", " ")]
+  # DO NOT unique this, will not return same length vector
+  dt[, MHC := MHC %>% stringr::str_replace_all("\\ +", " ")]
 
   input_type <- vector()
 
@@ -1504,7 +1665,7 @@ if (assemble & input_type == "transcript"){
 
 if (assemble & input_type == "peptide"){
 
-    message("Checking for non-standard AA one-letter codes in \"pep_mut\". Offending rows will be discarded.")
+    message("Checking for non-standard AA one-letter codes in \"pep_mut\". Non-standard rows will be discarded.")
 
     dt <- dt[pep_mut %like% "^[ARNDCQEGHILKMFPSTWYV]+$"]
 
@@ -1519,7 +1680,7 @@ if (generate){
   # generation a uuid for each unique variant
 
    suppressWarnings(dt[, var_uuid :=
-      parallel::mclapply(1:nrow(dt),
+      lapply(1:nrow(dt),
       uuid::UUIDgenerate) %>% unlist])
 
   # separate over mutant indices
@@ -1655,7 +1816,7 @@ mv <- parallel::mclapply(nmv %>% seq_along, function(x){
 
     # generation a uuid for each unique nmer
       suppressWarnings(dt[, nmer_uuid :=
-                      parallel::mclapply(1:nrow(dt),
+                      lapply(1:nrow(dt),
                       uuid::UUIDgenerate) %>% unlist])
 
     if (input_type == "transcript"){
@@ -1693,6 +1854,10 @@ mv <- parallel::mclapply(nmv %>% seq_along, function(x){
 
 if (predict){
 
+  dir.create(ndir)
+
+  setwd(ndir)
+
   dtl <- dt %>% get_pred_commands
 
   # run commands
@@ -1710,31 +1875,85 @@ if (predict){
 
 confi <- function(dt){
 
-dtl <- parallel::mclapply(1:nrow(dt), function(i){
+dtl <- lapply(1:nrow(dt), function(i){
 
-          if (dt[i ,] %>% unlist %>% na.omit %>% unique %>% length <= 1){
+  if (dt[i ,] %>% unlist %>% na.omit %>% unique %>% length <= 1){
             return(list(NA, NA))}
             t.test(dt[i ,])$conf.int[1:2] %>% as.list
                           })
 
-lo <- lapply(dtl, function(x){x[[1]]}) %>% unlist
+  lo <- lapply(dtl, function(x){x[[1]]}) %>% unlist
 
-up <- lapply(dtl, function(x){x[[2]]}) %>% unlist
-        return(list(lo, up))
-                            }
+  up <- lapply(dtl, function(x){x[[2]]}) %>% unlist
+
+  return(list(lo, up))
+
+}
 
       dt[, c("Lower.CI", "Upper.CI") := confi(.SD), .SDcols = cols]
       } else {
         warning("Missing prediction tools in PATH, returning without predictions.")
       }
 
-   }
+  # now  that we know binders, get our iedb_score and dissimilarity values
+  # iterate over multiple species
+  dt[MHC %like% "HLA", spc := "human"]
+  dt[MHC %like% "H-2", spc := "mouse"]
 
-   if (fitness & predict){
+  mns <- dt[pep_type != "wt" & Ensemble_score < binding_cutoff & spc == "mouse", nmer %>%  unique]
+  hns <- dt[pep_type != "wt" & Ensemble_score < binding_cutoff & spc == "human", nmer %>%  unique]
+
+  if (length(mns) != 0 & blast){
+
+    idt <- mns %>% iedb_score(db  = "mouse") %>% .[, spc := "mouse"]
+
+    sdt <- mns %>% garnish_dissimilarity(db  = "mouse") %>% .[, spc := "mouse"]
+
+    dt <- merge(dt, idt, all.x = TRUE, by = c("nmer", "spc"))
+
+    dt <- merge(dt, sdt, all.x = TRUE, by = c("nmer", "spc"))
+
+  }
+
+  if (length(hns) != 0 & blast){
+
+    idt <- hns %>% iedb_score(db  = "human") %>% .[, spc := "human"]
+
+    sdt <- hns %>% garnish_dissimilarity(db  = "human") %>% .[, spc := "human"]
+
+    dt <- merge(dt, idt, all.x = TRUE, by = c("nmer", "spc"))
+
+    dt <- merge(dt, sdt, all.x = TRUE, by = c("nmer", "spc"))
+
+  }
+
+  dt[, spc := NULL]
+
+  # set NA to 0 for iedb_score to match original implementation
+  # set NA to 0 for dissimilarity, no alignments is truly dissimilar
+  if ("iedb_score" %chin% names(dt))
+   dt[is.na(iedb_score) & pep_type != "wt" & Ensemble_score < 500, iedb_score := 0]
+
+  if ("dissimilarity" %chin% names(dt))
+   dt[is.na(dissimilarity) & pep_type != "wt" & Ensemble_score < 500, dissimilarity := 0]
+
+ }
+
+ if (fitness & predict){
 
      message("Running garnish_fitness...")
 
+     n1 <- nrow(dt)
+
      dt %<>% garnish_fitness
+
+     if (n1 > nrow(dt))
+      warning(
+        paste("Neoantigens incompatible with Luksza et al. Python scripts have been lost,",
+              n1 - nrow(dt),
+              "rows were lost from the table. Consider running garnish_affinity with fitness = FALSE",
+            sep = " ")
+      )
 
      #calculate fitness_score from iedb_score and minimum amplitude
      if ("blast_uuid" %chin% names(dt))
@@ -1748,13 +1967,13 @@ up <- lapply(dtl, function(x){x[[2]]}) %>% unlist
         dt[!is.na(DAI), min_DAI := min(DAI, min_DAI, na.rm = TRUE),
                     by = v]
 
-    }
+ }
 
     if ("iedb_score" %chin% names(dt)){
       dt[!is.na(iedb_score) & !is.na(min_DAI),
           fitness_score := min_DAI * iedb_score]
 
-      dt[pep_type != "wt" & !is.na(fitness_score) & Consensus_scores > 5000,
+      dt[pep_type != "wt" & !is.na(fitness_score) & Ensemble_score > 500,
         fitness_score := 0]
 
         }
@@ -1763,18 +1982,48 @@ up <- lapply(dtl, function(x){x[[2]]}) %>% unlist
    if (any(c("cellular_fraction", "allelic_fraction") %chin% names(dt)))
     dt %<>% garnish_clonality
 
-   if (save){
+  gplot_fn <- format(Sys.time(), "%d/%m/%y %H:%M:%OS") %>%
+                  stringr::str_replace_all("[^A-Za-z0-9]", "_") %>%
+                  stringr::str_replace_all("[_]+", "_")
 
-     gplot_fn <- format(Sys.time(), "%d/%m/%y %H:%M:%OS") %>%
-                   stringr::str_replace_all("[^A-Za-z0-9]", "_") %>%
-                   stringr::str_replace_all("[_]+", "_")
+  if (file.exists("Luksza_model_output.txt")){
+    file.copy("Luksza_model_output.txt",
+                file.path(original_dir,
+                paste("Luksza_model_output_", gplot_fn, ".txt", sep = ""))
+                )
+                  }
+
+   if (save){
 
      dt %>% data.table::fwrite(paste("ag_output_", gplot_fn, ".txt", sep = ""),
                                           sep = "\t",
                                           quote = FALSE,
                                           row.names = FALSE)
 
-      }
+    file.copy(paste("ag_output_", gplot_fn, ".txt", sep = ""),
+                file.path(original_dir,
+                          paste("ag_output_", gplot_fn, ".txt", sep = "")
+                        )
+                )
+
+    if (file.exists(file.path(original_dir,
+            paste("ag_output_", gplot_fn, ".txt", sep = "")))
+                  ){
+      setwd(original_dir)
+      if (dir.exists(ndir))
+        unlink(ndir, recursive = TRUE, force = TRUE)
+    }
+
+  }
+
+  if (!save){
+
+    setwd(original_dir)
+
+    if (dir.exists(ndir))
+      unlink(ndir, recursive = TRUE, force = FALSE)
+
+  }
 
    return(dt)
 
@@ -1782,7 +2031,7 @@ up <- lapply(dtl, function(x){x[[2]]}) %>% unlist
 
 
 
-## ---- make_nmers
+
 #' Internal function for parallelized `nmer` creation.
 #'
 #' @param dt Data table. Input data table from `garnish_affinity`.

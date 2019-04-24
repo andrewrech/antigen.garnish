@@ -1,51 +1,49 @@
-## Detailed install instructions.
+# antigen.garnish on AWS
 
-Recommended instructions for installation of `antigen.garnish`. Install onto an AWS EC2 instance running an Ubuntu Server 16.04 LTS per-configured with [Bioconductor](https://www.bioconductor.org/help/bioconductor-cloud-ami/#overview) (ami-aab1e9d0) and the top 80 bioconductor [tools](http://www.bioconductor.org/packages/stats/). This AMI runs R version 4.3.2 and Bioconductor version 3.6.
+Recommended instructions for minimal installation of `antigen.garnish` onto a fresh AWS EC2 instance running Ubuntu Server 18.04 LTS (ami-0ac019f4fcb7cb7e6). This image has many of the necessary dependencies installed, including python (for MHCflurry).
 
-#### Requirements for installation
+## Bootstrap an AWS instance
 
-* Linux
-* R ≥ 3.4
-* python2.7 and pip
+From the instance command line:
 
-#### 1. Update ubuntu
+#### 1. add the apt CRAN repository for R
 
-```bash
-sudo apt-get update
+```sh
+cd "$HOME"
+
+# add the R Ubuntu bionic apt repository
+sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys E298A3A825C0D65DFD57CBB651716619E084DAB9
+sudo add-apt-repository 'deb [arch=amd64,i386] https://cran.rstudio.com/bin/linux/ubuntu bionic-cran35/'
+
+# update ubuntu with the added repo
+sudo apt-get update -y
 ```
 
-##### 2. Install [antigen.garnish](https://github.com/andrewrech/antigen.garnish) and [dt.inflix](https://github.com/andrewrech/dt.inflix) in R.
+#### 2. install R, pip package manager, and miscellaneous dependencies/libraries
 
-```bash
-Rscript --vanilla -e \
-'install.packages("devtools", repos = "http://cran.us.r-project.org"); devtools::install_github("hadley/devtools"); install.packages("testthat", repos = "http://cran.us.r-project.org")'
+```sh
+sudo apt-get install -y r-base \
+ python-pip \
+ libcurl4-gnutls-dev \
+ libssl-dev subversion \
+ libxml2-dev \
+ htop \
+ libbz2-dev \
+ liblzma-dev
+```
+#### 3. run antigen.garnish install script
+This shell script, also available in the [github repository](https://github.com/immune-health/antigen.garnish/blob/master/inst/extdata/install.sh), wraps and installs the MHC prediction tools, additional R packages, including from [Bioconductor](https://www.bioconductor.org/), and downloads the antigen.garnish databases of human and murine transcript metadata, known immunogenic sequences, and self-sequences.
 
-Rscript --vanilla -e \
-'devtools::install_github(c("tidyverse/magrittr", "andrewrech/dt.inflix", "andrewrech/antigen.garnish"))'
+```sh
+curl -fsSL http://get.rech.io/antigen.garnish.sh | sudo sh
 ```
 
-##### 3. Download `antigen.garnish` dependency files.
-
-* Will download peptide and cDNA databases, known immunogenic IEDB sequences, [NCBI blastp](https://blast.ncbi.nlm.nih.gov/Blast.cgi?CMD=Web&PAGE_TYPE=BlastDocs&DOC_TYPE=Download), [mhcnuggets](https://www.biorxiv.org/content/biorxiv/early/2017/06/23/154757.full.pdf), and [netMHC](http://www.cbs.dtu.dk/services/software.php) tools. Please note that netMHC, netMHCpan, netMHCII, and netMHCIIpan require academic-use only licenses.
-
-```bash
-cd ~
-curl -fsSL "http://get.rech.io/antigen.garnish.tar.gz" | tar -xvz
-chmod 777 -R ./antigen.garnish
-chown `whoami` ./antigen.garnish
-sudo mv ./antigen.garnish/ncbi-blast-2.7.1+/bin/* /usr/local/bin
-```
-
-#### 4. Install [mhcflurry](https://github.com/openvax/mhcflurry) and download mhcflurry prediction models.
-
-```bash
-sudo pip --disable-pip-version-check install scipy mhcflurry h5py biopython
-
-mhcflurry-downloads fetch
-```
-
-#### 5. Test `antigen.garnish` Installation in R.
+#### 4. test `antigen.garnish`
+You can now test antigen.garnish, run the below from the command line. Once this returns no failures, you may use antigen.garnish from R interactively or from the shell using Rscripts.
 
 ```r
-testthat::test_package("antigen.garnish")
+sudo Rscript -e 'testthat::test_package("antigen.garnish")'
 ```
+
+## Still having trouble?
+If this isn't working with your server or you do not have the sudo permissions necessary to install, consider running antigen.garnish with [Docker](https://www.docker.com/get-started). Multiple docker containers can be orchestrated to analyze a large number of samples in parallel in a 100% sealed and consistent environment. Detailed instructions for running antigen.garnish with Docker can be found [here](https://github.com/immune-health/antigen.garnish/wiki/Docker).

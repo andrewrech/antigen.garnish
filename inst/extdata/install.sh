@@ -41,7 +41,7 @@
   mv ./antigen.garnish/ncbi-blast-2.7.1+/bin/* /usr/local/bin
 
   Rscript --vanilla -e \
-  'install.packages("devtools", repos = "http://cran.us.r-project.org"); devtools::install_github("hadley/devtools"); install.packages("testthat", repos = "http://cran.us.r-project.org")'
+  'install.packages("devtools",repos = "http://cran.us.r-project.org"); devtools::install_github("hadley/devtools"); install.packages("testthat", repos = "http://cran.us.r-project.org")'
 
   Rscript --vanilla -e \
   'source("https://bioconductor.org/biocLite.R"); biocLite(c("ShortRead", "biomaRt", "Biostrings"), suppressUpdates = TRUE, suppressAutoUpdate = TRUE)'
@@ -50,11 +50,11 @@
   'install.packages("data.table", type = "source", repos = "http://Rdatatable.github.io/data.table")'
 
   Rscript --vanilla -e \
-  'devtools::install_github(c("tidyverse/magrittr", "andrewrech/dt.inflix"))'
+  'devtools::install_github(c("tidyverse/magrittr", "andrewrech/dt.inflix"), "upgrade = never")'
 
 # install antigen.garnish
 
   echo "Installing antigen.garnish..."
 
   Rscript --vanilla -e \
-  'devtools::install_github("andrewrech/antigen.garnish")'
+  'devtools::install_github("andrewrech/antigen.garnish", upgrade = never)'

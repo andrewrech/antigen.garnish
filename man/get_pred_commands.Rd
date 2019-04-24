@@ -2,7 +2,7 @@
 % Please edit documentation in R/antigen.garnish_predict.R
 \name{get_pred_commands}
 \alias{get_pred_commands}
-\title{Internal function to create commands for neoepitope prediction.}
+\title{Internal function to create commands for neoantigen prediction.}
 \usage{
 get_pred_commands(dt)
 }
@@ -10,5 +10,5 @@ get_pred_commands(dt)
 \item{dt}{Data.table of predictions to run.}
 }
 \description{
-Internal function to create commands for neoepitope prediction.
+Internal function to create commands for neoantigen prediction.
 }

@@ -4,7 +4,7 @@ library(data.table)
 library(magrittr)
 library(dt.inflix)
 
-testthat::test_that("antigen.garnish neoepitope prediction", {
+testthat::test_that("antigen.garnish neoantigen prediction", {
 
 # visually inspect sliding peptides
 
@@ -19,7 +19,7 @@ testthat::test_that("antigen.garnish neoepitope prediction", {
                     "back_truncate",
                     "end")) %>%
   # create nmers
-    antigen.garnish::make_nmers %T>% print
+    make_nmers %T>% print
 
     testthat::succeed()
     })

@@ -4,7 +4,12 @@
 \alias{check_pred_tools}
 \title{Internal function to check for netMHC tools, mhcflurry and mhcnuggets}
 \usage{
-check_pred_tools()
+check_pred_tools(ag_dirs = c(Sys.getenv("AG_DATA_DIR"), paste0(getwd(),
+  "/", "antigen.garnish"), paste0(Sys.getenv("HOME"), "/",
+  "antigen.garnish")))
+}
+\arguments{
+\item{ag_dirs}{Character vector. Directories to check for \code{antigen.garnish} data directory.}
 }
 \description{
 Internal function to check for netMHC tools, mhcflurry and mhcnuggets

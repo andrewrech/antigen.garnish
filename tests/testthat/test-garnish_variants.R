@@ -10,7 +10,7 @@ testthat::test_that("garnish_variants", {
       garnish_variants
 
     testthat::expect_equal(dt %>% class %>% .[1], "data.table")
-    testthat::expect_equal(dt$cDNA_change, c("c.4988C>T", "c.1114T>G", "c.718T>A"))
+    testthat::expect_equal(dt$cDNA_change, c("c.4988C>T"))
 
 
     dt <- "antigen.garnish_hg19anno_example.vcf" %>%

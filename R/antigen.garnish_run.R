@@ -1,7 +1,7 @@
 
 
 
-## ---- run_mhcflurry
+
 #' Internal function to run run_mhcflurry commands.
 #'
 #' @export run_mhcflurry
@@ -22,7 +22,7 @@ mclapply(., function(x){
 
 
 
-## ---- run_mhcnuggets
+
 #' Internal function to run run_mhcnuggets commands.
 #'
 #' @export run_mhcnuggets
@@ -35,12 +35,17 @@ run_mhcnuggets <- function(){
   if (gruf %>% length > 1)
     message("Running mhcnuggets with -m gru")
 
+    pypath  <- system("which predict.py", intern = TRUE)
+
 parallel::mclapply(gruf, function(x){
-        paste0("python $(which predict.py) -m gru -w $(dirname $(which predict.py))/../saves/production/mhcnuggets/",
+        paste0("python ", pypath, " -m gru -w ", dirname(pypath), "/../saves/production/mhcnuggets/",
                stringr::str_extract(string = x, pattern = "(?<=_)H.*(?=_)"), ".h5 -p ", x,
                " > ",
                x %>% stringr::str_replace("input", "output")) %>%
           system
+
+      return(NULL)
+
       })
 
 
@@ -50,18 +55,23 @@ parallel::mclapply(gruf, function(x){
   if (lf %>% length > 1)
   message("Running mhcnuggets with -m lstm")
 
+  pypath  <- system("which predict.py", intern = TRUE)
+
 parallel::mclapply(lf, function(x){
-        paste0("python $(which predict.py) -m lstm -w $(dirname $(which predict.py))/../saves/production/mhcnuggets_beta/",
+        paste0("python ", pypath, " -m lstm -w ",  dirname(pypath), "/../saves/production/mhcnuggets_beta/",
                stringr::str_extract(string = x, pattern = "(?<=_)H.*(?=_)"), ".h5 -p ", x,
                " > ",
                x %>% stringr::str_replace("input", "output")) %>%
           system
+
+  return(NULL)
+
       })
 }
 
 
 
-## ---- run_netMHC
+
 #' Internal function to run netMHC commands.
 #'
 #' @param dt Data table of prediction commands to run.
@@ -77,16 +87,26 @@ run_netMHC <- function(dt){
   message("Running netMHC in parallel")
 
   # run commands
-  esl <- parallel::mclapply(
+  esl <- lapply(
          dt[, command],
 
 function(command){
+          # gen temp file and write to disk to save memory usage
+          es <- uuid::UUIDgenerate() %>% stringr::str_replace_all("-", "")
+
+          es <- paste(es, ".txt", sep = "")
+
+          command2 <- paste(command, " > ", es)
+
           # run command
-           es <- try(system(command, intern = TRUE))
+          system(command2)
+
           # if error, return empty dt
-            if (es %>% class %>% .[1] == "try-error")
-                return(data.table::data.table(status = 1, command = command))
-            return(list(command, es))
+          if (!file.exists(es) || file.info(es)$size == 0)
+              return(data.table::data.table(status = 1, command = command))
+
+          return(list(command, es))
+
             })
 
   dtl <- esl %>% collate_netMHC
@@ -96,31 +116,72 @@ function(command){
 
 
 
-## ---- check_pred_tools
+
 #' Internal function to check for netMHC tools, mhcflurry and mhcnuggets
+#'
+#' @param ag_dirs Character vector. Directories to check for `antigen.garnish` data directory.
 #'
 #' @export check_pred_tools
 #' @md
 
-check_pred_tools <- function(){
+check_pred_tools <- function(ag_dirs = c(
+                                          Sys.getenv("AG_DATA_DIR"),
+                                          paste0(
+                                            getwd(),
+                                            "/",
+                                            "antigen.garnish"),
+                                          paste0(
+                                            Sys.getenv("HOME"),
+                                            "/",
+                                            "antigen.garnish")
+                                            )){
 
-  default_path <- paste0(system('echo ~', intern = TRUE),
+  # vector of directories to look in for data
+
+  for(i in ag_dirs)
+    if (i %>% dir.exists){
+      ag_dir <- i
+      break
+    }
+
+  Sys.setenv(AG_DATA_DIR = ag_dir)
+
+  if (!dir.exists(ag_dir)){
+    err <- paste(
+    "Unable to locate antigen.garnish data directory.",
+    "Paths searched are $AG_DATA_DIR, $HOME, and the current working directory.",
+    "To set a custom path to the antigen.garnish data folder",
+    "set environomental variable AG_DATA_DIR from the shell",
+    "or from R using Sys.setenv",
+    "",
+    "Re-download installation data:",
+    '$ curl -fsSL "http://get.rech.io/antigen.garnish.tar.gz" | tar -xvz',
+    "",
+    "Documentation:",
+    "https://neoantigens.io",
+    sep = "\n"
+    )
+    stop(err)
+  }
+
+  default_path <- paste0(ag_dir,
                   c(
-                  "/antigen.garnish/netMHC/netMHC-4.0",
-                  "/antigen.garnish/netMHC/netMHCII-2.2",
-                  "/antigen.garnish/netMHC/netMHCIIpan-3.1",
-                  "/antigen.garnish/netMHC/netMHCpan-3.0",
-                  "/antigen.garnish/mhcnuggets/scripts"
-                  )) %>%
-                  paste(collapse = ":")
+                    "/netMHC/netMHC-4.0",
+                    "/netMHC/netMHCII-2.2",
+                    "/netMHC/netMHCIIpan-3.1",
+                    "/netMHC/netMHCpan-3.0",
+                    "/mhcnuggets/scripts"
+                    )) %>%
+                      normalizePath %>%
+                      paste(collapse = ":")
 
   tool_status <- list(
-                mhcflurry = TRUE,
-                netMHC = TRUE,
-                netMHCpan = TRUE,
-                netMHCII = TRUE,
+                mhcflurry   = TRUE,
+                netMHC      = TRUE,
+                netMHCpan   = TRUE,
+                netMHCII    = TRUE,
                 netMHCIIpan = TRUE,
-                mhcnuggets = TRUE
+                mhcnuggets  = TRUE
                 )
 
   # conditional to prevent infinitely growing path when running in long loops

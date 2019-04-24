@@ -4,45 +4,51 @@
 \name{antigen.garnish}
 \alias{antigen.garnish}
 \alias{antigen.garnish-package}
-\title{\pkg{antigen.garnish}: ensemble neoepitope prediction from DNA variants in R.}
+\title{\pkg{antigen.garnish}: ensemble neoantigen prediction from DNA variants in R.}
 \description{
-An R package for \href{http://science.sciencemag.org/content/348/6230/69}{neoepitope} analysis that takes human or murine DNA missense mutations, insertions, deletions, and gene fusions and performs ensemble neoepitope prediction using 7 algorithms. Input is a VCF file or table of peptides. Output is ranked neoepitopes and a summary of neoepitope load and fitness by sample. Neoepitopes are ranked by MHC I/II binding affinity, clonality, RNA expression, dissimilarity to the normal peptidome, and similarity to known immunogenic antigens. \href{http://antigen-garnish-presentation.s3-website-us-east-1.amazonaws.com}{More information.}
+An R package for \href{http://science.sciencemag.org/content/348/6230/69}{neoantigen} analysis that takes human or murine DNA missense mutations, insertions, deletions, or RNASeq-derived gene fusions and performs ensemble neoantigen prediction using 7 algorithms. Input is a VCF file, \href{https://github.com/Oshlack/JAFFA}{JAFFA} output, or table of peptides or transcripts. Outputs are ranked and summarized by sample. Neoantigens are ranked by MHC I/II binding affinity, clonality, RNA expression, similarity to known immunogenic antigens, and dissimilarity to the normal peptidome.
 }
 \details{
 Advantages
 \enumerate{
 \item \strong{Thoroughness}:
+}
 \itemize{
 \item missense mutations, insertions, deletions, and gene fusions
 \item human and mouse
 \item ensemble MHC class I/II binding prediction using \href{https://github.com/hammerlab/mhcflurry}{mhcflurry}, \href{https://github.com/KarchinLab/mhcnuggets}{mhcnuggets}, \href{http://www.cbs.dtu.dk/services/NetMHC/}{netMHC}, \href{http://www.cbs.dtu.dk/services/NetMHCII/}{netMHCII}, \href{http://www.cbs.dtu.dk/services/NetMHCpan/}{netMHCpan} and \href{http://www.cbs.dtu.dk/services/NetMHCIIpan/i}{netMHCIIpan}
-\item ranked by MHC I/II binding affinity, clonality, RNA expression, dissimilarity to the normal peptidome, and similarity to known immunogenic antigens
+\item ranked by
+\itemize{
+\item MHC I/II binding affinity
+\item clonality
+\item RNA expression
+\item similarity to known immunogenic antigens
+\item dissimilarity to the normal peptidome (\emph{please note}: not in public repo prior to publication)
 }
+}
+\enumerate{
 \item \strong{Speed and simplicity}:
+}
 \itemize{
 \item 1000 variants are ranked in a single step in less than five minutes
+\item parallelized using \href{https://stat.ethz.ch/R-manual/R-devel/library/parallel/html/mclapply.html}{parallel::mclapply} and \href{https://github.com/Rdatatable/data.table/wiki}{data.table::setDTthreads}, see respective links for information on setting multicore usage
 }
+\enumerate{
 \item \strong{Integration with R/Bioconductor}
+}
 \itemize{
 \item upstream/VCF processing
 \item exploratory data analysis, visualization
 }
-}
-}
-\section{Manifest}{
 
-\itemize{
-\item \code{garnish_variants}: process missense / indel VCF variants from \href{http://snpeff.sourceforge.net/}{SnpEff}
-\item \code{garnish_jaffa}: process gene fusions from \href{https://github.com/Oshlack/JAFFA}{JAFFA}
-\item \code{garnish_affinity}: perform ensemble neoepitope prediction
-\item \code{garnish_summary}: summarize and rank results
-\item \code{garnish_antigens}: list top neoepitope sequences, sources, and properties for each \href{https://github.com/lima1/PureCN}{clone} and sample
-\item \code{garnish_plot}: generate summary plots
-}
-}
+\href{https://neoantigens.rech.io/reference/index.html}{Package documentation} (\href{https://get.rech.io/antigen.garnish.pdf}{pdf})
 
-\section{Bug, issues, feedback}{
-
-Please report bugs and issues and provide feedback via \href{https://github.com/andrewrech/antigen.garnish/issues}{Github} or to \href{mailto:andrewrech@gmail.com}{andrewrech@gmail.com}.
+We welcome contributions and feedback via \href{https://github.com/immune-health/antigen.garnish/issues}{Github} or \href{mailto:leepr@upenn.edu}{email}.
 }
+\seealso{
+\code{\link{garnish_variants}}
 
+\code{\link{garnish_affinity}}
+
+\code{\link{garnish_summary}}
+}
