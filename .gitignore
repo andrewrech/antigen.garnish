@@ -4,3 +4,5 @@ raw_figures/
 *pdf
 *sync-conflict*
  *.syncthing.*
+.DS_Store
+.osync_workdir
