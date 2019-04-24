@@ -149,21 +149,9 @@ gene_2 <- lapply(dtl, function(x){x[2]}) %>% unlist
    metafile <- file.path(Sys.getenv("AG_DATA_DIR"), "/", "GRChm38_meta.RDS")
 
   if (!file.exists(metafile)){
-    err <- paste(
-    "Unable to locate metadata file.",
-    "Paths searched are $AG_DATA_DIR, $HOME, and the current working directory.",
-    "To set a custom path to the antigen.garnish data folder",
-    "set environomental variable AG_DATA_DIR from the shell",
-    "or from R using Sys.setenv",
-    "",
-    "Re-download installation data:",
-    '$ curl -fsSL "http://get.rech.io/antigen.garnish.tar.gz" | tar -xvz',
-    "",
-    "Documentation:",
-    "https://neoantigens.io",
-    sep = "\n"
-    )
-    stop(err)
+
+    ag_data_err()
+
   }
 
     var_dt <- readRDS(metafile)
