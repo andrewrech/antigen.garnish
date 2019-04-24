@@ -153,7 +153,6 @@ ag_data_err <- function(){
 #' @md
 
 check_pred_tools <- function(ag_dirs = c(
-                                          Sys.getenv("AG_DATA_DIR"),
                                           paste0(
                                             getwd(),
                                             "/",
@@ -164,33 +163,35 @@ check_pred_tools <- function(ag_dirs = c(
                                             "antigen.garnish")
                                             )){
 
+
   # vector of directories to look in for data
 
-  for(i in ag_dirs)
-    if (i %>% dir.exists){
-      ag_dir <- i
-      break
-    }
+ if (!Sys.getenv("AG_DATA_DIR") == "")
+   if (!Sys.getenv("AG_DATA_DIR") %>% dir.exists){
 
-  Sys.setenv(AG_DATA_DIR = ag_dir)
+     message("$AG_DATA_DIR does not exist")
+     ag_data_err()
 
-  if (!dir.exists(ag_dir)){
-    err <- paste(
-    "Unable to locate antigen.garnish data directory.",
-    "Paths searched are $AG_DATA_DIR, $HOME, and the current working directory.",
-    "To set a custom path to the antigen.garnish data folder",
-    "set environomental variable AG_DATA_DIR from the shell",
-    "or from R using Sys.setenv",
-    "",
-    "Re-download installation data:",
-    '$ curl -fsSL "http://get.rech.io/antigen.garnish.tar.gz" | tar -xvz',
-    "",
-    "Documentation:",
-    "https://neoantigens.io",
-    sep = "\n"
-    )
-    stop(err)
-  }
+   }
+
+   if (Sys.getenv("AG_DATA_DIR") %>% dir.exists){
+
+     ag_dir <- Sys.getenv("AG_DATA_DIR")
+
+   }
+
+
+ if (Sys.getenv("AG_DATA_DIR") == ""){
+
+    for(i in ag_dirs)
+      if (i %>% dir.exists){
+        ag_dir <- i
+        break
+      }
+
+    Sys.setenv(AG_DATA_DIR = ag_dir)
+
+   }
 
   default_path <- paste0(ag_dir,
                   c(
