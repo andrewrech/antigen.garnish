@@ -44,7 +44,10 @@
   'install.packages("devtools",repos = "http://cran.us.r-project.org"); devtools::install_github("hadley/devtools"); install.packages("testthat", repos = "http://cran.us.r-project.org")'
 
   Rscript --vanilla -e \
-  'source("https://bioconductor.org/biocLite.R"); biocLite(c("ShortRead", "biomaRt", "Biostrings"), suppressUpdates = TRUE, suppressAutoUpdate = TRUE)'
+  'if (as.numeric(R.Version()$major) > 3 || as.numeric(R.Version()$minor) >= 6.0){install.packages("BiocManager", repos = "http://cran.us.r-project.org"); BiocManager::install("Biostrings")}'
+
+  Rscript --vanilla -e \
+  'if (as.numeric(R.Version()$major) < 3 || as.numeric(R.Version()$minor) < 6.0){source("https://bioconductor.org/biocLite.R"); biocLite("Biostrings", suppressUpdates = TRUE, suppressAutoUpdate = TRUE)}'
 
   Rscript --vanilla -e \
   'install.packages("data.table", type = "source", repos = "http://Rdatatable.github.io/data.table")'
