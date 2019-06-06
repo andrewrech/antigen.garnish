@@ -4,12 +4,14 @@
 \alias{garnish_antigens}
 \title{List top neoantigens for each sample and/or by clones within each sample.}
 \usage{
-garnish_antigens(dt, nhits = 2)
+garnish_antigens(dt, nhits = 2, binding_cutoff = 500)
 }
 \arguments{
 \item{dt}{An output data table from \code{garnish_affinity}, either a data table object or path to a file.}
 
 \item{nhits}{Integer. Maximum number of prioritized neoantigens per clone to return, default is 2.}
+
+\item{binding_cutoff}{Numeric. Affinity threshold in nM to consider neoantigens, default is 500.}
 }
 \value{
 A data table with the top neoantigen per sample, and if possible per clone, in rank order of clone frequency. Neoantigens are prioritized by permissive dissimilarity and iedb_score thresholds and then by differential agretopicity.

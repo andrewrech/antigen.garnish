@@ -33,10 +33,8 @@ A slimmed down data table from \code{garnish_affinity} output with minimal infor
 \item \strong{min_DAI}: The most conservative DAI value based on a global alignment to the wild-type proteome.
 \item \strong{iedb_score}
 \item \strong{dissimilarity}
-\item \strong{fitness_score}
-\item \strong{NeoantigenRecognitionPotential}: analogous to fitness_score, source code from Luksza et al. \emph{Nature} 2017.
 \item \strong{cl_proportion}: clonal cell fraction composed by the variant
-\item \strong{antigen.garnish_class}: epitope class, one of "Classic", "Alternative", "IEDB high", "high dissimilarity".
+\item \strong{antigen.garnish_class}: epitope class, one of "Classic", "Alternative", "IEDB high", "high dissimilarity", see \code{?garnish_summary} for thresholds.
 }
 
 See \code{garnish_affinity} for more column descriptions.

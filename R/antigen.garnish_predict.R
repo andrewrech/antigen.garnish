@@ -85,31 +85,6 @@ check_pred_tools()
         " -outfmt '10 qseqid sseqid qseq qstart qend sseq sstart send length mismatch pident evalue bitscore'"
       ))
 
-SW_align <- function(col1,
-                     col2,
-                     gap_open = -11,
-                     gap_extend = -1){
-
-scores <-  lapply(col1 %>% seq_along, function(i){
-
-        aa1 <- Biostrings::AAString(col1[i])
-        aa2 <- Biostrings::AAString(col2[i])
-
-        al <- Biostrings::pairwiseAlignment(aa1, aa2,
-                                  substitutionMatrix = "BLOSUM62",
-                                  gapOpening = gap_open,
-                                  gapExtension = gap_extend,
-                                  type = "local",
-                                  scoreOnly = TRUE)
-
-        return(al)
-
-    }) %>% unlist
-
-    return(scores)
-
-  }
-
     blastdt <- list.files(pattern = "iedbout\\.csv")
 
     if (length(blastdt) == 0){
@@ -221,27 +196,212 @@ scores <-  lapply(col1 %>% seq_along, function(i){
 
 }
 
-
-
 #' Return dissimilarity (to reference proteome) values for a vector of nmers.
 #'
 #' @param v Character. Vector of nmers.
 #' @param db Character. One of c("mouse", "human").
+#' @param kval Numeric. Steepness of sigmoidal curve at k. Default 4.86936, the value used in the analysis of Van Allen, Snyder, Rizvi, Riaz, and Hellmann datasets.
+#' @param aval Numeric. Optionally can be "mean" to use mean alignment for nmers passed. Horizontal displacement of partition function. Default is 32, based on max_SW of 75 million 8-15mers from the five clinical datasets against human, if using max_SW, use 52. This value may not be meaningful for murine alignment so use with care.
 #'
 #' @import stringr
 #' @import data.table
 #' @import magrittr
 #'
-#' @return Placeholder data table of nmers and corresponding dissimilarity NA values.
+#' @return Data table of nmers and corresponding dissimilarity values (to the non-mutated proteome).
 #'
 #' @export garnish_dissimilarity
 #' @md
 
-garnish_dissimilarity <- function(v, db){
+garnish_dissimilarity <- function(v, db, kval = 4.86936, aval = 32){
 
-  message("\n\n###############\nNOTE:\nSkipping neoantigen dissimilarity metric.\nNot in public repo prior to publication,\ncurrent dummy function returns NA for all peptides.\n###############\n\n")
+  if (!db %chin% c("mouse", "human")) stop("db must be \"human\" or \"mouse\"")
 
-  return(data.table::data.table(nmer = v, dissimilarity = as.numeric(NA)))
+  on.exit({
+        message("Removing temporary fasta files")
+        try(
+        list.files(pattern = "dissimilarity|blastp|blastdt_[0-9]+\\.txt$") %>% file.remove
+        )
+                            })
+
+if (identical(Sys.getenv("TESTTHAT"), "true")) setwd(Sys.getenv("HOME"))
+
+if (suppressWarnings(system('which blastp 2> /dev/null', intern = TRUE)) %>%
+          length == 0){
+            warning("Skipping BLAST because ncbiblast+ is not in PATH")
+          return(data.table::data.table(nmer = v))
+
+   }
+
+  # generate fastas to query
+
+    names(v) <- 1:length(v) %>% as.character
+
+    sdt <- v %>% data.table::as.data.table %>% .[, nmer_id := names(v)]
+
+    AA <- Biostrings::AAStringSet(v, use.names = TRUE)
+    Biostrings::writeXStringSet(AA, file = "dissimilarity_fasta.fa", format = "fasta")
+
+  # run blastp for iedb matches
+  # https://www.ncbi.nlm.nih.gov/books/NBK279684/
+  # flags here taken from Lukza et al.:
+  # -matrix use BLOSUM62 substitution matrix
+  # -evalue expect value for saving hits
+  # -gapopen, -gapextend, numeric cost to a gapped alignment and
+  # -outfmt, out put a csv with colums, seqids for query and database seuqnence, start and end of sequence match,
+  # length of overlap, number of mismatches, percent identical, expected value, bitscore
+    message("Running blastp for homology to self antigens.")
+
+    if (db == "mouse"){
+
+      db <- "antigen.garnish/mouse.bdb.pin"
+
+      message("Dissimilarity was modeled on 75 million missense derived peptides against the human proteome, applicability to murine data is unknown.")
+
+      if (!file.exists(db)) db <- file.path("..", db)
+
+      if (!file.exists(db)){
+        warning("Skipping dissimilarity because BLAST database not detected in working directory.")
+        return(data.table::data.table(nmer = v))
+      }
+
+      db <- paste("-db",  db %>% stringr::str_replace("\\.pin", ""), sep = " ")
+
+    }
+
+    if (db == "human"){
+
+      db <- "antigen.garnish/human.bdb.pin"
+
+      if (!file.exists(db)) db <- file.path("..", db)
+
+      if (!file.exists(db)){
+        warning("Skipping dissimilarity because BLAST database not detected in working directory.")
+        return(data.table::data.table(nmer = v))
+      }
+
+      db <- paste("-db",  db %>% stringr::str_replace("\\.pin", ""), sep = " ")
+
+    }
+
+    system(paste0(
+        "blastp -query dissimilarity_fasta.fa ", db, " -evalue 100000000 -matrix BLOSUM62 -gapopen 11 -gapextend 1 -out blastp_self.csv -num_threads ", parallel::detectCores(),
+        " -outfmt '10 qseqid sseqid qseq qstart qend sseq sstart send length mismatch pident evalue bitscore'"
+      ))
+
+
+    blastdt <- list.files(pattern = "blastp_self\\.csv")
+
+    if (length(blastdt) == 0){
+      warning("No blast output for dissimilarity returned.")
+      return(data.table::data.table(nmer = v))
+    }
+
+    if (all(file.info(blastdt)$size == 0)){
+      message("No self-proteome matches found by blast.")
+      return(data.table::data.table(nmer = v, dissimilarity = 0))
+    }
+
+    blastdt <- blastdt %>% data.table::fread
+
+    blastdt %>% data.table::setnames(names(.),
+                                        c("nmer_id",
+                                        "self_anno",
+                                        "nmer",
+                                        "q_start",
+                                        "q_stop",
+                                        "WT.peptide",
+                                        "s_start",
+                                        "s_end",
+                                        "overlap_length",
+                                        "mismatch_length",
+                                        "pident",
+                                        "evalue",
+                                        "bitscore"))
+
+    blastdt <- blastdt[, nmer := nmer %>% stringr::str_replace_all(pattern = "-|\\*", replacement = "")] %>%
+                  .[, WT.peptide := WT.peptide %>% stringr::str_replace_all(pattern = "-|\\*", replacement = "")] %>%
+                    .[!is.na(nmer) & !is.na(WT.peptide)]
+
+    blastdt <- blastdt[nmer %like% "^[ARNDCQEGHILKMFPSTWYV]+$" & WT.peptide %like% "^[ARNDCQEGHILKMFPSTWYV]+$"]
+
+    if (nrow(blastdt) == 0){
+      message(paste("No self matches found with cannonical AAs, can't compute dissimilarity...."))
+      return(data.table::data.table(nmer = v))
+    }
+
+    message("Divining dissimilarity...")
+    message("This may be sped up by setting `setDTthreads()` to maximum.")
+
+    # this is memory intense, lets split it up and stitch it back
+    suppressWarnings(
+      blastdt <- blastdt %>% split(1:(nrow(blastdt) / 100))
+    )
+
+    blastdt <- lapply(blastdt %>% seq_along, function(i){
+
+      fn <- paste("blastdt_", i, ".txt", sep = "")
+
+      blastdt[[i]] %>% data.table::fwrite(fn, sep  = "\t")
+
+      return(fn)
+
+    }) %>% unlist
+
+    lapply(blastdt %>% seq_along, function(i){
+
+      #print(paste("Alignment subset", i, "of", length(blastdt)))
+
+      b <- blastdt[i] %>% data.table::fread
+
+      b[, SW := SW_align(nmer, WT.peptide)]
+
+      b %>% data.table::fwrite(blastdt[i], sep  = "\t")
+
+      return(NULL)
+
+    })
+
+    blastdt <- lapply(blastdt, function(f){
+
+      dt <- data.table::fread(f)
+
+      file.remove(f)
+
+      return(dt)
+
+    }) %>% data.table::rbindlist(use.names = TRUE, fill = TRUE)
+
+    message("Done.")
+
+    message("Reticulating splines...")
+
+    modeleR <- function(als, a = aval, k = kval){
+
+          be <- -k * (a - als)
+
+          sumexp <- sum(exp(be))
+
+          Zk <- 1 + sumexp
+          R <- sumexp / Zk
+
+          R <- 1 - R
+
+        return(R)
+
+        }
+
+    blastdt[, dissimilarity := SW %>% modeleR, by = "nmer_id"]
+
+    blastdt <- blastdt[, .SD %>% unique, .SDcols = c("nmer_id", "dissimilarity")]
+
+    sdt[, nmer_id := as.character(nmer_id)]
+    blastdt[, nmer_id := as.character(nmer_id)]
+
+    sdt <- merge(sdt, blastdt, by = "nmer_id")
+
+    sdt %>% data.table::setnames(".", "nmer")
+
+    return(sdt[, .SD %>% unique, .SDcols = c("nmer", "dissimilarity")])
 
 }
 
@@ -411,31 +571,6 @@ lapply(dt[, spc %>% unique], function(s){
         message("No WT similarity matches found by blast.")
         return(dti)
     }
-
-SW_align <- function(col1,
-                      col2,
-                      gap_open = -11,
-                      gap_extend = -1){
-
-scores <-  lapply(col1 %>% seq_along, function(i){
-
-        aa1 <- Biostrings::AAString(col1[i])
-        aa2 <- Biostrings::AAString(col2[i])
-
-        al <- Biostrings::pairwiseAlignment(aa1, aa2,
-                                  substitutionMatrix = "BLOSUM62",
-                                  gapOpening = gap_open,
-                                  gapExtension = gap_extend,
-                                  type = "local",
-                                  scoreOnly = TRUE)
-
-        return(al)
-
-    }) %>% unlist
-
-    return(scores)
-
-  }
 
   message("Calculating local alignment to WT peptides for proteome-wide differential agretopicity predictions.")
   message("This may be sped up by setting `setDTthreads()` to maximum.")
@@ -1258,7 +1393,6 @@ parallel::mcMap(function(x, y) (x %>% as.integer):(y %>% as.integer) %>%
 #' @param generate Logical. Generate peptides?
 #' @param predict Logical. Predict binding affinities?
 #' @param blast Logical. Run `BLASTp` to find wild-type peptide and known IEDB matches?
-#' @param fitness Logical. Run model of [Luksza et al. *Nature* 2017](https://www.ncbi.nlm.nih.gov/pubmed/29132144) to predict neoantigen fitness? **Note:** Neoantigens not compatible with Python source code are silently dropped.
 #' @param save Logical. Save a copy of garnish_affinity output to the working directory as "ag_output.txt"? Default is `TRUE`.
 #' @param remove_wt Logical. Check all `nmer`s generated against wt peptidome and remove matches? Default is `TRUE`. If investigating wild-type sequences, set this to `FALSE`.
 #' @return A data table of binding predictions including:
@@ -1287,17 +1421,13 @@ parallel::mcMap(function(x, y) (x %>% as.integer):(y %>% as.integer) %>%
 #' * **clone_id**: rank of the clone containing the variant (highest equals larger tumor fraction).
 #' * **cl_proportion**: The estimated mean tumor fraction containing the clone. If allele fraction and not clonality is used, this is estimated.
 #'
-#' antigen.garnish fitness model results
+#' antigen.garnish quality analysis metric results
 #' * **Ensemble_score**: average value of MHC binding affinity from all prediction tools that contributed output. 95\% confidence intervals are given by **Upper_CI**, **Lower_CI**.
-#' * **iedb_score**: R implementation of TCR recognition probability for peptide through summing of alignments in IEDB for corresponding organism.
+#' * **iedb_score**: R implementation of TCR recognition probability for peptide through summing of alignments in IEDB for corresponding organism. See references herein.
 #' * **IEDB_anno**: The best alignment from the IEDB database queried for the sample if applicable.
 #' * **min_DAI**: Minimum of value of BLAST_A or DAI values, to provide the most conservative proteome-wide estimate of differential binding between input and wildtype matches.
-#' * **fitness_score**: Product of min_DAI and iedb_score. The peptide with the highest value per clone is the top neoantigen. Does not apply to wildtype input.
-#' * **garnish_score**: overall sample immunogenicity based on top clonal neoantigens. Only if clonality or allele fraction data is present in the table. See ?garnish_variants.
+#' * **dissimilarity**: Calculation from 0 to 1 derived from alignment to the self-proteome, with 1 indicating greater dissimilarity and up to 34-fold odds ratio of immunogenicity (see Citation).
 #'
-#' fitness model information [Luksza et al. *Nature* 2017](https://www.ncbi.nlm.nih.gov/pubmed/29132144):
-#' * **NeoantigenRecognitionPotential**: Product of A and R (amplitude, analogous to min_DAI, and TCR recognition probability components).
-#' * full raw output saved to the working directory.
 #'
 #' transcript description:
 #' * description
@@ -1423,7 +1553,6 @@ garnish_affinity <- function(dt             = NULL,
                              generate       = TRUE,
                              predict        = TRUE,
                              blast          = TRUE,
-                             fitness        = TRUE,
                              save           = TRUE,
                              remove_wt      = TRUE){
 
@@ -1470,7 +1599,7 @@ garnish_affinity <- function(dt             = NULL,
   # make sample_ids character to avoid downstream merge failure for column types
   dt[, sample_id := as.character(sample_id)]
 
-  # remove double or more spaces in MHC string (will not bug until garnish_fitness or will segfault netMHC)
+  # remove double or more spaces in MHC string (will segfault netMHC)
   # DO NOT unique this, will not return same length vector
   dt[, MHC := MHC %>% stringr::str_replace_all("\\ +", " ")]
 
@@ -1518,9 +1647,6 @@ dt with peptide:
                                  7 13 14
      MHC                         <same as above>
       ")
-
-if (fitness == TRUE & blast == FALSE)
-    message("Setting blast = TRUE")
 
 if (assemble & input_type == "transcript"){
 
@@ -1939,23 +2065,9 @@ dtl <- lapply(1:nrow(dt), function(i){
 
  }
 
- if (fitness & predict){
+ if (predict & blast){
 
-     message("Running garnish_fitness...")
-
-     n1 <- nrow(dt)
-
-     dt %<>% garnish_fitness
-
-     if (n1 > nrow(dt))
-      warning(
-        paste("Neoantigens incompatible with Luksza et al. Python scripts have been lost,",
-              n1 - nrow(dt),
-              "rows were lost from the table. Consider running garnish_affinity with fitness = FALSE",
-            sep = " ")
-      )
-
-     #calculate fitness_score from iedb_score and minimum amplitude
+     #calculate minimum proteome-wide DAI
      if ("blast_uuid" %chin% names(dt))
       dt[!is.na(BLAST_A), min_DAI := BLAST_A]
 
@@ -1967,16 +2079,8 @@ dtl <- lapply(1:nrow(dt), function(i){
         dt[!is.na(DAI), min_DAI := min(DAI, min_DAI, na.rm = TRUE),
                     by = v]
 
- }
+    }
 
-    if ("iedb_score" %chin% names(dt)){
-      dt[!is.na(iedb_score) & !is.na(min_DAI),
-          fitness_score := min_DAI * iedb_score]
-
-      dt[pep_type != "wt" & !is.na(fitness_score) & Ensemble_score > 500,
-        fitness_score := 0]
-
-        }
    }
 
    if (any(c("cellular_fraction", "allelic_fraction") %chin% names(dt)))
@@ -2125,4 +2229,174 @@ apply(1, function(pmr){
     }) %>% data.table::rbindlist %>% unique
 
   return(nmer_dt)
+}
+
+
+
+#' Internal function to integrate clonality data into output.
+#'
+#' Integrates clonality input to help prioritize neoantigens downstream.
+#'
+#' @param dt Data table. Passed internally from garnish_affinity, requires allelic_fraction or cellular_fraction columns.
+#'
+#' @return A data table with added clonality columns:
+#' * **clone_id**: rank of the clone containing the variant (highest equals larger tumor fraction).
+#' * **cl_proportion**: estimated mean tumor fraction containing the clone.
+#'
+#' @export garnish_clonality
+#' @md
+
+garnish_clonality <- function(dt){
+
+  if (!"cellular_fraction" %chin% names(dt) & !"allelic_fraction" %chin% names(dt)){
+
+    warnings("No cellular_fraction or allelic_fraction column found. Returning dt without computing garnish_score from clonality.")
+    return(dt)
+  }
+
+  if ("allelic_fraction" %chin% names(dt))
+    col <- "allelic_fraction"
+
+  # prefer cellular_fraction if available
+
+  if ("cellular_fraction" %chin% names(dt))
+    col <- "cellular_fraction"
+
+
+    b <- data.table::copy(dt)
+
+    b %>% setnames(col, "cf")
+
+    b[, cf := as.numeric(cf)]
+
+    match_clone <- function(cf, v){
+
+      dt <- lapply(cf, function(x){
+
+        abs <- abs(x - v)
+
+        a <- v[which(abs == min(abs))]
+
+        b <- names(v)[which(abs == min(abs))]
+
+        return(data.table(cl_proportion = a, clone_id = b))
+
+      }) %>% data.table::rbindlist
+
+      return(dt)
+
+    }
+
+    cdt <- lapply(b[, sample_id %>% unique], function(s){
+
+      dt <- b[!is.na(cf) & sample_id == s, cf, by = "var_uuid"] %>% unique
+
+      if (nrow(dt) == 0)
+        return(NULL)
+
+      if (dt[, cf %>% unique %>% length] == 1)
+        return(dt[,  clone_id := 1] %>% .[, cl_proportion := cf])
+
+      x <-  mclust::Mclust(dt[, cf %>% as.numeric], verbose = FALSE)
+
+      vect <- x$parameters$mean
+
+      vect %<>% sort(decreasing = TRUE)
+
+      names(vect) <- 1:length(vect) %>% as.character
+
+      dt[, c("cl_proportion", "clone_id") := match_clone(cf, v = vect)]
+
+    }) %>% data.table::rbindlist(use.names = TRUE)
+
+    cdt %>% data.table::setnames("cf", col)
+
+    dt <- merge(dt, cdt, all.x = TRUE, by = c("var_uuid", col))
+
+    # remove cl_proportion from wt peptide rows because its meaningless and refers to matched mutant nmer
+
+    dt[pep_type == "wt", cl_proportion := as.numeric(NA)]
+
+    # return *exclusive* clone frequency (independent of subclones)
+    exclude_v <- function(v){
+
+      vu <- v %>% stats::na.omit %>% as.numeric
+
+      vu <- vu %>% unique %>% sort(decreasing = TRUE)
+
+      dt <- v %>% data.table::as.data.table
+
+      mu <- lapply(vu %>% seq_along, function(i){
+
+        if (i == length(vu)) return(vu[i])
+
+        m <- vu[i] - sum(vu[i + 1], na.rm = TRUE)
+
+      }) %>% unlist
+
+      b <- data.table::data.table(vu, mu)
+
+      # because not means clustered and ecdf, account for values < 1
+      b[mu < 0, mu := 0]
+
+      return(b[, mu][match(v, b[, vu])])
+
+    }
+
+    read_cols <- dt %>% names %include% "_AD_(ref|alt)$"
+
+    # if using allelic_fraction as surrogate clonality, recalculate allele fractions into cell population proportions
+
+    if (col == "allelic_fraction"){
+
+      a <- dt[!is.na(cl_proportion) &
+              !is.na(allelic_fraction) &
+              pep_type != "wt", cl_proportion %>%
+              unique, by = c("sample_id", "var_uuid", "pep_type", read_cols)]
+
+      # filter by supporting reads
+      for (c in read_cols)
+        a %<>% .[get(c) >= 10]
+
+      if (nrow(a) == 0){
+        warning("No variants met allelic depth of 10.  Returning table without clonality calculations.")
+        return(dt)
+      }
+
+      # too many NA checks never hurt anyone
+      calculate_ecdf <- function(x){
+
+        if ((x %>% stats::na.omit %>% length) > 0){
+
+          v <- stats::ecdf(x)(x)
+
+          m <- x[which(v  > 0.9)] %>% mean(na.rm = TRUE)
+
+          return(m)
+
+
+        } else {
+          return(NA %>% as.numeric)
+        }
+      }
+
+      a[, ecdf := calculate_ecdf(V1), by = "sample_id"]
+
+      a[, cl_proportion := V1 / ecdf, by = "sample_id"]
+
+      a[, cl_proportion := cl_proportion %>% exclude_v, by = "sample_id"]
+
+      # clear column derived from allele fractions in dt
+      dt[, cl_proportion := NULL]
+
+      dt <- merge(dt, a[, .SD %>% unique, .SDcol = c("sample_id", "var_uuid", "cl_proportion", "pep_type", read_cols)],
+      all.x = TRUE, by = c("sample_id", "var_uuid", "pep_type", read_cols))
+
+    }
+
+  if (col == "cellular_fraction")
+    dt[!is.na(cl_proportion), cl_proportion := cl_proportion %>% exclude_v, by = "sample_id"]
+
+  return(dt)
+
 }

@@ -44,7 +44,6 @@ transcripts <- function(){
          MHC = c("HLA-A*02:01 HLA-DRB1*14:67")) %>%
     # run test
       garnish_affinity(blast = FALSE,
-                          fitness = FALSE,
                           save = FALSE)
 
     testthat::expect_equal(dt[, .N, by = "MHC"]  %>% .[order(MHC)],
@@ -67,8 +66,7 @@ excel <- function(){
     # run test
     dt <- garnish_affinity(path = path,
                               predict = FALSE,
-                              blast = FALSE,
-                              fitness = FALSE)
+                              blast = FALSE)
 
 
     testthat::expect_equal(dt %>% nrow, 551)
@@ -95,7 +93,7 @@ jaffa <- function(){
       dt[, MHC := "H-2-Kb"]
 
     # run test
-      dt <- garnish_affinity(dt, blast = FALSE, fitness = FALSE, save = FALSE)
+      dt <- garnish_affinity(dt, blast = FALSE, save = FALSE)
 
     testthat::expect_equal(dt %>% nrow, 1071)
 
@@ -115,8 +113,7 @@ peptides <- function(){
     # run test data
       dto <- garnish_affinity(dt,
                                  predict = FALSE,
-                                 blast = FALSE,
-                                 fitness = FALSE)
+                                 blast = FALSE)
 
     testthat::expect_equal(dto$nmer %>% unique %>% length,
                            109)
@@ -182,7 +179,6 @@ peptides <- function(){
                             counts = "antigen.garnish_rna_temp.txt",
                             min_counts = 10,
                             blast = FALSE,
-                            fitness = FALSE,
                             save = FALSE)
 
       testthat::expect_equal(dt$ensembl_transcript_id %>%

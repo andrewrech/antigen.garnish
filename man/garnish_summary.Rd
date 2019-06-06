@@ -18,14 +18,13 @@ A summary data table of \code{dt} by \code{sample_id} with the following columns
 \item \strong{classic_top_score}: sum of the top three mutant \code{nmer} affinity scores (see below)
 \item \strong{alt_neos}: alternatively defined neoantigens (ADNs); defined as mutant \code{nmers} predicted to bind MHC with greatly improved affinity relative to non-mutated counterparts (10x for MHC class I and 4x for MHC class II) (see below)
 \item \strong{alt_top_score}: sum of the top three mutant \code{nmer} differential agretopicity indices; differential agretopicity index (DAI) is the ratio of MHC binding affinity between mutant and wt peptide (see below). If the peptide is fusion- or frameshift-derived, the binding affinity of the closest wt peptide determined by BLAST is used to calculate DAI.
-\item \strong{priority_neos}: mutant peptides that meet both ADN and CDN criteria, and if applicable, have a fitness_score of >= 1.
 \item \strong{fs_neos}: mutant \code{nmers} derived from frameshift variants predicted to bind MHC with < 500nM \eqn{IC_{50}}
 \item \strong{fusion_neos}: mutant \code{nmers} derived from fusion variants predicted to bind MHC with < 500nM \eqn{IC_{50}}
+\item \strong{IEDB_high}: defined as mutant \code{nmers} predicted to bind MHC with affinity (< 500nM \eqn{IC_{50}}) and IEDB alignment score > 0.9.
+\item \strong{high_dissimilarity}: defined as mutant \code{nmers} predicted to bind MHC with affinity (< 500nM \eqn{IC_{50}}) and dissimilarity > 0.75.
 \item \strong{nmers}: total mutant \code{nmers} created
 \item \strong{predictions}: wt and mutant predictions performed
 \item \strong{mhc_binders}: \code{nmers} predicted to at least minimally bind MHC (< 500nM \eqn{IC_{50}})
-\item \strong{fitness_scores}: Sum of the top 3 fitness_score values per sample. See \code{?garnish_fitness}.
-\item \strong{garnish_score}: Sample level immune fitness. Derived by summing the exponential of \code{fitness_scores} for each top neoantigen across all clones in the tumor sample. See ?garnish_predicitons.
 \item \strong{variants}: total genomic variants evaluated
 \item \strong{transcripts}: total transcripts evaluated
 }

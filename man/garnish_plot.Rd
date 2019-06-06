@@ -14,7 +14,7 @@ garnish_plot(input, ext = "pdf")
 \value{
 NULL
 
-As a side effect: saves graph illustrating the number of neoantigens in each sample and fitness model results to the working directory. The threshold for inclusion of fusion and frameshift-derived neoantigens is \eqn{IC_{50}} < 500nM.
+As a side effect: saves graph illustrating the number of neoantigens in each sample to the working directory. The threshold for inclusion of neoantigens is \eqn{IC_{50}} < 500nM.
 }
 \description{
 Plot ADN, CDN, priority, frameshift, and fusion derived \code{nmers} for class I and class II MHC by \code{sample_id}.

@@ -5,16 +5,10 @@ testthat::test_that("garnish_clonality", {
 
     dt <- file.path(d, "antigen.garnish_PureCN_example_output.txt") %>%
               data.table::fread %>%
-              .[, c("cl_proportion", "clone_id", "garnish_score") := NULL]
+              .[, c("cl_proportion", "clone_id") := NULL]
   # run test
 
   dto <-  dt %>% garnish_clonality
-
-  testthat::expect_equal(dto[!is.na(garnish_score),
-                         garnish_score %>%
-                         unique %>%
-                         length], 1)
-
 
   testthat::expect_equal(dto[, clone_id %>% as.numeric %>%
                          range(na.rm = TRUE)], c(1,2))
@@ -28,9 +22,6 @@ dt %>% data.table::setnames("cellular_fraction", "allelic_fraction")
 
 dt %<>% garnish_clonality
 
-testthat::expect_equal(dt[!is.na(garnish_score),
-                       garnish_score %>% unique %>% length],
-                       1)
 testthat::expect_equal(dt[, clone_id %>% as.numeric %>%
                        range(na.rm = TRUE)],
                        c(1,2))

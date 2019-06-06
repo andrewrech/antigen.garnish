@@ -46,14 +46,13 @@
 #' * **classic_top_score**: sum of the top three mutant `nmer` affinity scores (see below)
 #' * **alt_neos**: alternatively defined neoantigens (ADNs); defined as mutant `nmers` predicted to bind MHC with greatly improved affinity relative to non-mutated counterparts (10x for MHC class I and 4x for MHC class II) (see below)
 #' * **alt_top_score**: sum of the top three mutant `nmer` differential agretopicity indices; differential agretopicity index (DAI) is the ratio of MHC binding affinity between mutant and wt peptide (see below). If the peptide is fusion- or frameshift-derived, the binding affinity of the closest wt peptide determined by BLAST is used to calculate DAI.
-#' * **priority_neos**: mutant peptides that meet both ADN and CDN criteria, and if applicable, have a fitness_score of >= 1.
 #' * **fs_neos**: mutant `nmers` derived from frameshift variants predicted to bind MHC with < 500nM \eqn{IC_{50}}
 #' * **fusion_neos**: mutant `nmers` derived from fusion variants predicted to bind MHC with < 500nM \eqn{IC_{50}}
+#' * **IEDB_high**: defined as mutant `nmers` predicted to bind MHC with affinity (< 500nM \eqn{IC_{50}}) and IEDB alignment score > 0.9.
+#' * **high_dissimilarity**: defined as mutant `nmers` predicted to bind MHC with affinity (< 500nM \eqn{IC_{50}}) and dissimilarity > 0.75.
 #' * **nmers**: total mutant `nmers` created
 #' * **predictions**: wt and mutant predictions performed
 #' * **mhc_binders**: `nmers` predicted to at least minimally bind MHC (< 500nM \eqn{IC_{50}})
-#' * **fitness_scores**: Sum of the top 3 fitness_score values per sample. See `?garnish_fitness`.
-#' * **garnish_score**: Sample level immune fitness. Derived by summing the exponential of `fitness_scores` for each top neoantigen across all clones in the tumor sample. See ?garnish_predicitons.
 #' * **variants**: total genomic variants evaluated
 #' * **transcripts**: total transcripts evaluated
 #'
@@ -124,7 +123,7 @@ sum_top_v <- function(x, value = 3){
         sort %>%
         rev
 
-      # added this in case 3 fitness scores not available, would also be useful in a sample with less than 3 nmers I guess.
+      # edge case for sample with less than 3 nmers.
       if (length(x) < value) value <- length(x)
 
       return(sum(x[1:value], na.rm = TRUE))
@@ -239,7 +238,7 @@ dtn <- lapply(dt[, sample_id %>% unique], function(id){
       st_I <- dt[class == "I" &
                  pep_type != "wt" &
                  Ensemble_score < 500 &
-                 dissimilarity < 0.25,
+                 dissimilarity > 0.75,
                  paste(nmer, MHC, sep = "_") %>% unique %>% length,
                  by = "sample_id"] %>%
                  data.table::setnames("V1", "high_dissimilarity_class_I")
@@ -247,7 +246,7 @@ dtn <- lapply(dt[, sample_id %>% unique], function(id){
       st_II <- dt[class == "II" &
                   pep_type != "wt" &
                   Ensemble_score < 500 &
-                  dissimilarity < 0.25,
+                  dissimilarity > 0.75,
                   paste(nmer, MHC, sep = "_") %>% unique %>% length,
                   by = "sample_id"] %>%
                   data.table::setnames("V1", "high_dissimilarity_class_II")
@@ -257,44 +256,6 @@ dtn <- lapply(dt[, sample_id %>% unique], function(id){
       dtn <- merge(dtn, st, by = "sample_id", all.x = TRUE)
 
     }
-
-# get fitness scores if available
-
-  if ("fitness_score" %chin% names(dt)){
-
-    for (i in dt[, sample_id %>% unique]){
-
-      dtn[sample_id == i,
-        fitness_scores_class_I :=
-            dt[class == "I" & !is.na(fitness_score) & sample_id == i,
-              fitness_score %>% sum_top_v]]
-
-      dtn[sample_id == i,
-        fitness_scores_class_II :=
-          dt[class == "II" & !is.na(fitness_score) & sample_id == i,
-            fitness_score %>% sum_top_v]]
-
-      dtn[sample_id == i,
-        priority_neos_class_I :=
-          dt[class == "I" &  DAI > 10 & Ensemble_score < 50 &
-          (nchar(nmer) != 9 || fitness_score >= 1) &
-          sample_id == i,
-            nmer_uuid %>% length]]
-
-      dtn[sample_id == i,
-        priority_neos_class_II :=
-          dt[class == "II" &  DAI > 10 & Ensemble_score < 50 &
-            (nchar(nmer) != 9 || fitness_score >= 1) &
-              sample_id == i,
-                nmer_uuid %>% length]]
-
-      }
-
-  }
-
-  if ("garnish_score" %chin% names(dt))
-    dtn <- merge(dtn, dt[!is.na(garnish_score), .SD %>% unique, .SDcols = c("sample_id", "garnish_score")],
-      all.x = TRUE, by = "sample_id")
 
   if (c("ensembl_transcript_id", "var_uuid") %chin% (dt %>% names) %>% all) {
 
@@ -360,10 +321,8 @@ dtnv <- lapply(dt[, sample_id %>% unique], function(id){
 #' * **min_DAI**: The most conservative DAI value based on a global alignment to the wild-type proteome.
 #' * **iedb_score**
 #' * **dissimilarity**
-#' * **fitness_score**
-#' * **NeoantigenRecognitionPotential**: analogous to fitness_score, source code from Luksza et al. *Nature* 2017.
 #' * **cl_proportion**: clonal cell fraction composed by the variant
-#' * **antigen.garnish_class**: epitope class, one of "Classic", "Alternative", "IEDB high", "high dissimilarity".
+#' * **antigen.garnish_class**: epitope class, one of "Classic", "Alternative", "IEDB high", "high dissimilarity", see `?garnish_summary` for thresholds.
 #'
 #' See `garnish_affinity` for more column descriptions.
 #'
@@ -423,8 +382,8 @@ garnish_slim <- function(dt, slimmer = TRUE){
   # don't damage input table and operate on mutant rows only for speed
   dt <- dt %>% data.table::copy %>% .[pep_type != "wt"]
 
-  addl_cols <- c("external_gene_name", "protein_change", "NeoantigenRecognitionPotential",
-                  "DAI", "min_DAI", "cl_proportion", "fitness_score", "iedb_score", "dissimilarity")
+  addl_cols <- c("external_gene_name", "protein_change",
+                  "DAI", "min_DAI", "cl_proportion", "iedb_score", "dissimilarity")
 
   addl_cols <- addl_cols[which(addl_cols %chin% names(dt))]
 
@@ -483,7 +442,7 @@ garnish_slim <- function(dt, slimmer = TRUE){
   if ("iedb_score" %chin% names(dt))
     dt[iedb_score > 0.9 & Ensemble_score < 500, ag_class3 := "IEDB high"]
   if ("dissimilarity" %chin% names(dt))
-      dt[dissimilarity < 0.25 & Ensemble_score < 500, ag_class4 := "high dissimilarity"]
+      dt[dissimilarity > 0.75 & Ensemble_score < 500, ag_class4 := "high dissimilarity"]
 
   n <- names(dt)[names(dt) %like% "ag_class[1-4]$"]
 
@@ -808,7 +767,7 @@ sdt %<>%
 #'
 #' @return NULL
 #'
-#' As a side effect: saves graph illustrating the number of neoantigens in each sample and fitness model results to the working directory. The threshold for inclusion of fusion and frameshift-derived neoantigens is \eqn{IC_{50}} < 500nM.
+#' As a side effect: saves graph illustrating the number of neoantigens in each sample to the working directory. The threshold for inclusion of neoantigens is \eqn{IC_{50}} < 500nM.
 #'
 #' @export garnish_plot
 #'
@@ -1025,40 +984,6 @@ lapply(input %>% seq_along, function(i){
 
     })
 
-
-  # garnish_score plot
-
-  lapply(input %>% seq_along, function(i){
-
-    score_dt <- input[[i]] %>% garnish_summary
-
-    if (!"garnish_score" %chin% names(score_dt))
-      return(NULL)
-
-    score_dt %<>% .[, .SD %>% unique, .SDcols = c("sample_id", "garnish_score")]
-
-    if (score_dt %>% stats::na.omit %>% nrow < 1)
-      return(NULL)
-
-    score_dt[is.na(garnish_score), garnish_score := 0]
-
-    score_dt %<>% gplot_names
-
-    g <- ggplot2::ggplot(score_dt,
-                         ggplot2::aes(x = sample_id, y = garnish_score)) +
-         ggplot2::geom_col(fill = gplot_col[1], col = "black", position = "dodge") +
-         gplot_theme +
-         ggplot2::labs(x = "", y = "garnish_score") +
-         ggplot2::theme(legend.position = "none") +
-         ggplot2::ggtitle(paste0("antigen_garnish_score"))
-
-    ggplot2::ggsave(plot = g,
-      paste0("antigen.garnish_garnish_score_",
-      gplot_fn,
-      ext), height = 6, width = 9)
-
-})
-
   return(NULL)
 
 }
@@ -1069,6 +994,7 @@ lapply(input %>% seq_along, function(i){
 #'
 #' @param dt An output data table from `garnish_affinity`, either a data table object or path to a file.
 #' @param nhits Integer. Maximum number of prioritized neoantigens per clone to return, default is 2.
+#' @param binding_cutoff Numeric. Affinity threshold in nM to consider neoantigens, default is 500.
 #'
 #' @return A data table with the top neoantigen per sample, and if possible per clone, in rank order of clone frequency. Neoantigens are prioritized by permissive dissimilarity and iedb_score thresholds and then by differential agretopicity.
 #'
@@ -1078,7 +1004,7 @@ lapply(input %>% seq_along, function(i){
 #' @export garnish_antigens
 #' @md
 
-garnish_antigens <- function(dt, nhits = 2){
+garnish_antigens <- function(dt, nhits = 2, binding_cutoff = 500){
 
   if (class(dt)[1] == "character") dt <- dt %>%
   rio::import %>%
@@ -1092,7 +1018,7 @@ garnish_antigens <- function(dt, nhits = 2){
   if (!"Ensemble_score" %chin% names(dt))
     stop("Missing Ensemble_score column.  Input to garnish_antigens must be garnish_affinity output.")
 
-  dt <- dt[Ensemble_score < 500 & pep_type != "wt"]
+  dt <- dt[Ensemble_score < binding_cutoff & pep_type != "wt"]
 
   c <- c("clone_id", "cl_proportion")
 
@@ -1130,10 +1056,10 @@ garnish_antigens <- function(dt, nhits = 2){
 
     dtll <- lapply(dtll, function(nn){
 
-      if (nrow(nn[dissimilarity < 1 & iedb_score > 0]) > 0)
+      if (nrow(nn[dissimilarity > 0 & iedb_score > 0]) > 0)
         return(nn[order(min_DAI, decreasing = TRUE)][1:nhits])
 
-      if (nrow(nn[dissimilarity < 1]) > 0)
+      if (nrow(nn[dissimilarity > 0]) > 0)
         return(nn[order(min_DAI, decreasing = TRUE)][1:nhits])
 
       if (nrow(nn[iedb_score > 0]) > 0)

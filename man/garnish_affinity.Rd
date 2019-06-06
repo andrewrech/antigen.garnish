@@ -6,8 +6,7 @@
 \usage{
 garnish_affinity(dt = NULL, path = NULL, binding_cutoff = 500,
   counts = NULL, min_counts = 1, assemble = TRUE, generate = TRUE,
-  predict = TRUE, blast = TRUE, fitness = TRUE, save = TRUE,
-  remove_wt = TRUE)
+  predict = TRUE, blast = TRUE, save = TRUE, remove_wt = TRUE)
 }
 \arguments{
 \item{dt}{Data table. Input data table from \code{garnish_variants} or \code{garnish_jaffa}, or a data table in one of these forms:
@@ -48,8 +47,6 @@ MHC                         <same as above>
 
 \item{blast}{Logical. Run \code{BLASTp} to find wild-type peptide and known IEDB matches?}
 
-\item{fitness}{Logical. Run model of \href{https://www.ncbi.nlm.nih.gov/pubmed/29132144}{Luksza et al. Nature 2017} to predict neoantigen fitness? \strong{Note:} Neoantigens not compatible with Python source code are silently dropped.}
-
 \item{save}{Logical. Save a copy of garnish_affinity output to the working directory as "ag_output.txt"? Default is \code{TRUE}.}
 
 \item{remove_wt}{Logical. Check all \code{nmer}s generated against wt peptidome and remove matches? Default is \code{TRUE}. If investigating wild-type sequences, set this to \code{FALSE}.}
@@ -85,20 +82,13 @@ clonality info:
 \item \strong{cl_proportion}: The estimated mean tumor fraction containing the clone. If allele fraction and not clonality is used, this is estimated.
 }
 
-antigen.garnish fitness model results
+antigen.garnish quality analysis metric results
 \itemize{
 \item \strong{Ensemble_score}: average value of MHC binding affinity from all prediction tools that contributed output. 95\% confidence intervals are given by \strong{Upper_CI}, \strong{Lower_CI}.
-\item \strong{iedb_score}: R implementation of TCR recognition probability for peptide through summing of alignments in IEDB for corresponding organism.
+\item \strong{iedb_score}: R implementation of TCR recognition probability for peptide through summing of alignments in IEDB for corresponding organism. See references herein.
 \item \strong{IEDB_anno}: The best alignment from the IEDB database queried for the sample if applicable.
 \item \strong{min_DAI}: Minimum of value of BLAST_A or DAI values, to provide the most conservative proteome-wide estimate of differential binding between input and wildtype matches.
-\item \strong{fitness_score}: Product of min_DAI and iedb_score. The peptide with the highest value per clone is the top neoantigen. Does not apply to wildtype input.
-\item \strong{garnish_score}: overall sample immunogenicity based on top clonal neoantigens. Only if clonality or allele fraction data is present in the table. See ?garnish_variants.
-}
-
-fitness model information \href{https://www.ncbi.nlm.nih.gov/pubmed/29132144}{Luksza et al. Nature 2017}:
-\itemize{
-\item \strong{NeoantigenRecognitionPotential}: Product of A and R (amplitude, analogous to min_DAI, and TCR recognition probability components).
-\item full raw output saved to the working directory.
+\item \strong{dissimilarity}: Calculation from 0 to 1 derived from alignment to the self-proteome, with 1 indicating greater dissimilarity and up to 34-fold odds ratio of immunogenicity (see Citation).
 }
 
 transcript description:

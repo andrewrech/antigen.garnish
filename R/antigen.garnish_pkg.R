@@ -41,7 +41,7 @@
 #' @import parallel
 #' @import stringr
 #' @importFrom testthat expect_equal expect_equivalent expect_gt expect_true skip succeed test_that
-#' @importFrom Biostrings DNAString translate
+#' @importFrom Biostrings DNAString translate pairwiseAlignment
 #' @importFrom Rdpack reprompt
 #' @importFrom magrittr %>% %T>% %$% %<>%
 #' @importFrom rio import

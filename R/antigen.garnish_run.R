@@ -1,6 +1,32 @@
 
 
 
+#' Internal function to Smith-Waterman align two vectors of peptides.
+#'
+#' @param col1 Character. Vector of sequences to align to col2.
+#' @param col2 Character. Vector of sequences to align to col1.
+#' @param gap_open Numeric. Cost to open gapped alignment. Default is -11.
+#' @param gap_extend Numeric. Cost to extend a gap. Default is -1.
+#'
+#' @export SW_align
+#' @md
+SW_align <- function(col1,
+                      col2,
+                      gap_open = -11,
+                      gap_extend = -1){
+
+        al <- Biostrings::pairwiseAlignment(col1, col2,
+                                  substitutionMatrix = "BLOSUM62",
+                                  gapOpening = gap_open,
+                                  gapExtension = gap_extend,
+                                  type = "local",
+                                  scoreOnly = TRUE)
+
+        if (length(al) == 0) al <- as.numeric(NA)
+
+        return(al)
+
+}
 
 #' Internal function to run run_mhcflurry commands.
 #'

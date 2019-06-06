@@ -4,15 +4,19 @@
 \alias{garnish_dissimilarity}
 \title{Return dissimilarity (to reference proteome) values for a vector of nmers.}
 \usage{
-garnish_dissimilarity(v, db)
+garnish_dissimilarity(v, db, kval = 4.86936, aval = 32)
 }
 \arguments{
 \item{v}{Character. Vector of nmers.}
 
 \item{db}{Character. One of c("mouse", "human").}
+
+\item{kval}{Numeric. Steepness of sigmoidal curve at k. Default 4.86936, the value used in the analysis of Van Allen, Snyder, Rizvi, Riaz, and Hellmann datasets.}
+
+\item{aval}{Numeric. Optionally can be "mean" to use mean alignment for nmers passed. Horizontal displacement of partition function. Default is 32, based on max_SW of 75 million 8-15mers from the five clinical datasets against human, if using max_SW, use 52. This value may not be meaningful for murine alignment so use with care.}
 }
 \value{
-Placeholder data table of nmers and corresponding dissimilarity NA values.
+Data table of nmers and corresponding dissimilarity values (to the non-mutated proteome).
 }
 \description{
 Return dissimilarity (to reference proteome) values for a vector of nmers.
