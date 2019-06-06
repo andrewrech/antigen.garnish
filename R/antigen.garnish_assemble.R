@@ -8,9 +8,14 @@
 
 check_dep_versions <- function(){
 
-if (!utils::installed.packages() %>% data.table::as.data.table %>%
+  # require here so if bad version of magrittr this will return the stop error
+  # otherwise will bug prior to returning error message
+  require("data.table")
+  require("stringr")
+
+if (!utils::installed.packages() %>% as.data.table %>%
   .[Package == "magrittr", Version %>%
-  stringr::str_replace_all("\\.", "") %>%
+  str_replace_all("\\.", "") %>%
   as.numeric >= 150])
   stop("magrittr version >= 1.5.0 is required and can be installed with:
 
