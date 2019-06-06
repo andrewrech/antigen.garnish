@@ -47,10 +47,10 @@ or
 
 ### Install all dependencies, prediction tools, and `antigen.garnish`
 
-One-line [installation script](http://get.rech.io/antigen.garnish.sh):
+One-line [installation script](http://get.rech.io/install_antigen.garnish.sh):
 
 ```sh
-$ curl -fsSL http://get.rech.io/antigen.garnish.sh | sudo sh
+$ curl -fsSL http://get.rech.io/install_antigen.garnish.sh | sudo sh
 ```
 
 - if installing without using the above installation script, set `$AG_DATA_DIR` to the [required data directory](http://get.rech.io/antigen.garnish.tar.gz):
