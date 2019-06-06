@@ -53,7 +53,7 @@
   'install.packages("data.table", type = "source", repos = "http://Rdatatable.github.io/data.table")'
 
   Rscript --vanilla -e \
-  'devtools::install_github(c("tidyverse/magrittr", "andrewrech/dt.inflix"), "upgrade = never")'
+  'devtools::install_github(c("tidyverse/magrittr", "andrewrech/dt.inflix"), upgrade = "never")'
 
 # install antigen.garnish
 
