@@ -60,4 +60,4 @@
   echo "Installing antigen.garnish..."
 
   Rscript --vanilla -e \
-  'devtools::install_github("immune-health/antigen.garnish", upgrade = never)'
+  'devtools::install_github("immune-health/antigen.garnish", upgrade = "never")'
