@@ -2,7 +2,4 @@ raw_figures/
 *html
 *docx
 *pdf
-*sync-conflict*
- *.syncthing.*
 .DS_Store
-.osync_workdir
