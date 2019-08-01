@@ -5,6 +5,7 @@
 	* externalized smith-waterman alignment function
 	* appropriate test updates
 	* remove deprecated garnish_fitness function
+	* update to LICENSE
 
 # antigen.garnish 1.0.0
 

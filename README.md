@@ -203,7 +203,7 @@ From ./`<Github repo>`:
 
 ## Citation
 
-_Under review._
+> Richman LP, Vonderheide RH, and Rech AJ. "Neoantigen dissimilarity to the self-proteome predicts immunogenicity and response to immune checkpoint blockade." *Cell Systems* 2019 *in press*
 
 ## Contributing
 
