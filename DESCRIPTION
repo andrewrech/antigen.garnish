@@ -1,12 +1,12 @@
 Package: antigen.garnish
-Version: 1.0.0
-Title: Ensemble Neoepitope Prediction from DNA Variants in R
+Version: 1.1.0
+Title: Ensemble Antigen Prediction and Quality Analysis from DNA Variants and Proteins in R
 Description: An R package for neoantigen analysis that takes human or murine DNA missense mutations, insertions, deletions, or RNASeq-derived gene fusions and performs ensemble neoantigen prediction using 7 algorithms. Input is a VCF file, JAFFA output, or table of peptides or transcripts. Outputs are ranked and summarized by sample. Neoantigens are ranked by MHC I/II binding affinity, clonality, RNA expression, similarity to known immunogenic antigens, and dissimilarity to the normal peptidome.
 Authors@R: c(
           person("Lee", "Richman", "P.", email = "leepr@upenn.edu", role = c("aut", "cre")),
           person("Robert", "Vonderheide", "H.", email = "rhv@upenn.edu", role = c("aut")),
           person("Andrew", "Rech", "J.", email = "rech@rech.io", role = c("aut")))
-License: LGPL-3
+License: file LICENSE
 Encoding: UTF-8
 LazyData: true
 RemoteUrl: https://neoantigens.io
