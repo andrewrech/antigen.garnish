@@ -220,4 +220,4 @@ We thank the follow individuals for contributions and helpful discussion:
 
 ## License
 
-GNU Lesser General Public License v3.0
+Please see included license or [contact us](mailto:leepr@upenn.edu) with questions.
