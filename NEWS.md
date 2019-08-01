@@ -1,11 +1,11 @@
 # antigen.garnish 1.1.0
 
-	* added garnish_dissimilarity
-	* updated readme citation, link to manuscript repository
-	* externalized smith-waterman alignment function
-	* appropriate test updates
-	* remove deprecated garnish_fitness function
-	* update to LICENSE
+* added garnish_dissimilarity
+* updated readme citation, link to manuscript repository
+* externalized smith-waterman alignment function
+* appropriate test updates
+* remove deprecated garnish_fitness function
+* update to LICENSE
 
 # antigen.garnish 1.0.0
 
