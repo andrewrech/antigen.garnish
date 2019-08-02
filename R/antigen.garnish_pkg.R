@@ -13,7 +13,7 @@
 #'    * clonality
 #'    * RNA expression
 #'    * similarity to known immunogenic antigens
-#'    * dissimilarity to the normal peptidome (_please note_: not in public repo prior to publication)
+#'    * dissimilarity to the normal peptidome
 #'2. **Speed and simplicity**:
 #'  * 1000 variants are ranked in a single step in less than five minutes
 #'  * parallelized using [`parallel::mclapply`](https://stat.ethz.ch/R-manual/R-devel/library/parallel/html/mclapply.html) and [data.table::setDTthreads](https://github.com/Rdatatable/data.table/wiki), see respective links for information on setting multicore usage
