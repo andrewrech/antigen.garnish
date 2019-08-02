@@ -23,7 +23,7 @@ Advantages
 \item clonality
 \item RNA expression
 \item similarity to known immunogenic antigens
-\item dissimilarity to the normal peptidome (\emph{please note}: not in public repo prior to publication)
+\item dissimilarity to the normal peptidome
 }
 }
 \enumerate{
