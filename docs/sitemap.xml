@@ -4,6 +4,9 @@
     <loc>https://neoantigens.io, https://neoantigens.rech.io/index.html</loc>
   </url>
   <url>
+    <loc>https://neoantigens.io, https://neoantigens.rech.io/reference/SW_align.html</loc>
+  </url>
+  <url>
     <loc>https://neoantigens.io, https://neoantigens.rech.io/reference/ag_data_err.html</loc>
   </url>
   <url>
@@ -35,9 +38,6 @@
   </url>
   <url>
     <loc>https://neoantigens.io, https://neoantigens.rech.io/reference/garnish_dissimilarity.html</loc>
-  </url>
-  <url>
-    <loc>https://neoantigens.io, https://neoantigens.rech.io/reference/garnish_fitness.html</loc>
   </url>
   <url>
     <loc>https://neoantigens.io, https://neoantigens.rech.io/reference/garnish_jaffa.html</loc>

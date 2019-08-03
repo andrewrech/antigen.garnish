@@ -6,11 +6,11 @@ Authors@R: c(
           person("Lee", "Richman", "P.", email = "leepr@upenn.edu", role = c("aut", "cre")),
           person("Robert", "Vonderheide", "H.", email = "rhv@upenn.edu", role = c("aut")),
           person("Andrew", "Rech", "J.", email = "rech@rech.io", role = c("aut")))
-License: file LICENSE
+License: What license it uses
 Encoding: UTF-8
 LazyData: true
 RemoteUrl: https://neoantigens.io
-Depends: R (>= 3.4.0)
+Depends: R (>= 3.5.0)
 RdMacros: Rdpack
 LazyLoad: yes
 Imports: colorspace,
@@ -40,4 +40,4 @@ Imports: colorspace,
        stringr,
        data.table,
        magrittr
-RoxygenNote: 6.1.1
+RoxygenNote: 6.1.1.9000
