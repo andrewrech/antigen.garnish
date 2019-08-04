@@ -251,37 +251,40 @@ if (suppressWarnings(system('which blastp 2> /dev/null', intern = TRUE)) %>%
   # length of overlap, number of mismatches, percent identical, expected value, bitscore
     message("Running blastp for homology to self antigens.")
 
-    if (db == "mouse"){
+    ag_dir <- Sys.getenv("AG_DATA_DIR")
 
-      db <- "antigen.garnish/mouse.bdb.pin"
+    if (db == "mouse") db <- paste0(ag_dir, "/mouse.bdb.pin")
 
-      message("Dissimilarity was modeled on 75 million missense derived peptides against the human proteome, applicability to murine data is unknown.")
+    if (db == "human") db <-  paste0(ag_dir, "/human.bdb.pin")
 
-      if (!file.exists(db)) db <- file.path("..", db)
+    # check one level up for blastdb, useful for test env temp folders
+    if (!file.exists(db)) db <- file.path("..", db)
 
-      if (!file.exists(db)){
-        warning("Skipping dissimilarity because BLAST database not detected in working directory.")
-        return(data.table::data.table(nmer = v))
-      }
-
-      db <- paste("-db",  db %>% stringr::str_replace("\\.pin", ""), sep = " ")
-
+    if (!file.exists(db)){
+      warn <- paste(
+      "Skipping dissimilarity because BLAST database cannot be found.",
+      "To set a custom path to the antigen.garnish data folder",
+      "set environomental variable AG_DATA_DIR from the shell",
+      "or from R using Sys.setenv",
+      "",
+      "Re-download installation data:",
+      '$ curl -fsSL "http://get.rech.io/antigen.garnish.tar.gz" | tar -xvz',
+      "",
+      "Documentation:",
+      "https://neoantigens.io",
+      sep = "\n"
+      )
+      warnings(warn)
+      return(data.table::data.table(nmer = v))
     }
 
-    if (db == "human"){
+    if (db == "mouse")
+      message(paste("Dissimilarity was modeled on 75 million missense derived",
+       "peptides against the human proteome,",
+       "applicability to murine data is unknown."))
 
-      db <- "antigen.garnish/human.bdb.pin"
 
-      if (!file.exists(db)) db <- file.path("..", db)
-
-      if (!file.exists(db)){
-        warning("Skipping dissimilarity because BLAST database not detected in working directory.")
-        return(data.table::data.table(nmer = v))
-      }
-
-      db <- paste("-db",  db %>% stringr::str_replace("\\.pin", ""), sep = " ")
-
-    }
+    db <- paste("-db",  db %>% stringr::str_replace("\\.pin", ""), sep = " ")
 
     system(paste0(
         "blastp -query dissimilarity_fasta.fa ", db, " -evalue 100000000 -matrix BLOSUM62 -gapopen 11 -gapextend 1 -out blastp_self.csv -num_threads ", parallel::detectCores(),
