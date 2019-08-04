@@ -40,7 +40,8 @@ docker stop $cID
 docker rm  $cID
 ```
 
-### antigen.garnish: Start container, move files on, execute wrapper script, and recover output
+### antigen.garnish: VCF level input
+Start container, move files on, execute wrapper script, and recover output
 ```sh
 # start up our container
 cID=$(docker run -it -d leeprichman/antigen_garnish /bin/bash)
@@ -69,6 +70,45 @@ docker cp $RNA $cID:/$RNA
 
 # run the big  wrapper script
 docker exec $cID run_antigen.garnish.R
+
+# copy output back to the working directory into output folder
+docker cp $cID:/ag_docker_output/ .
+
+# clean up the container for next sample
+docker stop $cID
+docker rm  $cID
+```
+### antigen.garnish: Direct peptide or transcript level input
+Start container, move files on, execute wrapper script, and recover output
+```sh
+# start up our container
+cID=$(docker run -it -d leeprichman/antigen_garnish /bin/bash)
+
+# set up and move our input files from working directory (change names as appropriate here)
+# One or more input files with the pattern "docker_input" in the file name
+# must be a properly formatted input table as below
+# dt with transcript id:
+#     Column name                 Example input
+#
+#     sample_id                   sample_1
+#     ensembl_transcript_id       ENST00000311936
+#     cDNA_change                 c.718T>A
+#     MHC                         HLA-A*02:01 HLA-A*03:01
+#
+# dt with peptide (standard amino-acid one-letter codes only):
+#     sample_id                   <same as above>
+#     pep_mut                     MTEYKLVVVDAGGVGKSALTIQLIQNHFV
+#     mutant_index                25
+#     MHC                         HLA-A*02:01 HLA-A*03:01
+
+# copy input onto the container
+DT="myantigens_direct_input.xlsx"
+
+# copy our files on, repeat for all files of interest, or combine all into one large table
+docker cp $DT $cID:/$DT
+
+# run the big  wrapper script
+docker exec $cID run_antigen.garnish_direct.R
 
 # copy output back to the working directory into output folder
 docker cp $cID:/ag_docker_output/ .
