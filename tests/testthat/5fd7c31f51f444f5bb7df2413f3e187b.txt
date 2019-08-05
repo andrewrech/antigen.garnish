@@ -1,0 +1,38 @@
+# /root/antigen.garnish/netMHC/netMHCpan-3.0/Linux_x86_64/bin/netMHCpan -p -l 9 -a HLA-A02:01 -f a.g_ex_netMHCIIpan_af9b5685-733a-49c9.csv
+# Fri Jun 14 01:38:29 2019
+# User: unknown
+# PWD : /mnt/ajr/Dropbox/antigen.garnish/tests/testthat
+# Host: Linux i-07c9ee9ffe5467583 4.15.0-1040-aws x86_64
+# -p       1                    Use peptide input
+# -l       9                    Peptide length [8-11] (multiple length with ,)
+# -a       HLA-A02:01           HLA allele
+# -f       a.g_ex_netMHCIIpan_af9b5685-733a-49c9.csv File name with input
+# Command line parameters set to:
+#	[-rdir filename]     /root/antigen.garnish/netMHC/netMHCpan-3.0/Linux_x86_64 Home directory for NetMHpan
+#	[-syn filename]      /root/antigen.garnish/netMHC/netMHCpan-3.0/Linux_x86_64/data/synlist Synaps file
+#	[-v]                 0                    Verbose mode
+#	[-dirty]             0                    Dirty mode, leave tmp dir+files
+#	[-tdir filename]     /tmp/root/netMHCpanXXXXXX Temporary directory (made with mkdtemp)
+#	[-hlapseudo filename] /root/antigen.garnish/netMHC/netMHCpan-3.0/Linux_x86_64/data/MHC_pseudo.dat File with HLA pseudo sequences
+#	[-hlaseq filename]                        File with full length HLA sequences
+#	[-a line]            HLA-A02:01           HLA allele
+#	[-f filename]        a.g_ex_netMHCIIpan_af9b5685-733a-49c9.csv File name with input
+#	[-w]                 0                    w option for webface
+#	[-s]                 0                    Sort output on descending affinity
+#	[-p]                 1                    Use peptide input
+#	[-rth float]         0.500000             Rank Threshold for high binding peptides
+#	[-rlt float]         2.000000             Rank Threshold for low binding peptides
+#	[-l string]          9                    Peptide length [8-11] (multiple length with ,)
+#	[-xls]               0                    Save output to xls file
+#	[-xlsfile filename]  NetMHCpan_out.xls    Filename for xls dump
+#	[-t float]           -99.900002           Threshold for output
+#	[-thrfmt filename]   /root/antigen.garnish/netMHC/netMHCpan-3.0/Linux_x86_64/data/threshold/%s.thr Format for threshold filenames
+#	[-expfix]            0                    Exclude prefix from synlist
+#	[-version filename]  /root/antigen.garnish/netMHC/netMHCpan-3.0/Linux_x86_64/data/version File with version information
+#	[-inptype int]       0                    Input type [0] FASTA [1] Peptide
+#	[-listMHC]           0                    Print list of alleles included in netMHCpan
+#	[-allname filename]  /root/antigen.garnish/netMHC/netMHCpan-3.0/Linux_x86_64/data/allelenames File with print names for alleles
+
+# NetMHCpan version 3.0
+
+# Tmpdir made /tmp/root/netMHCpanGbG3eo
