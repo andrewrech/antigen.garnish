@@ -24,7 +24,9 @@ testthat::test_that("run_netMHC", {
                    "nmer_l", "filename", "command"),
         class = c("data.table", "data.frame"),
         row.names = c(NA, -3L
-    ))
+    )) %>%
+    # necessary to prevent invalid internal selfref warning with set syntax
+    data.table::setDT()
 
     input <- file.path(d, c("a.g_ex_netMHC_906b84c7-7442-4371.csv",
     "a.g_ex_netMHCIIpan_af9b5685-733a-49c9.csv",

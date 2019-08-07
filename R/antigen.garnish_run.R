@@ -112,32 +112,56 @@ run_netMHC <- function(dt){
 
   message("Running netMHC in parallel")
 
-  # run commands
-  esl <- lapply(
-         dt[, command],
+  fn <- paste(Sys.time() %>% stringr::str_replace_all("\\ |-|:", ""),
+  "_netMHC_commands.txt", sep = "")
 
-function(command){
-          # gen temp file and write to disk to save memory usage
-          es <- uuid::UUIDgenerate() %>% stringr::str_replace_all("-", "")
+  # set syntax to avoid invalid internal selfref warning
+  set(dt,
+    j = "outname",
+    value = dt[, filename] %>%
+    stringr::str_replace("\\.csv$", "_o.csv"))
 
-          es <- paste(es, ".txt", sep = "")
 
-          command2 <- paste(command, " > ", es)
+  dt[, command2 := paste(command,
+                              " > ",
+                              outname,
+                              sep = "")]
 
-          # run command
-          system(command2)
+  dt[, .SD, .SDcols = "command2"] %>%
+    data.table::fwrite(fn, col.names = FALSE)
 
-          # if error, return empty dt
-          if (!file.exists(es) || file.info(es)$size == 0)
-              return(data.table::data.table(status = 1, command = command))
+  system(paste("parallel --bar --no-run-if-empty --joblog parallel_log.txt <",
+    fn, sep = " "))
 
-          return(list(command, es))
+  outfiles <- dt[, outname]
 
-            })
+  # check for expected output from parallel run
+  if (!all(file.exists(outfiles)))
+    stop("netMHC did not produce output for all commands.")
+
+  logf <- data.table::fread("parallel_log.txt")
+
+  if (any(logf[, Exitval != 0])){
+
+    cmd <- logf[Exitval != 0, Command] %>% paste(collapse  =  "\n")
+
+    stop(paste("netMHC errored on a command, check MHC syntax with list_mhc\\(\\)",
+    "and make sure netMHC is in path. Errored command was:",
+    cmd, sep = " "))
+
+  }
+
+  # generate command/output file list
+  esl <- lapply(1:nrow(dt), function(n){
+
+    return(list(dt[n][, command], dt[n][, outname]))
+
+  })
 
   dtl <- esl %>% collate_netMHC
 
       return(dtl)
+
 }
 
 

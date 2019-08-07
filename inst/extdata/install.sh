@@ -31,6 +31,7 @@
 
   echo "Installing dependencies..."
 
+    sudo apt-get install -y parallel
     pip --disable-pip-version-check install scipy h5py mhcflurry biopython
     mhcflurry-downloads fetch
 

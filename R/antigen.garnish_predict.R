@@ -1967,9 +1967,6 @@ mv <- parallel::mclapply(nmv %>% seq_along, function(x){
             !nmer %chin% id_wt_nmers)]
                }
 
-        # remove wt without a matched mut
-         unmatched_dai <- dt[, .N, by = dai_uuid] %>% . [N == 1, dai_uuid]
-         if (unmatched_dai %>% length > 0) dt[!dai_uuid %chin% unmatched_dai]
        }
 
     # DAI cannot be calculated with peptide input
