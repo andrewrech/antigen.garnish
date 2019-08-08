@@ -151,6 +151,10 @@ run_netMHC <- function(dt){
 
   }
 
+  file.remove(fn)
+
+  file.remove("parallel_log.txt")
+
   # generate command/output file list
   esl <- lapply(1:nrow(dt), function(n){
 
