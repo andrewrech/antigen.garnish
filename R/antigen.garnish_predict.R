@@ -332,7 +332,7 @@ if (suppressWarnings(system('which blastp 2> /dev/null', intern = TRUE)) %>%
       return(data.table::data.table(nmer = v))
     }
 
-    message("Divining dissimilarity...")
+    message("Calculating dissimilarity...")
     message("This may be sped up by setting `setDTthreads()` to maximum.")
 
     # this is memory intense, lets split it up and stitch it back
@@ -376,7 +376,7 @@ if (suppressWarnings(system('which blastp 2> /dev/null', intern = TRUE)) %>%
 
     message("Done.")
 
-    message("Reticulating splines...")
+    message("Running partition function...")
 
     modeleR <- function(als, a = aval, k = kval){
 
@@ -1389,7 +1389,7 @@ parallel::mcMap(function(x, y) (x %>% as.integer):(y %>% as.integer) %>%
 #'                                 7 13 14
 #'     MHC                         <same as above>
 #'
-#' @param binding_cutoff Numeric. Maximum consensus MHC-binding affinity that will be passed for IEDB and dissimilarity analysis. Default is 500 (nM).
+#' @param binding_cutoff Numeric. Maximum consensus MHC-binding affinity that will be passed for IEDB and dissimilarity analysis. Default is 500 (nM). Note: If a peptide binds to any MHC allele in the table below this threshold, IEDB score and dissimilarity will be returned for all rows with that peptide.
 #' @param counts Optional. A file path to an RNA count matrix. The first column must contain ENSEMBL transcript ids. All samples in the input table must be present in the count matrix.
 #' @param min_counts Integer. The minimum number of estimated read counts for a transcript to be considered for neoantigen prediction. Default is 1.
 #' @param assemble Logical. Assemble data table?
