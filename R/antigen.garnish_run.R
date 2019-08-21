@@ -110,10 +110,12 @@ run_netMHC <- function(dt){
   if (!"command" %chin% (dt %>% names))
     stop("dt must contain command column")
 
-  message("Running netMHC in parallel")
-
   fn <- paste(Sys.time() %>% stringr::str_replace_all("\\ |-|:", ""),
   "_netMHC_commands.txt", sep = "")
+
+  scriptn <- fn %>% stringr::str_replace("\\.txt$", ".sh")
+
+  plog <- fn %>% stringr::str_replace("\\.txt$", "_parallel.log")
 
   # set syntax to avoid invalid internal selfref warning
   set(dt,
@@ -127,33 +129,69 @@ run_netMHC <- function(dt){
                               outname,
                               sep = "")]
 
-  dt[, .SD, .SDcols = "command2"] %>%
-    data.table::fwrite(fn, col.names = FALSE)
+  # write 10 commands per line sep by ;
+  cmdlist <- dt[, .SD %>% unique, .SDcols = "command2"] %>% split(1:(nrow(.) / 10))
 
-  system(paste("parallel --bar --no-run-if-empty --joblog parallel_log.txt <",
-    fn, sep = " "))
+  cmdlist <- lapply(cmdlist, function(i){
+
+    i %>% unlist %>% paste(collapse =  ";")
+
+  }) %>% unlist %>% unique %>% as.data.table
+
+  cmdlist %>% data.table::fwrite(fn, col.names = FALSE)
+
+  message("Running netMHC in parallel")
+
+  # we write to file via R base cat fxn (echo is bash only)
+  # set jobs max value 90% of available CPUs, delay 0.2 on spawning jobs for safety
+  # 5000 is a conservative line length to be safe, could go much higher  probably
+  # memory is not protected here, user will need to chunk if RAM limited
+  cat(
+    paste("parallel -s 5000 --jobs 90% --delay 0.2 --no-run-if-empty --joblog ",
+      plog, " < ", fn, sep = ""),
+    file = scriptn,
+    fill = TRUE
+  )
+
+  Sys.chmod(scriptn, mode = "0777")
+
+  # try to run with sh, if sh not present, will let system run default shell
+  shpath <- system("which sh", intern = TRUE)
+
+  # replace whitespace if shpath is empty to let default shell run it
+  cmd  <- paste(shpath, scriptn, sep = " ") %>%
+  stringr::str_replace("^\\ ", "./")
+
+  # parallel will run commands with whatever shell script is invoked with
+  exstat <- system(cmd, wait = TRUE) %>% unlist
 
   outfiles <- dt[, outname]
 
-  # check for expected output from parallel run
-  if (!all(file.exists(outfiles)))
-    stop("netMHC did not produce output for all commands.")
+  logf <- data.table::fread(plog)
 
-  logf <- data.table::fread("parallel_log.txt")
-
+  # check all commands exited with 0 from parallel logfile
   if (any(logf[, Exitval != 0])){
 
     cmd <- logf[Exitval != 0, Command] %>% paste(collapse  =  "\n")
 
-    stop(paste("netMHC errored on a command, check MHC syntax with list_mhc\\(\\)",
+    stop(paste("netMHC errored on a command, check MHC syntax with `list_mhc()`",
     "and make sure netMHC is in path. Errored command was:",
     cmd, sep = " "))
 
   }
 
+  # check for expected output files from parallel run
+  if (!all(file.exists(outfiles)))
+    stop("netMHC did not produce output for all commands.")
+
+  # just in case files get created and parallel logfile doesnt catch error, check here.
+  if (exstat != 0) stop("Exit status from running netMHC parallel script is not zero.")
+
   file.remove(fn)
 
-  file.remove("parallel_log.txt")
+  file.remove(scriptn)
+
+  file.remove(plog)
 
   # generate command/output file list
   esl <- lapply(1:nrow(dt), function(n){
