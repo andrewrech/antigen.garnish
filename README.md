@@ -97,7 +97,9 @@ library(antigen.garnish)
     garnish_variants %>%
 
   # add space separated MHC types
+
   # see list_mhc() for nomenclature of supported alleles
+
 	# MHC may also be set to "all_human" or "all_mouse" to use all supported alleles
 
       .[, MHC := c("HLA-A*01:47 HLA-A*02:01 HLA-DRB1*14:67")] %>%
@@ -221,7 +223,7 @@ From ./`<Github repo>`:
 
 ## Citation
 
-> Richman LP, Vonderheide RH, and Rech AJ. "Neoantigen dissimilarity to the self-proteome predicts immunogenicity and response to immune checkpoint blockade." *Cell Systems* 2019 *in press*
+> Richman LP, Vonderheide RH, and Rech AJ. "Neoantigen dissimilarity to the self-proteome predicts immunogenicity and response to immune checkpoint blockade." *Cell Systems* **9**, 375-382.E4, (2019).
 
 ## Contributing
 
