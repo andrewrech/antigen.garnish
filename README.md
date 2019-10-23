@@ -98,6 +98,7 @@ library(antigen.garnish)
 
   # add space separated MHC types
   # see list_mhc() for nomenclature of supported alleles
+	# MHC may also be set to "all_human" or "all_mouse" to use all supported alleles
 
       .[, MHC := c("HLA-A*01:47 HLA-A*02:01 HLA-DRB1*14:67")] %>%
 
