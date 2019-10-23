@@ -443,8 +443,8 @@ check_pred_tools()
 
   # blast first to get pairs for non-mutnfs peptides then run nature paper package
 
-    dt[MHC %like% "H-2" & MHC == "all_mouse", spc := "Ms"] %>%
-      .[MHC %like% "HLA" & MHC == "all_human", spc := "Hu"]
+    dt[MHC %like% "H-2" | MHC == "all_mouse", spc := "Ms"] %>%
+      .[MHC %like% "HLA" | MHC == "all_human", spc := "Hu"]
 
   # generate fastas to query
 
