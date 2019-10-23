@@ -18,7 +18,7 @@ ensembl_transcript_id       ENST00000311936
 cDNA_change                 c.718T>A
 MHC                         HLA-A*02:01 HLA-A*03:01
                             H-2-Kb H-2-Kb
-                            HLA-DRB111:07 [second type]
+                            HLA-DRB1*11:07 [second type]
 }
 
 dt with peptide (standard amino-acid one-letter codes only):\preformatted{Column name                 Example input
@@ -107,8 +107,9 @@ Perform ensemble neoantigen prediction on a data table of missense mutations, in
 }
 \details{
 \itemize{
-\item see \code{list_mhc} for compatible MHC allele syntax
-\item multiple MHC alleles for a single \code{sample_id} muar be space separated. Murine and human alleles muat be in separate rows. See \href{http://neoantigens.rech.io.s3-website-us-east-1.amazonaws.com/index.html#predict-neoantigens-from-missense-mutations-insertions-and-deletions}{README example}.
+\item see \code{list_mhc} for compatible MHC allele syntax, you may also use "all_human" or "all_mouse" in the MHC column to use all supported alleles
+\item multiple MHC alleles for a single \code{sample_id} must be space separated. Murine and human alleles must be in separate rows. See \href{http://neoantigens.rech.io.s3-website-us-east-1.amazonaws.com/index.html#predict-neoantigens-from-missense-mutations-insertions-and-deletions}{README example}.
+\item For species specific proteome-wide DAI to be calculated, run human and murine samples separately
 \item \code{garnish_score} is calculated if allelic fraction or tumor cellular fraction were provided
 }
 }
@@ -170,7 +171,7 @@ library(antigen.garnish)
 }
 
 \dontrun{
-# input a data table of peptides for all MHC types
+# input a data table of peptides for all human MHC types
 
 library(magrittr)
 library(data.table)
@@ -180,7 +181,7 @@ library(antigen.garnish)
           sample_id = "test",
           pep_mut = "MTEYKLVVVGAGDVGKSALTIQLIQNHFVDEYDP",
           mutant_index = "12",
-          MHC = "all") \%>\%
+          MHC = "all_human") \%>\%
  garnish_affinity \%T>\%
  str
 }
