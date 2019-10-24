@@ -181,7 +181,7 @@ library(antigen.garnish)
           sample_id = "test",
           pep_mut = "MTEYKLVVVGAGDVGKSALTIQLIQNHFVDEYDP",
           mutant_index = "12",
-          MHC = "all_human") \%>\%
+          MHC = "HLA-A*02:01 HLA-A*68:01 HLA-B*07:02") \%>\%
  garnish_affinity \%T>\%
  str
 }
@@ -198,7 +198,7 @@ library(antigen.garnish)
  file.path(., "extdata/testdata")
 
  path <- "antigen.garnish_test_input.xlsx" \%>\%
- v file.path(dir, .)
+ file.path(dir, .)
 
 # predict neoantigens
  dt <- garnish_affinity(path = path) \%T>\%

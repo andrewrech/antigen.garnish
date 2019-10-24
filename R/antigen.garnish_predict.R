@@ -1529,7 +1529,7 @@ parallel::mcMap(function(x, y) (x %>% as.integer):(y %>% as.integer) %>%
 #'           sample_id = "test",
 #'           pep_mut = "MTEYKLVVVGAGDVGKSALTIQLIQNHFVDEYDP",
 #'           mutant_index = "12",
-#'           MHC = "all_human") %>%
+#'           MHC = "HLA-A*02:01 HLA-A*68:01 HLA-B*07:02") %>%
 #'  garnish_affinity %T>%
 #'  str
 #' }
@@ -1546,7 +1546,7 @@ parallel::mcMap(function(x, y) (x %>% as.integer):(y %>% as.integer) %>%
 #'  file.path(., "extdata/testdata")
 #'
 #'  path <- "antigen.garnish_test_input.xlsx" %>%
-#'  v file.path(dir, .)
+#'  file.path(dir, .)
 #'
 #'# predict neoantigens
 #'  dt <- garnish_affinity(path = path) %T>%
