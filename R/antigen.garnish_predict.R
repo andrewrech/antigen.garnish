@@ -1395,6 +1395,7 @@ parallel::mcMap(function(x, y) (x %>% as.integer):(y %>% as.integer) %>%
 #'
 #'     sample_id                   <same as above>
 #'     pep_mut                     MTEYKLVVVDAGGVGKSALTIQLIQNHFV
+#'     pep_wt                      <optional, required for local DAI calculation>
 #'     mutant_index                all
 #'                                 7
 #'                                 7 13 14
@@ -1657,6 +1658,7 @@ dt with peptide:
 
      sample_id                   <same as above>
      pep_mut                     MTEYKLVVVDAGGVGKSALTIQLIQNHFV
+     pep_wt                      <optional, required for local DAI calculation>
      mutant_index                all
                                  7
                                  7 13 14
@@ -1869,15 +1871,30 @@ if (generate){
             unique
     }
 
-   if (input_type == "peptide"){
+   if (input_type == "peptide" & !"pep_wt" %chin% names(dtnfs)){
       basepep_dt <- dtnfs %>%
                       data.table::copy %>%
                       .[, pep_base := pep_mut] %>%
                       .[, pep_type := "mut_other"]
      }
 
+     if (input_type == "peptide" & "pep_wt" %chin% names(dtnfs)){
+
+       basepep_dt <- data.table::rbindlist(list(
+       # take pep_wt for non-fs for DAI calculation
+                  dtnfs %>%
+                  data.table::copy %>%
+                  .[, pep_base := pep_wt] %>%
+                  .[, pep_type := "wt"],
+                  dtnfs %>%
+                  data.table::copy %>%
+                  .[, pep_base := pep_mut] %>%
+                  .[, pep_type := "mutnfs"]
+                ))
+       }
+
   # filter mutant_index
-    basepep_dt <- basepep_dt[(nchar(pep_base) - mutant_index) >= 1]
+    basepep_dt <- basepep_dt[(nchar(pep_base) - mutant_index) >= 0]
 
   if (basepep_dt %>% nrow == 0)
     return("no variants for peptide generation")
@@ -1974,7 +1991,9 @@ mv <- parallel::mclapply(nmv %>% seq_along, function(x){
                       lapply(1:nrow(dt),
                       uuid::UUIDgenerate) %>% unlist])
 
-    if (input_type == "transcript"){
+    if (input_type == "transcript" ||
+        (input_type == "peptide" & "pep_wt" %chin% names(dt))
+        ){
 
          dt %<>% make_DAI_uuid
 
@@ -1995,11 +2014,12 @@ mv <- parallel::mclapply(nmv %>% seq_along, function(x){
 
         # remove wt without a matched mut
          unmatched_dai <- dt[, .N, by = dai_uuid] %>% . [N == 1, dai_uuid]
-         if (unmatched_dai %>% length > 0) dt[!dai_uuid %chin% unmatched_dai]
+         if (unmatched_dai %>% length > 0) dt <- dt[!dai_uuid %chin% unmatched_dai]
+
        }
 
     # DAI cannot be calculated with peptide input
-    if (input_type == "peptide")
+    if (input_type == "peptide" & !"pep_wt" %chin% names(dt))
       dt[, dai_uuid := NA %>% as.character]
 
   if (blast)
