@@ -332,7 +332,7 @@ if (suppressWarnings(system('which blastp 2> /dev/null', intern = TRUE)) %>%
       return(data.table::data.table(nmer = v))
     }
 
-    message("Divining dissimilarity...")
+    message("Calculating dissimilarity...")
     message("This may be sped up by setting `setDTthreads()` to maximum.")
 
     # this is memory intense, lets split it up and stitch it back
@@ -376,7 +376,7 @@ if (suppressWarnings(system('which blastp 2> /dev/null', intern = TRUE)) %>%
 
     message("Done.")
 
-    message("Reticulating splines...")
+    message("Running partition function...")
 
     modeleR <- function(als, a = aval, k = kval){
 
@@ -443,8 +443,8 @@ check_pred_tools()
 
   # blast first to get pairs for non-mutnfs peptides then run nature paper package
 
-    dt[MHC %like% "H-2", spc := "Ms"] %>%
-      .[MHC %like% "HLA", spc := "Hu"]
+    dt[MHC %like% "H-2" | MHC == "all_mouse", spc := "Ms"] %>%
+      .[MHC %like% "HLA" | MHC == "all_human", spc := "Hu"]
 
   # generate fastas to query
 
@@ -936,13 +936,24 @@ get_pred_commands <- function(dt){
      stop("dt is missing columns")
 
   # replace all with all MHC types
-    dt[MHC == "all", MHC :=
+    dt[MHC == "all_human", MHC :=
     system.file("extdata",
       "all_alleles.txt", package = "antigen.garnish") %>%
        data.table::fread(header = FALSE, sep = "\t") %>%
+       .[V1 %like% "HLA"] %>%
        .$V1 %>%
        paste(collapse = " ")
   ]
+
+  dt[MHC == "all_mouse", MHC :=
+  system.file("extdata",
+    "all_alleles.txt", package = "antigen.garnish") %>%
+     data.table::fread(header = FALSE, sep = "\t") %>%
+     .[V1 %like% "H-2"] %>%
+     .$V1 %>%
+     paste(collapse = " ")
+  ]
+
   if (dt[, MHC %>% unique] %>%
       stringr::str_detect(" ") %>% any) dt %<>%
       tidyr::separate_rows("MHC", sep = " ")
@@ -1375,7 +1386,7 @@ parallel::mcMap(function(x, y) (x %>% as.integer):(y %>% as.integer) %>%
 #'     cDNA_change                 c.718T>A
 #'     MHC                         HLA-A*02:01 HLA-A*03:01
 #'                                 H-2-Kb H-2-Kb
-#'                                 HLA-DRB111:07 [second type]
+#'                                 HLA-DRB1*11:07 [second type]
 #'
 #'
 #'dt with peptide (standard amino-acid one-letter codes only):
@@ -1389,7 +1400,7 @@ parallel::mcMap(function(x, y) (x %>% as.integer):(y %>% as.integer) %>%
 #'                                 7 13 14
 #'     MHC                         <same as above>
 #'
-#' @param binding_cutoff Numeric. Maximum consensus MHC-binding affinity that will be passed for IEDB and dissimilarity analysis. Default is 500 (nM).
+#' @param binding_cutoff Numeric. Maximum consensus MHC-binding affinity that will be passed for IEDB and dissimilarity analysis. Default is 500 (nM). Note: If a peptide binds to any MHC allele in the table below this threshold, IEDB score and dissimilarity will be returned for all rows with that peptide.
 #' @param counts Optional. A file path to an RNA count matrix. The first column must contain ENSEMBL transcript ids. All samples in the input table must be present in the count matrix.
 #' @param min_counts Integer. The minimum number of estimated read counts for a transcript to be considered for neoantigen prediction. Default is 1.
 #' @param assemble Logical. Assemble data table?
@@ -1441,8 +1452,9 @@ parallel::mcMap(function(x, y) (x %>% as.integer):(y %>% as.integer) %>%
 #' * transcript_start
 #' * peptide
 #' @details
-#' * see `list_mhc` for compatible MHC allele syntax
-#' * multiple MHC alleles for a single `sample_id` muar be space separated. Murine and human alleles muat be in separate rows. See [`README` example](http://neoantigens.rech.io.s3-website-us-east-1.amazonaws.com/index.html#predict-neoantigens-from-missense-mutations-insertions-and-deletions).
+#' * see `list_mhc` for compatible MHC allele syntax, you may also use "all_human" or "all_mouse" in the MHC column to use all supported alleles
+#' * multiple MHC alleles for a single `sample_id` must be space separated. Murine and human alleles must be in separate rows. See [`README` example](http://neoantigens.rech.io.s3-website-us-east-1.amazonaws.com/index.html#predict-neoantigens-from-missense-mutations-insertions-and-deletions).
+#' * For species specific proteome-wide DAI to be calculated, run human and murine samples separately
 #' * `garnish_score` is calculated if allelic fraction or tumor cellular fraction were provided
 #'
 #' @seealso \code{\link{garnish_variants}}
@@ -1507,7 +1519,7 @@ parallel::mcMap(function(x, y) (x %>% as.integer):(y %>% as.integer) %>%
 #' }
 #'
 #'\dontrun{
-#'# input a data table of peptides for all MHC types
+#'# input a data table of peptides for all human MHC types
 #'
 #'library(magrittr)
 #'library(data.table)
@@ -1517,7 +1529,7 @@ parallel::mcMap(function(x, y) (x %>% as.integer):(y %>% as.integer) %>%
 #'           sample_id = "test",
 #'           pep_mut = "MTEYKLVVVGAGDVGKSALTIQLIQNHFVDEYDP",
 #'           mutant_index = "12",
-#'           MHC = "all") %>%
+#'           MHC = "HLA-A*02:01 HLA-A*68:01 HLA-B*07:02") %>%
 #'  garnish_affinity %T>%
 #'  str
 #' }
@@ -1534,7 +1546,7 @@ parallel::mcMap(function(x, y) (x %>% as.integer):(y %>% as.integer) %>%
 #'  file.path(., "extdata/testdata")
 #'
 #'  path <- "antigen.garnish_test_input.xlsx" %>%
-#'  v file.path(dir, .)
+#'  file.path(dir, .)
 #'
 #'# predict neoantigens
 #'  dt <- garnish_affinity(path = path) %T>%
@@ -1634,9 +1646,9 @@ dt with transcript id:
      sample_id                   sample_1
      ensembl_transcript_id       ENST00000311936
      cDNA_change                 c.718T>A
-     MHC                         HLA-A02:01 HLA-A03:01
+     MHC                         HLA-A*02:01 HLA-A*03:01
                                  H-2-Kb H-2-Kb
-                                 HLA-DRB111:07 [second type]
+                                 HLA-DRB1*11:07 [second type]
 
 
 dt with peptide:
@@ -1887,16 +1899,30 @@ if (generate){
 
         d <- system.file(package = "antigen.garnish") %>% file.path(., "extdata")
 
-          if (dt$MHC %likef% "HLA" %>% any &
-              !dt$MHC %likef% "H-2" %>% any)
+        if (
+            (!dt$MHC %likef% "HLA" %>% any) &
+            (!dt$MHC %likef% "H-2" %>% any) &
+            !all(dt$MHC %chin% c("all_human", "all_mouse"))
+            )
+              stop("MHC do not contain \"HLA-\" or \"H-2\" as a pattern.
+              Alleles must be correctly formatted, see list_mhc().")
+
+          if (
+            (dt$MHC %likef% "HLA" %>% any &
+              !dt$MHC %likef% "H-2" %>% any) ||
+            (dt$MHC == "all_human") %>% any
+            )
               {
                 pepv <-
                 file.path(d,
                   "antigen.garnish_GRCh38_pep.RDS") %>%
                   readRDS(.)
               }
-          if (dt$MHC %likef% "H-2" %>% any &
-              !dt$MHC %likef% "HLA" %>% any)
+          if (
+            (dt$MHC %likef% "H-2" %>% any &
+              !dt$MHC %likef% "HLA" %>% any) ||
+              (dt$MHC == "all_mouse") %>% any
+              )
               {
                 pepv <-
                 file.path(d,
@@ -1906,8 +1932,8 @@ if (generate){
 
           if (
               (dt$MHC %likef% "HLA" %>% any &
-                            dt$MHC %likef% "H-2" %>% any) ||
-              (dt$MHC == "all") %>% any
+                dt$MHC %likef% "H-2" %>% any) ||
+              (any(dt$MHC == "all_human") & any(dt$MHC == "all_mouse"))
               )
               {
                 pepv <- c(

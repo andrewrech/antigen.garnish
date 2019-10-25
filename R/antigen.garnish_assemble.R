@@ -65,7 +65,7 @@ detect_mhc <- function(x, alleles){
 
     for (hla in (x %>% unique)){
 
-      if (hla == "all") next
+      if (hla %like% "all") next
 
       # match hla allele alelle (end|(not longer allele))
       hla_re <- paste0(hla, "($|[^0-9])")

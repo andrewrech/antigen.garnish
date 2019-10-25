@@ -98,7 +98,10 @@ library(antigen.garnish)
     garnish_variants %>%
 
   # add space separated MHC types
+
   # see list_mhc() for nomenclature of supported alleles
+
+	# MHC may also be set to "all_human" or "all_mouse" to use all supported alleles
 
       .[, MHC := c("HLA-A*01:47 HLA-A*02:01 HLA-DRB1*14:67")] %>%
 
@@ -163,6 +166,23 @@ library(antigen.garnish)
       str
 ```
 
+#### Directly calculate IEDB score and dissimilarity for a list of sequences
+
+```r
+library(magrittr)
+library(data.table)
+library(antigen.garnish)
+
+  # generate our character vector of sequences
+  v <- c("SIINFEKL", "ILAKFLHWL", "GILGFVFTL")
+
+  # calculate IEDB score
+  v %>% iedb_score(db = "human") %>% print
+
+	# calculate dissimilarity
+	v %>% garnish_dissimilarity(db = "human") %>% print
+```
+
 #### Automated testing
 
 From ./`<Github repo>`:
@@ -204,7 +224,7 @@ From ./`<Github repo>`:
 
 ## Citation
 
-> Richman LP, Vonderheide RH, and Rech AJ. "Neoantigen dissimilarity to the self-proteome predicts immunogenicity and response to immune checkpoint blockade." *Cell Systems* 2019 *in press*
+> Richman LP, Vonderheide RH, and Rech AJ. "Neoantigen dissimilarity to the self-proteome predicts immunogenicity and response to immune checkpoint blockade." *Cell Systems* **9**, 375-382.E4, (2019).
 
 ## Contributing
 
