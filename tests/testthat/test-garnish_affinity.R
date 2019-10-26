@@ -120,8 +120,7 @@ peptides <- function(){
       })
   }
 
-# TODO
-  peptides_wt <- function(){
+peptides_wt <- function(){
     testthat::test_that("garnish_affinity assemble from peptides with wild-type", {
 
       # load test data
@@ -134,10 +133,18 @@ peptides <- function(){
           data.table::fread
 
       # run test data
-        dto <- garnish_affinity(dt)
+        dto <- garnish_affinity(dt, blast = FALSE, predict = FALSE)
 
-      testthat::expect_equal(dto$nmer %>% unique %>% length,
-                             109)
+        a <- dto[!is.na(dai_uuid) & pep_type == "wt",
+          nmer %>% unique %>% length, by = "sample_id"]
+
+        b <- dto[!is.na(dai_uuid) & pep_type != "wt",
+          nmer %>% unique %>% length, by = "sample_id"]
+
+        c <- merge(a, b, by = "sample_id")
+
+      testthat::expect_equal(c[, V1.x], c[, V1.y])
+
         })
   }
 
@@ -215,6 +222,7 @@ transcripts()
 excel()
 jaffa()
 peptides()
+peptides_wt()
 cellular_fraction()
 RNA_test()
 
