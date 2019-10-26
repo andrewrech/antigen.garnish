@@ -120,6 +120,27 @@ peptides <- function(){
       })
   }
 
+# TODO
+  peptides_wt <- function(){
+    testthat::test_that("garnish_affinity assemble from peptides with wild-type", {
+
+      # load test data
+      skip_pred_tools()
+
+      d <- test_data_dir()
+
+        # load test data
+          dt <- file.path(d, "antigen.garnish_example_peptide_with_WT_input.txt") %>%
+          data.table::fread
+
+      # run test data
+        dto <- garnish_affinity(dt)
+
+      testthat::expect_equal(dto$nmer %>% unique %>% length,
+                             109)
+        })
+  }
+
   cellular_fraction <- function(){
     testthat::test_that("garnish_affinity with cellular_fraction", {
 
