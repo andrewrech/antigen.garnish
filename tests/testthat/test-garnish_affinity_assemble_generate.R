@@ -19,8 +19,12 @@ testthat::test_that("garnish_affinity_assemble_generate", {
   # test edge cases
   dt <- data.table::fread(file.path(d, "antigen.garnish_example_frameshifts.txt"))
 
+  # suppress the 4 known warnings from translating the edge case frameshifts
+  # last base ignored from  biostrings::translate, this is expected
+  suppressWarnings({
   dto <- garnish_affinity(dt, generate = FALSE, predict = FALSE,
     blast = FALSE, remove_wt = FALSE)
+    })
 
   testthat::expect_equal(dto[, mutant_index],
     c("2790", "2789", "2790", "8", "9 10", "10",
