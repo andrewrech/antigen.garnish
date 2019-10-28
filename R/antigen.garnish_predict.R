@@ -1721,7 +1721,7 @@ if (assemble & input_type == "transcript"){
 
     dt[, frameshift := FALSE]
 
-    dt[, cDNA_delta := ((coding_mut %>% nchar) - (coding %>% nchar)) / 3 ]
+    dt[, cDNA_delta := ((coding_mut %>% nchar) - (coding %>% nchar))]
 
     # frameshifts have cDNA delta
     # not divisible by 3
@@ -1764,17 +1764,20 @@ if (assemble & input_type == "transcript"){
           })
 
     # if pep_wt length < pep_mut ie stop lost variant, this returns NA so:
+    # this only matters if  cDNA from meta table continues past stop (theoretical)
     dt[is.na(mismatch_s) & nchar(pep_wt) < nchar(pep_mut),
         mismatch_s := nchar(pep_wt) + 1]
 
-
-    # if pep_wt length < pep_mut ie stop lost variant, this returns NA so:
-
-    dt[is.na(mismatch_s) & nchar(pep_wt) < nchar(pep_mut),
-        mismatch_s := nchar(pep_wt) + 1]
-
-    # remove rows with matching transcripts
+    # remove rows with matching peptides
       dt %<>% .[!pep_wt == pep_mut]
+
+    # if pep_wt is longer than pep_mut (stop gained inframe) and no other sequence difference
+    # pep_mut will be recycled and mismatch_s will not be NA
+    # remove this with fixed pattern of pep_mut in pep_wt
+    dt %<>% .[nchar(pep_wt) > nchar(pep_mut),
+    drop := stringr::str_detect(pattern = stringr::fixed(pep_mut), pep_wt)] %>%
+    .[is.na(drop) | drop != TRUE] %>%
+    .[, drop := NULL]
 
     # initialize mismatch length
       dt[, mismatch_l := mismatch_s]
@@ -1785,13 +1788,13 @@ if (assemble & input_type == "transcript"){
 
     # create mutant register for
     # non-frameshift insertions
-      dt[mismatch_l > mismatch_s &
-           frameshift == FALSE,
+      dt[frameshift == FALSE & nchar(pep_mut) > nchar(pep_wt),
       mismatch_l := mismatch_s + (pep_mut %>% nchar) -
-                      (pep_wt %>% nchar)]
+                      (pep_wt %>% nchar) - 1]
 
-    # deletions are mutants over site only
-      dt[, mismatch_l := mismatch_s]
+    # deletions and missense are mutants over site only
+      dt[frameshift == FALSE & nchar(pep_mut) <= nchar(pep_wt),
+      mismatch_l := mismatch_s]
 
     # create a space-separated vector of mutant indices
         dt[, mutant_index := mismatch_s %>% as.character]
@@ -1799,11 +1802,13 @@ if (assemble & input_type == "transcript"){
             get_ss_str(mismatch_s, mismatch_l)]
 
     # warning if mutant_index == NA
-      if (dt[is.na(mutant_index) | (nchar(pep_mut) - as.numeric(mutant_index) < 1)] %>%
-            nrow > 1){
-        failn <- dt[is.na(mutant_index) | (nchar(pep_mut) - as.numeric(mutant_index) < 1)] %>% nrow
-        warning(paste0("Could not determine mutant index for ", failn, " records."))
-      }
+    # this shouldn't happen, don't need this check, not implemented correctly because
+    # mutant index is a space sep string
+  #     if (dt[is.na(mutant_index) | (nchar(pep_mut) - as.numeric(mutant_index) < 0)] %>%
+  #           nrow > 1){
+  #       failn <- dt[is.na(mutant_index) | (nchar(pep_mut) - as.numeric(mutant_index) < 0)] %>% nrow
+  #       warning(paste0("Could not determine mutant index for ", failn, " records."))
+  #     }
   }
 
 if (assemble & input_type == "peptide"){
@@ -1840,6 +1845,14 @@ if (generate){
     dts[, mutant_index := mutant_index %>% as.numeric]
 
   # generate a data table of unique variants for peptide generation
+  # this gives index error with frameshift inputs, only occurs when separate_rows is used above
+  # open issue on data.table repo, name exists but column index is invalid:
+  # Error in getindex(x, names(x)[xcols]) :
+  # Internal error: index 'frameshift' exists but is invalid
+  # I randomly fixed by setting key to another column, at some point key was set
+  # to frameshift, this produces error on dtfs and dtnfs creation
+  # data.table::copy at dts creation did not solve this
+    setkey(dts, "sample_id")
 
     dtnfs <- dts[frameshift == FALSE]
     dtfs <- dts[frameshift == TRUE]
@@ -2011,10 +2024,6 @@ mv <- parallel::mclapply(nmv %>% seq_along, function(x){
             pep_type != "wt" &
             !nmer %chin% id_wt_nmers)]
                }
-
-        # remove wt without a matched mut
-         # unmatched_dai <- dt[, .N, by = dai_uuid] %>% . [N == 1, dai_uuid]
-         # if (unmatched_dai %>% length > 0) dt <- dt[!dai_uuid %chin% unmatched_dai]
 
        }
 
