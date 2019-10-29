@@ -1801,14 +1801,6 @@ if (assemble & input_type == "transcript"){
         dt[mismatch_l > mismatch_s, mutant_index :=
             get_ss_str(mismatch_s, mismatch_l)]
 
-    # warning if mutant_index == NA
-    # this shouldn't happen, don't need this check, not implemented correctly because
-    # mutant index is a space sep string
-  #     if (dt[is.na(mutant_index) | (nchar(pep_mut) - as.numeric(mutant_index) < 0)] %>%
-  #           nrow > 1){
-  #       failn <- dt[is.na(mutant_index) | (nchar(pep_mut) - as.numeric(mutant_index) < 0)] %>% nrow
-  #       warning(paste0("Could not determine mutant index for ", failn, " records."))
-  #     }
   }
 
 if (assemble & input_type == "peptide"){
