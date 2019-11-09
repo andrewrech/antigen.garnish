@@ -1809,8 +1809,43 @@ if (assemble & input_type == "peptide"){
 
     dt <- dt[pep_mut %like% "^[ARNDCQEGHILKMFPSTWYV]+$"]
 
+    if ("pep_wt" %chin% names(dt)){
+
+      message("Checking for non-standard AA one-letter codes in \"pep_wt\". Non-standard rows will be discarded.")
+
+      dt <- dt[pep_wt %like% "^[ARNDCQEGHILKMFPSTWYV]+$"]
+
+      if (nrow(dt) == 0) stop("All rows contained non-standard AAs in either pep_mut or pep_wt columns.")
+
+      if (any(dt[, mutant_index %>% unique] %like% "\\ ")){
+        message(paste(
+          "MNV and frameshifts are not supported in paired mutant wild-type peptide input mode.",
+          "Please provide a single amino acid position as \"mutant_index\" or use \"pep_mut\" input only.",
+          "Offending rows have been discarded.", sep = "\n"))
+
+        dt <- dt[!mutant_index %like% "\\ " & mutant_index != "all"]
+
+        if (nrow(dt) == 0)
+          stop("At least one row must contain a single mutant index for paired mutant and wild-type input.
+          No MNVs or frameshifts in this mode.")
+
+      }
+
+      if (any(dt[, stringr::str_detect(pattern = stringr::fixed(pep_mut), stringr::fixed(pep_wt))])){
+
+        message("Rows where pep_mut contained no mutant sequence have been dropped.")
+
+        dt <- dt[!stringr::str_detect(pattern = stringr::fixed(pep_mut), stringr::fixed(pep_wt))]
+
+        if (nrow(dt) == 0) return("no variants for peptide generation")
+
+      }
+
+    }
+
     dt[mutant_index == "all", mutant_index :=
       get_ss_str(1, pep_mut %>% nchar)]
+
 }
 
 if (generate){

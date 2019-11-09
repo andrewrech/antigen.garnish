@@ -144,6 +144,7 @@ peptides_wt <- function(){
         c <- merge(a, b, by = "sample_id")
 
       testthat::expect_equal(c[, V1.x], c[, V1.y])
+      testthat::expect_equal(dto[, sample_id %>% unique %>% length], 3)
 
         })
   }
