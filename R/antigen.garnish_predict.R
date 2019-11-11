@@ -1805,35 +1805,34 @@ if (assemble & input_type == "transcript"){
 
 if (assemble & input_type == "peptide"){
 
-    message("Checking for non-standard AA one-letter codes in \"pep_mut\". Non-standard rows will be discarded.")
-
-    dt <- dt[pep_mut %like% "^[ARNDCQEGHILKMFPSTWYV]+$"]
+    if (any(dt[, !pep_mut %like% "^[ARNDCQEGHILKMFPSTWYV]+$"]))
+      stop("Non-standard AA one-letter codes detected in \"pep_mut\". Please remove these lines from input.")
 
     if ("pep_wt" %chin% names(dt)){
 
-      message("Checking for non-standard AA one-letter codes in \"pep_wt\". Non-standard rows will be discarded.")
-
-      dt <- dt[pep_wt %like% "^[ARNDCQEGHILKMFPSTWYV]+$"]
-
-      if (nrow(dt) == 0) stop("All rows contained non-standard AAs in either pep_mut or pep_wt columns.")
+      if (any(dt[, !pep_wt %like% "^[ARNDCQEGHILKMFPSTWYV]+$"]))
+        stop("Non-standard AA one-letter codes detected in \"pep_wt\". Please remove these lines from input.")
 
       if (any(dt[, mutant_index %>% unique] %like% "\\ ")){
-        message(paste(
+
+        stop(paste(
           "MNV and frameshifts are not supported in paired mutant wild-type peptide input mode.",
           "Please provide a single amino acid position as \"mutant_index\" or use \"pep_mut\" input only.",
-          "Offending rows have been discarded.", sep = "\n"))
-
-        dt <- dt[!mutant_index %like% "\\ " & mutant_index != "all"]
-
-        if (nrow(dt) == 0)
-          stop("At least one row must contain a single mutant index for paired mutant and wild-type input.
-          No MNVs or frameshifts in this mode.")
+          sep = "\n"))
 
       }
 
       if (any(dt[, stringr::str_detect(pattern = stringr::fixed(pep_mut), stringr::fixed(pep_wt))])){
 
-        message("Rows where pep_mut contained no mutant sequence have been dropped.")
+        warning(
+          paste("Rows where pep_mut contained no mutant sequence have been dropped:",
+           paste(
+           dt[, which(stringr::str_detect(pattern = stringr::fixed(pep_mut), stringr::fixed(pep_wt)))],
+           collapse = ", "),
+        sep = "\n")
+      )
+
+
 
         dt <- dt[!stringr::str_detect(pattern = stringr::fixed(pep_mut), stringr::fixed(pep_wt))]
 
