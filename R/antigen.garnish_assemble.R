@@ -202,8 +202,8 @@ make_cDNA <- function(dt){
 
     # handle insertions
       # regexpr match for del
-
-      dt[cDNA_type %like% "ins",
+      # this is off register by one for delins
+      dt[cDNA_type == "ins",
       coding_mut := coding_mut %>%
         { paste0(
            substr(., 1, cDNA_locs),
@@ -211,6 +211,17 @@ make_cDNA <- function(dt){
            substr(.,
                   cDNA_locs + 1,
                   nchar(.))) } ]
+
+      # for delins, the cDNA_locs is a deleted base, so true s is now 1 off
+      dt[cDNA_type == "delins",
+      coding_mut := coding_mut %>%
+        { paste0(
+           substr(., 1, cDNA_locs - 1),
+           cDNA_seq,
+           substr(.,
+                  cDNA_locs,
+                  nchar(.))) } ]
+
 
       }
 
@@ -441,6 +452,8 @@ extract_cDNA <- function(dt){
              dt[cDNA_locl %>% is.na, cDNA_locl := cDNA_locs]
 
       dt[, cDNA_type := cDNA_change %>%
+      # make cDNA deletes then inserts, if we have indel variants it will work
+      # the pattern pulled will be delins
             stringr::str_extract_all("[a-z]{3}|>") %>%
             unlist %>%
             paste(collapse = ""),

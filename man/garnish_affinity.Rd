@@ -25,6 +25,7 @@ dt with peptide (standard amino-acid one-letter codes only):\preformatted{Column
 
 sample_id                   <same as above>
 pep_mut                     MTEYKLVVVDAGGVGKSALTIQLIQNHFV
+pep_wt                      <optional, required for local DAI calculation>
 mutant_index                all
                             7
                             7 13 14
