@@ -1,4 +1,4 @@
-testthat::test_that("make_cDNA", {
+testthat::test_that("make_cDNA edge cases", {
 
   # load test data
 
@@ -51,7 +51,7 @@ testthat::test_that("make_cDNA", {
                      "ABCDEFGHIJKLMN_____OPQRSTUVWXYZ",
                      "ABCHIJKLMNOPQRSTUVWXYZ",
                      "XYZ",
-                     "ABCDEFGHIJKLMQ**RSTUVWXYZ")),
+                     "ABCDEFGHIJKLM**QRSTUVWXYZ")),
       .Names = c("cDNA_type",
                  "coding",
                  "cDNA_locs",

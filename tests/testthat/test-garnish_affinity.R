@@ -120,6 +120,59 @@ peptides <- function(){
       })
   }
 
+peptides_wt <- function(){
+    testthat::test_that("garnish_affinity assemble from peptides with wild-type", {
+
+      # load test data
+      skip_pred_tools()
+
+      d <- test_data_dir()
+
+        # load test data
+          dt <- file.path(d, "antigen.garnish_example_peptide_with_WT_input.txt") %>%
+          data.table::fread
+
+          w <- try(dt[sample_id %like% "err.*consecutive"] %>%
+            garnish_affinity(blast = FALSE, predict = FALSE))
+
+          testthat::expect_equal(class(w), "try-error")
+
+          w <- try(dt[sample_id == "err_pep_mut"] %>%
+            garnish_affinity(blast = FALSE, predict = FALSE))
+
+          testthat::expect_equal(class(w), "try-error")
+
+          w <- try(dt[sample_id == "err_pep_wt"] %>%
+            garnish_affinity(blast = FALSE, predict = FALSE))
+
+          testthat::expect_equal(class(w), "try-error")
+
+          # dropping stop gained on dual peptide input throws warning, suppress
+          w <- suppressWarnings(
+            try(dt[sample_id %like% "stop_gained"] %>%
+            garnish_affinity(blast = FALSE, predict = FALSE))
+          )
+
+          # expect "no variants for peptide generation" character here
+          testthat::expect_equal(class(w), "character")
+
+      # run test data
+        dto <- garnish_affinity(dt[!sample_id %like% "^err|^stop"], blast = FALSE, predict = FALSE)
+
+        a <- dto[!is.na(dai_uuid) & pep_type == "wt",
+          nmer %>% unique %>% length, by = "sample_id"]
+
+        b <- dto[!is.na(dai_uuid) & pep_type != "wt",
+          nmer %>% unique %>% length, by = "sample_id"]
+
+        c <- merge(a, b, by = "sample_id")
+
+      testthat::expect_equal(c[, V1.x], c[, V1.y])
+      testthat::expect_equal(dto[, sample_id %>% unique %>% length], 2)
+
+        })
+  }
+
   cellular_fraction <- function(){
     testthat::test_that("garnish_affinity with cellular_fraction", {
 
@@ -194,6 +247,7 @@ transcripts()
 excel()
 jaffa()
 peptides()
+peptides_wt()
 cellular_fraction()
 RNA_test()
 

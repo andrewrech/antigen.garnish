@@ -1395,6 +1395,7 @@ parallel::mcMap(function(x, y) (x %>% as.integer):(y %>% as.integer) %>%
 #'
 #'     sample_id                   <same as above>
 #'     pep_mut                     MTEYKLVVVDAGGVGKSALTIQLIQNHFV
+#'     pep_wt                      <optional, required for local DAI calculation>
 #'     mutant_index                all
 #'                                 7
 #'                                 7 13 14
@@ -1657,6 +1658,7 @@ dt with peptide:
 
      sample_id                   <same as above>
      pep_mut                     MTEYKLVVVDAGGVGKSALTIQLIQNHFV
+     pep_wt                      <optional, required for local DAI calculation>
      mutant_index                all
                                  7
                                  7 13 14
@@ -1719,7 +1721,7 @@ if (assemble & input_type == "transcript"){
 
     dt[, frameshift := FALSE]
 
-    dt[, cDNA_delta := ((coding_mut %>% nchar) - (coding %>% nchar)) / 3 ]
+    dt[, cDNA_delta := ((coding_mut %>% nchar) - (coding %>% nchar))]
 
     # frameshifts have cDNA delta
     # not divisible by 3
@@ -1762,17 +1764,20 @@ if (assemble & input_type == "transcript"){
           })
 
     # if pep_wt length < pep_mut ie stop lost variant, this returns NA so:
+    # this only matters if  cDNA from meta table continues past stop (theoretical)
     dt[is.na(mismatch_s) & nchar(pep_wt) < nchar(pep_mut),
         mismatch_s := nchar(pep_wt) + 1]
 
-
-    # if pep_wt length < pep_mut ie stop lost variant, this returns NA so:
-
-    dt[is.na(mismatch_s) & nchar(pep_wt) < nchar(pep_mut),
-        mismatch_s := nchar(pep_wt) + 1]
-
-    # remove rows with matching transcripts
+    # remove rows with matching peptides
       dt %<>% .[!pep_wt == pep_mut]
+
+    # if pep_wt is longer than pep_mut (stop gained inframe) and no other sequence difference
+    # pep_mut will be recycled and mismatch_s will not be NA
+    # remove this with fixed pattern of pep_mut in pep_wt
+    dt %<>% .[nchar(pep_wt) > nchar(pep_mut),
+    drop := stringr::str_detect(pattern = stringr::fixed(pep_mut), pep_wt)] %>%
+    .[is.na(drop) | drop != TRUE] %>%
+    .[, drop := NULL]
 
     # initialize mismatch length
       dt[, mismatch_l := mismatch_s]
@@ -1783,35 +1788,63 @@ if (assemble & input_type == "transcript"){
 
     # create mutant register for
     # non-frameshift insertions
-      dt[mismatch_l > mismatch_s &
-           frameshift == FALSE,
+      dt[frameshift == FALSE & nchar(pep_mut) > nchar(pep_wt),
       mismatch_l := mismatch_s + (pep_mut %>% nchar) -
-                      (pep_wt %>% nchar)]
+                      (pep_wt %>% nchar) - 1]
 
-    # deletions are mutants over site only
-      dt[, mismatch_l := mismatch_s]
+    # deletions and missense are mutants over site only
+      dt[frameshift == FALSE & nchar(pep_mut) <= nchar(pep_wt),
+      mismatch_l := mismatch_s]
 
     # create a space-separated vector of mutant indices
         dt[, mutant_index := mismatch_s %>% as.character]
         dt[mismatch_l > mismatch_s, mutant_index :=
             get_ss_str(mismatch_s, mismatch_l)]
 
-    # warning if mutant_index == NA
-      if (dt[is.na(mutant_index) | (nchar(pep_mut) - as.numeric(mutant_index) < 1)] %>%
-            nrow > 1){
-        failn <- dt[is.na(mutant_index) | (nchar(pep_mut) - as.numeric(mutant_index) < 1)] %>% nrow
-        warning(paste0("Could not determine mutant index for ", failn, " records."))
-      }
   }
 
 if (assemble & input_type == "peptide"){
 
-    message("Checking for non-standard AA one-letter codes in \"pep_mut\". Non-standard rows will be discarded.")
+    if (any(dt[, !pep_mut %like% "^[ARNDCQEGHILKMFPSTWYV]+$"]))
+      stop("Non-standard AA one-letter codes detected in \"pep_mut\". Please remove these lines from input.")
 
-    dt <- dt[pep_mut %like% "^[ARNDCQEGHILKMFPSTWYV]+$"]
+    if ("pep_wt" %chin% names(dt)){
+
+      if (any(dt[, !pep_wt %like% "^[ARNDCQEGHILKMFPSTWYV]+$"]))
+        stop("Non-standard AA one-letter codes detected in \"pep_wt\". Please remove these lines from input.")
+
+      if (any(dt[, mutant_index %>% unique] %like% "\\ ")){
+
+        stop(paste(
+          "MNV and frameshifts are not supported in paired mutant wild-type peptide input mode.",
+          "Please provide a single amino acid position as \"mutant_index\" or use \"pep_mut\" input only.",
+          sep = "\n"))
+
+      }
+
+      if (any(dt[, stringr::str_detect(pattern = stringr::fixed(pep_mut), stringr::fixed(pep_wt))])){
+
+        warning(
+          paste("Rows where pep_mut contained no mutant sequence have been dropped:",
+           paste(
+           dt[, which(stringr::str_detect(pattern = stringr::fixed(pep_mut), stringr::fixed(pep_wt)))],
+           collapse = ", "),
+        sep = "\n")
+      )
+
+
+
+        dt <- dt[!stringr::str_detect(pattern = stringr::fixed(pep_mut), stringr::fixed(pep_wt))]
+
+        if (nrow(dt) == 0) return("no variants for peptide generation")
+
+      }
+
+    }
 
     dt[mutant_index == "all", mutant_index :=
       get_ss_str(1, pep_mut %>% nchar)]
+
 }
 
 if (generate){
@@ -1838,6 +1871,14 @@ if (generate){
     dts[, mutant_index := mutant_index %>% as.numeric]
 
   # generate a data table of unique variants for peptide generation
+  # this gives index error with frameshift inputs, only occurs when separate_rows is used above
+  # open issue on data.table repo, name exists but column index is invalid:
+  # Error in getindex(x, names(x)[xcols]) :
+  # Internal error: index 'frameshift' exists but is invalid
+  # I randomly fixed by setting key to another column, at some point key was set
+  # to frameshift, this produces error on dtfs and dtnfs creation
+  # data.table::copy at dts creation did not solve this
+    setkey(dts, "sample_id")
 
     dtnfs <- dts[frameshift == FALSE]
     dtfs <- dts[frameshift == TRUE]
@@ -1869,15 +1910,30 @@ if (generate){
             unique
     }
 
-   if (input_type == "peptide"){
+   if (input_type == "peptide" & !"pep_wt" %chin% names(dtnfs)){
       basepep_dt <- dtnfs %>%
                       data.table::copy %>%
                       .[, pep_base := pep_mut] %>%
                       .[, pep_type := "mut_other"]
      }
 
+     if (input_type == "peptide" & "pep_wt" %chin% names(dtnfs)){
+
+       basepep_dt <- data.table::rbindlist(list(
+       # take pep_wt for non-fs for DAI calculation
+                  dtnfs %>%
+                  data.table::copy %>%
+                  .[, pep_base := pep_wt] %>%
+                  .[, pep_type := "wt"],
+                  dtnfs %>%
+                  data.table::copy %>%
+                  .[, pep_base := pep_mut] %>%
+                  .[, pep_type := "mutnfs"]
+                ))
+       }
+
   # filter mutant_index
-    basepep_dt <- basepep_dt[(nchar(pep_base) - mutant_index) >= 1]
+    basepep_dt <- basepep_dt[(nchar(pep_base) - mutant_index) >= 0]
 
   if (basepep_dt %>% nrow == 0)
     return("no variants for peptide generation")
@@ -1974,7 +2030,9 @@ mv <- parallel::mclapply(nmv %>% seq_along, function(x){
                       lapply(1:nrow(dt),
                       uuid::UUIDgenerate) %>% unlist])
 
-    if (input_type == "transcript"){
+    if (input_type == "transcript" ||
+        (input_type == "peptide" & "pep_wt" %chin% names(dt))
+        ){
 
          dt %<>% make_DAI_uuid
 
@@ -1993,13 +2051,10 @@ mv <- parallel::mclapply(nmv %>% seq_along, function(x){
             !nmer %chin% id_wt_nmers)]
                }
 
-        # remove wt without a matched mut
-         unmatched_dai <- dt[, .N, by = dai_uuid] %>% . [N == 1, dai_uuid]
-         if (unmatched_dai %>% length > 0) dt[!dai_uuid %chin% unmatched_dai]
        }
 
     # DAI cannot be calculated with peptide input
-    if (input_type == "peptide")
+    if (input_type == "peptide" & !"pep_wt" %chin% names(dt))
       dt[, dai_uuid := NA %>% as.character]
 
   if (blast)
