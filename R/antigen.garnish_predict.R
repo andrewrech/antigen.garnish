@@ -2157,6 +2157,10 @@ dtl <- lapply(1:nrow(dt), function(i){
 
     if ("DAI" %chin% names(dt)){
 
+      # edge case with small table or deliberately not running blast
+      if (!"min_DAI" %chin% names(dt))
+        dt[, min_DAI := DAI]
+
       v <- 1:nrow(dt[!is.na(DAI)])
 
       if (nrow(dt[!is.na(DAI)]) != 0)
