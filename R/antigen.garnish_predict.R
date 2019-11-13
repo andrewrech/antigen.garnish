@@ -2178,13 +2178,6 @@ dtl <- lapply(1:nrow(dt), function(i){
                   stringr::str_replace_all("[^A-Za-z0-9]", "_") %>%
                   stringr::str_replace_all("[_]+", "_")
 
-  if (file.exists("Luksza_model_output.txt")){
-    file.copy("Luksza_model_output.txt",
-                file.path(original_dir,
-                paste("Luksza_model_output_", gplot_fn, ".txt", sep = ""))
-                )
-                  }
-
    if (save){
 
      dt %>% data.table::fwrite(paste("ag_output_", gplot_fn, ".txt", sep = ""),
