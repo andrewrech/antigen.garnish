@@ -63,7 +63,19 @@ for i in $(ls | grep -e netMHC.*tar.*$);
 do cp -r $i antigen.garnish/netMHC/;
 done
 
-# antigen.garnish will untar and configure the tools at runtime as needed
+# now untar
+cd antigen.garnish/netMHC/
+for i in $(ls | grep -e netMHC.*tar.*$);
+do tar -xzvf $i;
+sudo rm -rf $i;
+done
+
+# change permissions
+for i in $(ls);
+do sudo chmod 777 $i;
+done
+
+# antigen.garnish will configure the tools at runtime as needed
 ```
 
 - if installing without using the above installation script, you will also need to ensure all prediction tools are configured and in `$PATH` and set `$AG_DATA_DIR` to the [required data directory](http://get.rech.io/antigen.garnish.tar.gz):

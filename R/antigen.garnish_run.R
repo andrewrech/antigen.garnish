@@ -189,30 +189,30 @@ configure_netMHC_tools <- function(dir){
 
   if (!dir.exists(npd)) dir.create(npd)
 
-  l <- list.files(npd,
-  pattern = "netMHC.*tar")
-
-  if (length(l) != 0){
-
-    message("Untarring netMHC tools")
-
-    owd <- getwd()
-
-    setwd(npd)
-
-    lapply(l, function(i){
-
-      system(paste("tar -xzvf", i))
-
-  })
-
-  # remove so we don't do this with multiple runs
-  # user was instructed to copy from home dir so originals are intact
-  file.remove(l)
-
-  setwd(owd)
-
-  }
+  # l <- list.files(npd,
+  # pattern = "netMHC.*tar")
+  #
+  # if (length(l) != 0){
+  #
+  #   message("Untarring netMHC tools")
+  #
+  #   owd <- getwd()
+  #
+  #   setwd(npd)
+  #
+  #   lapply(l, function(i){
+  #
+  #     system(paste("tar -xzvf", i))
+  #
+  # })
+  #
+  # # remove so we don't do this with multiple runs
+  # # user was instructed to copy from home dir so originals are intact
+  # file.remove(l)
+  #
+  # setwd(owd)
+  #
+  # }
 
   # get path to scripts
   owd <- getwd()
@@ -229,9 +229,11 @@ configure_netMHC_tools <- function(dir){
 
   }) %>% unlist
 
-  message("Changing permissions on all tools.")
-
-  Sys.chmod(f, mode = "0777")
+  # tried untarring and changing permissions in R but had to be done from shell,
+  # it did not take with system call, and netMHC tools bug without it
+  # message("Changing permissions on all tools.")
+  #
+  # lapply(f, function(i){system(paste("sudo chmod 777", i))})
 
   message("Checking netMHC scripts in antigen.garnish data directory.")
   # sed scripts to correct paths
