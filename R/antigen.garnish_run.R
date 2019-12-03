@@ -245,7 +245,7 @@ configure_netMHC_tools <- function(dir){
 
     setwd(dirname(i))
 
-    system(paste("tar -xzvf", dtar))
+    system(paste("tar -xzvf", basename(dtar)))
 
     setwd(npd)
 
