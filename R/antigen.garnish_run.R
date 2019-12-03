@@ -180,6 +180,10 @@ ag_data_err <- function(){
 
 configure_netMHC_tools <- function(dir){
 
+  owd <- getwd()
+
+  on.exit({setwd(owd)})
+
   # netMHC parent dir in ag data dir
   npd <- file.path(dir, "netMHC")
 
@@ -268,7 +272,7 @@ configure_netMHC_tools <- function(dir){
 
   setwd(owd)
 
-  return(NULL)
+  return(f)
 
 }
 
@@ -320,7 +324,7 @@ check_pred_tools <- function(ag_dirs = c(
 
    }
 
-  configure_netMHC_tools(ag_dir)
+  scripts <- configure_netMHC_tools(ag_dir)
 
   default_path <- paste0(ag_dir,
                   c(file.path("/netMHC",
@@ -348,26 +352,20 @@ check_pred_tools <- function(ag_dirs = c(
           message("mhcflurry-predict is not in PATH\n       Download: https://github.com/hammerlab/mhcflurry")
         tool_status$mhcflurry <- FALSE
         }
-    if (suppressWarnings(system('which netMHC 2> /dev/null', intern = TRUE)) %>%
-          length == 0){
-            message("netMHC is not in PATH\n       Download: http://www.cbs.dtu.dk/services/NetMHC/")
-          tool_status$netMHC <- FALSE
-          }
-    if (suppressWarnings(system('which netMHCpan 2> /dev/null', intern = TRUE)) %>%
-          length == 0){
-            message("netMHCpan is not in PATH\n       Download: http://www.cbs.dtu.dk/services/NetMHCpan/")
-          tool_status$netMHCpan <- FALSE
-          }
-    if (suppressWarnings(system('which netMHCII 2> /dev/null', intern = TRUE)) %>%
-          length == 0){
-            message("netMHCII is not in PATH\n       Download: http://www.cbs.dtu.dk/services/NetMHCII/")
-          tool_status$netMHCII <- FALSE
-          }
-    if (suppressWarnings(system('which netMHCIIpan 2> /dev/null', intern = TRUE)) %>%
-          length == 0){
-            message("netMHCIIpan is not in PATH\n       Download: http://www.cbs.dtu.dk/services/NetMHCIIpan/")
-          tool_status$netMHCIIpan <- FALSE
-         }
+
+    lapply(scripts, function(i){
+
+      f <- basename(i)
+
+      if (suppressWarnings(system(paste("which", f, "2> /dev/null"), intern = TRUE)) %>%
+            length == 0){
+              message(paste(f, " is not in PATH\n       Download: http://www.cbs.dtu.dk/services/"), sep = "")
+            tool_status[[f]] <- FALSE
+      }
+
+
+    })
+
     if (suppressWarnings(system('which predict.py 2> /dev/null', intern = TRUE)) %>%
           length == 0){
             message("mhcnuggets predict.py is not in PATH\n       Download: https://github.com/KarchinLab/mhcnuggets")
