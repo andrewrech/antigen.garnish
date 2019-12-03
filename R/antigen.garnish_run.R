@@ -187,7 +187,8 @@ configure_netMHC_tools <- function(dir){
   # netMHC parent dir in ag data dir
   npd <- file.path(dir, "netMHC")
 
-  if (!dir.exists(npd)) dir.create(npd)
+  if (!dir.exists(npd))
+    stop("netMHC parent directory in antigen.garnish data directory not found.")
 
   # get path to scripts
   setwd(npd)
@@ -196,9 +197,9 @@ configure_netMHC_tools <- function(dir){
 
   f <- lapply(tool_paths, function(i){
 
-    # this pattern could one day break.
+    # pattern to find netMHC scripts
     list.files(i, pattern = "netMHC(II)?(pan)?-?([0-9]\\.[0-9])?$",
-        full.names = TRUE)
+        full.names = TRUE, ignore.case = TRUE)
 
   }) %>% unlist
 
@@ -212,9 +213,10 @@ configure_netMHC_tools <- function(dir){
     io <- file.path(dirname(i),
     basename(i) %>% stringr::str_replace("-.*$", ""))
 
-    # check if scripts were already edited
-    if (file.exists(file.path(dirname(i), "itwasedited.txt")))
-      return(io)
+    line <- file.path(dir, "netMHC", dirname(i))
+
+    line <- paste("setenv NMHOME ", line %>% stringr::str_replace_all("/", "\\\\/"), sep = "")
+    line2 <- paste("setenv TMPDIR ", "$HOME", sep = "")
 
     # formatting for these links is  not consistent,  try no uname first
     # netMHC is always capitalized in the links it seems
@@ -261,12 +263,12 @@ configure_netMHC_tools <- function(dir){
 
     setwd(npd)
 
-    line <- file.path(dir, "netMHC", dirname(i))
+    # versionless backup file
+    bk <- paste0(io, ".bk")
 
-    line <- paste("setenv NMHOME ", line %>% stringr::str_replace_all("/", "\\\\/"), sep = "")
-    line2 <- paste("setenv TMPDIR ", "$HOME", sep = "")
+    if (!file.exists(bk)) file.rename(i, bk)
 
-    cmd <- paste("cat ", i, " | ",
+    cmd <- paste("cat ", bk, " | ",
     # place holders for variable references
     "sed 's/\\$NMHOME/placeholderxxx/' | ",
     "sed 's/\\$TMPDIR/placeholderyyy/' | ",
@@ -275,16 +277,9 @@ configure_netMHC_tools <- function(dir){
     "sed 's/placeholderxxx/$NMHOME/' | ",
     "sed 's/setenv.*TMPDIR.*$/", line2, "/' | ",
     # reset placeholder
-    "sed 's/placeholderyyy/$TMPDIR/' > ", "placeholder_script.txt", sep = "")
+    "sed 's/placeholderyyy/$TMPDIR/' > ", io, sep = "")
 
     system(cmd)
-
-    # add marker that it was edited
-    system(paste("touch", file.path(dirname(i), "itwasedited.txt")))
-
-    file.remove(i)
-
-    file.rename("placeholder_script.txt", io)
 
     system(paste("chmod u+x", io))
 

@@ -57,7 +57,7 @@ See the [wiki](https://github.com/immune-health/antigen.garnish/wiki/Docker) for
 - tcsh (for netMHC scripts)
 - `sudo` privileges are required to install netMHC dependencies
 
-#### [Installation script](http://get.rech.io/install_antigen.garnish.s)
+#### [Installation script](http://get.rech.io/install_antigen.garnish.sh)
 
 ```sh
 $ curl -fsSL http://get.rech.io/install_antigen.garnish.sh | sudo sh
@@ -83,8 +83,8 @@ mkdir -p "$ANTIGEN_GARNISH_DIR/netMHC" || return 1
 
 find . -name "*.tar.gz" -exec tar xvzf {} -C "$ANTIGEN_GARNISH_DIR/netMHC" \;
 
-chown "$USER" "$ANTIGEN_GARNISH_DIR/netMHC" 
-chmod 700 -R "$ANTIGEN_GARNISH_DIR/netMHC" 
+chown "$USER" "$ANTIGEN_GARNISH_DIR/netMHC"
+chmod 700 -R "$ANTIGEN_GARNISH_DIR/netMHC"
 
 ```
 

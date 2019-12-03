@@ -29,7 +29,7 @@
 
   # tcsh required for netMHC scripts
   if [ ! -x `which tcsh` ]; then
-    echo "tcsh shell is not installed. Please install with brew or apt."
+    echo "tcsh shell is not installed. Please install with apt."
     exit 1
     fi
 
