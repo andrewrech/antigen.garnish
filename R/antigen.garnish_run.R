@@ -216,32 +216,40 @@ configure_netMHC_tools <- function(dir){
     if (file.exists(file.path(dirname(i), "itwasedited.txt")))
       return(io)
 
-    # formatting for these links is  not consistent,  try Linux name first
+    # formatting for these links is  not consistent,  try no uname first
     # netMHC is always capitalized in the links it seems
     # dirname(i) will always have version number
     link_to_data <- paste0("http://www.cbs.dtu.dk/services/",
         dirname(i) %>% stringr::str_replace("net", "Net"),
-        "/data.Linux.tar.gz")
+        "/data.tar.gz")
 
-    cmd <- paste("curl -fsSL", link_to_data, ">", "dtu.data.tar.gz")
+    cmd <- paste("curl -fsSL", link_to_data, ">", "dtu.tar.gz")
 
     curl_status <- system(cmd, intern = TRUE)
 
-    if (!is.null(attr(curl_status, "status")) && attr(curl_status, "status") == 22){
+    if (!is.null(attr(curl_status, "status")) &&
+        attr(curl_status, "status") == 22){
 
-      cmd <- cmd %>% stringr::str_replace("\\.Linux", "")
+      un <- system("uname -s", intern = TRUE)
+
+      if (!un %chin% c("Linux", "Darwin")) stop("OS does not support netMHC.")
+
+      cmd <- cmd %>%
+      stringr::str_replace("data\\.tar\\.gz", paste0("data.", un, ".tar.gz"))
+
+      message(paste("Downloading data for", dirname(i), "on", un))
 
       curl_status <- system(cmd, intern = TRUE)
 
     }
 
-    if (!file.exists("dtu.data.tar.gz"))
+    if (!file.exists("dtu.tar.gz"))
     stop(paste("Unable to download data tar from DTU. See ReadMe in", file.path(dir, "netMHC", dirname(i))))
 
     # move it into the right folder and untar
-    dtar <- file.path(dirname(i), "dtu.data.tar.gz")
+    dtar <- file.path(dirname(i), "dtu.tar.gz")
 
-    file.rename("dtu.data.tar.gz", dtar)
+    file.rename("dtu.tar.gz", dtar)
 
     setwd(dirname(i))
 
