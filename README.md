@@ -53,7 +53,7 @@ One-line [installation script](http://get.rech.io/install_antigen.garnish.sh):
 $ curl -fsSL http://get.rech.io/install_antigen.garnish.sh | sudo sh
 ```
 
-Now install the netMHC suite of tools for **Linux** or **Darwin/MacOS**. These are available under a license from DTU. Agree to license terms and download tarballs for: [netMHC](http://www.cbs.dtu.dk/cgi-bin/nph-sw_request?netMHC), [netMHCpan](http://www.cbs.dtu.dk/cgi-bin/nph-sw_request?netMHCpan), [netMHCII](http://www.cbs.dtu.dk/cgi-bin/nph-sw_request?netMHCII), and [netMHCIIpan](http://www.cbs.dtu.dk/cgi-bin/nph-sw_request?netMHCIIpan). *antigen.garnish* will configure the tools and download data at runtime, however the binaries will need to be moved into the antigen.garnish data directory:
+Now install the netMHC suite of tools for **Linux** or **Darwin/MacOS**. These are available under a license from DTU. Agree to license terms and download tarballs for: [netMHC](http://www.cbs.dtu.dk/cgi-bin/nph-sw_request?netMHC), [netMHCpan](http://www.cbs.dtu.dk/cgi-bin/nph-sw_request?netMHCpan), [netMHCII](http://www.cbs.dtu.dk/cgi-bin/nph-sw_request?netMHCII), and [netMHCIIpan](http://www.cbs.dtu.dk/cgi-bin/nph-sw_request?netMHCIIpan). antigen.garnish will configure the tools and download data at runtime, however the binaries will need to be moved into the antigen.garnish data directory:
 
 ```sh
 # from the directory containing the four netMHC tarballs and the antigen.garnish
@@ -76,9 +76,11 @@ do sudo chmod 777 -R $i;
 sudo chown `whoami` $i;
 done
 cd $HOME
+
+# antigen.garnish is ready to run in R!
 ```
 
-- if installing without using the above installation script, you will also need to ensure all prediction tools are configured and in `$PATH` and set `$AG_DATA_DIR` to the [required data directory](http://get.rech.io/antigen.garnish.tar.gz):
+- if installing without using the above  one-line installation script, you will also need to ensure all prediction tools are configured and in `$PATH` and set `$AG_DATA_DIR` to the [required data directory](http://get.rech.io/antigen.garnish.tar.gz):
 
 ```sh
 $ curl -fsSL "http://get.rech.io/antigen.garnish.tar.gz" | tar -xvz

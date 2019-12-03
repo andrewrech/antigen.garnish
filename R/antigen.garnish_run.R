@@ -225,7 +225,9 @@ configure_netMHC_tools <- function(dir){
 
     cmd <- paste("curl -fsSL", link_to_data, ">", "dtu.tar.gz")
 
+    suppressWarnings({
     curl_status <- system(cmd, intern = TRUE)
+    })
 
     if (!is.null(attr(curl_status, "status")) &&
         attr(curl_status, "status") == 22){
@@ -239,7 +241,9 @@ configure_netMHC_tools <- function(dir){
 
       message(paste("Downloading data for", dirname(i), "on", un))
 
+      suppressWarnings({
       curl_status <- system(cmd, intern = TRUE)
+      })
 
     }
 
