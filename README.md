@@ -72,7 +72,8 @@ done
 
 # change permissions
 for i in $(ls);
-do sudo chmod 777 $i;
+do sudo chmod 777 -R $i;
+sudo chown `whoami` $i;
 done
 
 # antigen.garnish will configure the tools at runtime as needed

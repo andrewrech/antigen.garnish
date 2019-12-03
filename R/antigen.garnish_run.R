@@ -189,34 +189,7 @@ configure_netMHC_tools <- function(dir){
 
   if (!dir.exists(npd)) dir.create(npd)
 
-  # l <- list.files(npd,
-  # pattern = "netMHC.*tar")
-  #
-  # if (length(l) != 0){
-  #
-  #   message("Untarring netMHC tools")
-  #
-  #   owd <- getwd()
-  #
-  #   setwd(npd)
-  #
-  #   lapply(l, function(i){
-  #
-  #     system(paste("tar -xzvf", i))
-  #
-  # })
-  #
-  # # remove so we don't do this with multiple runs
-  # # user was instructed to copy from home dir so originals are intact
-  # file.remove(l)
-  #
-  # setwd(owd)
-  #
-  # }
-
   # get path to scripts
-  owd <- getwd()
-
   setwd(npd)
 
   tool_paths <- list.files()
@@ -229,19 +202,18 @@ configure_netMHC_tools <- function(dir){
 
   }) %>% unlist
 
-  # tried untarring and changing permissions in R but had to be done from shell,
-  # it did not take with system call, and netMHC tools bug without it
-  # message("Changing permissions on all tools.")
-  #
-  # lapply(f, function(i){system(paste("sudo chmod 777", i))})
-
   message("Checking netMHC scripts in antigen.garnish data directory.")
   # sed scripts to correct paths
   io <- lapply(f, function(i){
 
+    # rename to take off version, necessary because commands are built into table
+    # in get_pred_commands and check_pred_tools hasn't run at that point
+    io <- file.path(dirname(i),
+    basename(i) %>% stringr::str_replace("-.*$", ""))
+
     # check if scripts were already edited
     if (file.exists(file.path(dirname(i), "itwasedited.txt")))
-      return(NULL)
+      return(io)
 
     line <- file.path(dir, "netMHC", dirname(i))
 
@@ -266,12 +238,9 @@ configure_netMHC_tools <- function(dir){
 
     file.remove(i)
 
-    # rename to take off version, necessary because commands are built into table
-    # in get_pred_commands and check_pred_tools hasn't run at that point
-    io <- file.path(dirname(i),
-    basename(i) %>% stringr::str_replace("-.*$", ""))
-
     file.rename("placeholder_script.txt", io)
+
+    system(paste("chmod u+x", io))
 
     return(io)
 
