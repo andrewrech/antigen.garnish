@@ -241,7 +241,7 @@ configure_netMHC_tools <- function(dir){
     if (file.exists(file.path(dirname(i), "itwasedited.txt")))
       return(NULL)
 
-    line <- file.path(dir, "netMHC", i)
+    line <- file.path(dir, "netMHC", dirname(i))
 
     line <- paste("setenv NMHOME ", line %>% stringr::str_replace_all("/", "\\\\/"), sep = "")
     line2 <- paste("setenv TMPDIR ", "$HOME", sep = "")
