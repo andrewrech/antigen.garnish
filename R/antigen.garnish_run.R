@@ -266,7 +266,8 @@ configure_netMHC_tools <- function(dir){
 
     # rename to take off version, necessary because commands are built into table
     # in get_pred_commands and check_pred_tools hasn't run at that point
-    io <- i %>% stringr::str_replace("-.*$", "")
+    io <- file.path(dirname(i),
+    basename(i) %>% stringr::str_replace("-.*$", ""))
 
     file.rename("placeholder_script.txt", io)
 
