@@ -244,7 +244,7 @@ configure_netMHC_tools <- function(dir){
     line <- file.path(dir, i)
 
     line <- paste("setenv NMHOME ", line %>% stringr::str_replace_all("/", "\\\\/"), sep = "")
-    line2 <- paste("setenv TMPDIR ", owd %>% stringr::str_replace_all("/", "\\\\/"))
+    line2 <- paste("setenv TMPDIR ", "$HOME", sep = "")
 
     cmd <- paste("cat ", i, " | ",
     # place holders for variable references
