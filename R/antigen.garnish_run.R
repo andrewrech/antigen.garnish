@@ -235,7 +235,7 @@ configure_netMHC_tools <- function(dir){
 
   message("Checking netMHC scripts in antigen.garnish data directory.")
   # sed scripts to correct paths
-  lapply(f, function(i){
+  io <- lapply(f, function(i){
 
     # check if scripts were already edited
     if (file.exists(file.path(dirname(i), "itwasedited.txt")))
@@ -264,15 +264,21 @@ configure_netMHC_tools <- function(dir){
 
     file.remove(i)
 
-    file.rename("placeholder_script.txt", i)
+    # rename to take off version, necessary because commands are built into table
+    # in get_pred_commands and check_pred_tools hasn't run at that point
+    io <- i %>% stringr::str_replace("-.*$", "")
 
-  })
+    file.rename("placeholder_script.txt", io)
+
+    return(io)
+
+  }) %>% unlist
 
   message("Done.")
 
   setwd(owd)
 
-  return(f)
+  return(io)
 
 }
 
@@ -362,7 +368,6 @@ check_pred_tools <- function(ag_dirs = c(
               message(paste(f, " is not in PATH\n       Download: http://www.cbs.dtu.dk/services/"), sep = "")
             tool_status[[f]] <- FALSE
       }
-
 
     })
 
