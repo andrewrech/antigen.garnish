@@ -204,6 +204,7 @@ configure_netMHC_tools <- function(dir){
 
   message("Checking netMHC scripts in antigen.garnish data directory.")
   # sed scripts to correct paths
+  # install data from DTU
   io <- lapply(f, function(i){
 
     # rename to take off version, necessary because commands are built into table
@@ -214,6 +215,39 @@ configure_netMHC_tools <- function(dir){
     # check if scripts were already edited
     if (file.exists(file.path(dirname(i), "itwasedited.txt")))
       return(io)
+
+    # formatting for these links is  not consistent,  try Linux name first
+    # netMHC is always capitalized in the links it seems
+    # dirname(i) will always have version number
+    link_to_data <- paste0("http://www.cbs.dtu.dk/services/",
+        dirname(i) %>% stringr::str_replace("net", "Net"),
+        "/data.Linux.tar.gz")
+
+    cmd <- paste("curl -fsSL", link_to_data, ">", "dtu.data.tar.gz")
+
+    curl_status <- system(cmd, intern = TRUE)
+
+    if (!is.null(attr(curl_status, "status")) && attr(curl_status, "status") == 22){
+
+      cmd <- cmd %>% stringr::str_replace("\\.Linux", "")
+
+      curl_status <- system(cmd, intern = TRUE)
+
+    }
+
+    if (!file.exists("dtu.data.tar.gz"))
+    stop(paste("Unable to download data tar from DTU. See ReadMe in", file.path(dir, "netMHC", dirname(i))))
+
+    # move it into the right folder and untar
+    dtar <- file.path(dirname(i), "dtu.data.tar.gz")
+
+    file.rename("dtu.data.tar.gz", dtar)
+
+    setwd(dirname(i))
+
+    system(paste("tar -xzvf", dtar))
+
+    setwd(npd)
 
     line <- file.path(dir, "netMHC", dirname(i))
 
