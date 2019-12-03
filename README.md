@@ -39,11 +39,12 @@ An R package for [neoantigen](http://science.sciencemag.org/content/348/6230/69)
 - R &ge; 3.4
   - see [documentation](https://get.rech.io/antigen.garnish.pdf) `Imports` for R, [Biostrings](https://bioconductor.org/packages/release/bioc/html/Biostrings.html) package from Bioconductor
 - python-pip
+- tcsh (for netMHC scripts)
 - `sudo` is required to install prediction tool dependencies
 
 or
 
-- a Docker image is available, please see the [wiki](https://github.com/immune-health/antigen.garnish/wiki) or [contact us](mailto:leepr@upenn.edu)
+- Don't have Linux? A Docker image is available, please see the [wiki](https://github.com/immune-health/antigen.garnish/wiki) or [contact us](mailto:leepr@upenn.edu)
 
 ### Install all dependencies, prediction tools, and `antigen.garnish`
 
@@ -53,7 +54,7 @@ One-line [installation script](http://get.rech.io/install_antigen.garnish.sh):
 $ curl -fsSL http://get.rech.io/install_antigen.garnish.sh | sudo sh
 ```
 
-Now install the netMHC suite of tools for **Linux** or **Darwin/MacOS**. These are available under a license from DTU. Agree to license terms and download tarballs for: [netMHC](http://www.cbs.dtu.dk/cgi-bin/nph-sw_request?netMHC), [netMHCpan](http://www.cbs.dtu.dk/cgi-bin/nph-sw_request?netMHCpan), [netMHCII](http://www.cbs.dtu.dk/cgi-bin/nph-sw_request?netMHCII), and [netMHCIIpan](http://www.cbs.dtu.dk/cgi-bin/nph-sw_request?netMHCIIpan). antigen.garnish will configure the tools and download data at runtime, however the binaries will need to be moved into the antigen.garnish data directory:
+Now install the netMHC suite of tools for **Linux**. These are available under a license from DTU. Agree to license terms and download tarballs for: [netMHC](http://www.cbs.dtu.dk/cgi-bin/nph-sw_request?netMHC), [netMHCpan](http://www.cbs.dtu.dk/cgi-bin/nph-sw_request?netMHCpan), [netMHCII](http://www.cbs.dtu.dk/cgi-bin/nph-sw_request?netMHCII), and [netMHCIIpan](http://www.cbs.dtu.dk/cgi-bin/nph-sw_request?netMHCIIpan). antigen.garnish will configure the tools and download data at runtime, however the binaries will need to be moved into the antigen.garnish data directory:
 
 ```sh
 # from the directory containing the four netMHC tarballs and the antigen.garnish

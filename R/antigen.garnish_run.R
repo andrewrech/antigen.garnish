@@ -234,7 +234,7 @@ configure_netMHC_tools <- function(dir){
 
       un <- system("uname -s", intern = TRUE)
 
-      if (!un %chin% c("Linux", "Darwin")) stop("OS does not support netMHC.")
+      if (!un %chin% c("Linux")) stop("Linux only.")
 
       cmd <- cmd %>%
       stringr::str_replace("data\\.tar\\.gz", paste0("data.", un, ".tar.gz"))
