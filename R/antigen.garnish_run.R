@@ -171,6 +171,107 @@ ag_data_err <- function(){
 
 }
 
+#' Internal function to configure netMHC suite of tools
+#'
+#' @param dir Character vector. Path to `antigen.garnish` data directory.
+#'
+#' @export configure_netMHC_tools
+#' @md
+
+configure_netMHC_tools <- function(dir){
+
+  # netMHC parent dir in ag data dir
+  npd <- file.path(dir, "netMHC")
+
+  if (!dir.exists(npd)) dir.create(npd)
+
+  l <- list.files(npd,
+  pattern = "netMHC.*tar")
+
+  if (length(l) != 0){
+
+    message("Untarring netMHC tools")
+
+    owd <- getwd()
+
+    setwd(npd)
+
+    lapply(l, function(i){
+
+      system(paste("tar -xzvf", i))
+
+  })
+
+  # remove so we don't do this with multiple runs
+  # user was instructed to copy from home dir so originals are intact
+  file.remove(l)
+
+  setwd(owd)
+
+  }
+
+  # get path to scripts
+  owd <- getwd()
+
+  setwd(npd)
+
+  tool_paths <- list.files()
+
+  f <- lapply(tool_paths, function(i){
+
+    # this pattern could one day break.
+    list.files(i, pattern = "netMHC(II)?(pan)?-?([0-9]\\.[0-9])?$",
+        full.names = TRUE)
+
+  }) %>% unlist
+
+  message("Changing permissions on all tools.")
+
+  Sys.chmod(f, mode = "0777")
+
+  message("Checking netMHC scripts in antigen.garnish data directory.")
+  # sed scripts to correct paths
+  lapply(f, function(i){
+
+    # check if scripts were already edited
+    if (file.exists(file.path(dirname(i), "itwasedited.txt")))
+      return(NULL)
+
+    line <- file.path(dir, i)
+
+    line <- paste("setenv NMHOME ", line %>% stringr::str_replace_all("/", "\\\\/"), sep = "")
+    line2 <- paste("setenv TMPDIR ", owd %>% stringr::str_replace_all("/", "\\\\/"))
+
+    cmd <- paste("cat ", i, " | ",
+    # place holders for variable references
+    "sed 's/\\$NMHOME/placeholderxxx/' | ",
+    "sed 's/\\$TMPDIR/placeholderyyy/' | ",
+    "sed 's/setenv.*NMHOME.*$/", line, "/' | ",
+    # reset placeholder
+    "sed 's/placeholderxxx/$NMHOME/' | ",
+    "sed 's/setenv.*TMPDIR.*$/", line2, "/' | ",
+    # reset placeholder
+    "sed 's/placeholderyyy/$TMPDIR/' > ", "placeholder_script.txt", sep = "")
+
+    system(cmd)
+
+    # add marker that it was edited
+    system(paste("touch", file.path(dirname(i), "itwasedited.txt")))
+
+    file.remove(i)
+
+    file.rename("placeholder_script.txt", i)
+
+  })
+
+  message("Done.")
+
+  setwd(owd)
+
+  return(NULL)
+
+}
+
 #' Internal function to check for netMHC tools, mhcflurry and mhcnuggets
 #'
 #' @param ag_dirs Character vector. Directories to check for `antigen.garnish` data directory.
@@ -219,12 +320,11 @@ check_pred_tools <- function(ag_dirs = c(
 
    }
 
+  configure_netMHC_tools(ag_dir)
+
   default_path <- paste0(ag_dir,
-                  c(
-                    "/netMHC/netMHC-4.0",
-                    "/netMHC/netMHCII-2.2",
-                    "/netMHC/netMHCIIpan-3.1",
-                    "/netMHC/netMHCpan-3.0",
+                  c(file.path("/netMHC",
+                  list.files(file.path(ag_dir, "netMHC"))),
                     "/mhcnuggets/scripts"
                     )) %>%
                       normalizePath %>%

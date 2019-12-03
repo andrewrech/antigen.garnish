@@ -53,7 +53,20 @@ One-line [installation script](http://get.rech.io/install_antigen.garnish.sh):
 $ curl -fsSL http://get.rech.io/install_antigen.garnish.sh | sudo sh
 ```
 
-- if installing without using the above installation script, set `$AG_DATA_DIR` to the [required data directory](http://get.rech.io/antigen.garnish.tar.gz):
+Now install the netMHC suite of tools for **Linux**. These are available under a license from DTU. Agree to license terms and download tarballs for: [netMHC](http://www.cbs.dtu.dk/cgi-bin/nph-sw_request?netMHC), [netMHCpan](http://www.cbs.dtu.dk/cgi-bin/nph-sw_request?netMHCpan), [netMHCII](http://www.cbs.dtu.dk/cgi-bin/nph-sw_request?netMHCII), and [netMHCIIpan](http://www.cbs.dtu.dk/cgi-bin/nph-sw_request?netMHCIIpan). We have preconfigured scripts for the tools, however the binaries will need to be moved into the antigen.garnish data directory:
+
+```sh
+# from the directory containing both the netMHC tarballs and the antigen.garnish
+# data directory downloaded from the one-line installation script
+# copy the tarballs into the antigen.garnish directory
+for i in $(ls | grep -e netMHC.*tar.*$);
+do cp -r $i antigen.garnish/netMHC/;
+done
+
+# antigen.garnish will untar and configure the tools at runtime as needed
+```
+
+- if installing without using the above installation script, you will also need to ensure all prediction tools are configured and in `$PATH` and set `$AG_DATA_DIR` to the [required data directory](http://get.rech.io/antigen.garnish.tar.gz):
 
 ```sh
 $ curl -fsSL "http://get.rech.io/antigen.garnish.tar.gz" | tar -xvz
@@ -61,7 +74,6 @@ $ export AG_DATA_DIR="$PWD/antigen.garnish"
 ```
 
 - detailed installation instructions for bootstrapping a fresh AWS instance can be found in the [wiki](https://github.com/immune-health/antigen.garnish/wiki)
-- please note that netMHC, netMHCpan, netMHCII, and netMHCIIpan require academic-use only licenses
 
 ## [Package documentation](https://neoantigens.rech.io/reference/index.html) ([pdf](https://get.rech.io/antigen.garnish.pdf))
 
