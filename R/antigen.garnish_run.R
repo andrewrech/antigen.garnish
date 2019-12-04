@@ -215,6 +215,18 @@ configure_netMHC_tools <- function(dir){
 
     line <- file.path(dir, "netMHC", dirname(i))
 
+    # downloading the data takes a long time, must check if loop already ran
+    catfile <- system(paste("cat", i), intern = TRUE) %>%
+      stringr::str_replace_all("/", "")
+
+    # adjust patterns to have no slashes
+    p1 <- line %>% stringr::str_replace_all("/", "")
+
+    # if correct directory is already in the script, skip
+    if (any(grepl(catfile, pattern = p1)))
+      return(io)
+
+    # properly escape for sed call
     line <- paste("setenv NMHOME ", line %>% stringr::str_replace_all("/", "\\\\/"), sep = "")
     line2 <- paste("setenv TMPDIR ", "$HOME", sep = "")
 
