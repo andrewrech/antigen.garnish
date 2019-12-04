@@ -81,7 +81,7 @@ cd "$NET_MHC_DIR" || return 1
 
 mkdir -p "$ANTIGEN_GARNISH_DIR/netMHC" || return 1
 
-find . -name "*.tar.gz" -exec tar xvzf {} -C "$ANTIGEN_GARNISH_DIR/netMHC" \;
+find . -name "netMHC*.tar.gz" -exec tar xvzf {} -C "$ANTIGEN_GARNISH_DIR/netMHC" \;
 
 chown "$USER" "$ANTIGEN_GARNISH_DIR/netMHC"
 chmod 700 -R "$ANTIGEN_GARNISH_DIR/netMHC"
