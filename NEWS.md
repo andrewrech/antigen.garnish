@@ -1,3 +1,8 @@
+# antigen.garnish 1.1.1
+
+* update to include configuration for netMHC dependencies
+* support for paired wild-type and mutant protein level input
+
 # antigen.garnish 1.1.0
 
 * added garnish_dissimilarity

@@ -33,37 +33,68 @@ An R package for [neoantigen](http://science.sciencemag.org/content/348/6230/69)
 
 ## Installation
 
-### Requirements
+Three methods exist to run `antigen.garnish`:
 
-- Linux
+1. Docker
+2. Linux
+3. Amazon Web Services
+
+### Docker
+
+```sh
+docker pull leeprichman/antigen_garnish
+```
+
+See the [wiki](https://github.com/immune-health/antigen.garnish/wiki/Docker) for instructions to run the Docker container.
+
+### Linux
+
+#### Requirements
+
 - R &ge; 3.4
   - see [documentation](https://get.rech.io/antigen.garnish.pdf) `Imports` for R, [Biostrings](https://bioconductor.org/packages/release/bioc/html/Biostrings.html) package from Bioconductor
 - python-pip
-- `sudo` is required to install prediction tool dependencies
+- tcsh (for netMHC scripts)
+- `sudo` privileges are required to install netMHC dependencies
 
-or
-
-- a Docker image is available, please see the [wiki](https://github.com/immune-health/antigen.garnish/wiki) or [contact us](mailto:leepr@upenn.edu)
-
-### Install all dependencies, prediction tools, and `antigen.garnish`
-
-One-line [installation script](http://get.rech.io/install_antigen.garnish.sh):
+#### [Installation script](http://get.rech.io/install_antigen.garnish.sh)
 
 ```sh
 $ curl -fsSL http://get.rech.io/install_antigen.garnish.sh | sudo sh
 ```
 
-- if installing without using the above installation script, set `$AG_DATA_DIR` to the [required data directory](http://get.rech.io/antigen.garnish.tar.gz):
+Next, download the netMHC suite of tools for Linux, available under an academic license:
+
+* [netMHC](http://www.cbs.dtu.dk/cgi-bin/nph-sw_request?netMHC)
+* [netMHCpan](http://www.cbs.dtu.dk/cgi-bin/nph-sw_request?netMHCpan)
+* [netMHCII](http://www.cbs.dtu.dk/cgi-bin/nph-sw_request?netMHCII)
+* [netMHCIIpan](http://www.cbs.dtu.dk/cgi-bin/nph-sw_request?netMHCIIpan)
+
+After downloading the files above, move the binaries into the `antigen.garnish` data directory, first setting the `NET_MHC_DIR` and `ANTIGEN_GARNISH_DIR` environmental variables as instructed below:
 
 ```sh
-$ curl -fsSL "http://get.rech.io/antigen.garnish.tar.gz" | tar -xvz
-$ export AG_DATA_DIR="$PWD/antigen.garnish"
+
+NET_MHC_DIR=/path/to/folder/containing/netMHC/downloads
+ANTIGEN_GARNISH_DIR=/path/to/antigen.garnish/data/directory
+
+cd "$NET_MHC_DIR" || return 1
+
+mkdir -p "$ANTIGEN_GARNISH_DIR/netMHC" || return 1
+
+find . -name "netMHC*.tar.gz" -exec tar xvzf {} -C "$ANTIGEN_GARNISH_DIR/netMHC" \;
+
+chown "$USER" "$ANTIGEN_GARNISH_DIR/netMHC"
+chmod 700 -R "$ANTIGEN_GARNISH_DIR/netMHC"
+
 ```
 
-- detailed installation instructions for bootstrapping a fresh AWS instance can be found in the [wiki](https://github.com/immune-health/antigen.garnish/wiki)
-- please note that netMHC, netMHCpan, netMHCII, and netMHCIIpan require academic-use only licenses
+### Amazon Web Services
 
-## [Package documentation](https://neoantigens.rech.io/reference/index.html) ([pdf](https://get.rech.io/antigen.garnish.pdf))
+See the [wiki](https://github.com/immune-health/antigen.garnish/wiki/antigen.garnish-on-AWS) for instructions to create an Amazon Web Services instance.
+
+## Package documentation
+
+Package documentation can be found here: [html](https://neoantigens.rech.io/reference/index.html) [pdf](https://get.rech.io/antigen.garnish.pdf).
 
 ### Workflow
 
@@ -240,4 +271,4 @@ We thank the follow individuals for contributions and helpful discussion:
 
 ## License
 
-Please see included license or [contact us](mailto:leepr@upenn.edu) with questions.
+Please see [LICENSE](https://github.com/immune-health/antigen.garnish/blob/master/LICENSE).
