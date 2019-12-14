@@ -52,12 +52,13 @@ See the [wiki](https://github.com/immune-health/antigen.garnish/wiki/Docker) for
 #### Requirements
 
 - R &ge; 3.4
-  - see [documentation](https://get.rech.io/antigen.garnish.pdf) `Imports` for R, [Biostrings](https://bioconductor.org/packages/release/bioc/html/Biostrings.html) package from Bioconductor
 - python-pip
-- tcsh (for netMHC scripts)
-- `sudo` privileges are required to install netMHC dependencies
+- tcsh (required for netMHC)
+- `sudo` privileges (required for netMHC)
 
-#### [Installation script](http://get.rech.io/install_antigen.garnish.sh)
+#### Installation script
+
+The following line downloads and runs the initial [installation script](http://get.rech.io/install_antigen.garnish.sh).
 
 ```sh
 $ curl -fsSL http://get.rech.io/install_antigen.garnish.sh | sudo sh
@@ -70,7 +71,7 @@ Next, download the netMHC suite of tools for Linux, available under an academic 
 * [netMHCII](http://www.cbs.dtu.dk/cgi-bin/nph-sw_request?netMHCII)
 * [netMHCIIpan](http://www.cbs.dtu.dk/cgi-bin/nph-sw_request?netMHCIIpan)
 
-After downloading the files above, move the binaries into the `antigen.garnish` data directory, first setting the `NET_MHC_DIR` and `ANTIGEN_GARNISH_DIR` environmental variables as instructed below:
+After downloading the files above, move the binaries into the `antigen.garnish` data directory, first setting the `NET_MHC_DIR` and `ANTIGEN_GARNISH_DIR` environmental variables, as shown here:
 
 ```sh
 
@@ -94,9 +95,9 @@ See the [wiki](https://github.com/immune-health/antigen.garnish/wiki/antigen.gar
 
 ## Package documentation
 
-Package documentation can be found here: [html](https://neoantigens.rech.io/reference/index.html) [pdf](https://get.rech.io/antigen.garnish.pdf).
+Package documentation can be found [here](https://neoantigens.rech.io/reference/index.html).
 
-### Workflow
+### Workflow example
 
   1. Prepare input for MHC affinity prediction and quality analysis:
 
@@ -108,7 +109,7 @@ Package documentation can be found here: [html](https://neoantigens.rech.io/refe
   1. Run ensemble prediction method and perform antigen quality analysis including proteome-wide differential agretopicity, IEDB alignment score, and dissimilarity: `garnish_affinity`.
   1. Summarize output by sample level with `garnish_summary` and `garnish_plot`, and prioritize the highest quality neoantigens per clone and sample with `garnish_antigens`.
 
-### Examples
+### Function examples
 
 #### Predict neoantigens from missense mutations, insertions, and deletions
 
