@@ -80,9 +80,9 @@ A data table of binding predictions including:
 \item \strong{mutant_index}: index of mutant peptide
 \item \strong{nmer}: nmer for prediction
 \item \strong{nmer_i}: index of nmer in sliding window
-\item \strong{\*_net}: netMHC prediction tool output
-\item \strong{mhcflurry_\}*: mhcflurry_ prediction tool output
-\item \strong{mhcnuggets_\}*: mhcnuggets_ prediction tool output
+\item \strong{_net}: netMHC prediction tool output
+\item \strong{mhcflurry_}: mhcflurry_ prediction tool output
+\item \strong{mhcnuggets_}: mhcnuggets_ prediction tool output
 \item \strong{DAI}: Differential agretopicty index of missense and corresponding wild-type peptide, see \code{garnish_summary} for an explanation of DAI.
 \item \strong{BLAST_A}: Ratio of consensus binding affinity of mutant peptide / closest single AA mismatch from blastp results. Returned only if \code{blast = TRUE}.
 }

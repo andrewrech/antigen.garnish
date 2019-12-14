@@ -1418,9 +1418,9 @@ parallel::mcMap(function(x, y) (x %>% as.integer):(y %>% as.integer) %>%
 #' * **mutant_index**: index of mutant peptide
 #' * **nmer**: nmer for prediction
 #' * **nmer_i**: index of nmer in sliding window
-#' * **\*_net**: netMHC prediction tool output
-#' * **mhcflurry_\***: mhcflurry_ prediction tool output
-#' * **mhcnuggets_\***: mhcnuggets_ prediction tool output
+#' * **_net**: netMHC prediction tool output
+#' * **mhcflurry_**: mhcflurry_ prediction tool output
+#' * **mhcnuggets_**: mhcnuggets_ prediction tool output
 #' * **DAI**: Differential agretopicty index of missense and corresponding wild-type peptide, see `garnish_summary` for an explanation of DAI.
 #' * **BLAST_A**: Ratio of consensus binding affinity of mutant peptide / closest single AA mismatch from blastp results. Returned only if `blast = TRUE`.
 #'

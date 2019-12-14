@@ -311,8 +311,8 @@ dtnv <- lapply(dt[, sample_id %>% unique], function(id){
 #' * **mhcnuggets_pred_gru**
 #' * **affinity(nM)_netMHC**
 #' * **affinity(nM)_netMHCpan**
-#' * **\%Rank_netMHC**
-#' * **\%Rank_netMHCpan**
+#' * **Rank_netMHC**
+#' * **Rank_netMHCpan**
 #' * **Ensemble_score**
 #' * **DAI**: Differential agretopicity of variant to corresponding wild-type, see `garnish_summary`.
 #' * **min_DAI**: The most conservative DAI value based on a global alignment to the wild-type proteome.
