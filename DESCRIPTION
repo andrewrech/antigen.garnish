@@ -1,14 +1,15 @@
 Package: antigen.garnish
-Version: 1.1.0
-Title: Ensemble Antigen Prediction and Quality Analysis from DNA Variants and Proteins in R
+Version: 1.1.1
+Title: Ensemble tumor neoantigen prediction and multi-parameter quality analysis from direct input, SNVs, indels, or gene fusion variants.
 Description: An R package for neoantigen analysis that takes human or murine DNA missense mutations, insertions, deletions, or RNASeq-derived gene fusions and performs ensemble neoantigen prediction using 7 algorithms. Input is a VCF file, JAFFA output, or table of peptides or transcripts. Outputs are ranked and summarized by sample. Neoantigens are ranked by MHC I/II binding affinity, clonality, RNA expression, similarity to known immunogenic antigens, and dissimilarity to the normal peptidome.
 Authors@R: c(
           person("Lee", "Richman", "P.", email = "leepr@upenn.edu", role = c("aut", "cre")),
           person("Robert", "Vonderheide", "H.", email = "rhv@upenn.edu", role = c("aut")),
           person("Andrew", "Rech", "J.", email = "rech@rech.io", role = c("aut")))
-License: What license it uses
+License: See LICENSE
 Encoding: UTF-8
 LazyData: true
+Roxygen: list(markdown = TRUE)
 RemoteUrl: https://neoantigens.io
 Depends: R (>= 3.5.0)
 RdMacros: Rdpack
@@ -40,4 +41,4 @@ Imports: colorspace,
        stringr,
        data.table,
        magrittr
-RoxygenNote: 6.1.1.9000
+RoxygenNote: 7.0.1.9000

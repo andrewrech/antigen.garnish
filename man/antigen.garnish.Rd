@@ -3,7 +3,6 @@
 \docType{package}
 \name{antigen.garnish}
 \alias{antigen.garnish}
-\alias{antigen.garnish-package}
 \title{\pkg{antigen.garnish}: ensemble neoantigen prediction from DNA variants in R.}
 \description{
 An R package for \href{http://science.sciencemag.org/content/348/6230/69}{neoantigen} analysis that takes human or murine DNA missense mutations, insertions, deletions, or RNASeq-derived gene fusions and performs ensemble neoantigen prediction using 7 algorithms. Input is a VCF file, \href{https://github.com/Oshlack/JAFFA}{JAFFA} output, or table of peptides or transcripts. Outputs are ranked and summarized by sample. Neoantigens are ranked by MHC I/II binding affinity, clonality, RNA expression, similarity to known immunogenic antigens, and dissimilarity to the normal peptidome.
@@ -31,7 +30,7 @@ Advantages
 }
 \itemize{
 \item 1000 variants are ranked in a single step in less than five minutes
-\item parallelized using \href{https://stat.ethz.ch/R-manual/R-devel/library/parallel/html/mclapply.html}{parallel::mclapply} and \href{https://github.com/Rdatatable/data.table/wiki}{data.table::setDTthreads}, see respective links for information on setting multicore usage
+\item parallelized using \href{https://stat.ethz.ch/R-manual/R-devel/library/parallel/html/mclapply.html}{\code{parallel::mclapply}} and \href{https://github.com/Rdatatable/data.table/wiki}{data.table::setDTthreads}, see respective links for information on setting multicore usage
 }
 \enumerate{
 \item \strong{Integration with R/Bioconductor}

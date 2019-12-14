@@ -4,9 +4,19 @@
 \alias{garnish_affinity}
 \title{Perform neoantigen prediction.}
 \usage{
-garnish_affinity(dt = NULL, path = NULL, binding_cutoff = 500,
-  counts = NULL, min_counts = 1, assemble = TRUE, generate = TRUE,
-  predict = TRUE, blast = TRUE, save = TRUE, remove_wt = TRUE)
+garnish_affinity(
+  dt = NULL,
+  path = NULL,
+  binding_cutoff = 500,
+  counts = NULL,
+  min_counts = 1,
+  assemble = TRUE,
+  generate = TRUE,
+  predict = TRUE,
+  blast = TRUE,
+  save = TRUE,
+  remove_wt = TRUE
+)
 }
 \arguments{
 \item{dt}{Data table. Input data table from \code{garnish_variants} or \code{garnish_jaffa}, or a data table in one of these forms:
@@ -70,9 +80,9 @@ A data table of binding predictions including:
 \item \strong{mutant_index}: index of mutant peptide
 \item \strong{nmer}: nmer for prediction
 \item \strong{nmer_i}: index of nmer in sliding window
-\item \strong{*_net}: netMHC prediction tool output
-\item \strong{mhcflurry_*}: mhcflurry_ prediction tool output
-\item \strong{mhcnuggets_*}: mhcnuggets_ prediction tool output
+\item \strong{\*_net}: netMHC prediction tool output
+\item \strong{mhcflurry_\}*: mhcflurry_ prediction tool output
+\item \strong{mhcnuggets_\}*: mhcnuggets_ prediction tool output
 \item \strong{DAI}: Differential agretopicty index of missense and corresponding wild-type peptide, see \code{garnish_summary} for an explanation of DAI.
 \item \strong{BLAST_A}: Ratio of consensus binding affinity of mutant peptide / closest single AA mismatch from blastp results. Returned only if \code{blast = TRUE}.
 }
@@ -85,7 +95,7 @@ clonality info:
 
 antigen.garnish quality analysis metric results
 \itemize{
-\item \strong{Ensemble_score}: average value of MHC binding affinity from all prediction tools that contributed output. 95\% confidence intervals are given by \strong{Upper_CI}, \strong{Lower_CI}.
+\item \strong{Ensemble_score}: average value of MHC binding affinity from all prediction tools that contributed output. 95\\% confidence intervals are given by \strong{Upper_CI}, \strong{Lower_CI}.
 \item \strong{iedb_score}: R implementation of TCR recognition probability for peptide through summing of alignments in IEDB for corresponding organism. See references herein.
 \item \strong{IEDB_anno}: The best alignment from the IEDB database queried for the sample if applicable.
 \item \strong{min_DAI}: Minimum of value of BLAST_A or DAI values, to provide the most conservative proteome-wide estimate of differential binding between input and wildtype matches.
@@ -109,7 +119,7 @@ Perform ensemble neoantigen prediction on a data table of missense mutations, in
 \details{
 \itemize{
 \item see \code{list_mhc} for compatible MHC allele syntax, you may also use "all_human" or "all_mouse" in the MHC column to use all supported alleles
-\item multiple MHC alleles for a single \code{sample_id} must be space separated. Murine and human alleles must be in separate rows. See \href{http://neoantigens.rech.io.s3-website-us-east-1.amazonaws.com/index.html#predict-neoantigens-from-missense-mutations-insertions-and-deletions}{README example}.
+\item multiple MHC alleles for a single \code{sample_id} must be space separated. Murine and human alleles must be in separate rows. See \href{http://neoantigens.rech.io.s3-website-us-east-1.amazonaws.com/index.html#predict-neoantigens-from-missense-mutations-insertions-and-deletions}{\code{README} example}.
 \item For species specific proteome-wide DAI to be calculated, run human and murine samples separately
 \item \code{garnish_score} is calculated if allelic fraction or tumor cellular fraction were provided
 }
