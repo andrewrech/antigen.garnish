@@ -35,18 +35,9 @@ An R package for [neoantigen](http://science.sciencemag.org/content/348/6230/69)
 
 Three methods exist to run `antigen.garnish`:
 
-<<<<<<< HEAD
-- Linux
-- R &ge; 3.4
-  - see [documentation](https://get.rech.io/antigen.garnish.pdf) `Imports` for R, [Biostrings](https://bioconductor.org/packages/release/bioc/html/Biostrings.html) package from Bioconductor
-- GNU parallel
-- python-pip
-- `sudo` is required to install prediction tool dependencies
-=======
 1. Docker
 2. Linux
 3. Amazon Web Services
->>>>>>> 29eabbf070aac3477daf1f1a5bff19cea87ce0f9
 
 ### Docker
 
