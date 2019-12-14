@@ -240,7 +240,7 @@ configure_netMHC_tools <- function(dir){
     cmd <- paste("curl -fsSL", link_to_data, ">", "dtu.tar.gz")
 
     suppressWarnings({
-    curl_status <- system(cmd, intern = TRUE)
+    curl_status <- system(cmd, intern = TRUE, ignore.stderr = TRUE)
     })
 
     if (!is.null(attr(curl_status, "status")) &&
@@ -256,12 +256,12 @@ configure_netMHC_tools <- function(dir){
       message(paste("Downloading data for", dirname(i), "on", un))
 
       suppressWarnings({
-      curl_status <- system(cmd, intern = TRUE)
+      curl_status <- system(cmd, intern = TRUE, ignore.stderr = TRUE)
       })
 
     }
 
-    if (!file.exists("dtu.tar.gz"))
+    if (!file.exists("dtu.tar.gz") || file.info("dtu.tar.gz")$size == 0)
     stop(paste("Unable to download data tar from DTU. See ReadMe in", file.path(dir, "netMHC", dirname(i))))
 
     # move it into the right folder and untar
