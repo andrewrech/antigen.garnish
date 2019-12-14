@@ -126,9 +126,6 @@ Perform ensemble neoantigen prediction on a data table of missense mutations, in
 }
 \examples{
 \dontrun{
-library(magrittr)
-library(data.table)
-library(antigen.garnish)
 
 # load an example VCF
 dir <- system.file(package = "antigen.garnish") \%>\%
@@ -161,10 +158,6 @@ file.path(dir, .) \%>\%
 \dontrun{
 # input a data table of transcripts
 
-library(magrittr)
-library(data.table)
-library(antigen.garnish)
-
  dt <- data.table::data.table(
           sample_id = "test",
           ensembl_transcript_id =
@@ -184,10 +177,6 @@ library(antigen.garnish)
 \dontrun{
 # input a data table of peptides for all human MHC types
 
-library(magrittr)
-library(data.table)
-library(antigen.garnish)
-
  dt <- data.table::data.table(
           sample_id = "test",
           pep_mut = "MTEYKLVVVGAGDVGKSALTIQLIQNHFVDEYDP",
@@ -199,10 +188,6 @@ library(antigen.garnish)
 
 \dontrun{
 # input from Microsoft excel
-
-library(magrittr)
-library(data.table)
-library(antigen.garnish)
 
 # load an example excel file
  dir <- system.file(package = "antigen.garnish") \%>\%

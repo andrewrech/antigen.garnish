@@ -45,9 +45,6 @@ For sample-level summary statistics, see \code{\link{garnish_summary}}, and for 
 }
 \examples{
 \dontrun{
-library(magrittr)
-library(data.table)
-library(antigen.garnish)
 
 # load an example VCF
 dir <- system.file(package = "antigen.garnish") \%>\%

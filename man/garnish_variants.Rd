@@ -46,9 +46,6 @@ Recommended workflow:
 }
 \examples{
 \dontrun{
-library(magrittr)
-library(data.table)
-library(antigen.garnish)
 
  # load an example VCF
  dir <- system.file(package = "antigen.garnish") \%>\%

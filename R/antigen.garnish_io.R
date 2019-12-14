@@ -7,9 +7,6 @@
 #'
 #' @examples
 #'\dontrun{
-#'library(magrittr)
-#'library(data.table)
-#'library(antigen.garnish)
 #'
 #'# load an example VCF
 #'	dir <- system.file(package = "antigen.garnish") %>%
@@ -328,9 +325,6 @@ dtnv <- lapply(dt[, sample_id %>% unique], function(id){
 #'
 #' @examples
 #'\dontrun{
-#'library(magrittr)
-#'library(data.table)
-#'library(antigen.garnish)
 #'
 #'# load an example VCF
 #'	dir <- system.file(package = "antigen.garnish") %>%
@@ -509,9 +503,6 @@ garnish_slim <- function(dt, slimmer = TRUE){
 #'
 #' @examples
 #'\dontrun{
-#'library(magrittr)
-#'library(data.table)
-#'library(antigen.garnish)
 #'
 #'  # load an example VCF
 #'  dir <- system.file(package = "antigen.garnish") %>%
@@ -749,9 +740,6 @@ sdt %<>%
 #'
 #' @examples
 #'\dontrun{
-#'library(magrittr)
-#'library(data.table)
-#'library(antigen.garnish)
 #'
 #'# load example output
 #'  dir <- system.file(package = "antigen.garnish") %>%

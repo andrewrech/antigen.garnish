@@ -21,9 +21,6 @@ Plot ADN, CDN, priority, frameshift, and fusion derived \code{nmers} for class I
 }
 \examples{
 \dontrun{
-library(magrittr)
-library(data.table)
-library(antigen.garnish)
 
 # load example output
  dir <- system.file(package = "antigen.garnish") \%>\%
