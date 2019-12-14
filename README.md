@@ -95,7 +95,7 @@ See the [wiki](https://github.com/immune-health/antigen.garnish/wiki/antigen.gar
 
 ## Package documentation
 
-Package documentation can be found [here](https://neoantigens.rech.io/reference/index.html).
+Package documentation can be found: [website](https://neoantigens.rech.io/reference/index.html), [pdf](https://get.rech.io/antigen.garnish.pdf).
 
 ### Workflow example
 
