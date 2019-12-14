@@ -237,6 +237,142 @@ ag_data_err <- function(){
 
 }
 
+#' Internal function to configure netMHC suite of tools
+#'
+#' @param dir Character vector. Path to `antigen.garnish` data directory.
+#'
+#' @export configure_netMHC_tools
+#' @md
+
+configure_netMHC_tools <- function(dir){
+
+  owd <- getwd()
+
+  on.exit({setwd(owd)})
+
+  # netMHC parent dir in ag data dir
+  npd <- file.path(dir, "netMHC")
+
+  if (!dir.exists(npd))
+    stop("netMHC parent directory in antigen.garnish data directory not found.")
+
+  # get path to scripts
+  setwd(npd)
+
+  tool_paths <- list.files()
+
+  f <- lapply(tool_paths, function(i){
+
+    # pattern to find netMHC scripts
+    list.files(i, pattern = "netMHC(II)?(pan)?-?([0-9]\\.[0-9])?$",
+        full.names = TRUE, ignore.case = TRUE)
+
+  }) %>% unlist
+
+  message("Checking netMHC scripts in antigen.garnish data directory.")
+  # sed scripts to correct paths
+  # install data from DTU
+  io <- lapply(f, function(i){
+
+    # rename to take off version, necessary because commands are built into table
+    # in get_pred_commands and check_pred_tools hasn't run at that point
+    io <- file.path(dirname(i),
+    basename(i) %>% stringr::str_replace("-.*$", ""))
+
+    line <- file.path(dir, "netMHC", dirname(i))
+
+    # downloading the data takes a long time, must check if loop already ran
+    catfile <- system(paste("cat", i), intern = TRUE) %>%
+      stringr::str_replace_all("/", "")
+
+    # adjust patterns to have no slashes
+    p1 <- line %>% stringr::str_replace_all("/", "")
+
+    # if correct directory is already in the script, skip
+    if (any(grepl(catfile, pattern = p1)))
+      return(io)
+
+    # properly escape for sed call
+    line <- paste("setenv NMHOME ", line %>% stringr::str_replace_all("/", "\\\\/"), sep = "")
+    line2 <- paste("setenv TMPDIR ", "$HOME", sep = "")
+
+    # formatting for these links is  not consistent,  try no uname first
+    # netMHC is always capitalized in the links it seems
+    # dirname(i) will always have version number
+    link_to_data <- paste0("http://www.cbs.dtu.dk/services/",
+        dirname(i) %>% stringr::str_replace("net", "Net"),
+        "/data.tar.gz")
+
+    cmd <- paste("curl -fsSL", link_to_data, ">", "dtu.tar.gz")
+
+    suppressWarnings({
+    curl_status <- system(cmd, intern = TRUE)
+    })
+
+    if (!is.null(attr(curl_status, "status")) &&
+        attr(curl_status, "status") == 22){
+
+      un <- system("uname -s", intern = TRUE)
+
+      if (!un %chin% c("Linux")) stop("Linux only.")
+
+      cmd <- cmd %>%
+      stringr::str_replace("data\\.tar\\.gz", paste0("data.", un, ".tar.gz"))
+
+      message(paste("Downloading data for", dirname(i), "on", un))
+
+      suppressWarnings({
+      curl_status <- system(cmd, intern = TRUE)
+      })
+
+    }
+
+    if (!file.exists("dtu.tar.gz"))
+    stop(paste("Unable to download data tar from DTU. See ReadMe in", file.path(dir, "netMHC", dirname(i))))
+
+    # move it into the right folder and untar
+    dtar <- file.path(dirname(i), "dtu.tar.gz")
+
+    file.rename("dtu.tar.gz", dtar)
+
+    setwd(dirname(i))
+
+    system(paste("tar -xzvf", basename(dtar)))
+
+    setwd(npd)
+
+    # versionless backup file
+    bk <- paste0(io, ".bk")
+
+    if (!file.exists(bk)) file.rename(i, bk)
+
+    cmd <- paste("cat ", bk, " | ",
+    # place holders for variable references
+    "sed 's/\\$NMHOME/placeholderxxx/' | ",
+    "sed 's/\\$TMPDIR/placeholderyyy/' | ",
+    "sed 's/setenv.*NMHOME.*$/", line, "/' | ",
+    # reset placeholder
+    "sed 's/placeholderxxx/$NMHOME/' | ",
+    "sed 's/setenv.*TMPDIR.*$/", line2, "/' | ",
+    # reset placeholder
+    "sed 's/placeholderyyy/$TMPDIR/' > ", io, sep = "")
+
+    system(cmd)
+
+    system(paste("chmod u+x", io))
+
+    return(io)
+
+  }) %>% unlist
+
+  message("Done.")
+
+  setwd(owd)
+
+  return(io)
+
+}
+
 #' Internal function to check for netMHC tools, mhcflurry and mhcnuggets
 #'
 #' @param ag_dirs Character vector. Directories to check for `antigen.garnish` data directory.
@@ -285,12 +421,11 @@ check_pred_tools <- function(ag_dirs = c(
 
    }
 
+  scripts <- configure_netMHC_tools(ag_dir)
+
   default_path <- paste0(ag_dir,
-                  c(
-                    "/netMHC/netMHC-4.0",
-                    "/netMHC/netMHCII-2.2",
-                    "/netMHC/netMHCIIpan-3.1",
-                    "/netMHC/netMHCpan-3.0",
+                  c(file.path("/netMHC",
+                  list.files(file.path(ag_dir, "netMHC"))),
                     "/mhcnuggets/scripts"
                     )) %>%
                       normalizePath %>%
@@ -314,26 +449,19 @@ check_pred_tools <- function(ag_dirs = c(
           message("mhcflurry-predict is not in PATH\n       Download: https://github.com/hammerlab/mhcflurry")
         tool_status$mhcflurry <- FALSE
         }
-    if (suppressWarnings(system('which netMHC 2> /dev/null', intern = TRUE)) %>%
-          length == 0){
-            message("netMHC is not in PATH\n       Download: http://www.cbs.dtu.dk/services/NetMHC/")
-          tool_status$netMHC <- FALSE
-          }
-    if (suppressWarnings(system('which netMHCpan 2> /dev/null', intern = TRUE)) %>%
-          length == 0){
-            message("netMHCpan is not in PATH\n       Download: http://www.cbs.dtu.dk/services/NetMHCpan/")
-          tool_status$netMHCpan <- FALSE
-          }
-    if (suppressWarnings(system('which netMHCII 2> /dev/null', intern = TRUE)) %>%
-          length == 0){
-            message("netMHCII is not in PATH\n       Download: http://www.cbs.dtu.dk/services/NetMHCII/")
-          tool_status$netMHCII <- FALSE
-          }
-    if (suppressWarnings(system('which netMHCIIpan 2> /dev/null', intern = TRUE)) %>%
-          length == 0){
-            message("netMHCIIpan is not in PATH\n       Download: http://www.cbs.dtu.dk/services/NetMHCIIpan/")
-          tool_status$netMHCIIpan <- FALSE
-         }
+
+    lapply(scripts, function(i){
+
+      f <- basename(i)
+
+      if (suppressWarnings(system(paste("which", f, "2> /dev/null"), intern = TRUE)) %>%
+            length == 0){
+              message(paste(f, " is not in PATH\n       Download: http://www.cbs.dtu.dk/services/"), sep = "")
+            tool_status[[f]] <- FALSE
+      }
+
+    })
+
     if (suppressWarnings(system('which predict.py 2> /dev/null', intern = TRUE)) %>%
           length == 0){
             message("mhcnuggets predict.py is not in PATH\n       Download: https://github.com/KarchinLab/mhcnuggets")

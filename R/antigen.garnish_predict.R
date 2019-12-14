@@ -2157,6 +2157,10 @@ dtl <- lapply(1:nrow(dt), function(i){
 
     if ("DAI" %chin% names(dt)){
 
+      # edge case with small table or deliberately not running blast
+      if (!"min_DAI" %chin% names(dt))
+        dt[, min_DAI := DAI]
+
       v <- 1:nrow(dt[!is.na(DAI)])
 
       if (nrow(dt[!is.na(DAI)]) != 0)
@@ -2173,13 +2177,6 @@ dtl <- lapply(1:nrow(dt), function(i){
   gplot_fn <- format(Sys.time(), "%d/%m/%y %H:%M:%OS") %>%
                   stringr::str_replace_all("[^A-Za-z0-9]", "_") %>%
                   stringr::str_replace_all("[_]+", "_")
-
-  if (file.exists("Luksza_model_output.txt")){
-    file.copy("Luksza_model_output.txt",
-                file.path(original_dir,
-                paste("Luksza_model_output_", gplot_fn, ".txt", sep = ""))
-                )
-                  }
 
    if (save){
 

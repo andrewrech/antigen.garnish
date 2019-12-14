@@ -24,7 +24,11 @@ README <- function(){
     # predict neoantigens
       garnish_affinity
 
-      testthat::expect_true(dt %>% nrow == 483)
+      # this length can vary if prediction tool versions drop allele coverage
+      # eg newest netMHC drops A01:47, so don't check row numbers of table or
+      # number of unique MHC types
+      testthat::expect_true(dt[pep_type == "mutnfs",
+                            nmer %>% unique %>% length] == 91)
       testthat::expect_true(dt[, nmer %>% unique %>% length] == 184)
 
     })
