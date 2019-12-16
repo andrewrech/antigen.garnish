@@ -385,7 +385,7 @@ garnish_slim <- function(dt, slimmer = TRUE){
   class_I_prediction_cols <- c("mhcflurry_prediction", "mhcflurry_prediction_percentile",
                               "mhcnuggets_pred_lstm", "mhcnuggets_pred_gru",
                               "affinity(nM)_netMHC", "%Rank_netMHC",
-                              "affinity(nM)_netMHCpan", "%Rank_netMHCpan")
+                              "%Rank_netMHCpan")
 
   if (slimmer)
     class_I_prediction_cols %<>% .[which(!class_I_prediction_cols %like% "(%Ran)|(percentile)")]
