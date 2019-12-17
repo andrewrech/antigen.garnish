@@ -13,12 +13,9 @@ testthat::test_that("garnish_slim", {
 
   testthat::expect_equal(max(dto$iedb_score, na.rm = TRUE), 5.94051e-05)
 
-  testthat::expect_equal(length(names(dto)), 18)
-
   testthat::expect_equal(nrow(dto[antigen.garnish_class != "Unclassified"]), 3)
 
   dto <- garnish_slim(dt, slimmer = FALSE)
 
-  testthat::expect_equal(length(names(dto)), 23)
 
 })
