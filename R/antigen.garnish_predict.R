@@ -4,10 +4,6 @@
 #' @param v Character. Vector of nmers.
 #' @param db Character. One of c("mouse", "human")
 #'
-#' @import stringr
-#' @import data.table
-#' @import magrittr
-#'
 #' @return Data table of nmers and corresponding iedb_score values.
 #'
 #' @export iedb_score
@@ -202,10 +198,6 @@ check_pred_tools()
 #' @param db Character. One of c("mouse", "human").
 #' @param kval Numeric. Steepness of sigmoidal curve at k. Default 4.86936, the value used in the analysis of Van Allen, Snyder, Rizvi, Riaz, and Hellmann datasets.
 #' @param aval Numeric. Optionally can be "mean" to use mean alignment for nmers passed. Horizontal displacement of partition function. Default is 32, based on max_SW of 75 million 8-15mers from the five clinical datasets against human, if using max_SW, use 52. This value may not be meaningful for murine alignment so use with care.
-#'
-#' @import stringr
-#' @import data.table
-#' @import magrittr
 #'
 #' @return Data table of nmers and corresponding dissimilarity values (to the non-mutated proteome).
 #'
@@ -1426,9 +1418,9 @@ parallel::mcMap(function(x, y) (x %>% as.integer):(y %>% as.integer) %>%
 #' * **mutant_index**: index of mutant peptide
 #' * **nmer**: nmer for prediction
 #' * **nmer_i**: index of nmer in sliding window
-#' * **\*_net**: netMHC prediction tool output
-#' * **mhcflurry_\***: mhcflurry_ prediction tool output
-#' * **mhcnuggets_\***: mhcnuggets_ prediction tool output
+#' * **_net**: netMHC prediction tool output
+#' * **mhcflurry_**: mhcflurry_ prediction tool output
+#' * **mhcnuggets_**: mhcnuggets_ prediction tool output
 #' * **DAI**: Differential agretopicty index of missense and corresponding wild-type peptide, see `garnish_summary` for an explanation of DAI.
 #' * **BLAST_A**: Ratio of consensus binding affinity of mutant peptide / closest single AA mismatch from blastp results. Returned only if `blast = TRUE`.
 #'
@@ -1464,9 +1456,6 @@ parallel::mcMap(function(x, y) (x %>% as.integer):(y %>% as.integer) %>%
 #'
 #' @examples
 #'\dontrun{
-#'library(magrittr)
-#'library(data.table)
-#'library(antigen.garnish)
 #'
 #'# load an example VCF
 #'	dir <- system.file(package = "antigen.garnish") %>%
@@ -1499,10 +1488,6 @@ parallel::mcMap(function(x, y) (x %>% as.integer):(y %>% as.integer) %>%
 #'\dontrun{
 #'# input a data table of transcripts
 #'
-#'library(magrittr)
-#'library(data.table)
-#'library(antigen.garnish)
-#'
 #'  dt <- data.table::data.table(
 #'           sample_id = "test",
 #'           ensembl_transcript_id =
@@ -1522,10 +1507,6 @@ parallel::mcMap(function(x, y) (x %>% as.integer):(y %>% as.integer) %>%
 #'\dontrun{
 #'# input a data table of peptides for all human MHC types
 #'
-#'library(magrittr)
-#'library(data.table)
-#'library(antigen.garnish)
-#'
 #'  dt <- data.table::data.table(
 #'           sample_id = "test",
 #'           pep_mut = "MTEYKLVVVGAGDVGKSALTIQLIQNHFVDEYDP",
@@ -1537,10 +1518,6 @@ parallel::mcMap(function(x, y) (x %>% as.integer):(y %>% as.integer) %>%
 #'
 #'\dontrun{
 #'# input from Microsoft excel
-#'
-#'library(magrittr)
-#'library(data.table)
-#'library(antigen.garnish)
 #'
 #'# load an example excel file
 #'  dir <- system.file(package = "antigen.garnish") %>%

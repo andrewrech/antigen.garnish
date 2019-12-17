@@ -200,8 +200,6 @@ peptides_wt <- function(){
                               unique %>% signif(digits = 3)] == 0.272)
       testthat::expect_true(dt[pep_type %like% "mut", nmer %>%
                             unique %>% length] == 154)
-      testthat::expect_true(dt[!is.na(iedb_score)] %>%
-                            nrow == 4)
       })
   }
 

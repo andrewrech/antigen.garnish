@@ -37,7 +37,6 @@
 #' @import ggplot2
 #' @import knitr
 #' @import mclust
-#' @import mclust
 #' @import parallel
 #' @import stringr
 #' @importFrom testthat expect_equal expect_equivalent expect_gt expect_true skip succeed test_that

@@ -7,9 +7,6 @@
 #'
 #' @examples
 #'\dontrun{
-#'library(magrittr)
-#'library(data.table)
-#'library(antigen.garnish)
 #'
 #'# load an example VCF
 #'	dir <- system.file(package = "antigen.garnish") %>%
@@ -314,8 +311,8 @@ dtnv <- lapply(dt[, sample_id %>% unique], function(id){
 #' * **mhcnuggets_pred_gru**
 #' * **affinity(nM)_netMHC**
 #' * **affinity(nM)_netMHCpan**
-#' * **\%Rank_netMHC**
-#' * **\%Rank_netMHCpan**
+#' * **Rank_netMHC**
+#' * **Rank_netMHCpan**
 #' * **Ensemble_score**
 #' * **DAI**: Differential agretopicity of variant to corresponding wild-type, see `garnish_summary`.
 #' * **min_DAI**: The most conservative DAI value based on a global alignment to the wild-type proteome.
@@ -328,9 +325,6 @@ dtnv <- lapply(dt[, sample_id %>% unique], function(id){
 #'
 #' @examples
 #'\dontrun{
-#'library(magrittr)
-#'library(data.table)
-#'library(antigen.garnish)
 #'
 #'# load an example VCF
 #'	dir <- system.file(package = "antigen.garnish") %>%
@@ -391,7 +385,7 @@ garnish_slim <- function(dt, slimmer = TRUE){
   class_I_prediction_cols <- c("mhcflurry_prediction", "mhcflurry_prediction_percentile",
                               "mhcnuggets_pred_lstm", "mhcnuggets_pred_gru",
                               "affinity(nM)_netMHC", "%Rank_netMHC",
-                              "affinity(nM)_netMHCpan", "%Rank_netMHCpan")
+                              "%Rank_netMHCpan")
 
   if (slimmer)
     class_I_prediction_cols %<>% .[which(!class_I_prediction_cols %like% "(%Ran)|(percentile)")]
@@ -509,9 +503,6 @@ garnish_slim <- function(dt, slimmer = TRUE){
 #'
 #' @examples
 #'\dontrun{
-#'library(magrittr)
-#'library(data.table)
-#'library(antigen.garnish)
 #'
 #'  # load an example VCF
 #'  dir <- system.file(package = "antigen.garnish") %>%
@@ -749,9 +740,6 @@ sdt %<>%
 #'
 #' @examples
 #'\dontrun{
-#'library(magrittr)
-#'library(data.table)
-#'library(antigen.garnish)
 #'
 #'# load example output
 #'  dir <- system.file(package = "antigen.garnish") %>%

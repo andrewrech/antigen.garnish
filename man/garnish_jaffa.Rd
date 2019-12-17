@@ -34,8 +34,6 @@ Process \href{https://github.com/Oshlack/JAFFA}{JAFFA} gene fusion \code{fasta} 
 }
 \examples{
 \dontrun{
-library(magrittr)
-library(antigen.garnish)
 
  # load example jaffa output
  dir <- system.file(package = "antigen.garnish") \%>\%

@@ -26,8 +26,8 @@ A slimmed down data table from \code{garnish_affinity} output with minimal infor
 \item \strong{mhcnuggets_pred_gru}
 \item \strong{affinity(nM)_netMHC}
 \item \strong{affinity(nM)_netMHCpan}
-\item \strong{\%Rank_netMHC}
-\item \strong{\%Rank_netMHCpan}
+\item \strong{Rank_netMHC}
+\item \strong{Rank_netMHCpan}
 \item \strong{Ensemble_score}
 \item \strong{DAI}: Differential agretopicity of variant to corresponding wild-type, see \code{garnish_summary}.
 \item \strong{min_DAI}: The most conservative DAI value based on a global alignment to the wild-type proteome.
@@ -45,9 +45,6 @@ For sample-level summary statistics, see \code{\link{garnish_summary}}, and for 
 }
 \examples{
 \dontrun{
-library(magrittr)
-library(data.table)
-library(antigen.garnish)
 
 # load an example VCF
 dir <- system.file(package = "antigen.garnish") \%>\%
