@@ -26,7 +26,7 @@ An R package for [neoantigen](http://science.sciencemag.org/content/348/6230/69)
 		* dissimilarity to the normal peptidome
 2. **Speed and simplicity**:
 	* 1000 variants are ranked in a single step in less than five minutes
-	* parallelized using [`parallel::mclapply`](https://stat.ethz.ch/R-manual/R-devel/library/parallel/html/mclapply.html) and [data.table::setDTthreads](https://github.com/Rdatatable/data.table/wiki), see respective links for information on setting multicore usage
+	* parallelized using [`parallel::mclapply`](https://stat.ethz.ch/R-manual/R-devel/library/parallel/html/mclapply.html), [`data.table::setDTthreads`](https://github.com/Rdatatable/data.table/wiki), and [GNU parallel](https://www.gnu.org/software/parallel/) see respective links for information on setting multicore usage
 3. **Integration with R/Bioconductor**
 	* upstream/VCF processing
 	* exploratory data analysis, visualization
