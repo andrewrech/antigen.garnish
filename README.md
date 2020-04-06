@@ -55,6 +55,7 @@ See the [wiki](https://github.com/immune-health/antigen.garnish/wiki/Docker) for
 - python-pip
 - tcsh (required for netMHC)
 - `sudo` privileges (required for netMHC)
+- GNU Parallel (required for master branch development version only)
 
 #### Installation script
 
@@ -93,7 +94,7 @@ chmod 700 -R "$ANTIGEN_GARNISH_DIR/netMHC"
 
 See the [wiki](https://github.com/immune-health/antigen.garnish/wiki/antigen.garnish-on-AWS) for instructions to create an Amazon Web Services instance.
 
-### Development version from source
+### Development version from master
 
 Follow instructions above under _Installation script_ to install dependencies, and then:
 
