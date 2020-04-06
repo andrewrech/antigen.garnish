@@ -12,6 +12,7 @@ garnish_affinity(
   min_counts = 1,
   assemble = TRUE,
   generate = TRUE,
+  peptide_length = 15:8,
   predict = TRUE,
   blast = TRUE,
   save = TRUE,
@@ -53,6 +54,8 @@ MHC                         <same as above>
 \item{assemble}{Logical. Assemble data table?}
 
 \item{generate}{Logical. Generate peptides?}
+
+\item{peptide_length}{Numeric vector. Length(s) of peptides to create.}
 
 \item{predict}{Logical. Predict binding affinities?}
 
@@ -129,76 +132,83 @@ Perform ensemble neoantigen prediction on a data table of missense mutations, in
 
 # load an example VCF
 dir <- system.file(package = "antigen.garnish") \%>\%
-	file.path(., "extdata/testdata")
+  file.path(., "extdata/testdata")
 
 dt <- "antigen.garnish_example.vcf" \%>\%
-file.path(dir, .) \%>\%
+  file.path(dir, .) \%>\%
 
-# extract variants
-   garnish_variants \%>\%
+  # extract variants
+  garnish_variants() \%>\%
 
-# add space separated MHC types
-# see list_mhc() for nomenclature of supported alleles
+  # add space separated MHC types
+  # see list_mhc() for nomenclature of supported alleles
 
-    .[, MHC := c("HLA-A*01:47 HLA-A*02:01 HLA-DRB1*14:67")] \%>\%
+  .[, MHC := c("HLA-A*01:47 HLA-A*02:01 HLA-DRB1*14:67")] \%>\%
 
-# predict neoantigens
-   garnish_affinity
+  # predict neoantigens
+  garnish_affinity()
 
 # summarize predictions
-  dt \%>\%
-    garnish_summary \%T>\%
-      print
+dt \%>\%
+  garnish_summary() \%T>\%
+  print
 
 # generate summary graphs
-  dt \%>\% garnish_plot
-
+dt \%>\% garnish_plot()
 }
 
 \dontrun{
 # input a data table of transcripts
 
- dt <- data.table::data.table(
-          sample_id = "test",
-          ensembl_transcript_id =
-          c("ENSMUST00000128119",
-            "ENSMUST00000044250",
-            "ENSMUST00000018743"),
-          cDNA_change = c("c.4988C>T",
-                          "c.1114T>G",
-                          "c.718T>A"),
-          MHC = c("HLA-A*02:01 HLA-DRB1*14:67",
-                  "H-2-Kb H-2-IAd",
-                  "HLA-A*01:47 HLA-DRB1*03:08")) \%>\%
- garnish_affinity \%T>\%
- str
+dt <- data.table::data.table(
+  sample_id = "test",
+  ensembl_transcript_id =
+    c(
+      "ENSMUST00000128119",
+      "ENSMUST00000044250",
+      "ENSMUST00000018743"
+    ),
+  cDNA_change = c(
+    "c.4988C>T",
+    "c.1114T>G",
+    "c.718T>A"
+  ),
+  MHC = c(
+    "HLA-A*02:01 HLA-DRB1*14:67",
+    "H-2-Kb H-2-IAd",
+    "HLA-A*01:47 HLA-DRB1*03:08"
+  )
+) \%>\%
+  garnish_affinity() \%T>\%
+  str
 }
 
 \dontrun{
 # input a data table of peptides for all human MHC types
 
- dt <- data.table::data.table(
-          sample_id = "test",
-          pep_mut = "MTEYKLVVVGAGDVGKSALTIQLIQNHFVDEYDP",
-          mutant_index = "12",
-          MHC = "HLA-A*02:01 HLA-A*68:01 HLA-B*07:02") \%>\%
- garnish_affinity \%T>\%
- str
+dt <- data.table::data.table(
+  sample_id = "test",
+  pep_mut = "MTEYKLVVVGAGDVGKSALTIQLIQNHFVDEYDP",
+  mutant_index = "12",
+  MHC = "HLA-A*02:01 HLA-A*68:01 HLA-B*07:02"
+) \%>\%
+  garnish_affinity() \%T>\%
+  str
 }
 
 \dontrun{
 # input from Microsoft excel
 
 # load an example excel file
- dir <- system.file(package = "antigen.garnish") \%>\%
- file.path(., "extdata/testdata")
+dir <- system.file(package = "antigen.garnish") \%>\%
+  file.path(., "extdata/testdata")
 
- path <- "antigen.garnish_test_input.xlsx" \%>\%
- file.path(dir, .)
+path <- "antigen.garnish_test_input.xlsx" \%>\%
+  file.path(dir, .)
 
 # predict neoantigens
- dt <- garnish_affinity(path = path) \%T>\%
-   str
+dt <- garnish_affinity(path = path) \%T>\%
+  str
 }
 
 }

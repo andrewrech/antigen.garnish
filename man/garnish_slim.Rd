@@ -48,29 +48,29 @@ For sample-level summary statistics, see \code{\link{garnish_summary}}, and for 
 
 # load an example VCF
 dir <- system.file(package = "antigen.garnish") \%>\%
-	file.path(., "extdata/testdata")
+  file.path(., "extdata/testdata")
 
 dt <- "antigen.garnish_example.vcf" \%>\%
-file.path(dir, .) \%>\%
+  file.path(dir, .) \%>\%
 
-# extract variants
-   garnish_variants \%>\%
+  # extract variants
+  garnish_variants() \%>\%
 
-# add space separated MHC types
-# see list_mhc() for nomenclature of supported alleles
+  # add space separated MHC types
+  # see list_mhc() for nomenclature of supported alleles
 
-    .[, MHC := c("HLA-A*01:47 HLA-A*02:01 HLA-DRB1*14:67")] \%>\%
+  .[, MHC := c("HLA-A*01:47 HLA-A*02:01 HLA-DRB1*14:67")] \%>\%
 
-# predict neoantigens
-   garnish_affinity
+  # predict neoantigens
+  garnish_affinity()
 
 # summarize predictions
-  dt \%>\%
-    garnish_summary \%T>\%
-      print
+dt \%>\%
+  garnish_summary() \%T>\%
+  print
 
 # generate summary graphs
-  dt \%>\% garnish_plot
+dt \%>\% garnish_plot()
 }
 
 }

@@ -47,16 +47,16 @@ Recommended workflow:
 \examples{
 \dontrun{
 
- # load an example VCF
- dir <- system.file(package = "antigen.garnish") \%>\%
-   file.path(., "extdata/testdata")
+# load an example VCF
+dir <- system.file(package = "antigen.garnish") \%>\%
+  file.path(., "extdata/testdata")
 
-   dt <- "antigen.garnish_example.vcf" \%>\%
-   file.path(dir, .) \%>\%
+dt <- "antigen.garnish_example.vcf" \%>\%
+  file.path(dir, .) \%>\%
 
- # extract variants
-   garnish_variants \%T>\%
-   str
+  # extract variants
+  garnish_variants() \%T>\%
+  str
 }
 
 }

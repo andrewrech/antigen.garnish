@@ -29,9 +29,9 @@ A summary data table of \code{dt} by \code{sample_id} with the following columns
 \item \strong{transcripts}: total transcripts evaluated
 }
 
-\strong{Additional information}
+** Additional information**
 
-\strong{Differential agretopicity index (DAI)} expresses the degree to which peptide binding to MHC class I or II differ due to the presence of a non-synonymous mutation. \strong{Alternatively defined neoantigens (ADNs)} are mutant peptides predicted to bind MHC class I or II with greatly improved affinity relative to non-mutated counterparts (\emph{i.e.} peptides with high DAI). In mice, selection of peptides with high DAI results in a substantially improved rate of experimentally validated epitopes that mediate protection from tumor growth.
+** Differential agretopicity index (DAI)** expresses the degree to which peptide binding to MHC class I or II differ due to the presence of a non-synonymous mutation. \strong{Alternatively defined neoantigens (ADNs)} are mutant peptides predicted to bind MHC class I or II with greatly improved affinity relative to non-mutated counterparts (\emph{i.e.} peptides with high DAI). In mice, selection of peptides with high DAI results in a substantially improved rate of experimentally validated epitopes that mediate protection from tumor growth.
 
 To determine DAI, mutant peptides that at least minimally bind MHC class I or II (> 500nM \eqn{IC_{50}}) are selected and then DAI is calculated as the fold-change in binding affinity between non-mutant and mutant peptides. ADNs are identified as mutant peptides with DAI > 10 for MHC class I and > 4 for class II.
 
@@ -47,29 +47,29 @@ Calculate neoantigen summary statistics for priority, classic, alternative, fram
 
 # load an example VCF
 dir <- system.file(package = "antigen.garnish") \%>\%
-	file.path(., "extdata/testdata")
+  file.path(., "extdata/testdata")
 
 dt <- "antigen.garnish_example.vcf" \%>\%
-file.path(dir, .) \%>\%
+  file.path(dir, .) \%>\%
 
-# extract variants
-   garnish_variants \%>\%
+  # extract variants
+  garnish_variants() \%>\%
 
-# add space separated MHC types
-# see list_mhc() for nomenclature of supported alleles
+  # add space separated MHC types
+  # see list_mhc() for nomenclature of supported alleles
 
-    .[, MHC := c("HLA-A*01:47 HLA-A*02:01 HLA-DRB1*14:67")] \%>\%
+  .[, MHC := c("HLA-A*01:47 HLA-A*02:01 HLA-DRB1*14:67")] \%>\%
 
-# predict neoantigens
-   garnish_affinity
+  # predict neoantigens
+  garnish_affinity()
 
 # summarize predictions
-  dt \%>\%
-    garnish_summary \%T>\%
-      print
+dt \%>\%
+  garnish_summary() \%T>\%
+  print
 
 # generate summary graphs
-  dt \%>\% garnish_plot
+dt \%>\% garnish_plot()
 }
 }
 \references{

@@ -23,15 +23,14 @@ Plot ADN, CDN, priority, frameshift, and fusion derived \code{nmers} for class I
 \dontrun{
 
 # load example output
- dir <- system.file(package = "antigen.garnish") \%>\%
-   file.path(., "extdata/testdata")
+dir <- system.file(package = "antigen.garnish") \%>\%
+  file.path(., "extdata/testdata")
 
-   "antigen.garnish_PureCN_example_output.txt" \%>\%
-   file.path(dir, .) \%>\%
+"antigen.garnish_PureCN_example_output.txt" \%>\%
+  file.path(dir, .) \%>\%
 
-# create plot
-   garnish_plot
-
+  # create plot
+  garnish_plot()
 }
 
 }

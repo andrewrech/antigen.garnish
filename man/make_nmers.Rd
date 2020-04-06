@@ -4,10 +4,12 @@
 \alias{make_nmers}
 \title{Internal function for parallelized \code{nmer} creation.}
 \usage{
-make_nmers(dt)
+make_nmers(dt, plen = 8:15)
 }
 \arguments{
 \item{dt}{Data table. Input data table from \code{garnish_affinity}.}
+
+\item{plen}{Numeric vector. Length(s) of peptides to create.}
 }
 \description{
 Internal function for parallelized \code{nmer} creation.

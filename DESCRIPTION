@@ -1,37 +1,59 @@
 Package: antigen.garnish
+Title: Ensemble tumor neoantigen prediction and multi-parameter
+    quality analysis from direct input, SNVs, indels, or gene fusion
+    variants
 Version: 1.1.1
-Title: Ensemble tumor neoantigen prediction and multi-parameter quality analysis from direct input, SNVs, indels, or gene fusion variants
-Description: An R package for neoantigen analysis that takes human or murine DNA missense mutations, insertions, deletions, or RNASeq-derived gene fusions and performs ensemble neoantigen prediction using 7 algorithms. Input is a VCF file, JAFFA output, or table of peptides or transcripts. Outputs are ranked and summarized by sample. Neoantigens are ranked by MHC I/II binding affinity, clonality, RNA expression, similarity to known immunogenic antigens, and dissimilarity to the normal peptidome.
-Authors@R: c(
-          person("Lee", "Richman", "P.", email = "leepr@upenn.edu", role = c("aut", "cre")),
-          person("Robert", "Vonderheide", "H.", email = "rhv@upenn.edu", role = c("aut")),
-          person("Andrew", "Rech", "J.", email = "rech@rech.io", role = c("aut")))
+Authors@R: 
+    c(person(given = c("Lee", "P."),
+             family = "Richman",
+             role = c("aut", "cre"),
+             email = "leepr@upenn.edu"),
+      person(given = c("Robert", "H."),
+             family = "Vonderheide",
+             role = "aut",
+             email = "rhv@upenn.edu"),
+      person(given = c("Andrew", "J."),
+             family = "Rech",
+             role = "aut",
+             email = "rech@rech.io"))
+Description: An R package for neoantigen analysis that takes
+    human or murine DNA missense mutations, insertions, deletions, or
+    RNASeq-derived gene fusions and performs ensemble neoantigen
+    prediction using 7 algorithms. Input is a VCF file, JAFFA output, or
+    table of peptides or transcripts. Outputs are ranked and summarized by
+    sample. Neoantigens are ranked by MHC I/II binding affinity,
+    clonality, RNA expression, similarity to known immunogenic antigens,
+    and dissimilarity to the normal peptidome.
 License: See LICENSE
+Depends: 
+    R (>= 3.5.0)
+Imports: 
+    Biostrings,
+    colorspace,
+    data.table,
+    dt.inflix,
+    ggplot2,
+    knitr,
+    magrittr,
+    mclust,
+    parallel,
+    purrr,
+    Rdpack,
+    rio,
+    stats,
+    stringi,
+    stringr,
+    testthat,
+    tidyr,
+    utils,
+    uuid,
+    vcfR,
+    zoo
+RdMacros: 
+    Rdpack
 Encoding: UTF-8
 LazyData: true
-Roxygen: list(markdown = TRUE)
-RemoteUrl: https://neoantigens.io
-Depends: R (>= 3.5.0)
-RdMacros: Rdpack
 LazyLoad: yes
-Imports: colorspace,
-       data.table,
-       dt.inflix,
-       ggplot2,
-       knitr,
-       mclust,
-       parallel,
-       stringr,
-       testthat,
-       Biostrings,
-       Rdpack,
-       magrittr,
-       rio,
-       stats,
-       stringi,
-       tidyr,
-       utils,
-       uuid,
-       vcfR,
-       zoo
-RoxygenNote: 7.0.1.9000
+RemoteUrl: https://neoantigens.io
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.1.0.9000
