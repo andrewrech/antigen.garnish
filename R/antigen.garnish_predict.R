@@ -27,7 +27,7 @@ iedb_score <- function(v, db) {
 
   check_pred_tools()
 
-  # generate fastas to query
+  message("Generating FASTA to query")
 
   names(v) <- 1:length(v) %>% as.character()
 
@@ -126,11 +126,8 @@ iedb_score <- function(v, db) {
   }
 
   message("Summing IEDB local alignments...")
-  message("This may be sped up by setting `setDTthreads()` to maximum.")
 
   blastdt[, SW := SW_align(nmer, WT.peptide)]
-
-  message("Done.")
 
   modeleR <- function(als, a = 26, k = 4.86936) {
     be <- -k * (a - als)
@@ -333,7 +330,6 @@ garnish_dissimilarity <- function(v, db, kval = 4.86936, aval = 32) {
   }
 
   message("Calculating dissimilarity...")
-  message("This may be sped up by setting `setDTthreads()` to maximum.")
 
   # this is memory intense, lets split it up and stitch it back
   suppressWarnings(
@@ -348,7 +344,7 @@ garnish_dissimilarity <- function(v, db, kval = 4.86936, aval = 32) {
     return(fn)
   }) %>% unlist()
 
-  lapply(blastdt %>% seq_along(), function(i) {
+  parallel::mclapply(blastdt %>% seq_along(), function(i) {
 
     # print(paste("Alignment subset", i, "of", length(blastdt)))
 
@@ -368,8 +364,6 @@ garnish_dissimilarity <- function(v, db, kval = 4.86936, aval = 32) {
 
     return(dt)
   }) %>% data.table::rbindlist(use.names = TRUE, fill = TRUE)
-
-  message("Done.")
 
   message("Running partition function...")
 
@@ -570,7 +564,6 @@ make_BLAST_uuid <- function(dti) {
   }
 
   message("Calculating local alignment to WT peptides for proteome-wide differential agretopicity predictions.")
-  message("This may be sped up by setting `setDTthreads()` to maximum.")
 
   # this is memory intense, lets split it up and stitch it back
   suppressWarnings(
@@ -585,7 +578,7 @@ make_BLAST_uuid <- function(dti) {
     return(fn)
   }) %>% unlist()
 
-  lapply(blastdt %>% seq_along(), function(i) {
+  parallel::mclapply(blastdt %>% seq_along(), function(i) {
     print(paste("Alignment subset", i, "of", length(blastdt)))
 
     b <- blastdt[i] %>% data.table::fread
@@ -604,8 +597,6 @@ make_BLAST_uuid <- function(dti) {
 
     return(dt)
   }) %>% data.table::rbindlist(use.names = TRUE)
-
-  message("Done.")
 
   blastdt[, highest := max(SW), by = "nmer_uuid"]
 
@@ -766,20 +757,18 @@ merge_predictions <- function(l, dt) {
   }
   dt %<>% unique
 
-  # read and merge mhcflurry output
+  message("Reading mhcflurry output.")
 
   f_flurry <- list.files(pattern = "mhcflurry_output.*csv")
   if (f_flurry %>% length() > 0) {
     fdt <- lapply(f_flurry, function(x) {
-      if (
-        suppressWarnings(data.table::fread(x) %>% nrow() > 0)
-      ) {
-        return(
-          suppressWarnings(data.table::fread(x))
-        )
-      } else {
+      dt <- suppressWarnings(data.table::fread(x))
+
+      if (nrow(dt) == 0) {
         return(NULL)
       }
+
+      return(dt)
     }) %>%
       data.table::rbindlist %>%
       data.table::setnames(c("allele", "peptide"), c("MHC", "nmer"))
@@ -787,25 +776,23 @@ merge_predictions <- function(l, dt) {
     dt %<>% unique
   }
 
-  # read and merge mhcnuggets output
+  message("Reading mhcnuggets output.")
 
   f_mhcnuggets <- list.files(pattern = "mhcnuggets_output.*csv")
 
   if (f_mhcnuggets %>% length() > 0) {
     nugdt <- lapply(f_mhcnuggets, function(x) {
-      if (
-        suppressWarnings(data.table::fread(x)) %>% nrow() > 0
-      ) {
-        return(
-          suppressWarnings(data.table::fread(x)) %>%
-            .[, mhcnuggets := basename(x) %>%
-              stringr::str_extract(pattern = "(?<=_)(H-2-.*(?=_))|(HLA).*(?=_)")] %>%
-            .[, tool := basename(x) %>%
-              stringr::str_extract(pattern = "(gru)|(lstm)")]
-        )
-      } else {
+      dt <- suppressWarnings(data.table::fread(x)) %>%
+        .[, mhcnuggets := basename(x) %>%
+          stringr::str_extract(pattern = "(?<=_)(H-2-.*(?=_))|(HLA).*(?=_)")] %>%
+        .[, tool := basename(x) %>%
+          stringr::str_extract(pattern = "(gru)|(lstm)")]
+
+      if (nrow(dt) == 0) {
         return(NULL)
       }
+
+      return(dt)
     }) %>%
       data.table::rbindlist(fill = TRUE) %>%
       data.table::setnames(
@@ -845,7 +832,7 @@ merge_predictions <- function(l, dt) {
   }
   dt %<>% unique
 
-  # calculate netMHC consensus score, preferring non-*net tools
+  message("Calculating netMHC consensus score.")
   for (col in (dt %>% names() %include% "aff|[Rr]ank|Ensemble_score")) {
     suppressWarnings({
       set(dt, j = col, value = dt[, get(col) %>% as.numeric()])
@@ -855,13 +842,12 @@ merge_predictions <- function(l, dt) {
   # get vector of netMHC scores
   cols <- dt %>% names() %includef% c("affinity(nM)")
 
-  # create a long format table
-  # to calculate consensus score
+  message("Calculating overall consensus score.")
   dtm <- dt[, .SD, .SDcols = c("nmer", "MHC", cols)] %>%
     melt(id.vars = c("nmer", "MHC")) %>%
     # order affinity predictions by program preference
     .[, variable := variable %>% factor(levels = cols)] %>%
-    # key table so first non-NA value is the preferred programe
+    # key table so first non-NA value is the preferred program
     data.table::setkey(nmer, MHC, variable) %>%
     .[, .(
       best_netMHC =
@@ -881,6 +867,8 @@ merge_predictions <- function(l, dt) {
     by = 1:nrow(dt), .SDcols = cols
   ]
 
+  message("Calculating DAI.")
+
   dt[, DAI := NA %>% as.numeric()]
 
   data.table::setkey(dt, pep_type, dai_uuid)
@@ -896,6 +884,8 @@ merge_predictions <- function(l, dt) {
       (1 / (1 + (0.0003 * Ensemble_score[2]))),
     by = c("dai_uuid", "MHC")
   ]
+
+  message("Determining peptide pairs for BLAST.")
 
   if ("blast_uuid" %chin% names(dt)) {
 
@@ -1169,7 +1159,7 @@ get_pred_commands <- function(dt) {
 collate_netMHC <- function(esl) {
   message("Collating netMHC output...")
 
-  dtl <- lapply(
+  dtl <- parallel::mclapply(
     esl, function(es) {
       command <- es[[1]]
       fn <- es[[2]]
@@ -1396,8 +1386,8 @@ write_netmhc_nmers <- function(dt, type) {
       return(NULL)
     }
 
-    # parallelize over 100 peptide chunks
-    chunks <- ((dts %>% nrow()) / 100) %>% ceiling()
+    # parallelize over 300 peptide chunks
+    chunks <- ((dts %>% nrow()) / 300) %>% ceiling()
 
     suppressWarnings(
       dto <- lapply(dts %>% split(1:chunks), function(dtw) {
@@ -1754,6 +1744,7 @@ dt with peptide:
   }
 
   if (assemble & input_type == "transcript") {
+    message("Generating metadata.")
     dt %<>% get_metadata
 
     if (!missing(counts)) {
@@ -1799,7 +1790,9 @@ dt with peptide:
 
 
     # extract cDNA changes and make cDNA
+    message("Extracting cDNA.")
     dt %<>% extract_cDNA
+    message("Make cDNA.")
     dt %<>% make_cDNA
 
     # translate protein sequences
@@ -1841,6 +1834,7 @@ dt with peptide:
 
     ## ---- create mutant peptide index
 
+    message("Generating mutant peptide index.")
     # index first mismatch
     suppressWarnings({
       dt[, mismatch_s :=
@@ -1905,6 +1899,8 @@ dt with peptide:
   }
 
   if (assemble & input_type == "peptide") {
+    message("Checking peptides.")
+
     if (any(dt[, !pep_mut %like% "^[ARNDCQEGHILKMFPSTWYV]+$"])) {
       stop("Non-standard AA one-letter codes detected in \"pep_mut\". Please remove these lines from input.")
     }
@@ -2178,6 +2174,7 @@ dt with peptide:
 
     setwd(ndir)
 
+    message("Generating prediction commands.")
     dtl <- dt %>% get_pred_commands()
 
     # run commands
@@ -2190,31 +2187,48 @@ dt with peptide:
 
       dt <- merge_predictions(dto, dtl[[1]])
 
+      message("Calculating confidence intervals.")
+
       cols <- dt %>% names() %include% "(best_netMHC)|(mhcflurry_prediction$)|(mhcnuggets_pred_gru)|(mhcnuggets_pred_lstm)"
 
-      confi <- function(dt) {
-        dtl <- lapply(1:nrow(dt), function(i) {
-          if (dt[i, ] %>% unlist() %>% na.omit() %>% unique() %>% length() <= 1) {
-            return(list(NA, NA))
-          }
-          t.test(dt[i, ])$conf.int[1:2] %>% as.list()
-        })
+      dt[, Lower.CI := as.numeric(NA)]
+      dt[, Upper.CI := as.numeric(NA)]
 
-        lo <- lapply(dtl, function(x) {
-          x[[1]]
-        }) %>% unlist()
 
-        up <- lapply(dtl, function(x) {
-          x[[2]]
-        }) %>% unlist()
+      # function to calculate confidence intervals
 
-        return(list(lo, up))
+      ttest <- function(m) {
+        1:nrow(m) %>%
+          parallel::mclapply(function(i) {
+            ret <- t.test(m[i, ])$conf.int[1:2]
+            data.table(Lower.CI = ret[1], Upper.CI = ret[2])
+          }) %>%
+          rbindlist()
       }
 
-      dt[, c("Lower.CI", "Upper.CI") := confi(.SD), .SDcols = cols]
+      # calculate confidence intervals only on rows with enough data
+
+      dt[, ci := TRUE]
+      dt[
+        (mhcnuggets_pred_lstm %>% is.na()) & (mhcnuggets_pred_gru %>% is.na()) |
+          (mhcnuggets_pred_gru %>% is.na()) & (best_netMHC %>% is.na()) |
+          (mhcnuggets_pred_lstm %>% is.na()) & (best_netMHC %>% is.na()),
+        ci := FALSE
+      ]
+
+      a <- dt[ci == TRUE]
+      b <- dt[ci == FALSE]
+
+      a[, c("lower.CI", "Upper.CI") := .SD %>% as.matrix() %>% ttest(), .SDcols = cols]
+
+      dt <- data.table::rbindlist(list(a, b), use.names = TRUE, fill = TRUE)
+
+      dt[, ci := NULL]
     } else {
       warning("Missing prediction tools in PATH, returning without predictions.")
     }
+
+    message("Setting up dissimilarity calculating.")
 
     # now  that we know binders, get our iedb_score and dissimilarity values
     # iterate over multiple species
@@ -2380,7 +2394,7 @@ make_nmers <- function(dt, plen = 8:15) {
 
   .fn <- purrr::partial(paste, collapse = "")
 
-  nmer_list <- lapply(
+  nmer_list <- parallel::mclapply(
     1:nrow(dt),
 
     function(n) {

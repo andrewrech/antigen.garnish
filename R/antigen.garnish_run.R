@@ -94,7 +94,7 @@ run_mhcnuggets <- function() {
   lf %>%
     seq_along() %>%
     parallel::mclapply(function(x) {
-      print(paste0("Input file ", lf[x], " of ", length(lf)))
+      print(paste0("Input file ", x, " of ", length(lf)))
 
       paste0(
         "python ", pypath, " -m lstm -w ", dirname(pypath), "/../saves/production/mhcnuggets_beta/",
@@ -391,8 +391,6 @@ configure_netMHC_tools <- function(dir) {
 
     return(io)
   }) %>% unlist()
-
-  message("Done.")
 
   setwd(owd)
 

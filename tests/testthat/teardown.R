@@ -13,7 +13,7 @@
       "Ms_ag_nmer_fasta.fa",
       "msblastpout.csv",
       "antigen.garnish_test_input.xlsx",
-      "antigen.garnish_collate_example.txt"
+      "antigen.garnish_collate_example.txt",
       "antigen.garnish_PureCN_example_output.txt",
       "antigen.garnish_rna_temp.txt"), function(i){
 
