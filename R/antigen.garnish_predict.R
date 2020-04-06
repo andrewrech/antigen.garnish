@@ -1099,96 +1099,102 @@ get_pred_commands <- function(dt){
 #' @export collate_netMHC
 #' @md
 
-collate_netMHC <- function(esl){
-
+collate_netMHC <- function(esl) {
   message("Collating netMHC output...")
 
-   dtl <- parallel::mclapply(
+  dtl <- lapply(
+    esl, function(es) {
+      command <- es[[1]]
+      fn <- es[[2]]
 
-esl, function(es){
+      # read temp file
+      es <- scan(file = fn, what = "character", sep = "\n")
 
-          command <- es[[1]]
-          fn <- es[[2]]
+      # check that files does not contain ERROR
+      err <- es %>%
+        stringr::str_detect("ERROR|Error|error") %>%
+        any()
+      if (err) {
+        warning(paste0(command, " returned ERROR"))
+        return(NULL)
+      }
 
-          # read temp file
-          es <- scan(file = fn, what = "character", sep = "\n")
+      # parse results
+      # isolate table and header
 
-          # parse results
-            # isolate table and header
+      dtl <- es %exclude%
+        "^\\#|----|Number|Distance|threshold|version|^$" %>%
+        stringr::str_replace("^[ ]+", "")
 
-              dtl <- es %exclude%
-                "^\\#|----|Number|Distance|threshold|version|^$" %>%
-                stringr::str_replace("^[ ]+", "")
+      dtn <- dtl[1] %>%
+        strsplit("[ ]+") %>%
+        unlist() %exclude% "^$|^Bind|^Level"
 
-              dtn <- dtl[1] %>%
-                strsplit("[ ]+") %>%
-                unlist %exclude% "^$|^Bind|^Level"
+      # fix table formatting
+      dt <- dtl[2:length(dtl)] %>%
+        stringr::str_replace_all(">", " ") %>%
+        stringr::str_replace_all("=", " ") %>%
+        stringr::str_replace_all("<", " ") %>%
+        stringr::str_replace_all("(SB|WB)", "  ") %>%
+        data.table::tstrsplit("[ ]+") %>%
+        data.table::as.data.table
+      # apply names to data table
+      dt %>% data.table::setnames(dt %>% names(), dtn)
 
-          # if error, warn and return
-          if (dtn %>%
-              stringr::str_detect("ERROR") %>%
-              any){
-            warning(paste0(command, " returned ERROR"))
-            return(NULL)
-          }
+      # append command
+      dt$command <- command
 
-           # fix table formatting
-              dt <- dtl[2:length(dtl)] %>%
-                stringr::str_replace_all(">", " ") %>%
-                stringr::str_replace_all("=", " ") %>%
-                stringr::str_replace_all("<", " ") %>%
-                stringr::str_replace_all("(SB|WB)", "  ") %>%
-                data.table::tstrsplit("[ ]+") %>%
-                data.table::as.data.table
-          # apply names to data table
-            dt %>% data.table::setnames(dt %>% names, dtn)
+      # set the program type from command
+      ptype <- command %>% stringr::str_extract("net[A-Za-z]+")
 
-          # append command
-            dt$command <- command
+      dtn <- dt %>% names()
+      # make netMHC names consistent
+      if (dtn %include% "[Pp]eptide" %>% length() > 0) {
+        data.table::setnames(dt, dtn %include% "[Pp]eptide", "nmer")
+      }
 
-          # set the program type from command
-            ptype <- command %>% stringr::str_extract("net[A-Za-z]+")
+      if (dtn %include% "Aff.*nM.*" %>% length() > 0) {
+        data.table::setnames(dt, dtn %include% "Aff.*nM.*", "affinity(nM)")
+      }
 
-          dtn <- dt %>% names
-          # make netMHC names consistent
-            if (dtn %include% "[Pp]eptide" %>% length > 0)
-                data.table::setnames(dt, dtn %include% "[Pp]eptide", "nmer")
+      if (dtn %include% "HLA|Allele" %>% length() > 0) {
+        data.table::setnames(dt, dtn %include% "HLA|Allele", "allele")
+      }
 
-            if (dtn %include% "Aff.*nM.*" %>% length > 0)
-                data.table::setnames(dt, dtn %include% "Aff.*nM.*", "affinity(nM)")
+      if (dtn %include% "Icore|iCore" %>% length() > 0) {
+        data.table::setnames(dt, dtn %include% "Icore|iCore", "icore")
+      }
 
-            if (dtn %include% "HLA|Allele" %>% length > 0)
-                data.table::setnames(dt, dtn %include% "HLA|Allele", "allele")
+      if ("Pos" %chin% dtn) {
+        dt %>%
+          data.table::setnames("Pos", "pos")
+      }
 
-            if (dtn %include% "Icore|iCore" %>% length > 0)
-                data.table::setnames(dt,dtn %include% "Icore|iCore", "icore")
+      if ("Core" %chin% dtn) dt %>% data.table::setnames("Core", "core")
 
-            if ("Pos" %chin% dtn) dt %>%
-              data.table::setnames("Pos", "pos")
+      # fix netMHCpan allele output to match input
+      if (command %like% "netMHCpan") {
+        dt[, allele := allele %>%
+          stringr::str_replace(fixed("*"), "")]
+      }
 
-            if ("Core" %chin% dtn) dt %>% data.table::setnames("Core", "core")
+      # set unique column names based on program
+      data.table::setnames(
+        dt, dt %>% names() %exclude% "allele|nmer",
+        paste0((dt %>% names() %exclude% "allele|nmer"), "_", ptype)
+      )
 
-          # fix netMHCpan allele output to match input
-            if (command %like% "netMHCpan"){
-              dt[, allele := allele %>%
-                stringr::str_replace(fixed("*"), "")]
-            }
+      # name allele column for merge
+      dt %>%
+        data.table::setnames("allele", ptype)
 
-          # set unique column names based on program
-            data.table::setnames(dt, dt %>% names %exclude% "allele|nmer",
-                                 paste0((dt %>% names %exclude% "allele|nmer"), "_", ptype))
+      # file.remove(fn)
 
-          # name allele column for merge
-            dt %>%
-              data.table::setnames("allele", ptype)
-
-            file.remove(fn)
-
-            return(dt)
-
-                     })
-   return(dtl)
- }
+      return(dt)
+    }
+  )
+  return(dtl)
+}
 
 
 
