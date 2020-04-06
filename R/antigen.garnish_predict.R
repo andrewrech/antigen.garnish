@@ -1543,17 +1543,18 @@ parallel::mcMap(function(x, y) (x %>% as.integer):(y %>% as.integer) %>%
 #' @export garnish_affinity
 #' @md
 
-garnish_affinity <- function(dt             = NULL,
-                             path           = NULL,
+garnish_affinity <- function(dt = NULL,
+                             path = NULL,
                              binding_cutoff = 500,
-                             counts         = NULL,
-                             min_counts     = 1,
-                             assemble       = TRUE,
-                             generate       = TRUE,
-                             predict        = TRUE,
-                             blast          = TRUE,
-                             save           = TRUE,
-                             remove_wt      = TRUE){
+                             counts = NULL,
+                             min_counts = 1,
+                             assemble = TRUE,
+                             generate = TRUE,
+                             peptide_length = 15:8,
+                             predict = TRUE,
+                             blast = TRUE,
+                             save = TRUE,
+                             remove_wt = TRUE) {
 
   # generate tempdir info to use later, set early to prevent downstream errors when
   # assemble, generate, and predict steps are run separately.
@@ -1921,19 +1922,19 @@ if (generate){
   if (basepep_dt %>% nrow == 0)
     return("no variants for peptide generation")
 
-    sink(file = "/dev/null")
-    nmer_dt <- make_nmers(basepep_dt) %>% .[, nmer_l := nmer %>% nchar]
-    sink()
+    nmer_dt <- make_nmers(basepep_dt, peptide_length)
+
+    nmer_dt %<>% .[, nmer_l := nmer %>% nchar()]
 
     dt <- merge(dt, nmer_dt,
-            by = intersect(names(dt), names(nmer_dt)),
-            all.x = TRUE)
+      by = intersect(names(dt), names(nmer_dt)),
+      all.x = TRUE
+    )
 
-      # remove peptides present in global normal protein database
+    # remove peptides present in global normal protein database
 
-        # load global peptide database
-    if (remove_wt){
-
+    # load global peptide database
+    if (remove_wt) {
       message("Filtering WT peptide matches.")
 
         d <- system.file(package = "antigen.garnish") %>% file.path(., "extdata")
@@ -2203,95 +2204,108 @@ dtl <- lapply(1:nrow(dt), function(i){
 #' Internal function for parallelized `nmer` creation.
 #'
 #' @param dt Data table. Input data table from `garnish_affinity`.
+#' @param plen Numeric vector. Length(s) of peptides to create.
 #'
 #' @export make_nmers
 #' @md
 
-make_nmers <- function(dt){
+make_nmers <- function(dt, plen = 8:15) {
+  if (!plen %>% is.numeric()) {
+    stop("peptide length must be numeric")
+  }
 
+  if (!(plen %in% 8:15 %>% any())) {
+    stop("peptide length must be numeric")
+  }
 
-  if (!c("var_uuid",
-         "pep_type",
-         "pep_base",
-         "mutant_index") %chin% (dt %>% names) %>% all)
+  if (!c(
+    "var_uuid",
+    "pep_type",
+    "pep_base",
+    "mutant_index"
+  ) %chin% (dt %>% names()) %>% all()) {
     stop("dt is missing columns")
+  }
 
-    dt %<>% data.table::as.data.table
+  dt %<>% data.table::as.data.table
 
-    lines <- nrow(dt)
+  lines <- nrow(dt)
 
-    # a function to generate sliding
-    # window n-mers over an index of interest
-
-    message("Generating nmers")
-    nmer_dt <- parallel::mclapply(1:nrow(dt),
-
-function(n){
+  # for every peptide length from greatest to least
+  plen %<>% sort %>% rev()
 
 
-     ## --- Write peptide fragments
+  # a function to generate sliding
+  # window n-mers over an index of interest
 
-      # for every peptide length
+  message("Generating nmers")
 
-nmer_dt <- lapply((15:8), function(pl){
 
-        mut_frag_t <- dt$pep_base[n] %>% strsplit("",
-                            fixed = TRUE) %>% unlist
+  .fn <- purrr::partial(paste, collapse = "")
+
+  nmer_list <- lapply(
+    1:nrow(dt),
+
+    function(n) {
+
+      ## --- Write peptide fragments
+
+      nmer_list <- lapply(plen, function(pl) {
+        mut_frag_t <- unlist(strsplit(dt$pep_base[n], "", fixed = TRUE))
         mut_frag_loc <- dt$mutant_index[n]
 
         # if the peptide is not long enough, return
-        if (!(mut_frag_t %>% length) >= pl)
+        if (!(length(mut_frag_t)) >= pl) {
           return(NULL)
+        }
 
-          # re-register peptide if the mutant index
-          # is not centered due to back truncation
+        # re-register peptide if the mutant index
+        # is not centered due to back truncation
 
-          # trim peptide front to mutant site
-          if (mut_frag_loc > pl){
-            rml <- mut_frag_loc - pl + 1
-            mut_frag_t <- mut_frag_t[rml:(length(mut_frag_t))]
-            mut_frag_loc <- pl
-            }
+        # trim peptide front to mutant site
+        if (mut_frag_loc > pl) {
+          rml <- mut_frag_loc - pl + 1
+          mut_frag_t <- mut_frag_t[rml:(length(mut_frag_t))]
+          mut_frag_loc <- pl
+        }
 
-          # trim peptide back to mutant site
-          fpl <- mut_frag_loc + pl - 1
-          if (fpl < length(mut_frag_t))
-              mut_frag_t <- mut_frag_t[1:(fpl)]
+        # trim peptide back to mutant site
+        fpl <- mut_frag_loc + pl - 1
+        if (fpl < length(mut_frag_t)) {
+          mut_frag_t <- mut_frag_t[1:(fpl)]
+        }
 
         # slide across the peptide window
         # create (n = pl )-mers wrapped in
         # sync to prevent zoo::rollapply stdout
 
         nmers <- zoo::rollapply(mut_frag_t, pl,
-                      print,
-                      partial = FALSE,
-                      align = "left") %>%
-
-apply(1, function(pmr){
-        paste(pmr, sep = "", collapse = "")
-        })
+          .fn,
+          partial = FALSE,
+          align = "left"
+        )
 
 
         # return a data table of peptides
 
         return(
-           data.table::data.table(
-              nmer = nmers,
-              nmer_i = 1:length(nmers),
-              pep_base = dt$pep_base[n],
-              pep_type = dt$pep_type[n],
-              var_uuid = dt$var_uuid[n]
-              )
-           )
+          data.table::data.table(
+            nmer = nmers,
+            nmer_i = 1:length(nmers),
+            pep_base = dt$pep_base[n],
+            pep_type = dt$pep_type[n],
+            var_uuid = dt$var_uuid[n]
+          )
+        )
+      })
 
-
-    }) %>% data.table::rbindlist %>% unique
+      nmer_dt <- data.table::rbindlist(nmer_list)
 
       return(nmer_dt)
+    }
+  )
 
-
-    }) %>% data.table::rbindlist %>% unique
-
+  nmer_dt <- data.table::rbindlist(nmer_list)
   return(nmer_dt)
 }
 
