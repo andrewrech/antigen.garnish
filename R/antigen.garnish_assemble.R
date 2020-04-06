@@ -341,24 +341,43 @@ get_vcf_sample_dt <- function(vcf){
 
       }) %>% do.call(cbind, .)
 
-    # assign ref and alt to individual columns
+  for (i in (idt %>% names() %include% "_AD$")) {
+    colNum <- idt[, get(i) %>%
+      data.table::tstrsplit(",") %>% length()]
 
-      for (c in (idt %>% names %include% "_AD$")){
-        idt[, paste0(c, c("_ref", "_alt")) := get(c) %>%
-            data.table::tstrsplit(",")]
-        set(idt, j = c, value = NULL)
+    if (colNum == 2) {
+      idt[, paste0(i, c("_ref", "_alt")) := get(i) %>%
+        data.table::tstrsplit(",")]
+    }
+    if (colNum == 3) {
+      idt[, paste0(i, c("_ref", "_alt", "_alt2")) := get(i) %>%
+        data.table::tstrsplit(",")]
+    }
+    if (colNum == 4) {
+      idt[, paste0(i, c("_ref", "_alt", "_alt2", "_alt3")) := get(i) %>%
+        data.table::tstrsplit(",")]
+    }
+    if (colNum == 5) {
+      idt[, paste0(i, c("_ref", "_alt", "_alt2", "_alt3", "_alt4")) := get(i) %>%
+        data.table::tstrsplit(",")]
+    }
+    if (colNum > 5) {
+      stop("Parsing VCFs with greater than 4 alternative alleles is not supported.")
     }
 
-  if (
-      (dt %>% nrow) !=
-      (idt %>% nrow)
-      )
-    stop("Error parsing input file INFO field.")
+    set(idt, j = i, value = NULL)
+  }
 
-    dt <- cbind(dt, idt)
+  if (
+    (dt %>% nrow()) !=
+      (idt %>% nrow())
+  ) {
+    stop("Error parsing input file INFO field.")
+  }
+
+  dt <- cbind(dt, idt)
 
   return(dt)
-
 }
 
 
