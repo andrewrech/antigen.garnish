@@ -528,7 +528,7 @@ garnish_slim <- function(dt, slimmer = TRUE){
 #' @export garnish_variants
 #' @md
 
-garnish_variants <- function(vcfs, tumor_sample_name = "TUMOR"){
+garnish_variants <- function(vcfs, tumor_sample_name = "TUMOR") {
 
   # magrittr version check, this will not hide the error, only the NULL return on successful exit
 
@@ -536,79 +536,130 @@ garnish_variants <- function(vcfs, tumor_sample_name = "TUMOR"){
 
   message("Loading VCFs")
 
-sdt <- lapply(vcfs %>% seq_along, function(ivf){
+  sdt <- lapply(vcfs %>% seq_along(), function(ivf) {
 
-  # load dt
-      vcf <-  vcfR::read.vcfR(vcfs[ivf], verbose = TRUE)
+    # load dt
 
-        sample_id <- basename(vcfs[ivf])
+    vcf <- try(vcfR::read.vcfR(vcfs[ivf],
+      checkFile = FALSE,
+      verbose = TRUE,
+      check_keys = FALSE
+    ))
 
-  # extract vcf type
+    ###################################################
+    #                                                 #
+    # vcfR does not properly detect VCF column layout #
+    # in some instances; re-shuffling tghe VCF fixes  #
+    # the issue                                       #
+    #                                                 #
+    ###################################################
 
-      vcf_type <- vcf@meta %>%
-        unlist %>%
-        stringr::str_extract(stringr::regex("strelka|mutect|varscan|samtools|somaticsniper|freebayes|virmid",ignore_case = TRUE)) %>%
-        stats::na.omit %>%
-        unlist %>%
-        data.table::first
+    iter <- 0
+    while ((class(vcf) %like% "error") %>% any()) {
+      print(iter)
 
-      if (vcf_type %>% length == 0)
-        vcf_type <- "unknown"
+      if (iter > 100) {
+        stop(i)
+      }
 
-  # return a data table of variants
+      shuf <- readLines(vcfs[ivf])
+      lines <- (!shuf %like% "^\\#\\#|CHROM") %>% which()
+      linesShuf <- lines[lines %>% permute::shuffle]
+      shuf[lines] <- shuf[linesShuf]
+      writeLines(shuf, vcfs[ivf])
 
-    vdt <- vcf %>% get_vcf_info_dt
+      vcf <- try(vcfR::read.vcfR(vcfs[ivf],
+        checkFile = FALSE,
+        verbose = TRUE,
+        check_keys = FALSE
+      ))
 
-  # rename generic columns to prevent downstream errors
+      iter <- iter + 1
+    }
 
-  if (names(vdt) %like% "^V[0-9]+$" %>% any)
-    vdt %>% data.table::setnames(names(vdt) %include% "^V[0-9]+$",
-              paste(names(vdt) %include% "^V[0-9]+$", ".x", sep = ""))
+    sample_id <- basename(vcfs[ivf])
 
-  # check that VCF is SnpEff-annotated
+    # extract vcf type
+
+    if (nrow(vcf@fix) == 0) {
+      warnings("No lines in VCF.")
+      return(NULL)
+    }
+
+
+    vcf_type <- vcf@meta %>%
+      unlist() %>%
+      stringr::str_extract(stringr::regex("strelka|mutect|varscan|samtools|somaticsniper|freebayes|virmid", ignore_case = TRUE)) %>%
+      stats::na.omit %>%
+      unlist() %>%
+      data.table::first
+
+    if (vcf_type %>% length() == 0) {
+      vcf_type <- "unknown"
+    }
+
+    # return a data table of variants
+
+    vdt <- vcf %>% get_vcf_info_dt()
+
+    # rename generic columns to prevent downstream errors
+
+    if (names(vdt) %like% "^V[0-9]+$" %>% any()) {
+      vdt %>% data.table::setnames(
+        names(vdt) %include% "^V[0-9]+$",
+        paste(names(vdt) %include% "^V[0-9]+$", ".x", sep = "")
+      )
+    }
+
+    # check that VCF is SnpEff-annotated
 
     if (
-        vdt[, INFO %>% unique] %>% is.na ||
+      vdt[, INFO %>% unique()] %>% is.na() ||
         !vdt[, INFO %>%
-      stringr::str_detect(stringr::fixed("ANN=")) %>% all]
-      )
-      stop(paste0("\nInput file \n",
-                  vcfs[ivf],
-                  "\nis missing INFO SnpEff annotations"))
+          stringr::str_detect(stringr::fixed("ANN=")) %>% all()]
+    ) {
+      stop(paste0(
+        "\nInput file \n",
+        vcfs[ivf],
+        "\nis missing INFO SnpEff annotations"
+      ))
+    }
 
     # parse sample level info
 
-      if (vcf@gt %>% length > 0)
-        vdt %<>% cbind(vcf %>% get_vcf_sample_dt)
+    if (vcf@gt %>% length() > 0) {
+      vdt %<>% cbind(vcf %>% get_vcf_sample_dt())
+    }
 
-    if (vdt %>% nrow < 1)
+    if (vdt %>% nrow() < 1) {
       return(data.table::data.table(sample_id = sample_id))
+    }
 
     vdt[, sample_id := sample_id]
     vdt[, vcf_type := vcf_type]
 
 
-    if (vdt %>% nrow < 1){
+    if (vdt %>% nrow() < 1) {
       warning("No variants are present in the input file.")
       return(data.table::data.table(sample_id = sample_id))
-      }
+    }
 
 
-    if (vdt %>% class %>%
-         .[1] == "try-error"){
+    if (vdt %>% class() %>%
+      .[1] == "try-error") {
       warning("Error parsing input file INFO field.")
       return(data.table::data.table(sample_id = sample_id))
-      }
+    }
 
     # parse ANN column
 
     vdt %<>% get_vcf_snpeff_dt
 
-    if (vdt %>% class %>%
-         .[1] == "try-error"){
+    if (vdt %>% class() %>%
+      .[1] == "try-error") {
       warning("Error parsing input file SnpEff ANN annotation.")
       return(data.table::data.table(sample_id = sample_id))
-      }
+    }
 
     # filter SnpEff warnings
 
