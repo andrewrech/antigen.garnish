@@ -683,6 +683,17 @@ garnish_variants <- function(vcfs, tumor_sample_name = "TUMOR") {
       rs <- system.file(package = "antigen.garnish") %>% file.path(., "extdata", "Refseq_ids.txt") %>%
               data.table::fread
 
+      if (vdt %>% names() %>% duplicated() %>% any()) {
+        dupNameIndex <- vdt %>%
+          names() %>%
+          duplicated() %>%
+          which()
+        names(vdt)[vdt %>%
+          names() %>%
+          duplicated() %>%
+          which()] <- paste0((vdt %>% names())[dupNameIndex], ".1")
+      }
+
       vdt <- list(vdt[!is.na(ensembl_transcript_id)],
                   merge(vdt[is.na(ensembl_transcript_id)] %>% .[, ensembl_transcript_id := NULL],
                             rs, all.x = TRUE, by = "refseq_id")
