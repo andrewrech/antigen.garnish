@@ -93,6 +93,14 @@ chmod 700 -R "$ANTIGEN_GARNISH_DIR/netMHC"
 
 See the [wiki](https://github.com/immune-health/antigen.garnish/wiki/antigen.garnish-on-AWS) for instructions to create an Amazon Web Services instance.
 
+### Development version from source
+
+Follow instructions above under _Installation script_ to install dependencies, and then:
+
+```r
+devtools::install_github("immune-health/antigen.garnish")
+```
+
 ## Package documentation
 
 Package documentation can be found: [website](https://neoantigens.rech.io/reference/index.html), [pdf](https://get.rech.io/antigen.garnish.pdf).
