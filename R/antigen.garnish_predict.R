@@ -344,7 +344,7 @@ garnish_dissimilarity <- function(v, db, kval = 4.86936, aval = 32) {
     return(fn)
   }) %>% unlist()
 
-  parallel::mclapply(blastdt %>% seq_along(), function(i) {
+  lapply(blastdt %>% seq_along(), function(i) {
 
     # print(paste("Alignment subset", i, "of", length(blastdt)))
 
