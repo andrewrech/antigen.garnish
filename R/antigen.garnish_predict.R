@@ -2234,11 +2234,11 @@ dt with peptide:
     # set NA to 0 for iedb_score to match original implementation
     # set NA to 0 for dissimilarity, no alignments is truly dissimilar
     if ("iedb_score" %chin% names(dt)) {
-      dt[is.na(iedb_score) & pep_type != "wt" & Ensemble_score < 500, iedb_score := 0]
+      dt[is.na(iedb_score) & pep_type != "wt" & Ensemble_score < binding_cutoff, iedb_score := 0]
     }
 
     if ("dissimilarity" %chin% names(dt)) {
-      dt[is.na(dissimilarity) & pep_type != "wt" & Ensemble_score < 500, dissimilarity := 0]
+      dt[is.na(dissimilarity) & pep_type != "wt" & Ensemble_score < binding_cutoff, dissimilarity := 0]
     }
   }
 
