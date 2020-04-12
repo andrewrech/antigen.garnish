@@ -426,11 +426,9 @@ get_vcf_snpeff_dt <- function(dt) {
   }
 
   # add a variant identifier
-  suppressWarnings(dt[, snpeff_uuid :=
-    lapply(
-      1:nrow(dt),
-      uuid::UUIDgenerate
-    ) %>% unlist()])
+
+  len <- nrow(dt)
+  suppressWarnings(dt[, snpeff_uuid := uuid::UUIDgenerate(use.time = FALSE, n = len)])
 
   # spread SnpEff annotation over rows
   # transform to data frame intermediate to avoid

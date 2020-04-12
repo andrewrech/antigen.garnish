@@ -692,13 +692,11 @@ make_DAI_uuid <- function(dt) {
           data.table::setnames("nmer", "mtnfs_nmer"),
         by = c("var_uuid", "nmer_i", "nmer_l")
       )
-    } %>%
-    # create a DAI uuid
-    .[, dai_uuid := lapply(
-      1:nrow(.),
-      uuid::UUIDgenerate
-    ) %>% unlist()] %>%
+    }
 
+  daidt[, dai_uuid := uuid::UUIDgenerate(use.time = FALSE, n = .N)]
+
+  daidt %<>%
     # bind back into one table
     {
       rbindlist(list(
@@ -714,6 +712,7 @@ make_DAI_uuid <- function(dt) {
           data.table::setnames("mtnfs_nmer", "nmer")
       ))
     }
+
   # merge back together
   dt %<>% merge(daidt,
     by = c(
@@ -2130,11 +2129,14 @@ dt with peptide:
     }
 
     # generation a uuid for each unique nmer
-    suppressWarnings(dt[, nmer_uuid :=
-      lapply(
-        1:nrow(dt),
-        uuid::UUIDgenerate
-      ) %>% unlist()])
+
+    nmer_uuid_dt <- dt[, .SD, .SDcols = "nmer"] %>% unique()
+
+    nmer_uuid_dt[, nmer_uuid :=
+      uuid::UUIDgenerate(use.time = FALSE, n = .N)]
+
+    dt %<>% merge(nmer_uuid_dt, by = "nmer", all.x = TRUE)
+
 
     if (input_type == "transcript" ||
       (input_type == "peptide" & "pep_wt" %chin% names(dt))
