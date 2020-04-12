@@ -2275,25 +2275,16 @@ dt with peptide:
     stringr::str_replace_all("[_]+", "_")
 
   if (save) {
-    dt %>% data.table::fwrite(paste("ag_output_", gplot_fn, ".txt", sep = ""),
-      sep = "\t",
+    fn <- paste0("ag_output_", gplot_fn, ".csv.gz")
+    dt %>% data.table::fwrite(fn,
+      sep = ",",
       quote = FALSE,
       row.names = FALSE
     )
 
-    file.copy(
-      paste("ag_output_", gplot_fn, ".txt", sep = ""),
-      file.path(
-        original_dir,
-        paste("ag_output_", gplot_fn, ".txt", sep = "")
-      )
-    )
+    file.copy(fn, file.path(original_dir, fn))
 
-    if (file.exists(file.path(
-      original_dir,
-      paste("ag_output_", gplot_fn, ".txt", sep = "")
-    ))
-    ) {
+    if (file.exists(file.path(original_dir, fn))) {
       setwd(original_dir)
       if (dir.exists(ndir)) {
         unlink(ndir, recursive = TRUE, force = TRUE)
