@@ -404,7 +404,7 @@ garnish_slim <- function(dt, slimmer = TRUE) {
 
   # selected columns for slim MHC Class I predictionas
   class_I_prediction_cols <- c(
-    "mhcflurry_prediction", "mhcflurry_prediction_percentile",
+    "mhcflurry_affinity", "mhcflurry_affinity_percentile",
     "mhcnuggets_pred_lstm", "mhcnuggets_pred_gru",
     "affinity(nM)_netMHC", "%Rank_netMHC",
     "%Rank_netMHCpan"
