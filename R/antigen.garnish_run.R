@@ -167,7 +167,7 @@ run_netMHC <- function(dt) {
   # 5000 is a conservative line length to be safe, could go much higher  probably
   # memory is not protected here, user will need to chunk if RAM limited
   cat(
-    paste("parallel --eta -s 5000 --jobs 90% --delay 0.2 --no-run-if-empty --joblog ",
+    paste("parallel --eta -s 5000 --delay 0.1 --no-run-if-empty --joblog ",
       plog, " < ", fn,
       sep = ""
     ),
