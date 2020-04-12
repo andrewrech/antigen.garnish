@@ -98,7 +98,7 @@ clonality info:
 
 antigen.garnish quality analysis metric results
 \itemize{
-\item \strong{Ensemble_score}: average value of MHC binding affinity from all prediction tools that contributed output. 95\\% confidence intervals are given by \strong{Upper_CI}, \strong{Lower_CI}.
+\item \strong{Ensemble_score}: average value of MHC binding affinity from all prediction tools that contributed output.
 \item \strong{iedb_score}: R implementation of TCR recognition probability for peptide through summing of alignments in IEDB for corresponding organism. See references herein.
 \item \strong{IEDB_anno}: The best alignment from the IEDB database queried for the sample if applicable.
 \item \strong{min_DAI}: Minimum of value of BLAST_A or DAI values, to provide the most conservative proteome-wide estimate of differential binding between input and wildtype matches.

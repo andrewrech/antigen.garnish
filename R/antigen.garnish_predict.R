@@ -1508,7 +1508,7 @@ get_ss_str <- function(x, y) {
 #' * **cl_proportion**: The estimated mean tumor fraction containing the clone. If allele fraction and not clonality is used, this is estimated.
 #'
 #' antigen.garnish quality analysis metric results
-#' * **Ensemble_score**: average value of MHC binding affinity from all prediction tools that contributed output. 95\% confidence intervals are given by **Upper_CI**, **Lower_CI**.
+#' * **Ensemble_score**: average value of MHC binding affinity from all prediction tools that contributed output.
 #' * **iedb_score**: R implementation of TCR recognition probability for peptide through summing of alignments in IEDB for corresponding organism. See references herein.
 #' * **IEDB_anno**: The best alignment from the IEDB database queried for the sample if applicable.
 #' * **min_DAI**: Minimum of value of BLAST_A or DAI values, to provide the most conservative proteome-wide estimate of differential binding between input and wildtype matches.
@@ -2104,6 +2104,7 @@ dt with peptide:
       # get unique normal proteins and unique non-wt nmers to match
 
       pepv %<>% unique
+
       nmv <- dt[pep_type != "wt", nmer %>% unique()]
 
       # return vector of matched nmers to drop
@@ -2183,49 +2184,9 @@ dt with peptide:
 
     if (check_pred_tools() %>% unlist() %>% all()) {
       dto <- run_netMHC(dtl[[2]])
-
       run_mhcflurry()
       run_mhcnuggets()
-
       dt <- merge_predictions(dto, dtl[[1]])
-
-      message("Calculating confidence intervals.")
-
-      cols <- dt %>% names() %include% "(best_netMHC)|(mhcflurry_prediction$)|(mhcnuggets_pred_gru)|(mhcnuggets_pred_lstm)"
-
-      dt[, Lower.CI := as.numeric(NA)]
-      dt[, Upper.CI := as.numeric(NA)]
-
-
-      # function to calculate confidence intervals
-
-      ttest <- function(m) {
-        1:nrow(m) %>%
-          parallel::mclapply(function(i) {
-            ret <- t.test(m[i, ])$conf.int[1:2]
-            data.table(Lower.CI = ret[1], Upper.CI = ret[2])
-          }) %>%
-          rbindlist()
-      }
-
-      # calculate confidence intervals only on rows with enough data
-
-      dt[, ci := TRUE]
-      dt[
-        (mhcnuggets_pred_lstm %>% is.na()) & (mhcnuggets_pred_gru %>% is.na()) |
-          (mhcnuggets_pred_gru %>% is.na()) & (best_netMHC %>% is.na()) |
-          (mhcnuggets_pred_lstm %>% is.na()) & (best_netMHC %>% is.na()),
-        ci := FALSE
-      ]
-
-      a <- dt[ci == TRUE]
-      b <- dt[ci == FALSE]
-
-      a[, c("lower.CI", "Upper.CI") := .SD %>% as.matrix() %>% ttest(), .SDcols = cols]
-
-      dt <- data.table::rbindlist(list(a, b), use.names = TRUE, fill = TRUE)
-
-      dt[, ci := NULL]
     } else {
       warning("Missing prediction tools in PATH, returning without predictions.")
     }
