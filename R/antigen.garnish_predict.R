@@ -93,7 +93,7 @@ iedb_score <- function(v, db) {
     return(data.table::data.table(nmer = v, iedb_score = 0))
   }
 
-  blastdt <- blastdt %>% data.table::fread
+  blastdt <- blastdt %>% data.table::fread()
 
   blastdt %>% data.table::setnames(
     names(.),
@@ -297,7 +297,7 @@ garnish_dissimilarity <- function(v, db, kval = 4.86936, aval = 32) {
     return(data.table::data.table(nmer = v, dissimilarity = 0))
   }
 
-  blastdt <- blastdt %>% data.table::fread
+  blastdt <- blastdt %>% data.table::fread()
 
   blastdt %>% data.table::setnames(
     names(.),
@@ -348,7 +348,7 @@ garnish_dissimilarity <- function(v, db, kval = 4.86936, aval = 32) {
 
     # print(paste("Alignment subset", i, "of", length(blastdt)))
 
-    b <- blastdt[i] %>% data.table::fread
+    b <- blastdt[i] %>% data.table::fread()
 
     b[, SW := SW_align(nmer, WT.peptide)]
 
@@ -581,7 +581,7 @@ make_BLAST_uuid <- function(dti) {
   parallel::mclapply(blastdt %>% seq_along(), function(i) {
     print(paste("Alignment subset", i, "of", length(blastdt)))
 
-    b <- blastdt[i] %>% data.table::fread
+    b <- blastdt[i] %>% data.table::fread()
 
     b[, SW := SW_align(nmer, WT.peptide)]
 
@@ -1411,10 +1411,10 @@ write_netmhc_nmers <- function(dt, type) {
           nmer_l = combs$V2[i],
           filename = filename
         ))
-      }) %>% data.table::rbindlist
+      }) %>% data.table::rbindlist()
     )
     return(dto)
-  }) %>% data.table::rbindlist
+  }) %>% data.table::rbindlist()
 
   return(dto)
 }
@@ -1748,7 +1748,7 @@ dt with peptide:
     dt %<>% get_metadata
 
     if (!missing(counts)) {
-      ct <- rio::import(counts) %>% data.table::as.data.table
+      ct <- rio::import(counts) %>% data.table::as.data.table()
 
       col <- ct[, .SD, .SDcols = 1] %>% unlist()
 
@@ -2507,7 +2507,7 @@ garnish_clonality <- function(dt) {
       b <- names(v)[which(abs == min(abs))]
 
       return(data.table(cl_proportion = a, clone_id = b))
-    }) %>% data.table::rbindlist
+    }) %>% data.table::rbindlist()
 
     return(dt)
   }
@@ -2552,7 +2552,7 @@ garnish_clonality <- function(dt) {
       unique() %>%
       sort(decreasing = TRUE)
 
-    dt <- v %>% data.table::as.data.table
+    dt <- v %>% data.table::as.data.table()
 
     mu <- lapply(vu %>% seq_along(), function(i) {
       if (i == length(vu)) {
@@ -2592,7 +2592,7 @@ garnish_clonality <- function(dt) {
 
     # too many NA checks never hurt anyone
     calculate_ecdf <- function(x) {
-      if ((x %>% stats::na.omit %>% length()) > 0) {
+      if ((x %>% stats::na.omit() %>% length()) > 0) {
         v <- stats::ecdf(x)(x)
 
         m <- x[which(v > 0.9)] %>% mean(na.rm = TRUE)
