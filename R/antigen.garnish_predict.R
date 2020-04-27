@@ -1479,7 +1479,7 @@ get_ss_str <- function(x, y) {
 #' @param peptide_length Numeric vector. Length(s) of peptides to create.
 #' @param predict Logical. Predict binding affinities?
 #' @param blast Logical. Run `BLASTp` to find wild-type peptide and known IEDB matches?
-#' @param save Logical. Save a copy of garnish_affinity output to the working directory as "ag_output.csv.gz"? Default is `TRUE`.
+#' @param save Logical. Save a copy of garnish_affinity output to the working directory as "ag_output.txt"? Default is `TRUE`.
 #' @param remove_wt Logical. Check all `nmer`s generated against wt peptidome and remove matches? Default is `TRUE`. If investigating wild-type sequences, set this to `FALSE`.
 #' @return A data table of binding predictions including:
 #' * **cDNA_seq**: mutant cDNA sequence
@@ -2275,7 +2275,7 @@ dt with peptide:
     stringr::str_replace_all("[_]+", "_")
 
   if (save) {
-    fn <- paste0("ag_output_", gplot_fn, ".csv.gz")
+    fn <- paste0("ag_output_", gplot_fn, ".txt")
     dt %>% data.table::fwrite(fn,
       sep = ",",
       quote = FALSE,
