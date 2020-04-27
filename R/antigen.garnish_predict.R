@@ -861,7 +861,7 @@ merge_predictions <- function(l, dt) {
   dt %<>% merge(dtm, by = c("nmer", "MHC"))
 
   # take average of mhcflurry, mhcnuggets, and best available netMHC tool
-  cols <- cols <- dt %>% names() %include% "(best_netMHC)|(mhcflurry_prediction$)|(mhcnuggets_pred_gru)|(mhcnuggets_pred_lstm)"
+  cols <- cols <- dt %>% names() %include% "(best_netMHC)|(mhcflurry_prediction$)|(mhcflurry_affinity$)|(mhcnuggets_pred_gru)|(mhcnuggets_pred_lstm)"
   dt[, Ensemble_score := mean(as.numeric(.SD), na.rm = TRUE),
     by = 1:nrow(dt), .SDcols = cols
   ]

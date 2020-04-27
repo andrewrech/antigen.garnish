@@ -479,7 +479,7 @@ garnish_slim <- function(dt, slimmer = TRUE) {
   if (!all((cols_to_keep) %chin% names(dt))) {
     missing_name <- setdiff(cols_to_keep, names(dt))
 
-    warning("Missing ", paste(missing_name, sep = ", "), " column(s) from input neoantigen prediction table. Returning without this column.")
+    message("Missing ", paste(missing_name, sep = ", "), " column(s) from input neoantigen prediction table. Returning without this column.")
 
     cols_to_keep <- cols_to_keep[which(!cols_to_keep %chin% missing_name)]
   }
