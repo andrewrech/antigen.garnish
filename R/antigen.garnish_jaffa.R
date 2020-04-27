@@ -63,7 +63,7 @@ garnish_jaffa <- function(path, db, fasta_path){
     invisible(check_dep_versions())
 
     dt <- data.table::fread(path) %>%
-      data.table::as.data.table
+      data.table::as.data.table()
 
     if (!((c("sample",
              "fusion genes",
@@ -117,11 +117,11 @@ gene_2 <- lapply(dtl, function(x){x[2]}) %>% unlist
     fasta <- Biostrings::readDNAStringSet(fasta_path)
 
     seqs <- fasta %>% as.character %>%
-      data.table::as.data.table %>%
+      data.table::as.data.table() %>%
       data.table::setnames(".", "sread")
 
     contig <- fasta %>% as.character %>% names %>%
-              data.table::as.data.table %>%
+              data.table::as.data.table() %>%
       data.table::setnames(".", "contig")
 
     contig_dt <- data.table::data.table(seqs, contig) %>%

@@ -95,7 +95,7 @@ garnish_summary <- function(dt) {
   # summarize over unique nmers
 
   dt %<>% data.table::as.data.table %>%
-    data.table::copy %>%
+    data.table::copy() %>%
     unique(by = c(
       "pep_type",
       "MHC",
@@ -392,7 +392,7 @@ garnish_slim <- function(dt, slimmer = TRUE) {
 
   # don't damage input table and operate on mutant rows only for speed
   dt <- dt %>%
-    data.table::copy %>%
+    data.table::copy() %>%
     .[pep_type != "wt"]
 
   addl_cols <- c(
@@ -614,9 +614,9 @@ garnish_variants <- function(vcfs, tumor_sample_name = "TUMOR") {
     vcf_type <- vcf@meta %>%
       unlist() %>%
       stringr::str_extract(stringr::regex("strelka|mutect|varscan|samtools|somaticsniper|freebayes|virmid", ignore_case = TRUE)) %>%
-      stats::na.omit %>%
+      stats::na.omit() %>%
       unlist() %>%
-      data.table::first
+      data.table::first()
 
     if (vcf_type %>% length() == 0) {
       vcf_type <- "unknown"
@@ -705,7 +705,7 @@ garnish_variants <- function(vcfs, tumor_sample_name = "TUMOR") {
 
       rs <- system.file(package = "antigen.garnish") %>%
         file.path(., "extdata", "Refseq_ids.txt") %>%
-        data.table::fread
+        data.table::fread()
 
       if (vdt %>% names() %>% duplicated() %>% any()) {
         dupNameIndex <- vdt %>%
@@ -1120,8 +1120,8 @@ garnish_plot <- function(input, ext = "pdf") {
 garnish_antigens <- function(dt, nhits = 2, binding_cutoff = 500) {
   if (class(dt)[1] == "character") {
     dt <- dt %>%
-      rio::import %>%
-      data.table::as.data.table
+      rio::import() %>%
+      data.table::as.data.table()
   }
 
   if (class(dt)[1] == "data.frame") {

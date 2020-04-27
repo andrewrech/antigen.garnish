@@ -32,7 +32,7 @@ iedb_score <- function(v, db) {
   names(v) <- 1:length(v) %>% as.character()
 
   sdt <- v %>%
-    data.table::as.data.table %>%
+    data.table::as.data.table() %>%
     .[, nmer_id := names(v)]
 
   AA <- Biostrings::AAStringSet(v, use.names = TRUE)
@@ -225,7 +225,7 @@ garnish_dissimilarity <- function(v, db, kval = 4.86936, aval = 32) {
   names(v) <- 1:length(v) %>% as.character()
 
   sdt <- v %>%
-    data.table::as.data.table %>%
+    data.table::as.data.table() %>%
     .[, nmer_id := names(v)]
 
   AA <- Biostrings::AAStringSet(v, use.names = TRUE)
@@ -749,7 +749,7 @@ merge_predictions <- function(l, dt) {
 
   for (ptype in (progl %>% unique() %>% unlist())) {
     dt <- merge(dt, l[(progl == ptype) %>% which()] %>%
-      data.table::rbindlist,
+      data.table::rbindlist(),
     by = c("nmer", ptype), all.x = TRUE,
     allow.cartesian = TRUE
     )
@@ -769,7 +769,7 @@ merge_predictions <- function(l, dt) {
 
       return(dt)
     }) %>%
-      data.table::rbindlist %>%
+      data.table::rbindlist() %>%
       data.table::setnames(c("allele", "peptide"), c("MHC", "nmer"))
     dt <- merge(dt, fdt %>% unique(), by = c("nmer", "MHC"), all.x = TRUE)
     dt %<>% unique
@@ -1047,7 +1047,7 @@ get_pred_commands <- function(dt) {
   .SD,
   .SDcols = c("MHC", "nmer")
   ] %>%
-    data.table::copy %>%
+    data.table::copy() %>%
     data.table::setnames(c("MHC", "nmer"), c("allele", "peptide")) %>%
     unique()
 
@@ -1090,7 +1090,7 @@ get_pred_commands <- function(dt) {
         .SD,
         .SDcols = c("netMHC", "nmer", "nmer_l")
         ] %>%
-          data.table::copy %>%
+          data.table::copy() %>%
           data.table::setkey(netMHC, nmer_l) %>%
           write_netmhc_nmers("netMHC"),
 
@@ -1099,7 +1099,7 @@ get_pred_commands <- function(dt) {
         .SD,
         .SDcols = c("netMHCpan", "nmer", "nmer_l")
         ] %>%
-          data.table::copy %>%
+          data.table::copy() %>%
           data.table::setkey(netMHCpan, nmer_l) %>%
           write_netmhc_nmers("netMHCpan"),
 
@@ -1108,7 +1108,7 @@ get_pred_commands <- function(dt) {
         .SD,
         .SDcols = c("netMHCII", "nmer", "nmer_l")
         ] %>%
-          data.table::copy %>%
+          data.table::copy() %>%
           data.table::setkey(netMHCII, nmer_l) %>%
           write_netmhc_nmers("netMHCII"),
 
@@ -1117,7 +1117,7 @@ get_pred_commands <- function(dt) {
         .SD,
         .SDcols = c("netMHCIIpan", "nmer", "nmer_l")
         ] %>%
-          data.table::copy %>%
+          data.table::copy() %>%
           data.table::setkey(netMHCIIpan, nmer_l) %>%
           write_netmhc_nmers("netMHCIIpan")
       )
@@ -1193,7 +1193,7 @@ collate_netMHC <- function(esl) {
         stringr::str_replace_all("<", " ") %>%
         stringr::str_replace_all("(SB|WB)", "  ") %>%
         data.table::tstrsplit("[ ]+") %>%
-        data.table::as.data.table
+        data.table::as.data.table()
       # apply names to data table
       dt %>% data.table::setnames(dt %>% names(), dtn)
 
@@ -1301,7 +1301,7 @@ write_mhcnuggets_nmers <- function(dt, alleles) {
           )
 
           data.table::fwrite(dt[allele == i, peptide] %>%
-            data.table::as.data.table,
+            data.table::as.data.table(),
           filename,
           col.names = FALSE,
           sep = ",",
@@ -1340,7 +1340,7 @@ write_mhcnuggets_nmers <- function(dt, alleles) {
           )
 
           data.table::fwrite(dt[allele == i, peptide] %>%
-            data.table::as.data.table,
+            data.table::as.data.table(),
           filename,
           col.names = FALSE,
           sep = ",",
@@ -1672,7 +1672,7 @@ garnish_affinity <- function(dt = NULL,
 
   if (missing(dt) & !missing(path)) {
     dt <- rio::import(path) %>%
-      data.table::as.data.table
+      data.table::as.data.table()
   }
 
   if (!"data.table" %chin% class(dt)) {
@@ -1984,17 +1984,17 @@ dt with peptide:
         # take pep_wt for non-fs for DAI calculation
         data.table::rbindlist(list(
           dtnfs %>%
-            data.table::copy %>%
+            data.table::copy() %>%
             .[, pep_base := pep_wt] %>%
             .[, pep_type := "wt"],
           dtnfs %>%
-            data.table::copy %>%
+            data.table::copy() %>%
             .[, pep_base := pep_mut] %>%
             .[, pep_type := "mutnfs"]
         )),
         # take only pep_mut for fs
         dtfs %>%
-          data.table::copy %>%
+          data.table::copy() %>%
           .[, pep_base := pep_mut] %>%
           .[, pep_type := "mut_other"]
       )) %>%
@@ -2011,7 +2011,7 @@ dt with peptide:
 
     if (input_type == "peptide" & !"pep_wt" %chin% names(dtnfs)) {
       basepep_dt <- dtnfs %>%
-        data.table::copy %>%
+        data.table::copy() %>%
         .[, pep_base := pep_mut] %>%
         .[, pep_type := "mut_other"]
     }
@@ -2020,11 +2020,11 @@ dt with peptide:
       basepep_dt <- data.table::rbindlist(list(
         # take pep_wt for non-fs for DAI calculation
         dtnfs %>%
-          data.table::copy %>%
+          data.table::copy() %>%
           .[, pep_base := pep_wt] %>%
           .[, pep_type := "wt"],
         dtnfs %>%
-          data.table::copy %>%
+          data.table::copy() %>%
           .[, pep_base := pep_mut] %>%
           .[, pep_type := "mutnfs"]
       ))
@@ -2332,7 +2332,7 @@ make_nmers <- function(dt, plen = 8:15) {
     stop("dt is missing columns")
   }
 
-  dt %<>% data.table::as.data.table
+  dt %<>% data.table::as.data.table()
 
   lines <- nrow(dt)
 
@@ -2499,7 +2499,7 @@ garnish_clonality <- function(dt) {
   # return *exclusive* clone frequency (independent of subclones)
   exclude_v <- function(v) {
     vu <- v %>%
-      stats::na.omit %>%
+      stats::na.omit() %>%
       as.numeric()
 
     vu <- vu %>%
