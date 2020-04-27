@@ -94,7 +94,7 @@ garnish_summary <- function(dt) {
 
   # summarize over unique nmers
 
-  dt %<>% data.table::as.data.table %>%
+  dt %<>% data.table::as.data.table() %>%
     data.table::copy() %>%
     unique(by = c(
       "pep_type",
@@ -117,7 +117,7 @@ garnish_summary <- function(dt) {
 
   sum_top_v <- function(x, value = 3) {
     x %<>%
-      stats::na.omit %>%
+      stats::na.omit() %>%
       sort() %>%
       rev()
 
@@ -1126,10 +1126,10 @@ garnish_antigens <- function(dt, nhits = 2, binding_cutoff = 500) {
 
   if (class(dt)[1] == "data.frame") {
     dt %<>%
-      data.table::as.data.table
+      data.table::as.data.table()
   }
 
-  dt %<>% data.table::copy
+  dt %<>% data.table::copy()
 
   if (!"Ensemble_score" %chin% names(dt)) {
     stop("Missing Ensemble_score column.  Input to garnish_antigens must be garnish_affinity output.")
