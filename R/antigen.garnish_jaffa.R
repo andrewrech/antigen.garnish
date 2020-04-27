@@ -191,7 +191,7 @@ tx_dt <- lapply(tx_dt[, ensembl_gene_id %>% unique], function(i){
                 paste0(collapse = ";")] %>%
                   .[, c("ensembl_gene_id", "txs")]
       return(row)
-          }) %>% data.table::rbindlist %>% unique
+    }) %>% data.table::rbindlist() %>% unique
 
   # merge dts with collapsed transcripts for genes 1 and 2
     dt <- merge(dt,

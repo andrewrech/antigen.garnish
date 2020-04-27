@@ -261,7 +261,7 @@ get_vcf_info_dt <- function(vcf) {
     stop("vcf input is not a vcfR object.")
   }
 
-  dt <- vcf@fix %>% data.table::as.data.table
+  dt <- vcf@fix %>% data.table::as.data.table()
 
   if (!"INFO" %chin% (dt %>% names())) {
     stop("Error parsing input file INFO field.")
@@ -320,7 +320,7 @@ get_vcf_sample_dt <- function(vcf) {
     stop("vcf input is not a vcfR object.")
   }
 
-  dt <- vcf@gt %>% data.table::as.data.table
+  dt <- vcf@gt %>% data.table::as.data.table()
 
   if (!"FORMAT" %chin% (dt %>% names())) {
     stop("Error parsing input file sample level info.")
@@ -436,7 +436,7 @@ get_vcf_snpeff_dt <- function(dt) {
   df <- dt %>%
     as.data.frame() %>%
     tidyr::separate_rows("ANN", sep = ",")
-  dt <- df %>% data.table::as.data.table
+  dt <- df %>% data.table::as.data.table()
 
   # extract info from snpeff annotation
   dt[, effect_type := ANN %>%

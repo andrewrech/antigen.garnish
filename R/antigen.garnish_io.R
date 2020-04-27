@@ -222,7 +222,7 @@ garnish_summary <- function(dt) {
         nmers = dt[pep_type %like% "mut", nmer %>% unique() %>% length()]
       )
     )
-  }) %>% data.table::rbindlist
+  }) %>% data.table::rbindlist()
 
   if ("iedb_score" %chin% names(dt)) {
     ie_I <- dt[class == "I" &
@@ -283,7 +283,7 @@ garnish_summary <- function(dt) {
           transcripts = dt[, ensembl_transcript_id %>% unique() %>% length()]
         )
       )
-    }) %>% data.table::rbindlist
+    }) %>% data.table::rbindlist()
 
     dtn <- merge(dtn, dtnv, by = "sample_id", all = TRUE)
   }
@@ -588,7 +588,7 @@ garnish_variants <- function(vcfs, tumor_sample_name = "TUMOR") {
 
       shuf <- readLines(vcfs[ivf])
       lines <- (!shuf %like% "^\\#\\#|CHROM") %>% which()
-      linesShuf <- lines[lines %>% permute::shuffle]
+      linesShuf <- lines[lines %>% permute::shuffle()]
       shuf[lines] <- shuf[linesShuf]
       writeLines(shuf, vcfs[ivf])
 
@@ -861,7 +861,7 @@ garnish_plot <- function(input, ext = "pdf") {
   }
 
   if (class(input)[1] == "character") {
-    input <- rio::import(input) %>% data.table::as.data.table
+    input <- rio::import(input) %>% data.table::as.data.table()
   }
 
   if (class(input)[1] != "list" & class(input)[1] != "data.table") {
