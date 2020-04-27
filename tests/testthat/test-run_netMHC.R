@@ -42,7 +42,7 @@ testthat::test_that("run_netMHC", {
    testthat::expect_gt(dto %>% nrow, 100)
    testthat::expect_gt(dto %>% length, 10)
    testthat::expect_gt(dto$`affinity(nM)_netMHC` %>%
-                        stats::na.omit %>%
+                        stats::na.omit() %>%
                         as.numeric %>%
                         sum, 1000000)
    testthat::expect_true(c("AQSGTPPT",

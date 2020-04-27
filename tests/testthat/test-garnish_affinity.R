@@ -92,7 +92,7 @@ jaffa <- function(){
 
     # load test data
       dt <- file.path(d, "antigen.garnish_example_jaffa_input.csv") %>%
-      data.table::fread
+      data.table::fread()
 
       dt[, MHC := "H-2-Kb"]
 
@@ -134,7 +134,7 @@ peptides_wt <- function(){
 
         # load test data
           dt <- file.path(d, "antigen.garnish_example_peptide_with_WT_input.txt") %>%
-          data.table::fread
+          data.table::fread()
 
           w <- try(dt[sample_id %like% "err.*consecutive"] %>%
             garnish_affinity(blast = FALSE, predict = FALSE))

@@ -4,7 +4,7 @@ testthat::test_that("garnish_clonality", {
   d <- test_data_dir()
 
     dt <- file.path(d, "antigen.garnish_PureCN_example_output.txt") %>%
-              data.table::fread %>%
+              data.table::fread() %>%
               .[, c("cl_proportion", "clone_id") := NULL]
   # run test
 

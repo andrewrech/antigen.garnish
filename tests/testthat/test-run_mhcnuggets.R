@@ -25,7 +25,7 @@ testthat::test_that("run_mhcnuggets", {
    testthat::expect_equal(
                           list.files(pattern = "mhcnuggets_output.*csv") %>%
                             parallel::mclapply(fread) %>%
-                            data.table::rbindlist %>%
+                            data.table::rbindlist() %>%
                             nrow,
                             304
                           )

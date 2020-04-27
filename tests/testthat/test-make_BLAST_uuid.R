@@ -8,7 +8,7 @@ testthat::test_that("make_BLAST_uuid", {
 
    dt <- data.table::fread(file.path(d, "antigen.garnish_test_make_BLAST_uuid.csv"))
 
-    dti <- dt %>% data.table::copy %>%
+    dti <- dt %>% data.table::copy() %>%
       .[, MHC := "H-2-Kb"] %>%
         .[, nmer_uuid := uuid::UUIDgenerate(), by = "nmer"] %>%
           .[, sample_id := "my_sample"] %>%
