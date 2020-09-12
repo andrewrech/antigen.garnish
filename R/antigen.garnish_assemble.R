@@ -432,37 +432,42 @@ get_vcf_snpeff_dt <- function(dt) {
 
   # spread SnpEff annotation over rows
   # transform to data frame intermediate to avoid
-  # data.taable invalid .internal.selfref
-  df <- dt %>%
-    as.data.frame() %>%
-    tidyr::separate_rows("ANN", sep = ",")
-  dt <- df %>% data.table::as.data.table()
+  # data.table invalid .internal.selfref
+  dt %<>%
+    tidyr::separate_rows("ANN", sep = ",[ACTNG]*\\|") %>%
+    data.table::as.data.table(.)
 
-  # extract info from snpeff annotation
-  dt[, effect_type := ANN %>%
-    stringr::str_extract("^[^\\|]+\\|[^|]+") %>%
-    stringr::str_replace("^[^\\|]+\\|", "")]
-  dt[, ensembl_transcript_id := ANN %>%
-    stringr::str_extract("(?<=\\|)(ENSMUST|ENST)[0-9]+")]
-  dt[, ensembl_gene_id := ANN %>%
-    stringr::str_extract("(?<=\\|)(ENSMUSG|ENSG)[0-9.]+(?=\\|)")]
-  dt[, protein_change := ANN %>%
-    stringr::str_extract("p\\.[^\\|]+")]
-  dt[, cDNA_change := ANN %>%
-    stringr::str_extract("c\\.[^\\|]+")]
-  dt[, protein_coding := ANN %>%
-    stringr::str_detect("protein_coding")]
+  dt[ensembl_transcript_id := ANN %>%+
+     stringr::str_extract("(?<=\\|)(ENSMUST|ENST)[0-9]+")]
+
+
+  dt[, ANN := ANN %>% stringr::str_replace("^[ACTNG]*\\|", "")]
+
+  annSpecNames <- c(
+    "effect_type",
+    "putative_impact",
+    "gene",
+    "gene_id",
+    "feature_type",
+    "feature_id",
+    "transcript_bioptype",
+    "exon_intron_rank",
+    "cDNA_change",
+    "protein_change",
+    "cDNA_position_cDNA_len",
+    "CDS_position_CDS_len",
+    "Protein_position_Protein_len",
+    "Distance_to_feature"
+  )
+  dt[, eval(annSpecNames) := ANN %>% data.table::tstrsplit("\\|")]
 
   ## this is only for hg19
   dt[, refseq_id := ANN %>%
     stringr::str_extract("(?<=\\|)NM_[0-9]+")]
 
   if (nrow(dt[!is.na(refseq_id)]) > 0) {
-    message("Annotations detected RefSeq identifiers, these will be converted to Ensembl transcript IDs, some data may be lost.
-        Please annotate vcfs with Ensembl transcript IDs.")
+    stop("Detected RefSeq identifiers. Refseq identifers are not supported. Please annotate variants with Ensembl transcript IDs (e.g. ENST00000311936).")
   }
-
-  if (nrow(dt[!is.na(refseq_id)]) == 0) dt[, refseq_id := NULL]
 
   return(dt)
 }

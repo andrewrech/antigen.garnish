@@ -699,40 +699,7 @@ garnish_variants <- function(vcfs, tumor_sample_name = "TUMOR") {
     }
 
     # filter out NA
-    if (any(names(vdt) %like% "refseq")) {
-      vdt %<>% .[!cDNA_change %>% is.na() &
-        (!is.na(ensembl_transcript_id) | !is.na(refseq_id))]
-
-      rs <- system.file(package = "antigen.garnish") %>%
-        file.path(., "extdata", "Refseq_ids.txt") %>%
-        data.table::fread()
-
-      if (vdt %>% names() %>% duplicated() %>% any()) {
-        dupNameIndex <- vdt %>%
-          names() %>%
-          duplicated() %>%
-          which()
-        names(vdt)[vdt %>%
-          names() %>%
-          duplicated() %>%
-          which()] <- paste0((vdt %>% names())[dupNameIndex], ".1")
-      }
-
-      vdt <- list(
-        vdt[!is.na(ensembl_transcript_id)],
-        merge(vdt[is.na(ensembl_transcript_id)] %>% .[, ensembl_transcript_id := NULL],
-          rs,
-          all.x = TRUE, by = "refseq_id"
-        )
-      ) %>% data.table::rbindlist(use.names = TRUE)
-
-      # drop redundancy from multiple NCBI tx ids matching to same ensembl tx id
-      vdt %<>% .[!cDNA_change %>% is.na() & !is.na(ensembl_transcript_id)] %>%
-        unique(by = c("sample_id", "cDNA_change", "ensembl_transcript_id"))
-    }
-    else {
-      vdt %<>% .[!cDNA_change %>% is.na() & !is.na(ensembl_transcript_id)]
-    }
+    vdt %<>% .[!cDNA_change %>% is.na() & !is.na(ensembl_transcript_id)]
 
     if (vdt %>% nrow() < 1) {
       warning("No variants are present in the input file after filtering.")
