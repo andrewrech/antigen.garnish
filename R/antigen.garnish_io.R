@@ -494,7 +494,7 @@ garnish_slim <- function(dt, slimmer = TRUE) {
 
 #' Process VCF variants and return a data table for epitope prediction.
 #'
-#' Process paired tumor-normal VCF variants annotated with [SnpEff](http://snpeff.sourceforge.net/) for neoantigen prediction using `garnish_affinity`.
+#' Process paired tumor-normal VCF variants annotated with [SnpEff](http://snpeff.sourceforge.net/) for neoantigen prediction using `garnish_affinity`. Ensembl transcript annotations (e.g. ENST00000311936.8) from releases 50-101 (7/1/08-7/10/20) are supported.
 #'
 #' @param vcfs Paths to one or more VFC files to import. See details below.
 #' @param tumor_sample_name Character, name of column in vcf of tumor sample, used to determine mutant allelic fraction of neoantigens.
