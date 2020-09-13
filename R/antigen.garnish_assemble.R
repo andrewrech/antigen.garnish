@@ -542,7 +542,7 @@ translate_cDNA <- function(v) {
       {
         p %>%
           Biostrings::DNAString() %>%
-          Biostrings::translate() %>%
+          Biostrings::translate(no.init.codon = TRUE) %>%
           as.character()
       },
       error = function(e) {
