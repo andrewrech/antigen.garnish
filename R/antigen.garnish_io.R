@@ -494,7 +494,7 @@ garnish_slim <- function(dt, slimmer = TRUE) {
 
 #' Process VCF variants and return a data table for epitope prediction.
 #'
-#' Process paired tumor-normal VCF variants annotated with [SnpEff](http://snpeff.sourceforge.net/) for neoantigen prediction using `garnish_affinity`.
+#' Process paired tumor-normal VCF variants annotated with [SnpEff](http://snpeff.sourceforge.net/) for neoantigen prediction using `garnish_affinity`. Ensembl transcript annotations (e.g. ENST00000311936.8) from releases 50-101 (7/1/08-7/10/20) are supported.
 #'
 #' @param vcfs Paths to one or more VFC files to import. See details below.
 #' @param tumor_sample_name Character, name of column in vcf of tumor sample, used to determine mutant allelic fraction of neoantigens.
@@ -699,40 +699,7 @@ garnish_variants <- function(vcfs, tumor_sample_name = "TUMOR") {
     }
 
     # filter out NA
-    if (any(names(vdt) %like% "refseq")) {
-      vdt %<>% .[!cDNA_change %>% is.na() &
-        (!is.na(ensembl_transcript_id) | !is.na(refseq_id))]
-
-      rs <- system.file(package = "antigen.garnish") %>%
-        file.path(., "extdata", "Refseq_ids.txt") %>%
-        data.table::fread()
-
-      if (vdt %>% names() %>% duplicated() %>% any()) {
-        dupNameIndex <- vdt %>%
-          names() %>%
-          duplicated() %>%
-          which()
-        names(vdt)[vdt %>%
-          names() %>%
-          duplicated() %>%
-          which()] <- paste0((vdt %>% names())[dupNameIndex], ".1")
-      }
-
-      vdt <- list(
-        vdt[!is.na(ensembl_transcript_id)],
-        merge(vdt[is.na(ensembl_transcript_id)] %>% .[, ensembl_transcript_id := NULL],
-          rs,
-          all.x = TRUE, by = "refseq_id"
-        )
-      ) %>% data.table::rbindlist(use.names = TRUE)
-
-      # drop redundancy from multiple NCBI tx ids matching to same ensembl tx id
-      vdt %<>% .[!cDNA_change %>% is.na() & !is.na(ensembl_transcript_id)] %>%
-        unique(by = c("sample_id", "cDNA_change", "ensembl_transcript_id"))
-    }
-    else {
-      vdt %<>% .[!cDNA_change %>% is.na() & !is.na(ensembl_transcript_id)]
-    }
+    vdt %<>% .[!cDNA_change %>% is.na() & !is.na(ensembl_transcript_id)]
 
     if (vdt %>% nrow() < 1) {
       warning("No variants are present in the input file after filtering.")
@@ -747,7 +714,6 @@ garnish_variants <- function(vcfs, tumor_sample_name = "TUMOR") {
     # AF is a GT field not an INFO field, and account for multiple alt alleles in this scenario
     if (length(tumor_sample_name) != 1 | class(tumor_sample_name)[1] != "character") {
       stop("A single tumor sample name must be provided.")
-    }
 
     afield <- paste(tumor_sample_name, "_AF", sep = "")
 

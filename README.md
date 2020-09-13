@@ -2,15 +2,26 @@
 
 # antigen.garnish
 
-Ensemble tumor neoantigen prediction and multi-parameter quality analysis from direct input, SNVs, indels, or gene fusion variants.
+Ensemble tumor neoantigen prediction from complex variants. Immunogenicity filtering based on the [Tumor Neoantigen Selection Alliance (TESLA)](https://www.parkerici.org/research-project/tumor-neoantigen-selection-alliance-tesla/).
 
 ![](https://get.rech.io/antigen.garnish_flowchart.svg)
 
-[Detailed flowchart.](https://get.rech.io/antigen.garnish_flowchart_detailed.svg)
+## Citation
+
+> Richman LP, Vonderheide RH, and Rech AJ. "Neoantigen dissimilarity to the self-proteome predicts immunogenicity and response to immune checkpoint blockade." Cell Systems. 2019. DOI: [10.1016/j.cels.2019.08.009](https://doi.org/10.1016/j.cels.2019.08.009)
+
+## References
+
+> Rech AJ, Balli D, Mantero A, Ishwaran H, Nathanson KL, Stanger BZ, Vonderheide RH. Tumor immunity and survival as a function of alternative neopeptides in human cancer. Clinical Cancer Research, 2018. DOI: [10.1158/2326-6066.CIR-17-0559](https://cancerimmunolres.aacrjournals.org/content/6/3/276)
+
+> Wells DK, van Buuren MM, Dang KK, Hubbard-Lucey VM, Sheehan KCF, Campbell KM, Lamb A, Ward JP, Sidney J, Blazquez AB, Rech AJ, Zaretsky JM, Comin-Anduix B, Ng AHC, Chour W, Yu TV, Rizvi1 H, Chen JM, Manning P, Steiner GM, Doan XC, The TESLA Consortium, Merghoub T, Guinney J, Kolom A, Selinsky C, Ribas A, Hellmann MD, Hacohen N, Sette A, Heath JR, Bhardwaj N, Ramsdell F, Schreiber RD, Schumacher TN, Kvistborg P, Defranoux N. Key Parameters of Tumor Epitope Immunogenicity Revealed Through a Consortium Approach Improve Neoantigen Prediction. Cell. 2020. In press.
+
 
 ## Description
 
 An R package for [neoantigen](http://science.sciencemag.org/content/348/6230/69) analysis that takes human or murine DNA missense mutations, insertions, deletions, or RNASeq-derived gene fusions and performs ensemble neoantigen prediction using 7 algorithms. Input is a VCF file, [JAFFA](https://github.com/Oshlack/JAFFA) output, or table of peptides or transcripts. Outputs are ranked and summarized by sample. Neoantigens are ranked by MHC I/II binding affinity, clonality, RNA expression, similarity to known immunogenic antigens, and dissimilarity to the normal peptidome.
+
+[Detailed flowchart.](https://get.rech.io/antigen.garnish_flowchart_detailed.svg)
 
 ### Advantages
 
@@ -261,10 +272,6 @@ From ./`<Github repo>`:
 * `garnish_antigens` output:
 
 ![](https://get.rech.io/antigen.garnish_summary_table.png)
-
-## Citation
-
-> Richman LP, Vonderheide RH, and Rech AJ. "Neoantigen dissimilarity to the self-proteome predicts immunogenicity and response to immune checkpoint blockade." *Cell Systems* **9**, 375-382.E4, (2019).
 
 ## Contributing
 
