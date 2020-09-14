@@ -30,7 +30,6 @@
 #' @seealso \code{\link{garnish_summary}}
 #' @docType package
 #' @name antigen.garnish
-#' @name BiocInstaller
 #' @import colorspace
 #' @import data.table
 #' @import dt.inflix

@@ -1,3 +1,14 @@
+# antigen.garnish 2.0.0
+
+
+* new filtering criteria based on TESLA https://www.parkerici.org/research-project/tumor-neoantigen-selection-alliance-tesla/
+* update Ensembl transcript CDS database to release 101 (any prior versioned transcript release is acceptable)
+* improve SnpEff annotation parsing
+* remove support for mitochondrial transcripts
+* remove support for Refseq transcript identifiers
+* remove support for non-versioned Ensembl transcript identifiers
+
+
 # antigen.garnish 1.1.1
 
 * update to include configuration for netMHC dependencies

@@ -883,13 +883,13 @@ garnish_plot <- function(input, ext = "pdf") {
 
 
 
-#' List top neoantigens for each sample and/or by clones within each sample.
+#' List top neoantigens for each sample and/or by clones within each sample using TESLA criteria for recognition features of immunogenic peptides.
+#'
+#' The \href{https://www.parkerici.org/research-project/tumor-neoantigen-selection-alliance-tesla/}{TESLA consortium} identified recognition features of immunogenic peptides. This function applies each of those criteria and returns any neoantigen that meets MHC binding affinity (< 34nM) and annotates in the Recognition_Features column with: agretopicity (DAI > 10), foreignness (iedb_score > 10e-16), and dissimilarity > 0.
 #'
 #' @param dt An output data table from `garnish_affinity`, either a data table object or path to a file.
-#' @param nhits Integer. Maximum number of prioritized neoantigens per clone to return, default is 2.
-#' @param binding_cutoff Numeric. Affinity threshold in nM to consider neoantigens, default is 500.
 #'
-#' @return A data table with the top neoantigen per sample, and if possible per clone, in rank order of clone frequency. Neoantigens are prioritized by permissive dissimilarity and iedb_score thresholds and then by differential agretopicity.
+#' @return A data table with all neoantigens from the input table that meet at least one of the recognition features of immunogenic peptides from the \href{https://www.parkerici.org/research-project/tumor-neoantigen-selection-alliance-tesla/}{TESLA consortium}.
 #'
 #' @seealso \code{\link{garnish_affinity}}
 #' @seealso \code{\link{garnish_summary}}
@@ -897,7 +897,7 @@ garnish_plot <- function(input, ext = "pdf") {
 #' @export garnish_antigens
 #' @md
 
-garnish_antigens <- function(dt, nhits = 2, binding_cutoff = 500) {
+garnish_antigens <- function(dt) {
   if (class(dt)[1] == "character") {
     dt <- dt %>%
       rio::import() %>%
@@ -915,15 +915,9 @@ garnish_antigens <- function(dt, nhits = 2, binding_cutoff = 500) {
     stop("Missing Ensemble_score column.  Input to garnish_antigens must be garnish_affinity output.")
   }
 
-  dt <- dt[Ensemble_score < binding_cutoff & pep_type != "wt"]
+  dt <- dt[Ensemble_score < 34 & pep_type != "wt"]
 
-  c <- c("clone_id", "cl_proportion")
-
-  if (!"clone_id" %chin% names(dt)) {
-    dt[, clone_id := as.numeric(NA)]
-
-    c <- "clone_id"
-  }
+  if (nrow(dt) == 0) stop("No qualifying neoantigens present in data.")
 
   if (!"min_DAI" %chin% names(dt) & "DAI" %chin% names(dt)) {
     dt[, min_DAI := DAI]
@@ -944,48 +938,43 @@ garnish_antigens <- function(dt, nhits = 2, binding_cutoff = 500) {
 
   if (length(ml) != 0) dt[, as.character(ml) := as.numeric(NA)]
 
-  # split by  sample
-  dtl <- dt %>% split(by = "sample_id")
-
-  dtl <- lapply(dtl, function(n) {
-    dtll <- n %>% split(by = "clone_id")
-
-    dtll <- lapply(dtll, function(nn) {
-      if (nrow(nn[dissimilarity > 0 & iedb_score > 0]) > 0) {
-        return(nn[order(min_DAI, decreasing = TRUE)][1:nhits])
-      }
-
-      if (nrow(nn[dissimilarity > 0]) > 0) {
-        return(nn[order(min_DAI, decreasing = TRUE)][1:nhits])
-      }
-
-      if (nrow(nn[iedb_score > 0]) > 0) {
-        return(nn[order(min_DAI, decreasing = TRUE)][1:nhits])
-      }
-
-      if (nrow(nn[min_DAI > 1]) > 0) {
-        return(nn[order(min_DAI, decreasing = TRUE)][1:nhits])
-      }
-
-      return(nn[order(Ensemble_score, decreasing = FALSE)][1:nhits])
-    }) %>% data.table::rbindlist(use.names = TRUE)
-  }) %>% data.table::rbindlist(use.names = TRUE)
-
-  # now drop extra rows added by nhits argument which will all have NA values
-  dtl <- dtl[!is.na(Ensemble_score)]
-
-  n <- names(dtl)[which(names(dtl) %chin% c("cDNA_change", "protein_change", "external_gene_name"))]
+  n <- names(dt)[which(names(dt) %chin%
+  c("cDNA_change", "protein_change", "external_gene_name", "clone_id"))]
 
   if (length(n) < 1) n <- NULL
 
-  dt <- dtl[, .SD %>% unique(), .SDcols = c(
+  dt <- dt[, .SD %>% unique(), .SDcols = c(
     "sample_id", "nmer", "MHC", n,
-    "Ensemble_score", "dissimilarity", "iedb_score", "min_DAI", c
-  )]
+    "Ensemble_score", "dissimilarity", "iedb_score", "min_DAI")]
+
+  annotate_antigens <- function(ie, md, diss){
+
+    iedb_l <- ifelse(ie > 10e-16, "foreignness", as.character(NA))
+
+    dai_l <- ifelse(md > 10, "agretopicity", as.character(NA))
+
+    diss_l <- ifelse(diss > 0, "dissimilarity", as.character(NA))
+
+    anno <- paste("binding affinity", iedb_l, dai_l, diss_l, sep = "; ")
+
+    anno %<>% stringr::str_replace_all("NA;|NA$", "")
+
+    anno %<>% stringr::str_replace_all("[\\ ]+", " ")
+
+    anno %<>% stringr::str_replace_all(";[\\ ]+?$", "")
+
+    return(anno)
+
+  }
+
+  dt[, Recognition_Features := annotate_antigens(iedb_score,
+                                                min_DAI,
+                                                dissimilarity)]
 
   if (!"clone_id" %chin% names(dt)) dt <- dt %>% .[order(sample_id)]
 
   if ("clone_id" %chin% names(dt)) dt <- dt %>% .[order(sample_id, clone_id)]
 
   return(dt)
+
 }
