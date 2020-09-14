@@ -57,7 +57,6 @@ list_mhc <- function() {
 #' @param x Vector of HLA types named for program to convert to.
 #' @param alleles Data table of 2 columns, 1. formatted allele names 2. prediction tool name (e.g. mhcflurry, mhcnuggets, netMHC).
 #'
-#' @export detect_mhc
 #' @md
 
 detect_mhc <- function(x, alleles) {
@@ -90,7 +89,6 @@ detect_mhc <- function(x, alleles) {
 #'
 #' @param dt Data table with `INFO` column.
 #'
-#' @export get_metadata
 #' @md
 
 get_metadata <- function(dt) {
@@ -133,7 +131,6 @@ get_metadata <- function(dt) {
 #'
 #' @param dt Data table with INFO column.
 #'
-#' @export make_cDNA
 #' @md
 
 make_cDNA <- function(dt) {
@@ -253,7 +250,6 @@ make_cDNA <- function(dt) {
 #'
 #' @return Data table of variants with `INFO` fields in columns.
 #'
-#' @export get_vcf_info_dt
 #' @md
 
 get_vcf_info_dt <- function(vcf) {
@@ -312,7 +308,6 @@ get_vcf_info_dt <- function(vcf) {
 #'
 #' @return Data table of variants with sample level fields in columns.
 #'
-#' @export get_vcf_sample_dt
 #' @md
 
 get_vcf_sample_dt <- function(vcf) {
@@ -417,7 +412,6 @@ get_vcf_sample_dt <- function(vcf) {
 #'
 #' @return Data table with the `ANN` column parsed into additional rows.
 #'
-#' @export get_vcf_snpeff_dt
 #' @md
 
 get_vcf_snpeff_dt <- function(dt) {
@@ -479,7 +473,6 @@ get_vcf_snpeff_dt <- function(dt) {
 #'
 #' @param dt Data table with INFO column.
 #'
-#' @export extract_cDNA
 #' @md
 
 extract_cDNA <- function(dt) {
@@ -531,7 +524,6 @@ extract_cDNA <- function(dt) {
 #'
 #' @param v cDNA character vector without ambiguous bases.
 #'
-#' @export translate_cDNA
 #' @md
 
 translate_cDNA <- function(v) {

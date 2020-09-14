@@ -8,7 +8,6 @@
 #' @param gap_open Numeric. Cost to open gapped alignment. Default is -11.
 #' @param gap_extend Numeric. Cost to extend a gap. Default is -1.
 #'
-#' @export SW_align
 #' @md
 SW_align <- function(col1,
                      col2,
@@ -29,7 +28,6 @@ SW_align <- function(col1,
 
 #' Internal function to run run_mhcflurry commands.
 #'
-#' @export run_mhcflurry
 #' @md
 
 run_mhcflurry <- function() {
@@ -53,7 +51,6 @@ run_mhcflurry <- function() {
 
 #' Internal function to run run_mhcnuggets commands.
 #'
-#' @export run_mhcnuggets
 #' @md
 
 run_mhcnuggets <- function() {
@@ -115,7 +112,6 @@ run_mhcnuggets <- function() {
 #'
 #' @param dt Data table of prediction commands to run.
 #'
-#' @export run_netMHC
 #' @md
 
 run_netMHC <- function(dt) {
@@ -229,7 +225,6 @@ run_netMHC <- function(dt) {
 
 #' Print data directory error
 #'
-#' @export ag_data_err
 #' @md
 
 ag_data_err <- function() {
@@ -260,7 +255,6 @@ ag_data_err <- function() {
 #'
 #' @param dir Character vector. Path to `antigen.garnish` data directory.
 #'
-#' @export configure_netMHC_tools
 #' @md
 
 configure_netMHC_tools <- function(dir) {
@@ -401,7 +395,6 @@ configure_netMHC_tools <- function(dir) {
 #'
 #' @param ag_dirs Character vector. Directories to check for `antigen.garnish` data directory.
 #'
-#' @export check_pred_tools
 #' @md
 
 check_pred_tools <- function(ag_dirs = c(

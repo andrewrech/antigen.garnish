@@ -199,6 +199,7 @@ iedb_score <- function(v, db) {
 #'
 #' @return Data table of nmers and corresponding dissimilarity values (to the non-mutated proteome).
 #'
+#'
 #' @export garnish_dissimilarity
 #' @md
 
@@ -399,7 +400,6 @@ garnish_dissimilarity <- function(v, db, kval = 4.86936, aval = 32) {
 #'
 #' @param dti Data table of nmers.
 #'
-#' @export make_BLAST_uuid
 #' @md
 
 make_BLAST_uuid <- function(dti) {
@@ -652,7 +652,6 @@ make_BLAST_uuid <- function(dti) {
 #'
 #' @param dt Data table of nmers.
 #'
-#' @export make_DAI_uuid
 #' @md
 
 make_DAI_uuid <- function(dt) {
@@ -733,7 +732,6 @@ make_DAI_uuid <- function(dt) {
 #'
 #' @param l Output list from run_netMHC
 #' @param dt Input data table.
-#' @export merge_predictions
 #' @md
 
 merge_predictions <- function(l, dt) {
@@ -943,7 +941,6 @@ merge_predictions <- function(l, dt) {
 #' Internal function to create commands for neoantigen prediction.
 #'
 #' @param dt Data.table of predictions to run.
-#' @export get_pred_commands
 #' @md
 
 get_pred_commands <- function(dt) {
@@ -1152,7 +1149,6 @@ get_pred_commands <- function(dt) {
 #' Internal function to collate results from netMHC prediction
 #'
 #' @param esl List of outputs from netMHC.
-#' @export collate_netMHC
 #' @md
 
 collate_netMHC <- function(esl) {
@@ -1260,7 +1256,6 @@ collate_netMHC <- function(esl) {
 #' @param dt Data table of nmers.
 #' @param alleles Data table of 2 columns, 1. alleles properly formatted mhcnuggets.
 #'
-#' @export write_mhcnuggets_nmers
 #' @md
 
 write_mhcnuggets_nmers <- function(dt, alleles) {
@@ -1360,7 +1355,6 @@ write_mhcnuggets_nmers <- function(dt, alleles) {
 #' @param dt Data table of nmers.
 #' @param type Character vector. Name of program to format for.
 #'
-#' @export write_netmhc_nmers
 #' @md
 
 write_netmhc_nmers <- function(dt, type) {
@@ -2311,7 +2305,6 @@ dt with peptide:
 #' @param dt Data table. Input data table from `garnish_affinity`.
 #' @param plen Numeric vector. Length(s) of peptides to create.
 #'
-#' @export make_nmers
 #' @md
 
 make_nmers <- function(dt, plen = 8:15) {
@@ -2426,7 +2419,6 @@ make_nmers <- function(dt, plen = 8:15) {
 #' * **clone_id**: rank of the clone containing the variant (highest equals larger tumor fraction).
 #' * **cl_proportion**: estimated mean tumor fraction containing the clone.
 #'
-#' @export garnish_clonality
 #' @md
 
 garnish_clonality <- function(dt) {
