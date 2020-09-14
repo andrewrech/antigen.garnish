@@ -271,7 +271,7 @@ get_vcf_info_dt <- function(vcf) {
 
 
 
-#' Internal function to extract a data table from sample `vcf` fields.
+#' Internal function to extract a data table from vcfR `vcf` object fields.
 #'
 #' @param vcf vcfR object to extract data from.
 #'
