@@ -55,7 +55,7 @@ See the [wiki](https://github.com/immune-health/antigen.garnish/wiki/Docker) for
 
 #### Requirements
 
-- R &ge; 3.4
+- R &ge; 3.5.0
 - python-pip
 - tcsh (required for netMHC)
 - `sudo` privileges (required for netMHC)
@@ -71,10 +71,10 @@ $ curl -fsSL http://get.rech.io/install_antigen.garnish.sh | sudo sh
 
 Next, download the netMHC suite of tools for Linux, available under an academic license:
 
-* [netMHC](http://www.cbs.dtu.dk/cgi-bin/nph-sw_request?netMHC)
-* [netMHCpan](http://www.cbs.dtu.dk/cgi-bin/nph-sw_request?netMHCpan)
-* [netMHCII](http://www.cbs.dtu.dk/cgi-bin/nph-sw_request?netMHCII)
-* [netMHCIIpan](http://www.cbs.dtu.dk/cgi-bin/nph-sw_request?netMHCIIpan)
+- [netMHC](http://www.cbs.dtu.dk/cgi-bin/nph-sw_request?netMHC)
+- [netMHCpan](http://www.cbs.dtu.dk/cgi-bin/nph-sw_request?netMHCpan)
+- [netMHCII](http://www.cbs.dtu.dk/cgi-bin/nph-sw_request?netMHCII)
+- [netMHCIIpan](http://www.cbs.dtu.dk/cgi-bin/nph-sw_request?netMHCIIpan)
 
 After downloading the files above, move the binaries into the `antigen.garnish` data directory, first setting the `NET_MHC_DIR` and `ANTIGEN_GARNISH_DIR` environmental variables, as shown here:
 
@@ -112,15 +112,14 @@ Package documentation can be found: [website](https://neoantigens.rech.io/refere
 
 ### Workflow example
 
-  1. Prepare input for MHC affinity prediction and quality analysis:
+1. Prepare input for MHC affinity prediction and quality analysis:
 
-		* VCF input - `garnish_variants`
-		* Fusions from RNASeq via [JAFFA](https://github.com/Oshlack/JAFFA)- `garnish_jaffa`
-		* Prepare table of direct transcript or peptide input - see manual page in R (`?garnish_affinity`)
+   - VCF input - `garnish_variants`
+   - Prepare table of direct transcript or peptide input - see manual page in R (`?garnish_affinity`)
 
-  1. Add MHC alleles of interest - see examples below.
-  1. Run ensemble prediction method and perform antigen quality analysis including proteome-wide differential agretopicity, IEDB alignment score, and dissimilarity: `garnish_affinity`.
-  1. Summarize output by sample level with `garnish_summary` and `garnish_plot`, and prioritize the highest quality neoantigens per clone and sample with `garnish_antigens`.
+1. Add MHC alleles of interest - see examples below.
+1. Run ensemble prediction method and perform antigen quality analysis including proteome-wide differential agretopicity, IEDB alignment score, and dissimilarity: `garnish_affinity`.
+1. Summarize output by sample level with `garnish_summary` and `garnish_plot`, and prioritize the highest quality neoantigens per clone and sample with `garnish_antigens`.
 
 ### Function examples
 
@@ -159,36 +158,6 @@ library(antigen.garnish)
 
   # generate summary graphs
     dt %>% garnish_plot
-```
-
-#### Predict neoantigens from gene fusions
-
-```r
-library(magrittr)
-library(data.table)
-library(antigen.garnish)
-
-  # load example jaffa output
-	dir <- system.file(package = "antigen.garnish") %>%
-		file.path(., "extdata/testdata")
-
-	path <- "antigen.garnish_jaffa_results.csv" %>%
-			file.path(dir, .)
-	fasta_path <- "antigen.garnish_jaffa_results.fasta" %>%
-			file.path(dir, .)
-
-  # get predictions
-    dt <- garnish_jaffa(path, db = "GRCm38", fasta_path) %>%
-
-  # add MHC info with list_mhc() compatible names
-    .[, MHC := "H-2-Kb"] %>%
-
-  # get predictions
-    garnish_affinity(.) %>%
-
-  # summarize predictions
-    garnish_summary %T>%
-    print
 ```
 
 #### Get full MHC affinity output from a Microsoft Excel file of variants
