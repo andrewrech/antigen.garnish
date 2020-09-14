@@ -312,16 +312,16 @@ garnish_antigens <- function(dt) {
   if (length(ml) != 0) dt[, as.character(ml) := as.numeric(NA)]
 
   n <- names(dt)[which(names(dt) %chin%
-  c("cDNA_change", "protein_change", "external_gene_name", "clone_id"))]
+    c("cDNA_change", "protein_change", "ensembl_transcript_id", "clone_id"))]
 
   if (length(n) < 1) n <- NULL
 
   dt <- dt[, .SD %>% unique(), .SDcols = c(
     "sample_id", "nmer", "MHC", n,
-    "Ensemble_score", "dissimilarity", "iedb_score", "min_DAI")]
+    "Ensemble_score", "dissimilarity", "iedb_score", "min_DAI"
+  )]
 
-  annotate_antigens <- function(ie, md, diss){
-
+  annotate_antigens <- function(ie, md, diss) {
     iedb_l <- ifelse(ie > 10e-16, "foreignness", as.character(NA))
 
     dai_l <- ifelse(md > 10, "agretopicity", as.character(NA))
@@ -337,17 +337,17 @@ garnish_antigens <- function(dt) {
     anno %<>% stringr::str_replace_all(";[\\ ]+?$", "")
 
     return(anno)
-
   }
 
-  dt[, Recognition_Features := annotate_antigens(iedb_score,
-                                                min_DAI,
-                                                dissimilarity)]
+  dt[, Recognition_Features := annotate_antigens(
+    iedb_score,
+    min_DAI,
+    dissimilarity
+  )]
 
   if (!"clone_id" %chin% names(dt)) dt <- dt %>% .[order(sample_id)]
 
   if ("clone_id" %chin% names(dt)) dt <- dt %>% .[order(sample_id, clone_id)]
 
   return(dt)
-
 }

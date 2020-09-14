@@ -127,7 +127,7 @@ iedb_score <- function(v, db) {
 
   message("Summing IEDB local alignments...")
 
-  blastdt[, SW := SW_align(nmer, WT.peptide)]
+  blastdt[, SW := make_sw_alignment(nmer, WT.peptide)]
 
   modeleR <- function(als, a = 26, k = 4.86936) {
     be <- -k * (a - als)
@@ -350,7 +350,7 @@ garnish_dissimilarity <- function(v, db, kval = 4.86936, aval = 32) {
 
     b <- blastdt[i] %>% data.table::fread()
 
-    b[, SW := SW_align(nmer, WT.peptide)]
+    b[, SW := make_sw_alignment(nmer, WT.peptide)]
 
     b %>% data.table::fwrite(blastdt[i], sep = "\t")
 
@@ -582,7 +582,7 @@ make_BLAST_uuid <- function(dti) {
 
     b <- blastdt[i] %>% data.table::fread()
 
-    b[, SW := SW_align(nmer, WT.peptide)]
+    b[, SW := make_sw_alignment(nmer, WT.peptide)]
 
     b %>% data.table::fwrite(blastdt[i], sep = "\t")
 
@@ -1636,13 +1636,6 @@ garnish_affinity <- function(dt = NULL,
     message("Removing temporary files")
     try(
       list.files(pattern = "(_nmer_fasta\\.fa)|(iedb_query.fa)|((netMHC|mhcflurry|mhcnuggets).*_[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}\\.csv)") %>% file.remove(),
-      silent = TRUE
-    )
-    try(
-      utils::download.file("http://get.rech.io/antigen.garnish.usage.txt",
-        destfile = "/dev/null",
-        quiet = TRUE
-      ),
       silent = TRUE
     )
     setwd(original_dir)

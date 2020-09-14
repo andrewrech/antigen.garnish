@@ -32,7 +32,7 @@ error_function <- function(){
 
   err <- try({
 
-    ag_data_err()
+    .ag_data_err()
 
     }, silent = TRUE)
 

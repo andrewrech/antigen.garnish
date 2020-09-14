@@ -9,10 +9,10 @@
 #' @param gap_extend Numeric. Cost to extend a gap. Default is -1.
 #'
 #' @md
-SW_align <- function(col1,
-                     col2,
-                     gap_open = -11,
-                     gap_extend = -1) {
+make_sw_alignment <- function(col1,
+                              col2,
+                              gap_open = -11,
+                              gap_extend = -1) {
   al <- Biostrings::pairwiseAlignment(col1, col2,
     substitutionMatrix = "BLOSUM62",
     gapOpening = gap_open,
@@ -216,12 +216,11 @@ run_netMHC <- function(dt) {
   return(dtl)
 }
 
-
 #' Print data directory error
 #'
 #' @md
 
-ag_data_err <- function() {
+.ag_data_err <- function() {
   err <- paste(
     "",
     "Unable to locate antigen.garnish data directory,",
@@ -410,7 +409,7 @@ check_pred_tools <- function(ag_dirs = c(
   if (!Sys.getenv("AG_DATA_DIR") == "") {
     if (!Sys.getenv("AG_DATA_DIR") %>% dir.exists()) {
       message("$AG_DATA_DIR does not exist")
-      ag_data_err()
+      .ag_data_err()
     }
   }
 

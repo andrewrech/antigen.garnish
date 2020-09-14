@@ -81,7 +81,7 @@ get_metadata <- function(dt) {
   metafile <- file.path(Sys.getenv("AG_DATA_DIR"), "/GRChm38_meta.RDS")
 
   if (!file.exists(metafile)) {
-    ag_data_err()
+    .ag_data_err()
   }
 
   var_dt <- readRDS(metafile)
