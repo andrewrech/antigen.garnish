@@ -31,7 +31,7 @@ if CF or AF fields in provided in input VCFs, either:
 }
 }
 \description{
-Process paired tumor-normal VCF variants annotated with \href{http://snpeff.sourceforge.net/}{SnpEff} for neoantigen prediction using \code{garnish_affinity}.
+Process paired tumor-normal VCF variants annotated with \href{http://snpeff.sourceforge.net/}{SnpEff} for neoantigen prediction using \code{garnish_affinity}. All versioned Ensembl transcript IDs (e.g. ENST00000311936.8) from any GRCh38 or GRCm38 release are supported.
 }
 \details{
 \code{vcf}s must be annotated with \href{http://snpeff.sourceforge.net/}{SnpEff}. \code{vcf}s can optionally contain an \code{AF} or \code{CF} \emph{INFO} field, in which case cellular fraction or allelic fraction is considered when ranking neoantigens. See \href{http://get.rech.io/antigen.garnish_example.vcf}{example vcf}. Single samples are required. Multi-sample \code{vcf}s are not supported.

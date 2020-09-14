@@ -199,7 +199,6 @@ iedb_score <- function(v, db) {
 #'
 #' @return Data table of nmers and corresponding dissimilarity values (to the non-mutated proteome).
 #'
-#'
 #' @export garnish_dissimilarity
 #' @md
 
@@ -1725,7 +1724,6 @@ dt with transcript id:
 dt with peptide:
 
      Column name                 Example input
-
      sample_id                   <same as above>
      pep_mut                     MTEYKLVVVDAGGVGKSALTIQLIQNHFV
      pep_wt                      <optional, required for local DAI calculation>
