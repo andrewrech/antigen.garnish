@@ -19,7 +19,7 @@ Ensemble tumor neoantigen prediction from complex variants. Immunogenicity filte
 ## Advantages
 
 1. **Thoroughness**:
-   - missense mutations, insertions, deletions, and gene fusions
+   - missense mutations, insertions, or deletions
    - human and mouse
    - ensemble MHC class I/II binding prediction using [mhcflurry](https://github.com/hammerlab/mhcflurry), [mhcnuggets](https://github.com/KarchinLab/mhcnuggets-2.0), [netMHC](http://www.cbs.dtu.dk/services/NetMHC/), [netMHCII](http://www.cbs.dtu.dk/services/NetMHCII/), [netMHCpan](http://www.cbs.dtu.dk/services/NetMHCpan/) and [netMHCIIpan](http://www.cbs.dtu.dk/services/NetMHCIIpan/i)
    - ranked by
@@ -59,7 +59,7 @@ See the [wiki](https://github.com/immune-health/antigen.garnish/wiki/Docker) for
 - python-pip
 - tcsh (required for netMHC)
 - `sudo` privileges (required for netMHC)
-- GNU Parallel (required for master branch development version only)
+- GNU Parallel
 
 #### Installation script
 
@@ -108,20 +108,16 @@ devtools::install_github("immune-health/antigen.garnish")
 
 ## Package documentation
 
-Package documentation can be found: [website](https://neoantigens.rech.io/reference/index.html), [pdf](https://get.rech.io/antigen.garnish.pdf).
+[Website](https://neoantigens.rech.io/reference/index.html), [PDF](https://get.rech.io/antigen.garnish.pdf).
 
 ### Workflow example
 
 1. Prepare input for MHC affinity prediction and quality analysis:
-
-   - VCF input - `garnish_variants`
-   - Prepare table of direct transcript or peptide input - see manual page in R (`?garnish_affinity`)
-
-1. Add MHC alleles of interest - see examples below.
-1. Run ensemble prediction method and perform antigen quality analysis including proteome-wide differential agretopicity, IEDB alignment score, and dissimilarity: `garnish_affinity`.
-1. Summarize output by sample level with `garnish_summary` and `garnish_plot`, and prioritize the highest quality neoantigens per clone and sample with `garnish_antigens`.
-
-### Function examples
+   - VCF input: (see `?garnish_variants`), or
+   - transcript or peptide input (see `?garnish_affinity`)
+1. Add MHC alleles of interest (see examples below).
+1. Run prediction method (see `?garnish_affinity`)
+1. Filter output (see `?garnish_summary`, `?garnish_antigens`).
 
 #### Predict neoantigens from missense mutations, insertions, and deletions
 
@@ -155,9 +151,6 @@ library(antigen.garnish)
     dt %>%
       garnish_summary %T>%
         print
-
-  # generate summary graphs
-    dt %>% garnish_plot
 ```
 
 #### Get full MHC affinity output from a Microsoft Excel file of variants
@@ -224,16 +217,6 @@ From ./`<Github repo>`:
   # create nmers
     make_nmers %T>% print
 ```
-
-## Plots and summary tables
-
-- `garnish_plot` output:
-
-![](https://get.rech.io/antigen.garnish_example_plot.png)
-
-- `garnish_antigens` output:
-
-![](https://get.rech.io/antigen.garnish_summary_table.png)
 
 ## Contributing
 
