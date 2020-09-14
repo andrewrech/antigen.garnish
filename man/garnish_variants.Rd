@@ -72,5 +72,5 @@ Callari M, Sammut SJ, De Mattos-Arruda L, Bruna A, Rueda OM, Chin SF, and Caldas
 \seealso{
 \code{\link{garnish_affinity}}
 
-\code{\link{garnish_summary}}
+\code{\link{garnish_antigens}}
 }

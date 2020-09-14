@@ -49,5 +49,5 @@ We welcome contributions and feedback via \href{https://github.com/immune-health
 
 \code{\link{garnish_affinity}}
 
-\code{\link{garnish_summary}}
+\code{\link{garnish_antigens}}
 }

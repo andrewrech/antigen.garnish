@@ -2,7 +2,7 @@
 % Please edit documentation in R/antigen.garnish_assemble.R
 \name{get_vcf_sample_dt}
 \alias{get_vcf_sample_dt}
-\title{Internal function to extract a data table from sample \code{vcf} fields.}
+\title{Internal function to extract a data table from vcfR \code{vcf} object fields.}
 \usage{
 get_vcf_sample_dt(vcf)
 }
@@ -13,5 +13,5 @@ get_vcf_sample_dt(vcf)
 Data table of variants with sample level fields in columns.
 }
 \description{
-Internal function to extract a data table from sample \code{vcf} fields.
+Internal function to extract a data table from vcfR \code{vcf} object fields.
 }

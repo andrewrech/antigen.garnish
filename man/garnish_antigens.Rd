@@ -16,7 +16,7 @@ A data table with all neoantigens from the input table that meet at least one of
 The \href{https://www.parkerici.org/research-project/tumor-neoantigen-selection-alliance-tesla/}{TESLA consortium} identified recognition features of immunogenic peptides. This function applies each of those criteria and returns any neoantigen that meets MHC binding affinity (< 34nM) and annotates in the Recognition_Features column with: agretopicity (DAI > 10), foreignness (iedb_score > 10e-16), and dissimilarity > 0.
 }
 \seealso{
-\code{\link{garnish_affinity}}
+\code{\link{garnish_variants}}
 
-\code{\link{garnish_summary}}
+\code{\link{garnish_affinity}}
 }

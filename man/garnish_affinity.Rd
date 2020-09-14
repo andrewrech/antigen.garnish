@@ -86,7 +86,7 @@ A data table of binding predictions including:
 \item \strong{_net}: netMHC prediction tool output
 \item \strong{mhcflurry_}: mhcflurry_ prediction tool output
 \item \strong{mhcnuggets_}: mhcnuggets_ prediction tool output
-\item \strong{DAI}: Differential agretopicty index of missense and corresponding wild-type peptide, see \code{garnish_summary} for an explanation of DAI.
+\item \strong{DAI}: Differential agretopicty index of missense and corresponding wild-type peptide.
 \item \strong{BLAST_A}: Ratio of consensus binding affinity of mutant peptide / closest single AA mismatch from blastp results. Returned only if \code{blast = TRUE}.
 }
 
@@ -147,11 +147,6 @@ dt <- "antigen.garnish_example.vcf" \%>\%
 
   # predict neoantigens
   garnish_affinity()
-
-# summarize predictions
-dt \%>\%
-  garnish_summary() \%T>\%
-  print
 }
 
 \dontrun{
@@ -216,6 +211,4 @@ Luksza, M, Riaz, N, Makarov, V, Balachandran VP, et al. 2017. A neoepitope fitne
 \code{\link{garnish_variants}}
 
 \code{\link{list_mhc}}
-
-\code{\link{garnish_summary}}
 }
