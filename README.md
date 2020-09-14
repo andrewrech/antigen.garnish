@@ -117,7 +117,7 @@ devtools::install_github("immune-health/antigen.garnish")
    - transcript or peptide input (see `?garnish_affinity`)
 1. Add MHC alleles of interest (see examples below).
 1. Run prediction method (see `?garnish_affinity`)
-1. Filter output (see `?garnish_summary`, `?garnish_antigens`).
+1. Filter output (see `?garnish_antigens`).
 
 #### Predict neoantigens from missense mutations, insertions, and deletions
 
@@ -146,11 +146,6 @@ library(antigen.garnish)
 
   # predict neoantigens
     garnish_affinity(.) %>%
-
-  # summarize predictions
-    dt %>%
-      garnish_summary %T>%
-        print
 ```
 
 #### Get full MHC affinity output from a Microsoft Excel file of variants

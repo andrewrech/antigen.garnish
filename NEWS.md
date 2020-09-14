@@ -7,7 +7,8 @@
 * remove support for mitochondrial transcripts
 * remove support for Refseq transcript identifiers
 * remove support for non-versioned Ensembl transcript identifiers
-
+* remove functions: garnish_plot, JAFFA support
+* remove requirement for dev magrittr
 
 # antigen.garnish 1.1.1
 

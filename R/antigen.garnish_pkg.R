@@ -27,7 +27,7 @@
 #'
 #' @seealso \code{\link{garnish_variants}}
 #' @seealso \code{\link{garnish_affinity}}
-#' @seealso \code{\link{garnish_summary}}
+#' @seealso \code{\link{garnish_antigens}}
 #' @docType package
 #' @name antigen.garnish
 #' @import data.table

@@ -1493,7 +1493,7 @@ get_ss_str <- function(x, y) {
 #' * **_net**: netMHC prediction tool output
 #' * **mhcflurry_**: mhcflurry_ prediction tool output
 #' * **mhcnuggets_**: mhcnuggets_ prediction tool output
-#' * **DAI**: Differential agretopicty index of missense and corresponding wild-type peptide, see `garnish_summary` for an explanation of DAI.
+#' * **DAI**: Differential agretopicty index of missense and corresponding wild-type peptide.
 #' * **BLAST_A**: Ratio of consensus binding affinity of mutant peptide / closest single AA mismatch from blastp results. Returned only if `blast = TRUE`.
 #'
 #' clonality info:
@@ -1524,7 +1524,6 @@ get_ss_str <- function(x, y) {
 #'
 #' @seealso \code{\link{garnish_variants}}
 #' @seealso \code{\link{list_mhc}}
-#' @seealso \code{\link{garnish_summary}}
 #'
 #' @examples
 #' \dontrun{
@@ -1546,11 +1545,6 @@ get_ss_str <- function(x, y) {
 #'
 #'   # predict neoantigens
 #'   garnish_affinity()
-#'
-#' # summarize predictions
-#' dt %>%
-#'   garnish_summary() %T>%
-#'   print
 #' }
 #'
 #' \dontrun{
