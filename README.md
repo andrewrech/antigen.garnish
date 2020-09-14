@@ -1,6 +1,6 @@
-[![rech.io](https://s3.amazonaws.com/get.rech.io/antigen.garnish_build_status.svg)](https://s3.amazonaws.com/get.rech.io/antigen.garnish.test.txt) | [![rech.io](https://img.shields.io/badge/endpoint.svg?url=https://s3.amazonaws.com/get.rech.io/antigen.garnish_coverage.json)](https://s3.amazonaws.com/get.rech.io/antigen.garnish_coverage.html) | ![](https://img.shields.io/badge/version-1.1.1-blue.svg) | ![](https://img.shields.io/docker/pulls/leeprichman/antigen_garnish.svg)
+[![rech.io](https://s3.amazonaws.com/get.rech.io/antigen.garnish_build_status.svg)](https://s3.amazonaws.com/get.rech.io/antigen.garnish.test.txt) | [![rech.io](https://img.shields.io/badge/endpoint.svg?url=https://s3.amazonaws.com/get.rech.io/antigen.garnish_coverage.json)](https://s3.amazonaws.com/get.rech.io/antigen.garnish_coverage.html) | ![](https://img.shields.io/badge/version-2.0.0-blue.svg) | ![](https://img.shields.io/docker/pulls/leeprichman/antigen_garnish.svg)
 
-# antigen.garnish
+# antigen.garnish 2.0
 
 Ensemble tumor neoantigen prediction from complex variants. Immunogenicity filtering based on the [Tumor Neoantigen Selection Alliance (TESLA)](https://www.parkerici.org/research-project/tumor-neoantigen-selection-alliance-tesla/).
 
@@ -157,7 +157,7 @@ library(antigen.garnish)
       .[, MHC := c("HLA-A*01:47 HLA-A*02:01 HLA-DRB1*14:67")] %>%
 
   # predict neoantigens
-    garnish_affinity
+    garnish_affinity(.) %>%
 
   # summarize predictions
     dt %>%
@@ -191,7 +191,7 @@ library(antigen.garnish)
     .[, MHC := "H-2-Kb"] %>%
 
   # get predictions
-    garnish_affinity %>%
+    garnish_affinity(.) %>%
 
   # summarize predictions
     garnish_summary %T>%
