@@ -82,10 +82,6 @@
 
 garnish_summary <- function(dt) {
 
-  # magrittr version check, this will not hide the error, only the NULL return on successful exit
-
-  invisible(check_dep_versions())
-
   # summarize over unique nmers
 
   dt %<>% data.table::as.data.table() %>%
@@ -348,10 +344,6 @@ garnish_summary <- function(dt) {
 #' @md
 
 garnish_variants <- function(vcfs, tumor_sample_name = "TUMOR") {
-
-  # magrittr version check, this will not hide the error, only the NULL return on successful exit
-
-  invisible(check_dep_versions())
 
   message("Loading VCFs")
 

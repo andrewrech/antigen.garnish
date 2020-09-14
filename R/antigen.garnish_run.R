@@ -46,9 +46,6 @@ run_mhcflurry <- function() {
     })
 }
 
-
-
-
 #' Internal function to run run_mhcnuggets commands.
 #'
 #' @md
@@ -104,9 +101,6 @@ run_mhcnuggets <- function() {
       return(NULL)
     })
 }
-
-
-
 
 #' Internal function to run netMHC commands.
 #'

@@ -1654,9 +1654,6 @@ garnish_affinity <- function(dt = NULL,
     setwd(original_dir)
   })
 
-  # magrittr version check, this will not hide the error, only the NULL return on successful exit
-  invisible(check_dep_versions())
-
   if (missing(dt) & missing(path)) stop("dt and path are missing.")
   if (!missing(dt) & !missing(path)) stop("Choose dt or path input.")
 
@@ -1951,7 +1948,7 @@ dt with peptide:
     suppressWarnings(dt[, var_uuid :=
       lapply(
         1:nrow(dt),
-        uuid::UUIDgenerate
+        uuid::UUIDgenerate()
       ) %>% unlist()])
 
     # separate over mutant indices
@@ -1974,7 +1971,7 @@ dt with peptide:
     # Internal error: index 'frameshift' exists but is invalid
     # I randomly fixed by setting key to another column, at some point key was set
     # to frameshift, this produces error on dtfs and dtnfs creation
-    # data.table::copy at dts creation did not solve this
+    # data.table::copy() at dts creation did not solve this
     setkey(dts, "sample_id")
 
     dtnfs <- dts[frameshift == FALSE]
@@ -2375,7 +2372,7 @@ make_nmers <- function(dt, plen = 8:15) {
 
         # slide across the peptide window
         # create (n = pl )-mers wrapped in
-        # sync to prevent zoo::rollapply stdout
+        # sync to prevent zoo::rollapply() stdout
 
         nmers <- zoo::rollapply(mut_frag_t, pl,
           .fn,
