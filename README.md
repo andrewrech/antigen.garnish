@@ -157,7 +157,7 @@ library(antigen.garnish)
       .[, MHC := c("HLA-A*01:47 HLA-A*02:01 HLA-DRB1*14:67")] %>%
 
   # predict neoantigens
-    garnish_affinity
+    garnish_affinity(.) %>%
 
   # summarize predictions
     dt %>%
@@ -191,7 +191,7 @@ library(antigen.garnish)
     .[, MHC := "H-2-Kb"] %>%
 
   # get predictions
-    garnish_affinity %>%
+    garnish_affinity(.) %>%
 
   # summarize predictions
     garnish_summary %T>%
