@@ -526,7 +526,7 @@ garnish_variants <- function(vcfs, tumor_sample_name = "TUMOR") {
 
     # check tumor_sample_name is in vcf
     # AF is a GT field not an INFO field, and account for multiple alt alleles in this scenario
-    if (length(tumor_sample_name) != 1 | class(tumor_sample_name)[1] != "character") {
+    if (length(tumor_sample_name) != 1 | class(tumor_sample_name)[1] != "character")
       stop("A single tumor sample name must be provided.")
 
     afield <- paste(tumor_sample_name, "_AF", sep = "")

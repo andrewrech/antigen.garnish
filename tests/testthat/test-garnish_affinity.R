@@ -274,6 +274,9 @@ peptides_wt()
 cellular_fraction()
 RNA_test()
 
-list.dirs(path = ".") %>% stringr::str_extract("ag_[a-f0-9]{18}") %>% na.omit %>% lapply(., function(dir){
-         unlink(dir, recursive = TRUE, force = TRUE)
-        })
+list.dirs(path = ".") %>%
+  stringr::str_extract("ag_[a-f0-9]{18}") %>%
+  na.omit() %>%
+  lapply(., function(dir) {
+    unlink(dir, recursive = TRUE, force = TRUE)
+  })
