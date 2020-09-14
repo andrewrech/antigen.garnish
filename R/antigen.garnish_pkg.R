@@ -31,21 +31,17 @@
 #' @docType package
 #' @name antigen.garnish
 #' @import data.table
-#' @import dt.inflix
 #' @import mclust
 #' @import parallel
 #' @import stringr
 #' @importFrom testthat expect_equal expect_equivalent expect_gt expect_true skip succeed test_that
-#' @importFrom permute shuffle
 #' @importFrom Biostrings AAStringSet AMINO_ACID_CODE writeXStringSet DNAString translate pairwiseAlignment
 #' @importFrom Rdpack reprompt
 #' @importFrom magrittr %>% %T>% %$% %<>%
 #' @importFrom purrr partial
 #' @importFrom rio import
 #' @importFrom stats na.omit t.test ecdf quantile
-#' @importFrom stringi stri_detect_fixed
 #' @importFrom tidyr separate_rows
-#' @importFrom utils download.file packageVersion installed.packages
 #' @importFrom uuid UUIDgenerate
 #' @importFrom vcfR read.vcfR
 #' @importFrom zoo rollapply

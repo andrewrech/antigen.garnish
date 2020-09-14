@@ -836,7 +836,7 @@ merge_predictions <- function(l, dt) {
   }
 
   # get vector of netMHC scores
-  cols <- dt %>% names() %includef% c("affinity(nM)")
+  cols <- dt %>% names() %include% c("affinity\\(nM\\)")
 
   message("Calculating overall consensus score.")
   dtm <- dt[, .SD, .SDcols = c("nmer", "MHC", cols)] %>%
@@ -2103,7 +2103,7 @@ dt with peptide:
 
       mv <- parallel::mclapply(nmv %>% seq_along(), function(x) {
         ifelse(
-          stringi::stri_detect_fixed(pepv, nmv[x]) %>% any(),
+          stringr::str_detect(pepv, stringr::fixed(nmv[x])) %>% any(),
           return(nmv[x]),
           return(NULL)
         )

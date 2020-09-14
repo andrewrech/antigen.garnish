@@ -62,49 +62,17 @@
 #' @md
 
 garnish_variants <- function(vcfs, tumor_sample_name = "TUMOR") {
-
   message("Loading VCFs")
 
   sdt <- lapply(vcfs %>% seq_along(), function(ivf) {
 
     # load dt
 
-    vcf <- try(vcfR::read.vcfR(vcfs[ivf],
+    vcf <- vcfR::read.vcfR(vcfs[ivf],
       checkFile = FALSE,
       verbose = TRUE,
       check_keys = FALSE
-    ))
-
-    ###################################################
-    #                                                 #
-    # vcfR does not properly detect VCF column layout #
-    # in some instances; re-shuffling tghe VCF fixes  #
-    # the issue                                       #
-    #                                                 #
-    ###################################################
-
-    iter <- 0
-    while ((class(vcf) %like% "error") %>% any()) {
-      print(iter)
-
-      if (iter > 100) {
-        stop(i)
-      }
-
-      shuf <- readLines(vcfs[ivf])
-      lines <- (!shuf %like% "^\\#\\#|CHROM") %>% which()
-      linesShuf <- lines[lines %>% permute::shuffle()]
-      shuf[lines] <- shuf[linesShuf]
-      writeLines(shuf, vcfs[ivf])
-
-      vcf <- try(vcfR::read.vcfR(vcfs[ivf],
-        checkFile = FALSE,
-        verbose = TRUE,
-        check_keys = FALSE
-      ))
-
-      iter <- iter + 1
-    }
+    )
 
     sample_id <- basename(vcfs[ivf])
 

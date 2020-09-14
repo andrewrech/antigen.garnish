@@ -483,3 +483,33 @@ check_pred_tools <- function(ag_dirs = c(
 
   return(tool_status)
 }
+
+#' Convenience inflix operator to return vector elements matching a regular expression.
+#'
+#' @param vector Vector.
+#' @param pattern Pattern.
+#'
+#' @return A vector of elements in \code{vector} matching \code{pattern}.
+#'
+#' @export %include%
+#' @md
+
+`%include%` <- function(vector, pattern) {
+  lv <- stringr::str_detect(vector, pattern)
+  return(vector[lv])
+}
+
+
+#' Convenience inflix operator to return vector elements excluding those matching a regular expression.
+#'
+#' @param vector Vector.
+#' @param pattern Pattern.
+#'
+#' @return A vector of elements in \code{vector} not matching \code{pattern}.
+#'
+#' @export %exclude%
+
+`%exclude%` <- function(vector, pattern) {
+  lv <- stringr::str_detect(vector, pattern)
+  return(vector[!lv])
+}
