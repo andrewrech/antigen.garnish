@@ -1,7 +1,7 @@
 
 #' Summarize neoantigen prediction.
 #'
-#' Calculate neoantigen summary statistics for priority, classic, alternative, frameshift-derived, and fusion-derived neoantigens for each sample.
+#' Calculate neoantigen summary statistics for priority, classic, alternative, and frameshift-derived neoantigens for each sample.
 #'
 #' @param dt Data table. Prediction output from `garnish_affinity`.
 #'
@@ -30,10 +30,6 @@
 #' dt %>%
 #'   garnish_summary() %T>%
 #'   print
-#'
-#' # generate summary graphs
-#' dt %>% garnish_plot()
-#' }
 #' @return
 #'
 #' Summary table description:
@@ -42,9 +38,8 @@
 #' * **classic_neos**: classically defined neoantigens (CDNs); defined as mutant `nmers` predicted to bind MHC with high affinity (< 50nM \eqn{IC_{50}})
 #' * **classic_top_score**: sum of the top three mutant `nmer` affinity scores (see below)
 #' * **alt_neos**: alternatively defined neoantigens (ADNs); defined as mutant `nmers` predicted to bind MHC with greatly improved affinity relative to non-mutated counterparts (10x for MHC class I and 4x for MHC class II) (see below)
-#' * **alt_top_score**: sum of the top three mutant `nmer` differential agretopicity indices; differential agretopicity index (DAI) is the ratio of MHC binding affinity between mutant and wt peptide (see below). If the peptide is fusion- or frameshift-derived, the binding affinity of the closest wt peptide determined by BLAST is used to calculate DAI.
+#' * **alt_top_score**: sum of the top three mutant `nmer` differential agretopicity indices; differential agretopicity index (DAI) is the ratio of MHC binding affinity between mutant and wt peptide (see below).
 #' * **fs_neos**: mutant `nmers` derived from frameshift variants predicted to bind MHC with < 500nM \eqn{IC_{50}}
-#' * **fusion_neos**: mutant `nmers` derived from fusion variants predicted to bind MHC with < 500nM \eqn{IC_{50}}
 #' * **IEDB_high**: defined as mutant `nmers` predicted to bind MHC with affinity (< 500nM \eqn{IC_{50}}) and IEDB alignment score > 0.9.
 #' * **high_dissimilarity**: defined as mutant `nmers` predicted to bind MHC with affinity (< 500nM \eqn{IC_{50}}) and dissimilarity > 0.75.
 #' * **nmers**: total mutant `nmers` created
@@ -64,7 +59,6 @@
 #' To better model potential for oligoclonal antitumor responses directed against neoantigens, we additionally report a **top three neoantigen score**, which is defined as the sum of the top three affinity scores \eqn{\left(\frac{1}{IC_{50}}\right)} for CDNs or sum of top three DAI for ADNs. The top three was chosen in each case because this is the minimum number that captures the potential for an oligoclonal T cell response and mirrors experimentally confirmed oligoclonality of T cell responses against human tumors. Moreover, the top three score was the least correlated to total neoantigen load (vs. top 4 through top 15) in a large scale human analysis of neoantigen across 27 disease types (R-squared = 0.0495), and therefore not purely a derivative of total neoantigen load.
 #'
 #' @seealso \code{\link{garnish_affinity}}
-#' @seealso \code{\link{garnish_plot}}
 #' @seealso \code{\link{garnish_antigens}}
 #'
 #' @export garnish_summary
@@ -132,7 +126,6 @@ garnish_summary <- function(dt) {
   dtn <- lapply(dt[, sample_id %>% unique()], function(id) {
     dt <- dt[sample_id == id]
 
-    if (!("fusion_uuid" %chin% names(dt)) %>% any()) dt[, fusion_uuid := NA]
     if (!("effect_type" %chin% names(dt)) %>% any()) dt[, effect_type := NA]
 
     if (!"min_DAI" %chin% names(dt)) {
@@ -193,18 +186,6 @@ garnish_summary <- function(dt) {
         fs_neos_class_II = dt[
           class == "II" &
             effect_type %like% "frameshift" &
-            Ensemble_score < 500,
-          paste(nmer, MHC, sep = "_") %>% unique() %>% length()
-        ],
-        fusion_neos_class_I = dt[
-          class == "I" &
-            !is.na(fusion_uuid) &
-            Ensemble_score < 500,
-          paste(nmer, MHC, sep = "_") %>% unique() %>% length()
-        ],
-        fusion_neos_class_II = dt[
-          class == "II" &
-            !is.na(fusion_uuid) &
             Ensemble_score < 500,
           paste(nmer, MHC, sep = "_") %>% unique() %>% length()
         ],
@@ -594,292 +575,6 @@ garnish_variants <- function(vcfs, tumor_sample_name = "TUMOR") {
 }
 
 
-
-
-#' Graph `garnish_affinity` results.
-#'
-#' Plot ADN, CDN, priority, frameshift, and fusion derived `nmers` for class I and class II MHC by `sample_id`.
-#'
-#' @param input Output from `garnish_affinity` to graph. `input` may be a data table object, list of data tables, or file path to a rio::import-compatible file type. If a list of data tables is provided, unique plots will be generated for each data table.
-#' @param ext File extension passed to ggplot2::ggsave, default is "pdf".
-#'
-#' @seealso \code{\link{garnish_affinity}}
-#' @seealso \code{\link{garnish_summary}}
-#'
-#' @examples
-#' \dontrun{
-#'
-#' # load example output
-#' dir <- system.file(package = "antigen.garnish") %>%
-#'   file.path(., "extdata/testdata")
-#'
-#' "antigen.garnish_PureCN_example_output.txt" %>%
-#'   file.path(dir, .) %>%
-#'
-#'   # create plot
-#'   garnish_plot()
-#' }
-#'
-#' @return NULL
-#'
-#' As a side effect: saves graph illustrating the number of neoantigens in each sample to the working directory. The threshold for inclusion of neoantigens is \eqn{IC_{50}} < 500nM.
-#'
-#' @export garnish_plot
-#'
-#' @md
-
-garnish_plot <- function(input, ext = "pdf") {
-
-  # magrittr version check, this will not hide the error, only the NULL return on successful exit
-  invisible(check_dep_versions())
-
-  ext <- paste0(".", ext)
-
-  # check input
-  if (class(input)[1] == "list" & class(input[[1]])[1] != "data.table") {
-    stop("Input must be a path to a rio::import-supported file type, a data.table, or a list of data tables (e.g. garnish_plot(list(dt1, dt2, dt3))")
-  }
-
-  if (class(input)[1] == "character") {
-    input <- rio::import(input) %>% data.table::as.data.table()
-  }
-
-  if (class(input)[1] != "list" & class(input)[1] != "data.table") {
-    stop("Input must be a full file path to a rio::import-supported file type, a data.table object, or a list of data.tables (e.g. garnish_plot(list(dt1, dt2, dt3))")
-  }
-
-  # set up graphing
-  gplot_theme <-
-    ggplot2::theme(
-      line = ggplot2::element_line(colour = "#000000")
-    ) +
-    ggplot2::theme(
-      axis.line = ggplot2::element_line(color = "black")
-    ) +
-    ggplot2::theme(
-      plot.title = ggplot2::element_text(
-        size = ggplot2::rel(2 * 1.2),
-        colour = "#000000", lineheight = 0.9, face = "bold", vjust = 0
-      )
-    ) +
-    ggplot2::theme(
-      axis.title.x = ggplot2::element_text(
-        colour = "#000000",
-        size = ggplot2::rel(2 * 1.425), face = "bold"
-      )
-    ) +
-    ggplot2::theme(
-      axis.title.y = ggplot2::element_text(
-        colour = "#000000",
-        size = ggplot2::rel(2 * 1.425), face = "bold", angle = 90, vjust = 0
-      )
-    ) +
-    ggplot2::theme(
-      axis.text.x = ggplot2::element_text(
-        colour = "#000000",
-        size = ggplot2::rel(2 * 1.425), face = "bold", angle = 30, hjust = 0.9, vjust = 0.92
-      )
-    ) +
-    ggplot2::theme(
-      axis.text.y = ggplot2::element_text(
-        colour = "#000000",
-        size = ggplot2::rel(2 * 1.425), face = "bold"
-      )
-    ) +
-    ggplot2::theme(
-      legend.text = ggplot2::element_text(
-        colour = "#000000",
-        size = ggplot2::rel(2 * 1)
-      )
-    ) +
-    ggplot2::theme(
-      strip.background = ggplot2::element_rect(fill = "#eeeeee")
-    ) +
-    ggplot2::theme(
-      strip.text = ggplot2::element_text(face = "bold")
-    ) +
-    ggplot2::theme(
-      legend.key = ggplot2::element_blank()
-    ) +
-    ggplot2::theme(
-      legend.background = ggplot2::element_rect(fill = "transparent", colour = NA)
-    ) +
-    ggplot2::theme(
-      panel.grid = ggplot2::element_blank()
-    ) +
-    ggplot2::theme(
-      panel.background = ggplot2::element_rect(fill = "transparent", colour = NA)
-    ) +
-    ggplot2::theme(
-      plot.background = ggplot2::element_rect(fill = "transparent", colour = NA)
-    ) +
-    ggplot2::theme(
-      plot.margin = grid::unit(c(0, 0, 0, 0), "cm")
-    ) +
-    ggplot2::theme(
-      strip.text.x = ggplot2::element_text(size = ggplot2::rel(2))
-    )
-
-  gplot_labs <- ggplot2::labs(x = "", y = "peptides")
-
-  gplot_col <- c(
-    "#ff80ab",
-    "#b388ff",
-    "#82b1ff",
-    "#ff9e80",
-    "#a7ffeb",
-    "#f4ff81",
-    "#b9f6ca",
-    "#ffe57f",
-    "#ff8a80",
-    "#ea80fc",
-    "#8c9eff",
-    "#80d8ff",
-    "#84ffff",
-    "#ccff90",
-    "#ffff8d",
-    "#ffd180"
-  )
-
-  class_col <- c("#ff6d00", "#2962ff", "#00c853", "#DE7AA7", "#BEBEBE")
-  names(class_col) <- c("CDNs", "ADNs", "IEDB_high", "high_dissimilarity", "MHC_binders")
-
-  gplot_fn <- format(Sys.time(), "%d/%m/%y %H:%M:%OS") %>%
-    stringr::str_replace_all("[^A-Za-z0-9]", "_") %>%
-    stringr::str_replace_all("[_]+", "_")
-
-  if (class(input)[1] != "list") input <- list(input)
-
-  # function to shorten names for display
-
-  gplot_names <- function(gg_dt) {
-    if (any(gg_dt[, sample_id %>% unique() %>% nchar()] > 7)) {
-      for (i in gg_dt[nchar(sample_id) > 7, sample_id %>% unique()] %>% seq_along()) {
-        gg_dt[
-          sample_id == gg_dt[nchar(sample_id) > 7, sample_id %>% unique()][i],
-          sample_id := sample_id %>%
-            substr(1, 7) %>% paste0(., "_", i)
-        ]
-      }
-    }
-
-    return(gg_dt)
-  }
-
-  # function to fill in missing combinations of factors
-  # to graph dt with even bars per sample_id
-
-  gplot_missing_combn <- function(dt) {
-    ns <- dt[, sample_id %>% unique() %>% length()]
-
-    type <- lapply(dt[, type %>% unique()], function(x) {
-      replicate(ns * 2, x)
-    }) %>% unlist()
-
-    gdt <- data.table(
-      sample_id = dt[, sample_id %>% unique()],
-      MHC = c(
-        replicate(ns, "MHC Class I"),
-        replicate(ns, "MHC Class II")
-      ),
-      type = type,
-      N = 0
-    ) %>% unique()
-
-
-    return(gdt)
-  }
-
-  NA_to_0 <- function(v) {
-    if (!class(v)[1] %chin% c("numeric", "integer")) {
-      return(v)
-    }
-
-    v[which(is.na(v))] <- 0
-
-    return(v)
-  }
-
-  # summary plots
-
-  lapply(input %>% seq_along(), function(i) {
-    dt <- input[[i]]
-
-    # convert sample_id to character to prevent ggplot picking continuous X axis
-    dt[, sample_id := as.character(sample_id)]
-
-    s <- dt %>% garnish_summary()
-
-    n <- names(s)[which(names(s) %like% "CDNs|ADNs|MHC_binders|IEDB|dissimilarity")]
-
-    s <- s[, .SD, .SDcols = c("sample_id", n)]
-
-    s %<>% melt(id.vars = "sample_id")
-
-    s[, class := variable %>% stringr::str_extract("class_(I$|II)")]
-
-    s[class == "class_I", class := "MHC Class I"]
-    s[class == "class_II", class := "MHC Class II"]
-
-    s <- s[!is.na(class)] %>% .[!variable %like% "score"]
-
-    s[, value := NA_to_0(value)]
-
-    s[, variable := variable %>% stringr::str_replace("_class_.*$", "")]
-
-    s %>% data.table::setnames(
-      c("variable", "class", "value"),
-      c("type", "MHC", "N")
-    )
-
-    gdt <- s %>% gplot_missing_combn()
-
-    gg_dt <- data.table::rbindlist(list(s, gdt), use.names = TRUE) %>%
-      .[, N := max(N), by = c("sample_id", "type", "MHC")] %>%
-      unique()
-
-    # check if only one class is present and if so drop that from faceting
-    if (gg_dt[, all(N == 0), by = "MHC"]$V1 %>% any()) {
-      d <- gg_dt[, all(N == 0), by = "MHC"] %>%
-        .[V1 == TRUE, MHC %>% unique()]
-
-      gg_dt <- gg_dt[MHC != d]
-    }
-
-    # shorten names for display
-
-    gg_dt %<>% gplot_names
-
-    # make first summary plot, neo class by sample_id and MHC
-
-    g <- ggplot2::ggplot(gg_dt, ggplot2::aes(x = sample_id, y = N)) +
-      ggplot2::geom_col(ggplot2::aes(fill = type),
-        col = "black", position = "dodge"
-      ) +
-      ggplot2::facet_wrap(~MHC) +
-      gplot_theme +
-      gplot_labs +
-      ggplot2::theme(
-        legend.position = "bottom",
-        legend.title = ggplot2::element_blank()
-      ) +
-      ggplot2::scale_fill_manual(values = class_col) +
-      ggplot2::ggtitle(paste0("antigen.garnish summary")) +
-      ggplot2::guides(fill = ggplot2::guide_legend(nrow = 2, byrow = TRUE, keywidth = 1, keyheight = 1))
-
-    ggplot2::ggsave(
-      plot = g,
-      paste0(
-        "antigen.garnish_Neoepitopes_summary_",
-        gplot_fn,
-        ext
-      ),
-      height = 6, width = 9
-    )
-  })
-
-  return(NULL)
-}
 
 
 

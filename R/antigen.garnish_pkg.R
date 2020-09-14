@@ -5,21 +5,21 @@
 #' Advantages
 #'
 #' 1. **Thoroughness**:
-#'  * missense mutations, insertions, deletions
-#'  * human and mouse
-#'  * ensemble MHC class I/II binding prediction using [mhcflurry](https://github.com/hammerlab/mhcflurry), [mhcnuggets](https://github.com/KarchinLab/mhcnuggets), [netMHC](http://www.cbs.dtu.dk/services/NetMHC/), [netMHCII](http://www.cbs.dtu.dk/services/NetMHCII/), [netMHCpan](http://www.cbs.dtu.dk/services/NetMHCpan/) and [netMHCIIpan](http://www.cbs.dtu.dk/services/NetMHCIIpan/i)
-#'  * ranked by
-#'    * MHC I/II binding affinity
-#'    * clonality
-#'    * RNA expression
-#'    * similarity to known immunogenic antigens
-#'    * dissimilarity to the normal peptidome
+#'   - missense mutations, insertions, or deletions
+#'   - human and mouse
+#'   - ensemble MHC class I/II binding prediction using [mhcflurry](https://github.com/hammerlab/mhcflurry), [mhcnuggets](https://github.com/KarchinLab/mhcnuggets-2.0), [netMHC](http://www.cbs.dtu.dk/services/NetMHC/), [netMHCII](http://www.cbs.dtu.dk/services/NetMHCII/), [netMHCpan](http://www.cbs.dtu.dk/services/NetMHCpan/) and [netMHCIIpan](http://www.cbs.dtu.dk/services/NetMHCIIpan/i)
+#'   - ranked by
+#'     - MHC I/II binding affinity
+#'     - clonality
+#'     - RNA expression
+#'     - similarity to known immunogenic antigens
+#'     - dissimilarity to the normal peptidome
 #' 2. **Speed and simplicity**:
-#'  * 1000 variants are ranked in a single step in less than five minutes
-#'  * parallelized using [`parallel::mclapply`](https://stat.ethz.ch/R-manual/R-devel/library/parallel/html/mclapply.html) and [data.table::setDTthreads](https://github.com/Rdatatable/data.table/wiki), see respective links for information on setting multicore usage
+#'   - 1000 variants are ranked in a single step in less than five minutes
+#'   - parallelized using [`parallel::mclapply`](https://stat.ethz.ch/R-manual/R-devel/library/parallel/html/mclapply.html), [`data.table::setDTthreads`](https://github.com/Rdatatable/data.table/wiki), and [GNU parallel](https://www.gnu.org/software/parallel/)
 #' 3. **Integration with R/Bioconductor**
-#'  * upstream/VCF processing
-#'  * exploratory data analysis, visualization
+#'   - upstream/VCF processing
+#'   - exploratory data analysis, visualization
 #'
 #' [Package documentation](https://neoantigens.rech.io/reference/index.html) ([pdf](https://get.rech.io/antigen.garnish.pdf))
 #'
@@ -30,17 +30,14 @@
 #' @seealso \code{\link{garnish_summary}}
 #' @docType package
 #' @name antigen.garnish
-#' @import colorspace
 #' @import data.table
 #' @import dt.inflix
-#' @import ggplot2
-#' @import knitr
 #' @import mclust
 #' @import parallel
 #' @import stringr
 #' @importFrom testthat expect_equal expect_equivalent expect_gt expect_true skip succeed test_that
 #' @importFrom permute shuffle
-#' @importFrom Biostrings DNAString translate pairwiseAlignment
+#' @importFrom Biostrings AAStringSet AMINO_ACID_CODE writeXStringSet DNAString translate pairwiseAlignment
 #' @importFrom Rdpack reprompt
 #' @importFrom magrittr %>% %T>% %$% %<>%
 #' @importFrom purrr partial

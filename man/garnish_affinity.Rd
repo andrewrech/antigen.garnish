@@ -117,7 +117,7 @@ transcript description:
 }
 }
 \description{
-Perform ensemble neoantigen prediction on a data table of missense mutations, insertions, deletions or gene fusions using netMHC, mhcflurry, and mhcnuggets.
+Perform ensemble neoantigen prediction on a data table of missense mutations, insertions, or deletions using netMHC, mhcflurry, and mhcnuggets.
 }
 \details{
 \itemize{
@@ -152,9 +152,6 @@ dt <- "antigen.garnish_example.vcf" \%>\%
 dt \%>\%
   garnish_summary() \%T>\%
   print
-
-# generate summary graphs
-dt \%>\% garnish_plot()
 }
 
 \dontrun{

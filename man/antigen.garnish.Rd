@@ -5,7 +5,7 @@
 \alias{antigen.garnish}
 \title{\pkg{antigen.garnish}: ensemble neoantigen prediction from DNA variants in R.}
 \description{
-An R package for \href{http://science.sciencemag.org/content/348/6230/69}{neoantigen} analysis that takes human or murine DNA missense mutations, insertions, deletions, or RNASeq-derived gene fusions and performs ensemble neoantigen prediction using 7 algorithms. Input is a VCF file, \href{https://github.com/Oshlack/JAFFA}{JAFFA} output, or table of peptides or transcripts. Outputs are ranked and summarized by sample. Neoantigens are ranked by MHC I/II binding affinity, clonality, RNA expression, similarity to known immunogenic antigens, and dissimilarity to the normal peptidome.
+Ensemble tumor neoantigen prediction from complex variants. Immunogenicity filtering based on the Tumor Neoantigen Selection Alliance (TESLA).
 }
 \details{
 Advantages
@@ -13,9 +13,9 @@ Advantages
 \item \strong{Thoroughness}:
 }
 \itemize{
-\item missense mutations, insertions, deletions, and gene fusions
+\item missense mutations, insertions, or deletions
 \item human and mouse
-\item ensemble MHC class I/II binding prediction using \href{https://github.com/hammerlab/mhcflurry}{mhcflurry}, \href{https://github.com/KarchinLab/mhcnuggets}{mhcnuggets}, \href{http://www.cbs.dtu.dk/services/NetMHC/}{netMHC}, \href{http://www.cbs.dtu.dk/services/NetMHCII/}{netMHCII}, \href{http://www.cbs.dtu.dk/services/NetMHCpan/}{netMHCpan} and \href{http://www.cbs.dtu.dk/services/NetMHCIIpan/i}{netMHCIIpan}
+\item ensemble MHC class I/II binding prediction using \href{https://github.com/hammerlab/mhcflurry}{mhcflurry}, \href{https://github.com/KarchinLab/mhcnuggets-2.0}{mhcnuggets}, \href{http://www.cbs.dtu.dk/services/NetMHC/}{netMHC}, \href{http://www.cbs.dtu.dk/services/NetMHCII/}{netMHCII}, \href{http://www.cbs.dtu.dk/services/NetMHCpan/}{netMHCpan} and \href{http://www.cbs.dtu.dk/services/NetMHCIIpan/i}{netMHCIIpan}
 \item ranked by
 \itemize{
 \item MHC I/II binding affinity
@@ -30,7 +30,7 @@ Advantages
 }
 \itemize{
 \item 1000 variants are ranked in a single step in less than five minutes
-\item parallelized using \href{https://stat.ethz.ch/R-manual/R-devel/library/parallel/html/mclapply.html}{\code{parallel::mclapply}} and \href{https://github.com/Rdatatable/data.table/wiki}{data.table::setDTthreads}, see respective links for information on setting multicore usage
+\item parallelized using \href{https://stat.ethz.ch/R-manual/R-devel/library/parallel/html/mclapply.html}{\code{parallel::mclapply}}, \href{https://github.com/Rdatatable/data.table/wiki}{\code{data.table::setDTthreads}}, and \href{https://www.gnu.org/software/parallel/}{GNU parallel}
 }
 \enumerate{
 \item \strong{Integration with R/Bioconductor}

@@ -17,9 +17,8 @@ A summary data table of \code{dt} by \code{sample_id} with the following columns
 \item \strong{classic_neos}: classically defined neoantigens (CDNs); defined as mutant \code{nmers} predicted to bind MHC with high affinity (< 50nM \eqn{IC_{50}})
 \item \strong{classic_top_score}: sum of the top three mutant \code{nmer} affinity scores (see below)
 \item \strong{alt_neos}: alternatively defined neoantigens (ADNs); defined as mutant \code{nmers} predicted to bind MHC with greatly improved affinity relative to non-mutated counterparts (10x for MHC class I and 4x for MHC class II) (see below)
-\item \strong{alt_top_score}: sum of the top three mutant \code{nmer} differential agretopicity indices; differential agretopicity index (DAI) is the ratio of MHC binding affinity between mutant and wt peptide (see below). If the peptide is fusion- or frameshift-derived, the binding affinity of the closest wt peptide determined by BLAST is used to calculate DAI.
+\item \strong{alt_top_score}: sum of the top three mutant \code{nmer} differential agretopicity indices; differential agretopicity index (DAI) is the ratio of MHC binding affinity between mutant and wt peptide (see below).
 \item \strong{fs_neos}: mutant \code{nmers} derived from frameshift variants predicted to bind MHC with < 500nM \eqn{IC_{50}}
-\item \strong{fusion_neos}: mutant \code{nmers} derived from fusion variants predicted to bind MHC with < 500nM \eqn{IC_{50}}
 \item \strong{IEDB_high}: defined as mutant \code{nmers} predicted to bind MHC with affinity (< 500nM \eqn{IC_{50}}) and IEDB alignment score > 0.9.
 \item \strong{high_dissimilarity}: defined as mutant \code{nmers} predicted to bind MHC with affinity (< 500nM \eqn{IC_{50}}) and dissimilarity > 0.75.
 \item \strong{nmers}: total mutant \code{nmers} created
@@ -40,37 +39,7 @@ ADNs are generated from selective mutations in the peptide-MHC anchor position (
 To better model potential for oligoclonal antitumor responses directed against neoantigens, we additionally report a \strong{top three neoantigen score}, which is defined as the sum of the top three affinity scores \eqn{\left(\frac{1}{IC_{50}}\right)} for CDNs or sum of top three DAI for ADNs. The top three was chosen in each case because this is the minimum number that captures the potential for an oligoclonal T cell response and mirrors experimentally confirmed oligoclonality of T cell responses against human tumors. Moreover, the top three score was the least correlated to total neoantigen load (vs. top 4 through top 15) in a large scale human analysis of neoantigen across 27 disease types (R-squared = 0.0495), and therefore not purely a derivative of total neoantigen load.
 }
 \description{
-Calculate neoantigen summary statistics for priority, classic, alternative, frameshift-derived, and fusion-derived neoantigens for each sample.
-}
-\examples{
-\dontrun{
-
-# load an example VCF
-dir <- system.file(package = "antigen.garnish") \%>\%
-  file.path(., "extdata/testdata")
-
-dt <- "antigen.garnish_example.vcf" \%>\%
-  file.path(dir, .) \%>\%
-
-  # extract variants
-  garnish_variants() \%>\%
-
-  # add space separated MHC types
-  # see list_mhc() for nomenclature of supported alleles
-
-  .[, MHC := c("HLA-A*01:47 HLA-A*02:01 HLA-DRB1*14:67")] \%>\%
-
-  # predict neoantigens
-  garnish_affinity()
-
-# summarize predictions
-dt \%>\%
-  garnish_summary() \%T>\%
-  print
-
-# generate summary graphs
-dt \%>\% garnish_plot()
-}
+Calculate neoantigen summary statistics for priority, classic, alternative, and frameshift-derived neoantigens for each sample.
 }
 \references{
 Carreno BM, Magrini V, Becker-Hapak M, Kaabinejadian S, Hundal J, et al. 2015. A dendritic cell vaccine increases the breadth and diversity of melanoma neoantigen-specific T cells. Science. 348(6236):aaa3828–808
@@ -89,8 +58,6 @@ Verdegaal EME, de Miranda NFCC, Visser M, Harryvan T, van Buuren MM, et al. 2016
 }
 \seealso{
 \code{\link{garnish_affinity}}
-
-\code{\link{garnish_plot}}
 
 \code{\link{garnish_antigens}}
 }

@@ -1434,7 +1434,7 @@ get_ss_str <- function(x, y) {
 
 #' Perform neoantigen prediction.
 #'
-#' Perform ensemble neoantigen prediction on a data table of missense mutations, insertions, deletions or gene fusions using netMHC, mhcflurry, and mhcnuggets.
+#' Perform ensemble neoantigen prediction on a data table of missense mutations, insertions, or deletions using netMHC, mhcflurry, and mhcnuggets.
 #'
 #' @param path Path to input table ([acceptable formats](https://cran.r-project.org/web/packages/rio/vignettes/rio.html#supported_file_formats)).
 #' @param dt Data table. Input data table from `garnish_variants` or `garnish_jaffa`, or a data table in one of these forms:
@@ -1551,9 +1551,6 @@ get_ss_str <- function(x, y) {
 #' dt %>%
 #'   garnish_summary() %T>%
 #'   print
-#'
-#' # generate summary graphs
-#' dt %>% garnish_plot()
 #' }
 #'
 #' \dontrun{
@@ -2124,13 +2121,6 @@ dt with peptide:
       # drop matched nmers
       dt %<>% .[!(nmer %chin% mv & pep_type != "wt")]
 
-      # drop out single wt nmer from rolling window over fusion peptides from JAFFA input
-      if ("fus_tx" %chin% names(dt)) {
-        dt <- dt %>%
-          .[, drop := stringi::stri_detect_fixed(pattern = nmer, str = pep_gene_1)] %>%
-          .[drop == FALSE] %>%
-          .[, drop := NULL]
-      }
     }
 
     # generation a uuid for each unique nmer
