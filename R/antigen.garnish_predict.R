@@ -1738,6 +1738,18 @@ dt with peptide:
     message("Generating metadata.")
     dt %<>% get_metadata
 
+    if ("chromosome_name" %chin% (dt %>% names)){
+      if (
+          (
+           dt[chromosome_name %>% stringr::str_detect(stringr::fixed(":MT"))] %>% nrow
+           ) > 0
+          ){
+
+        warning("Removing MT transcripts.")
+        dt %<>% .[!chromosome_name %>% stringr::str_detect(stringr::fixed(":MT"))]
+      }
+  }
+
     if (!missing(counts)) {
       ct <- rio::import(counts) %>% data.table::as.data.table()
 
