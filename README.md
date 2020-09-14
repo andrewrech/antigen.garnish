@@ -8,28 +8,24 @@ Ensemble tumor neoantigen prediction and multi-parameter quality analysis from d
 
 [Detailed flowchart.](https://get.rech.io/antigen.garnish_flowchart_detailed.svg)
 
-## Description
-
-An R package for [neoantigen](http://science.sciencemag.org/content/348/6230/69) analysis that takes human or murine DNA missense mutations, insertions, deletions, or RNASeq-derived gene fusions and performs ensemble neoantigen prediction using 7 algorithms. Input is a VCF file, [JAFFA](https://github.com/Oshlack/JAFFA) output, or table of peptides or transcripts. Outputs are ranked and summarized by sample. Neoantigens are ranked by MHC I/II binding affinity, clonality, RNA expression, similarity to known immunogenic antigens, and dissimilarity to the normal peptidome.
-
-### Advantages
+## Advantages
 
 1. **Thoroughness**:
-	* missense mutations, insertions, deletions, and gene fusions
-	* human and mouse
-	* ensemble MHC class I/II binding prediction using [mhcflurry](https://github.com/hammerlab/mhcflurry), [mhcnuggets](https://github.com/KarchinLab/mhcnuggets-2.0), [netMHC](http://www.cbs.dtu.dk/services/NetMHC/), [netMHCII](http://www.cbs.dtu.dk/services/NetMHCII/), [netMHCpan](http://www.cbs.dtu.dk/services/NetMHCpan/) and [netMHCIIpan](http://www.cbs.dtu.dk/services/NetMHCIIpan/i)
-	* ranked by
-		* MHC I/II binding affinity
-		* clonality
-		* RNA expression
-		* similarity to known immunogenic antigens
-		* dissimilarity to the normal peptidome
+   - missense mutations, insertions, deletions, and gene fusions
+   - human and mouse
+   - ensemble MHC class I/II binding prediction using [mhcflurry](https://github.com/hammerlab/mhcflurry), [mhcnuggets](https://github.com/KarchinLab/mhcnuggets-2.0), [netMHC](http://www.cbs.dtu.dk/services/NetMHC/), [netMHCII](http://www.cbs.dtu.dk/services/NetMHCII/), [netMHCpan](http://www.cbs.dtu.dk/services/NetMHCpan/) and [netMHCIIpan](http://www.cbs.dtu.dk/services/NetMHCIIpan/i)
+   - ranked by
+     - MHC I/II binding affinity
+     - clonality
+     - RNA expression
+     - similarity to known immunogenic antigens
+     - dissimilarity to the normal peptidome
 2. **Speed and simplicity**:
-	* 1000 variants are ranked in a single step in less than five minutes
-	* parallelized using [`parallel::mclapply`](https://stat.ethz.ch/R-manual/R-devel/library/parallel/html/mclapply.html), [`data.table::setDTthreads`](https://github.com/Rdatatable/data.table/wiki), and [GNU parallel](https://www.gnu.org/software/parallel/) see respective links for information on setting multicore usage
+   - 1000 variants are ranked in a single step in less than five minutes
+   - parallelized using [`parallel::mclapply`](https://stat.ethz.ch/R-manual/R-devel/library/parallel/html/mclapply.html), [`data.table::setDTthreads`](https://github.com/Rdatatable/data.table/wiki), and [GNU parallel](https://www.gnu.org/software/parallel/) see respective links for information on setting multicore usage
 3. **Integration with R/Bioconductor**
-	* upstream/VCF processing
-	* exploratory data analysis, visualization
+   - upstream/VCF processing
+   - exploratory data analysis, visualization
 
 ## Installation
 
@@ -254,17 +250,17 @@ From ./`<Github repo>`:
 
 ## Plots and summary tables
 
-* `garnish_plot` output:
+- `garnish_plot` output:
 
 ![](https://get.rech.io/antigen.garnish_example_plot.png)
 
-* `garnish_antigens` output:
+- `garnish_antigens` output:
 
 ![](https://get.rech.io/antigen.garnish_summary_table.png)
 
 ## Citation
 
-> Richman LP, Vonderheide RH, and Rech AJ. "Neoantigen dissimilarity to the self-proteome predicts immunogenicity and response to immune checkpoint blockade." *Cell Systems* **9**, 375-382.E4, (2019).
+> Richman LP, Vonderheide RH, and Rech AJ. "Neoantigen dissimilarity to the self-proteome predicts immunogenicity and response to immune checkpoint blockade." _Cell Systems_ **9**, 375-382.E4, (2019).
 
 ## Contributing
 

@@ -432,7 +432,7 @@ get_vcf_snpeff_dt <- function(dt) {
     data.table::as.data.table(.)
 
   dt[ensembl_transcript_id := ANN %>%+
-     stringr::str_extract("(?<=\\|)(ENSMUST|ENST)[0-9]+")]
+     stringr::str_extract("(?<=\\|)(ENSMUST|ENST)[0-9]+(\\.[0-9]+)?")]
 
 
   dt[, ANN := ANN %>% stringr::str_replace("^[ACTNG]*\\|", "")]

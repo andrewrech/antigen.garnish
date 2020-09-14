@@ -1,11 +1,11 @@
 #' \pkg{antigen.garnish}: ensemble neoantigen prediction from DNA variants in R.
 #'
-#' An R package for [neoantigen](http://science.sciencemag.org/content/348/6230/69) analysis that takes human or murine DNA missense mutations, insertions, deletions, or RNASeq-derived gene fusions and performs ensemble neoantigen prediction using 7 algorithms. Input is a VCF file, [JAFFA](https://github.com/Oshlack/JAFFA) output, or table of peptides or transcripts. Outputs are ranked and summarized by sample. Neoantigens are ranked by MHC I/II binding affinity, clonality, RNA expression, similarity to known immunogenic antigens, and dissimilarity to the normal peptidome.
+#' Ensemble tumor neoantigen prediction from complex variants. Immunogenicity filtering based on the Tumor Neoantigen Selection Alliance (TESLA).
 #'
 #' Advantages
 #'
 #' 1. **Thoroughness**:
-#'  * missense mutations, insertions, deletions, and gene fusions
+#'  * missense mutations, insertions, deletions
 #'  * human and mouse
 #'  * ensemble MHC class I/II binding prediction using [mhcflurry](https://github.com/hammerlab/mhcflurry), [mhcnuggets](https://github.com/KarchinLab/mhcnuggets), [netMHC](http://www.cbs.dtu.dk/services/NetMHC/), [netMHCII](http://www.cbs.dtu.dk/services/NetMHCII/), [netMHCpan](http://www.cbs.dtu.dk/services/NetMHCpan/) and [netMHCIIpan](http://www.cbs.dtu.dk/services/NetMHCIIpan/i)
 #'  * ranked by
