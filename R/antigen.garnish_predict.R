@@ -918,11 +918,11 @@ get_pred_commands <- function(dt) {
     dt %<>%
       tidyr::separate_rows("MHC", sep = " ")
   }
-  dt <- data.table::copy(dt)
-  dt[, class :=
-    ifelse(MHC %>% stringr::str_detect("(HLA-[ABC]\\*)|(H-2-[A-Z][a-z])"),
-      "I", "II"
-    )]
+  dt <- data.table::copy(dt) %>% data.table::as.data.table(.)
+
+  dt[, class := "none"]
+  dt[MHC %>% stringr::str_detect("(HLA-[ABC]\\*)|(H-2-[A-Z][a-z])"), class := "I"]
+  dt[class != "I", class := "II"]
 
   # get available MHC alleles for predictions
 
