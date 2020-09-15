@@ -1763,6 +1763,8 @@ dt with peptide:
       dts <- dt
     }
 
+    dts %<>% data.table::as.data.table(.)
+
     # convert back to numeric
 
     dts[, mutant_index := mutant_index %>% as.numeric()]
