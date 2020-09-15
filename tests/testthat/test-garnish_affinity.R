@@ -65,50 +65,6 @@ transcripts <- function() {
   })
 }
 
-excel <- function() {
-  testthat::test_that("garnish_affinity from excel file", {
-    d <- test_data_dir()
-
-    # load test data
-    path <- file.path(d, "antigen.garnish_test_input.xlsx")
-
-    # run test
-    dt <- garnish_affinity(
-      path = path,
-      predict = FALSE,
-      blast = FALSE
-    )
-
-
-    testthat::expect_equal(dt %>% nrow(), 551)
-    testthat::expect_equal(
-      dt[, nmer %>%
-        nchar() %>%
-        unique()] %>% sort(),
-      8:15
-    )
-  })
-}
-
-jaffa <- function() {
-  testthat::test_that("test predict from jaffa input", {
-    skip_pred_tools()
-
-    d <- test_data_dir()
-
-    # load test data
-    dt <- file.path(d, "antigen.garnish_example_jaffa_input.csv") %>%
-      data.table::fread()
-
-    dt[, MHC := "H-2-Kb"]
-
-    # run test
-    dt <- garnish_affinity(dt, blast = FALSE, save = FALSE)
-
-    testthat::expect_equal(dt %>% nrow(), 1071)
-  })
-}
-
 peptides <- function() {
   testthat::test_that("garnish_affinity assemble from peptides", {
 
@@ -258,17 +214,13 @@ RNA_test <- function() {
       save = FALSE
     )
 
-    testthat::expect_equal(dt$ensembl_transcript_id %>%
-      unique() %>% length(), 1)
-    testthat::expect_true(all(!dt$ensembl_transcript_id %chin%
-      c("ENSMUST00000018743.1", "ENSMUST00000044250.1")))
+    testthat::expect_true(dt$ensembl_transcript_id %>%
+      unique() == "ENSMUST00000128119.1")
   })
 }
 
 README()
 transcripts()
-excel()
-jaffa()
 peptides()
 peptides_wt()
 cellular_fraction()

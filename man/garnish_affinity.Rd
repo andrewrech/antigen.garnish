@@ -187,21 +187,6 @@ dt <- data.table::data.table(
   str
 }
 
-\dontrun{
-# input from Microsoft excel
-
-# load an example excel file
-dir <- system.file(package = "antigen.garnish") \%>\%
-  file.path(., "extdata/testdata")
-
-path <- "antigen.garnish_test_input.xlsx" \%>\%
-  file.path(dir, .)
-
-# predict neoantigens
-dt <- garnish_affinity(path = path) \%T>\%
-  str
-}
-
 }
 \references{
 Luksza, M, Riaz, N, Makarov, V, Balachandran VP, et al. 2017. A neoepitope fitness model predicts tumour response to checkpoint blockade immunotherapy. Nature. 23;551(7681):512-516

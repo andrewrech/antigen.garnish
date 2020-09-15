@@ -148,25 +148,6 @@ library(antigen.garnish)
     garnish_affinity(.) %>%
 ```
 
-#### Get full MHC affinity output from a Microsoft Excel file of variants
-
-```r
-library(magrittr)
-library(data.table)
-library(antigen.garnish)
-
-  # load example Microsoft Excel file
-  dir <- system.file(package = "antigen.garnish") %>%
-    file.path(., "extdata/testdata")
-
-  path <- "antigen.garnish_test_input.xlsx" %>%
-    file.path(dir, .)
-
-  # predict neoantigens
-    dt <- garnish_affinity(path = path) %T>%
-      str
-```
-
 #### Directly calculate IEDB score and dissimilarity for a list of sequences
 
 ```r
