@@ -66,12 +66,6 @@ get_metadata <- function(dt) {
     stop("ensembl_transcript_id column missing")
   }
 
-
-  # remove version suffix
-  dt[, ensembl_transcript_id :=
-    ensembl_transcript_id %>%
-    stringr::str_replace("\\.[0-9]$", "")]
-
   message("Reading local transcript metadata.")
 
   # detect/set AG_DATA_DIR environmental variable
@@ -400,8 +394,8 @@ get_vcf_snpeff_dt <- function(dt) {
     tidyr::separate_rows("ANN", sep = ",[ACTNG]*\\|") %>%
     data.table::as.data.table(.)
 
-  dt[ensembl_transcript_id := ANN %>%+
-     stringr::str_extract("(?<=\\|)(ENSMUST|ENST)[0-9]+(\\.[0-9]+)?")]
+  dt[, ensembl_transcript_id := ANN %>%
+    stringr::str_extract("(?<=\\|)(ENSMUST|ENST)[0-9]+(\\.[0-9]+)?")]
 
 
   dt[, ANN := ANN %>% stringr::str_replace("^[ACTNG]*\\|", "")]
@@ -410,7 +404,7 @@ get_vcf_snpeff_dt <- function(dt) {
     "effect_type",
     "putative_impact",
     "gene",
-    "gene_id",
+    "ensembl_gene_id",
     "feature_type",
     "feature_id",
     "transcript_bioptype",
@@ -423,6 +417,9 @@ get_vcf_snpeff_dt <- function(dt) {
     "Distance_to_feature"
   )
   dt[, eval(annSpecNames) := ANN %>% data.table::tstrsplit("\\|")]
+
+  dt[, protein_coding := FALSE]
+  dt[protein_change != "", protein_coding := TRUE]
 
   ## this is only for hg19
   dt[, refseq_id := ANN %>%

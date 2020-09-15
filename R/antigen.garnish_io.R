@@ -149,7 +149,6 @@ garnish_variants <- function(vcfs, tumor_sample_name = "TUMOR") {
     }
 
     # parse ANN column
-
     vdt %<>% get_vcf_snpeff_dt
 
     if (vdt %>% class() %>%
