@@ -20,13 +20,18 @@ testthat::test_that("garnish_affinity_assemble_generate", {
   # suppress the 4 known warnings from translating the edge case frameshifts
   # last base ignored from  biostrings::translate, this is expected
   suppressWarnings({
-  dto <- garnish_affinity(dt, generate = FALSE, predict = FALSE,
-    blast = FALSE, remove_wt = FALSE)
-    })
+    dto <- garnish_affinity(dt,
+      generate = FALSE, predict = FALSE,
+      blast = FALSE, remove_wt = FALSE
+    )
+  })
 
-  testthat::expect_equal(dto[, mutant_index],
-    c("2790", "2789", "2790", "8", "9 10", "10",
+  testthat::expect_equal(
+    dto[, mutant_index],
+    c(
+      "2790", "2789", "2790", "8", "9 10", "10",
       "10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28",
-    "10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28"))
-
+      "10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28"
+    )
+  )
 })

@@ -67,7 +67,7 @@ iedb_score <- function(v, db) {
       '$ curl -fsSL "http://get.rech.io/antigen.garnish.tar.gz" | tar -xvz',
       "",
       "Documentation:",
-      "https://neoantigens.io",
+      "https://neoantigens.rech.io",
       sep = "\n"
     )
     warnings(warn)
@@ -261,7 +261,7 @@ garnish_dissimilarity <- function(v, db, kval = 4.86936, aval = 32) {
       '$ curl -fsSL "http://get.rech.io/antigen.garnish.tar.gz" | tar -xvz',
       "",
       "Documentation:",
-      "https://neoantigens.io",
+      "https://neoantigens.rech.io",
       sep = "\n"
     )
     warnings(warn)
@@ -1286,7 +1286,7 @@ get_ss_str <- function(x, y) {
 #'     MHC                         <same as above>
 #'
 #' @param binding_cutoff Numeric. Maximum consensus MHC-binding affinity that will be passed for IEDB and dissimilarity analysis. Default is 500 (nM). Note: If a peptide binds to any MHC allele in the table below this threshold, IEDB score and dissimilarity will be returned for all rows with that peptide.
-#' @param counts Optional. A file path to an RNA count matrix. The first column must contain ENSEMBL transcript ids. All samples in the input table must be present in the count matrix.
+#' @param counts Optional. A file path to an RNA count matrix. The first column must contain Ensembl transcript ids. All samples in the input table must be present in the count matrix.
 #' @param min_counts Integer. The minimum number of estimated read counts for a transcript to be considered for neoantigen prediction. Default is 1.
 #' @param assemble Logical. Assemble data table?
 #' @param generate Logical. Generate peptides?

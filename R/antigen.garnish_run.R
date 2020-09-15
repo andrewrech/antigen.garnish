@@ -182,7 +182,9 @@ run_netMHC <- function(dt) {
     '$ curl -fsSL "http://get.rech.io/antigen.garnish.tar.gz" | tar -xvz',
     "",
     "Documentation:",
-    "https://neoantigens.io",
+    "https://neoantigens.rech.io",
+    "Github:",
+    "https://github.com/immune-health/antigen.garnish",
     sep = "\n"
   )
 
