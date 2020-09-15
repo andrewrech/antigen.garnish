@@ -1537,18 +1537,17 @@ dt with peptide:
   }
 
     if (!missing(counts)) {
-      ct <- rio::import(counts) %>% data.table::as.data.table()
+      ct <- data.table::fread(counts)
 
       col <- ct[, .SD, .SDcols = 1] %>% unlist()
 
       if (!all(col %>% stringr::str_detect(pattern = "ENS(MUS)?T"))) {
-        stop("Count matrix file first column must contain ENSEMBL transcript ids.")
+        stop("Transcript expression matrix file first column must contain Ensembl transcript ids.")
       }
 
       if (any(is.na(col)) |
-        length(unique(col)) != length(col) |
-        any(stringr::str_detect(col, pattern = stringr::fixed(".")))) {
-        stop("Count matrix id column has transcript versions, non-unique, or NA values.")
+        length(unique(col)) != length(col)) {
+        stop("Transcript expression matrix has non-unique or NA values.")
       }
 
       ct %>% setnames(names(ct)[1], "ensembl_transcript_id")
@@ -1561,7 +1560,7 @@ dt with peptide:
       )
 
       if (any(!dt[, sample_id %>% unique()] %chin% ct[, sample_id %>% unique()])) {
-        stop("Count matrix does not contain columns for all samples in input data.")
+        stop("Transcript expression matrix does not contain columns for all samples in input data.")
       }
 
       ct[, counts := counts > min_counts]
