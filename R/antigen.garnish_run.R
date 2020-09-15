@@ -352,8 +352,12 @@ check_pred_tools <- function(ag_dirs = c(
   # vector of directories to look in for data
 
   if (!Sys.getenv("AG_DATA_DIR") == "") {
+    message("Environmental variable AG_DATA_DIR for the antigen.garnish data directory is unset. Checking standard directories.")
+  }
+
+  if (!Sys.getenv("AG_DATA_DIR") == "") {
     if (!Sys.getenv("AG_DATA_DIR") %>% dir.exists()) {
-      message("$AG_DATA_DIR does not exist")
+      message(Sys.getenv("AG_DATA_DIR"), " does not exist.")
       .ag_data_err()
     }
   }
@@ -361,7 +365,6 @@ check_pred_tools <- function(ag_dirs = c(
   if (Sys.getenv("AG_DATA_DIR") %>% dir.exists()) {
     ag_dir <- Sys.getenv("AG_DATA_DIR")
   }
-
 
   if (Sys.getenv("AG_DATA_DIR") == "") {
     for (i in ag_dirs) {
