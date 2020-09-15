@@ -46,62 +46,6 @@ run_mhcflurry <- function() {
     })
 }
 
-#' Internal function to run run_mhcnuggets commands.
-#'
-#' @md
-
-run_mhcnuggets <- function() {
-  gruf <- list.files(pattern = "mhcnuggets_input_gru.*csv")
-
-  if (gruf %>% length() > 1) {
-    message("Running mhcnuggets with -m gru")
-  }
-
-  pypath <- system("which predict.py", intern = TRUE)
-
-  gruf %>%
-    seq_along() %>%
-    parallel::mclapply(function(x) {
-      print(paste0("Input file ", x, " of ", length(gruf)))
-
-      paste0(
-        "python ", pypath, " -m gru -w ", dirname(pypath), "/../saves/production/mhcnuggets/",
-        stringr::str_extract(string = gruf[x], pattern = "(?<=_)H.*(?=_)"), ".h5 -p ", gruf[x],
-        " > ",
-        gruf[x] %>% stringr::str_replace("input", "output"), " 2>>mhcnuggets.log"
-      ) %>%
-        system()
-
-      return(NULL)
-    })
-
-
-
-  lf <- list.files(pattern = "mhcnuggets_input_lstm.*csv")
-
-  if (lf %>% length() > 1) {
-    message("Running mhcnuggets with -m lstm")
-  }
-
-  pypath <- system("which predict.py", intern = TRUE)
-
-  lf %>%
-    seq_along() %>%
-    parallel::mclapply(function(x) {
-      print(paste0("Input file ", x, " of ", length(lf)))
-
-      paste0(
-        "python ", pypath, " -m lstm -w ", dirname(pypath), "/../saves/production/mhcnuggets_beta/",
-        stringr::str_extract(string = lf[x], pattern = "(?<=_)H.*(?=_)"), ".h5 -p ", lf[x],
-        " > ",
-        lf[x] %>% stringr::str_replace("input", "output"), " 2>>mhcnuggets.log"
-      ) %>%
-        system()
-
-      return(NULL)
-    })
-}
-
 #' Internal function to run netMHC commands.
 #'
 #' @param dt Data table of prediction commands to run.
@@ -219,6 +163,7 @@ run_netMHC <- function(dt) {
 #' Print data directory error
 #'
 #' @md
+
 
 .ag_data_err <- function() {
   err <- paste(
@@ -384,7 +329,7 @@ configure_netMHC_tools <- function(dir) {
   return(io)
 }
 
-#' Internal function to check for netMHC tools, mhcflurry and mhcnuggets
+#' Internal function to check for netMHC tools and mhcflurry
 #'
 #' @param ag_dirs Character vector. Directories to check for `antigen.garnish` data directory.
 #'
@@ -438,7 +383,7 @@ check_pred_tools <- function(ag_dirs = c(
         "/netMHC",
         list.files(file.path(ag_dir, "netMHC"))
       ),
-      "/mhcnuggets/scripts"
+      file.path("/ncbi-blast-2.10.1+-src/c++/ReleaseMT/bin")
     )
   ) %>%
     normalizePath() %>%
@@ -450,7 +395,7 @@ check_pred_tools <- function(ag_dirs = c(
     netMHCpan   = TRUE,
     netMHCII    = TRUE,
     netMHCIIpan = TRUE,
-    mhcnuggets  = TRUE
+    blastp      = TRUE
   )
 
   # conditional to prevent infinitely growing path when running in long loops
@@ -464,6 +409,12 @@ check_pred_tools <- function(ag_dirs = c(
     tool_status$mhcflurry <- FALSE
   }
 
+  if (suppressWarnings(system("which blastp 2> /dev/null", intern = TRUE)) %>%
+    length() == 0) {
+    message("blastp is not in PATH\n       Download: https://blast.ncbi.nlm.nih.gov/Blast.cgi")
+    tool_status$blastp <- FALSE
+  }
+
   lapply(scripts, function(i) {
     f <- basename(i)
 
@@ -473,12 +424,6 @@ check_pred_tools <- function(ag_dirs = c(
       tool_status[[f]] <- FALSE
     }
   })
-
-  if (suppressWarnings(system("which predict.py 2> /dev/null", intern = TRUE)) %>%
-    length() == 0) {
-    message("mhcnuggets predict.py is not in PATH\n       Download: https://github.com/KarchinLab/mhcnuggets")
-    tool_status$mhcnuggets <- FALSE
-  }
 
   return(tool_status)
 }

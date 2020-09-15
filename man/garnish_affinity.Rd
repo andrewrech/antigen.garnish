@@ -85,7 +85,6 @@ A data table of binding predictions including:
 \item \strong{nmer_i}: index of nmer in sliding window
 \item \strong{_net}: netMHC prediction tool output
 \item \strong{mhcflurry_}: mhcflurry_ prediction tool output
-\item \strong{mhcnuggets_}: mhcnuggets_ prediction tool output
 \item \strong{DAI}: Differential agretopicty index of missense and corresponding wild-type peptide.
 \item \strong{BLAST_A}: Ratio of consensus binding affinity of mutant peptide / closest single AA mismatch from blastp results. Returned only if \code{blast = TRUE}.
 }
@@ -117,7 +116,7 @@ transcript description:
 }
 }
 \description{
-Perform ensemble neoantigen prediction on a data table of missense mutations, insertions, or deletions using netMHC, mhcflurry, and mhcnuggets.
+Perform ensemble neoantigen prediction on a data table of missense mutations, insertions, or deletions using netMHC and mhcflurry.
 }
 \details{
 \itemize{

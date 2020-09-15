@@ -772,62 +772,6 @@ merge_predictions <- function(l, dt) {
     dt %<>% unique
   }
 
-  message("Reading mhcnuggets output.")
-
-  f_mhcnuggets <- list.files(pattern = "mhcnuggets_output.*csv")
-
-  if (f_mhcnuggets %>% length() > 0) {
-    nugdt <- lapply(f_mhcnuggets, function(x) {
-      dt <- suppressWarnings(data.table::fread(x)) %>%
-        .[, mhcnuggets := basename(x) %>%
-          stringr::str_extract(pattern = "(?<=_)(H-2-.*(?=_))|(HLA).*(?=_)")] %>%
-        .[, tool := basename(x) %>%
-          stringr::str_extract(pattern = "(gru)|(lstm)")]
-
-      if (nrow(dt) == 0) {
-        return(NULL)
-      }
-
-      return(dt)
-    }) %>%
-      data.table::rbindlist(fill = TRUE) %>%
-      data.table::setnames(
-        c("Building", "model"),
-        c("nmer", "mhcnuggets_prediction")
-      ) %>%
-      .[tool == "gru", mhcnuggets_pred_gru := mhcnuggets_prediction] %>%
-      .[tool == "lstm", mhcnuggets_pred_lstm := mhcnuggets_prediction] %>%
-      .[, c("nmer", "mhcnuggets", "mhcnuggets_pred_gru", "mhcnuggets_pred_lstm")]
-
-    nugdt <- merge(
-      nugdt[!is.na(mhcnuggets_pred_lstm),
-        .SD,
-        .SDcols = c(
-          "nmer",
-          "mhcnuggets",
-          "mhcnuggets_pred_lstm"
-        )
-      ] %>% unique(),
-      nugdt[!is.na(mhcnuggets_pred_gru),
-        .SD,
-        .SDcols = c(
-          "nmer",
-          "mhcnuggets",
-          "mhcnuggets_pred_gru"
-        )
-      ] %>% unique(),
-      by = c("nmer", "mhcnuggets"),
-      all = TRUE
-    )
-
-    dt <- merge(dt, nugdt %>%
-      unique(),
-    by = c("nmer", "mhcnuggets"),
-    all.x = TRUE
-    )
-  }
-  dt %<>% unique
-
   message("Calculating netMHC consensus score.")
   for (col in (dt %>% names() %include% "aff|[Rr]ank|Ensemble_score")) {
     suppressWarnings({
@@ -857,8 +801,8 @@ merge_predictions <- function(l, dt) {
   # merge back
   dt %<>% merge(dtm, by = c("nmer", "MHC"))
 
-  # take average of mhcflurry, mhcnuggets, and best available netMHC tool
-  cols  <- dt %>% names() %include% "(best_netMHC)|(mhcflurry_prediction$)|(mhcflurry_affinity$)|(mhcnuggets_pred_gru)|(mhcnuggets_pred_lstm)"
+  # take average of mhcflurry best available netMHC tool
+  cols  <- dt %>% names() %include% "(best_netMHC)|(mhcflurry_prediction$)|(mhcflurry_affinity$)"
   dt[, Ensemble_score := mean(as.numeric(.SD), na.rm = TRUE),
     by = 1:nrow(dt), .SDcols = cols
   ]
@@ -1018,21 +962,7 @@ get_pred_commands <- function(dt) {
       ) %>%
         data.table::fread(header = FALSE, sep = "\t") %>%
         data.table::setnames("V1", "allele") %>%
-        .[, type := "netMHCIIpan"],
-      system.file("extdata",
-        "mhcnuggets_gru_alleles.txt",
-        package = "antigen.garnish"
-      ) %>%
-        data.table::fread(header = FALSE, sep = "\t") %>%
-        data.table::setnames("V1", "allele") %>%
-        .[, type := "mhcnuggets_gru"],
-      system.file("extdata",
-        "mhcnuggets_lstm_alleles.txt",
-        package = "antigen.garnish"
-      ) %>%
-        data.table::fread(header = FALSE, sep = "\t") %>%
-        data.table::setnames("V1", "allele") %>%
-        .[, type := "mhcnuggets_lstm"]
+        .[, type := "netMHCIIpan"]
     )
   )
 
@@ -1055,15 +985,6 @@ get_pred_commands <- function(dt) {
       quote = FALSE, sep = ","
       )
   }
-
-  # generate input for mhcnuggets predictions
-
-  dt[, mhcnuggets := toupper(MHC) %>%
-    stringr::str_replace(stringr::fixed("*"), "") %>%
-    stringr::str_replace(stringr::fixed(":"), "")]
-
-  write_mhcnuggets_nmers(dt, alleles)
-
 
   # generate matchable MHC substring for netMHC tools
   dt[, netMHCpan := MHC %>% stringr::str_replace(stringr::fixed("*"), "")]
@@ -1249,106 +1170,6 @@ collate_netMHC <- function(esl) {
 
 
 
-
-#' Internal function to output nmers for mhcnuggets prediction to disk
-#'
-#' @param dt Data table of nmers.
-#' @param alleles Data table of 2 columns, 1. alleles properly formatted mhcnuggets.
-#'
-#' @md
-
-write_mhcnuggets_nmers <- function(dt, alleles) {
-  if (dt %>% nrow() == 0) {
-    return(NULL)
-  }
-
-  if (!c("mhcnuggets", "nmer", "nmer_l") %chin% (dt %>% names()) %>% any()) {
-    stop("dt must contain mhcnuggets and nmer columns")
-  }
-
-
-  # write tables for gru input
-
-  if (dt[mhcnuggets %chin% alleles[type == "mhcnuggets_gru", allele]] %>% nrow() > 0) {
-    mnug_dt <- dt[mhcnuggets %chin% alleles[type == "mhcnuggets_gru", allele] &
-      nmer_l <= 11,
-    .SD,
-    .SDcols = c("mhcnuggets", "nmer")
-    ] %>%
-      data.table::setnames(
-        c("mhcnuggets", "nmer"),
-        c("allele", "peptide")
-      ) %>%
-      unique()
-
-    suppressWarnings(
-      for (i in mnug_dt[, allele %>% unique()]) {
-        breakpoints <- ((mnug_dt[allele == i] %>% nrow()) / 100) %>% ceiling()
-
-        lapply(mnug_dt[allele == i] %>% split(1:breakpoints), function(dt) {
-          filename <- paste0(
-            "mhcnuggets_input_gru_",
-            i,
-            "_",
-            uuid::UUIDgenerate() %>%
-              substr(1, 18), ".csv"
-          )
-
-          data.table::fwrite(dt[allele == i, peptide] %>%
-            data.table::as.data.table(),
-          filename,
-          col.names = FALSE,
-          sep = ",",
-          quote = FALSE
-          )
-        })
-      }
-    )
-  }
-
-  # write tables for lstm input
-
-  if (dt[mhcnuggets %chin% alleles[type == "mhcnuggets_lstm", allele]] %>% nrow() > 0) {
-    mnug_dt <- dt[mhcnuggets %chin% alleles[type == "mhcnuggets_lstm", allele] &
-      nmer_l <= 11,
-    .SD,
-    .SDcols = c("mhcnuggets", "nmer")
-    ] %>%
-      data.table::setnames(
-        c("mhcnuggets", "nmer"),
-        c("allele", "peptide")
-      ) %>%
-      unique()
-
-    suppressWarnings(
-      for (i in mnug_dt[, allele %>% unique()]) {
-        breakpoints <- ((mnug_dt[allele == i] %>% nrow()) / 100) %>% ceiling()
-
-        lapply(mnug_dt[allele == i] %>% split(1:breakpoints), function(dt) {
-          filename <- paste0(
-            "mhcnuggets_input_lstm_",
-            i,
-            "_",
-            uuid::UUIDgenerate() %>%
-              substr(1, 18), ".csv"
-          )
-
-          data.table::fwrite(dt[allele == i, peptide] %>%
-            data.table::as.data.table(),
-          filename,
-          col.names = FALSE,
-          sep = ",",
-          quote = FALSE
-          )
-        })
-      }
-    )
-  }
-}
-
-
-
-
 #' Internal function to output nmers for netMHC prediction to disk
 #'
 #' @param dt Data table of nmers.
@@ -1434,7 +1255,7 @@ get_ss_str <- function(x, y) {
 
 #' Perform neoantigen prediction.
 #'
-#' Perform ensemble neoantigen prediction on a data table of missense mutations, insertions, or deletions using netMHC, mhcflurry, and mhcnuggets.
+#' Perform ensemble neoantigen prediction on a data table of missense mutations, insertions, or deletions using netMHC and mhcflurry.
 #'
 #' @param path Path to input table ([acceptable formats](https://cran.r-project.org/web/packages/rio/vignettes/rio.html#supported_file_formats)).
 #' @param dt Data table. Input data table from `garnish_variants` or `garnish_jaffa`, or a data table in one of these forms:
@@ -1492,7 +1313,6 @@ get_ss_str <- function(x, y) {
 #' * **nmer_i**: index of nmer in sliding window
 #' * **_net**: netMHC prediction tool output
 #' * **mhcflurry_**: mhcflurry_ prediction tool output
-#' * **mhcnuggets_**: mhcnuggets_ prediction tool output
 #' * **DAI**: Differential agretopicty index of missense and corresponding wild-type peptide.
 #' * **BLAST_A**: Ratio of consensus binding affinity of mutant peptide / closest single AA mismatch from blastp results. Returned only if `blast = TRUE`.
 #'
@@ -1635,7 +1455,7 @@ garnish_affinity <- function(dt = NULL,
   on.exit({
     message("Removing temporary files")
     try(
-      list.files(pattern = "(_nmer_fasta\\.fa)|(iedb_query.fa)|((netMHC|mhcflurry|mhcnuggets).*_[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}\\.csv)") %>% file.remove(),
+      list.files(pattern = "(_nmer_fasta\\.fa)|(iedb_query.fa)|((netMHC|mhcflurry).*_[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}\\.csv)") %>% file.remove(),
       silent = TRUE
     )
     setwd(original_dir)
@@ -1645,8 +1465,7 @@ garnish_affinity <- function(dt = NULL,
   if (!missing(dt) & !missing(path)) stop("Choose dt or path input.")
 
   if (missing(dt) & !missing(path)) {
-    dt <- rio::import(path) %>%
-      data.table::as.data.table()
+    dt <- data.table::fread()
   }
 
   if (!"data.table" %chin% class(dt)) {
@@ -1717,6 +1536,7 @@ dt with peptide:
 
   if (assemble & input_type == "transcript") {
     message("Generating metadata.")
+
     dt %<>% get_metadata
 
     if ("chromosome_name" %chin% (dt %>% names)){
@@ -2163,7 +1983,6 @@ dt with peptide:
     if (check_pred_tools() %>% unlist() %>% all()) {
       dto <- run_netMHC(dtl[[2]])
       run_mhcflurry()
-      run_mhcnuggets()
       dt <- merge_predictions(dto, dtl[[1]])
     } else {
       warning("Missing prediction tools in PATH, returning without predictions.")

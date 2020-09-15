@@ -2,7 +2,7 @@
 % Please edit documentation in R/antigen.garnish_run.R
 \name{check_pred_tools}
 \alias{check_pred_tools}
-\title{Internal function to check for netMHC tools, mhcflurry and mhcnuggets}
+\title{Internal function to check for netMHC tools and mhcflurry}
 \usage{
 check_pred_tools(
   ag_dirs = c(paste0(getwd(), "/", "antigen.garnish"), paste0(Sys.getenv("HOME"), "/",
@@ -13,5 +13,5 @@ check_pred_tools(
 \item{ag_dirs}{Character vector. Directories to check for \code{antigen.garnish} data directory.}
 }
 \description{
-Internal function to check for netMHC tools, mhcflurry and mhcnuggets
+Internal function to check for netMHC tools and mhcflurry
 }

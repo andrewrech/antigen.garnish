@@ -26,7 +26,6 @@ Imports:
     parallel,
     purrr,
     Rdpack,
-    rio,
     stats,
     stringr,
     testthat,

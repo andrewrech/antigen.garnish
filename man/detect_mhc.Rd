@@ -9,7 +9,7 @@ detect_mhc(x, alleles)
 \arguments{
 \item{x}{Vector of HLA types named for program to convert to.}
 
-\item{alleles}{Data table of 2 columns, 1. formatted allele names 2. prediction tool name (e.g. mhcflurry, mhcnuggets, netMHC).}
+\item{alleles}{Data table of 2 columns, 1. formatted allele names 2. prediction tool name (e.g. mhcflurry, netMHC).}
 }
 \description{
 Internal function to replace MHC with matching prediction tool MHC syntax

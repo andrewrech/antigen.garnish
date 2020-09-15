@@ -274,8 +274,7 @@ garnish_variants <- function(vcfs, tumor_sample_name = "TUMOR") {
 garnish_antigens <- function(dt) {
   if (class(dt)[1] == "character") {
     dt <- dt %>%
-      rio::import() %>%
-      data.table::as.data.table()
+      data.table::fread()
   }
 
   if (class(dt)[1] == "data.frame") {
