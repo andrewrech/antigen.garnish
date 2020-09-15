@@ -38,7 +38,7 @@ detect_mhc <- function(x, alleles) {
     hla_re <- paste0(hla, "($|[^0-9])")
 
     allele <- alleles[type == prog, allele %>%
-      .[stringr::str_detect(hla_re) %>% which()]] %>%
+      .[stringr::str_detect(., hla_re) %>% which()]] %>%
       # match to first in case of multiple matches
       # e.g. netMHCII
       .[1]

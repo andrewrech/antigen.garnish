@@ -198,7 +198,7 @@ cellular_fraction <- function() {
     dt <- file.path(d, "antigen.garnish_test.vcf") %>%
 
       # run test
-      garnish_variants() %>%
+      garnish_variants(.) %>%
       .[, MHC := c("HLA-A*02:01")] %>%
       # keep the test small
       .[1:2] %>%

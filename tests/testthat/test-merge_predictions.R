@@ -15,13 +15,12 @@ testthat::test_that("merge_predictions", {
   # run test
 
   dto <- merge_predictions(
-   file.path(d, "antigen.garnish_netMHC_test_output.RDS") %>%
-      readRDS,
-  file.path(d, "antigen.garnish_merge_predictions_input_dt.RDS") %>%
-      readRDS
- )
+    file.path(d, "antigen.garnish_netMHC_test_output.RDS") %>%
+      readRDS(),
+    file.path(d, "antigen.garnish_merge_predictions_input_dt.RDS") %>%
+      readRDS()
+  )
 
-  testthat::expect_gt(dto %>% nrow, 250)
-  testthat::expect_equal(dto %>% length, 111)
-
+  testthat::expect_gt(dto %>% nrow(), 250)
+  testthat::expect_equal(dto %>% length(), 109)
 })

@@ -1752,11 +1752,7 @@ dt with peptide:
 
     # generation a uuid for each unique variant
 
-    suppressWarnings(dt[, var_uuid :=
-      lapply(
-        1:nrow(dt),
-        uuid::UUIDgenerate()
-      ) %>% unlist()])
+    suppressWarnings(dt[, var_uuid := uuid::UUIDgenerate(n = .N)])
 
     # separate over mutant indices
 
