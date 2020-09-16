@@ -2,7 +2,7 @@
 
 # antigen.garnish 2.0
 
-Ensemble tumor neoantigen prediction from complex variants. Immunogenicity filtering based on the [Tumor Neoantigen Selection Alliance (TESLA)](https://www.parkerici.org/research-project/tumor-neoantigen-selection-alliance-tesla/).
+Humand and mouse ensemble tumor neoantigen prediction from SNVs and complex variants. Immunogenicity filtering based on the [Tumor Neoantigen Selection Alliance (TESLA)](https://www.parkerici.org/research-project/tumor-neoantigen-selection-alliance-tesla/).
 
 ![](https://get.rech.io/antigen.garnish_flowchart.svg)
 
@@ -16,40 +16,18 @@ Ensemble tumor neoantigen prediction from complex variants. Immunogenicity filte
 
 > Wells DK, van Buuren MM, Dang KK, Hubbard-Lucey VM, Sheehan KCF, Campbell KM, Lamb A, Ward JP, Sidney J, Blazquez AB, Rech AJ, Zaretsky JM, Comin-Anduix B, Ng AHC, Chour W, Yu TV, Rizvi1 H, Chen JM, Manning P, Steiner GM, Doan XC, The TESLA Consortium, Merghoub T, Guinney J, Kolom A, Selinsky C, Ribas A, Hellmann MD, Hacohen N, Sette A, Heath JR, Bhardwaj N, Ramsdell F, Schreiber RD, Schumacher TN, Kvistborg P, Defranoux N. Key Parameters of Tumor Epitope Immunogenicity Revealed Through a Consortium Approach Improve Neoantigen Prediction. Cell. 2020. In press.
 
-## Advantages
-
-1. **Thoroughness**:
-   - missense mutations, insertions, or deletions
-   - human and mouse
-   - ensemble MHC class I/II binding prediction using [mhcflurry](https://github.com/hammerlab/mhcflurry), [netMHC](http://www.cbs.dtu.dk/services/NetMHC/), [netMHCII](http://www.cbs.dtu.dk/services/NetMHCII/), [netMHCpan](http://www.cbs.dtu.dk/services/NetMHCpan/) and [netMHCIIpan](http://www.cbs.dtu.dk/services/NetMHCIIpan/i)
-   - ranked by
-     - MHC I/II binding affinity
-     - clonality
-     - RNA expression
-     - similarity to known immunogenic antigens
-     - dissimilarity to the normal peptidome
-2. **Speed and simplicity**:
-   - 1000 variants are ranked in a single step in less than five minutes
-   - parallelized using [`parallel::mclapply`](https://stat.ethz.ch/R-manual/R-devel/library/parallel/html/mclapply.html), [`data.table::setDTthreads`](https://github.com/Rdatatable/data.table/wiki), and [GNU parallel](https://www.gnu.org/software/parallel/) see respective links for information on setting multicore usage
-3. **Integration with R/Bioconductor**
-   - upstream/VCF processing
-   - exploratory data analysis, visualization
-
 ## Installation
 
-Three methods exist to run `antigen.garnish`:
+Two methods exist to run `antigen.garnish`:
 
 1. Docker
 2. Linux
-3. Amazon Web Services
 
 ### Docker
 
 ```sh
 docker pull leeprichman/antigen_garnish
 ```
-
-See the [wiki](https://github.com/immune-health/antigen.garnish/wiki/Docker) for instructions to run the Docker container.
 
 ### Linux
 
@@ -94,10 +72,6 @@ chmod 700 -R "$ANTIGEN_GARNISH_DIR/netMHC"
 
 ```
 
-### Amazon Web Services
-
-See the [wiki](https://github.com/immune-health/antigen.garnish/wiki/antigen.garnish-on-AWS) for instructions to create an Amazon Web Services instance.
-
 ### Development version from master
 
 Follow instructions above under _Installation script_ to install dependencies, and then:
@@ -110,7 +84,7 @@ devtools::install_github("immune-health/antigen.garnish")
 
 [Website](https://neoantigens.rech.io/reference/index.html), [PDF](https://get.rech.io/antigen.garnish.pdf).
 
-### Workflow example
+## Workflow overview
 
 1. Prepare input for MHC affinity prediction and quality analysis:
    - VCF input: (see `?garnish_variants`), or
@@ -118,6 +92,105 @@ devtools::install_github("immune-health/antigen.garnish")
 1. Add MHC alleles of interest (see examples below).
 1. Run prediction method (see `?garnish_affinity`)
 1. Filter output (see `?garnish_antigens`).
+
+### Running antigen.garnish via Docker
+
+```sh
+docker pull leeprichman/antigen_garnish
+
+cID=$(docker run -it -d leeprichman/antigen_garnish /bin/bash)
+```
+
+#### Install netMHC binaries (academic license)
+
+Copy netMHC tars to container, changing version names as appropriate:
+
+```sh
+netMHC="netMHC-VERSION.Linux.tar.gz"
+netMHCII="netMHCII-VERSION.Linux.tar.gz"
+netMHCpan="netMHCIIpan-VERSION.Linux.tar.gz"
+netMHCIIpan="netMHCpan-VERSION.Linux.tar.gz"
+
+docker cp $netMHC $cID:/$netMHC
+docker cp $netMHCII $cID:/$netMHCII
+docker cp $netMHCpan $cID:/$netMHCpan
+docker cp $netMHCIIpan $cID:/$netMHCIIpan
+
+docker exec $cID config_netMHC.sh
+```
+
+#### Interactive use
+
+```sh
+docker exec -it $cID bash
+```
+
+#### VCF input
+
+Input VCF file name must match the VCF tumor sample name for tumor allelic fraction to be recognized. For many VCFs, the tumor sample name is "TUMOR". In this case, the following input VCF file names would all work:
+
+```
+TUMOR.vcf
+TUMOR_se.vcf
+TUMOR.ann.vcf
+TUMOR.vcf.gz
+```
+
+MHC input is a JSON file from xHLA or a 2-column tab or comma-separated file ending in "mhc.txt" with the following format:
+
+```
+Mouse:
+       sample_id,MHC
+       mysample.vcf,H-2-Kb H-2-Db H-2-IAb
+Human:
+       sample_id,MHC
+       mysample.vcf,HLA-A*02:01 HLA-B*07:02 or H-2-Kb H-2-Db
+```
+
+```sh
+VCFO="TUMOR.vcf"
+MHC="hla.json"
+
+docker cp $VCFO $cID:/$VCFO
+docker cp $MHC $cID:/$MHC
+
+# run antigen.garnish
+docker exec $cID run_antigen.garnish.R
+```
+
+#### Peptide or transcript input
+
+Start and configure the container as described above. One or more tab or comma-separated input files with the pattern "docker_input" in the file name with the following format are required:
+
+```
+Example transcript input
+
+     Column name                 Example input
+
+     sample_id                   sample_1
+     ensembl_transcript_id       ENST00000311936
+     cDNA_change                 c.718T>A
+     MHC                         HLA-A*02:01 HLA-A*03:01
+
+
+ Example peptide input
+
+     Column name                 Example input
+
+     sample_id                   sample_1
+     pep_mut                     MTEYKLVVVDAGGVGKSALTIQLIQNHFV
+     mutant_index                25
+     MHC                         HLA-A*02:01 HLA-A*03:01
+```
+
+```sh
+INPUT="docker_input.csv"
+
+docker cp $INPUT $cID:/$DT
+
+# run antigen.garnish
+docker exec $cID run_antigen.garnish_direct.R
+```
 
 #### Predict neoantigens from missense mutations, insertions, and deletions
 
