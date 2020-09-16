@@ -27,6 +27,21 @@ Two methods exist to run `antigen.garnish`:
 
 ```sh
 docker pull leeprichman/antigen_garnish
+
+cID=$(docker run -it -d leeprichman/antigen_garnish /bin/bash)
+```
+
+[Download](https://services.healthtech.dtu.dk/software.php) netMHC binaries (academic license): NetMHC 4.0, NetMHCpan 4.1b, NetMHCII 2.3, NetMHCIIpan 4.0.
+
+Copy netMHC `tar.gz` to the container and run the installation script:
+
+```sh
+docker cp netMHC-4.0a.Linux.tar.gz cID:/netMHC-4.0a.Linux.tar.gz
+docker cp netMHCII-2.3.Linux.tar.gz cID:/netMHCII-2.3.Linux.tar.gz
+docker cp netMHCIIpan-4.0.Linux.tar.gz cID:netMHCIIpan-4.0.Linux.tar.gz
+docker cp netMHCIIpan-4.0.Linux.tar.gz cID:netMHCIIpan-4.0.Linux.tar.gz
+
+docker exec $cID config_netMHC.sh
 ```
 
 ### Linux
@@ -47,87 +62,46 @@ The following line downloads and runs the initial [installation script](http://g
 $ curl -fsSL http://get.rech.io/install_antigen.garnish.sh | sudo sh
 ```
 
-Next, download the netMHC suite of tools for Linux, available under an academic license:
+Next, [download](https://services.healthtech.dtu.dk/software.php) netMHC binaries (academic license): NetMHC 4.0, NetMHCpan 4.1b, NetMHCII 2.3, NetMHCIIpan 4.0.
 
-- [netMHC](http://www.cbs.dtu.dk/cgi-bin/nph-sw_request?netMHC)
-- [netMHCpan](http://www.cbs.dtu.dk/cgi-bin/nph-sw_request?netMHCpan)
-- [netMHCII](http://www.cbs.dtu.dk/cgi-bin/nph-sw_request?netMHCII)
-- [netMHCIIpan](http://www.cbs.dtu.dk/cgi-bin/nph-sw_request?netMHCIIpan)
-
-After downloading the files above, move the binaries into the `antigen.garnish` data directory, first setting the `NET_MHC_DIR` and `ANTIGEN_GARNISH_DIR` environmental variables, as shown here:
+Move the binaries into the `antigen.garnish` data directory, first setting the `NET_MHC_DIR` and `ANTIGEN_GARNISH_DIR` environment variables:
 
 ```sh
-
 NET_MHC_DIR=/path/to/folder/containing/netMHC/downloads
 ANTIGEN_GARNISH_DIR=/path/to/antigen.garnish/data/directory
 
-cd "$NET_MHC_DIR" || return 1
-
+cd "$NET_MHC_DIR"
 mkdir -p "$ANTIGEN_GARNISH_DIR/netMHC" || return 1
 
-find . -name "netMHC*.tar.gz" -exec tar xvzf {} -C "$ANTIGEN_GARNISH_DIR/netMHC" \;
+tar xvzf netMHC-4.0a.Linux.tar.gz -C "$ANTIGEN_GARNISH_DIR/netMHC"
+tar xvzf netMHCII-2.3.Linux.tar.gz -C "$ANTIGEN_GARNISH_DIR/netMHC"
+tar xvzf netMHCIIpan-4.0.Linux.tar.gz -C "$ANTIGEN_GARNISH_DIR/netMHC"
+tar xvzf netMHCIIpan-4.0.Linux.tar.gz -C "$ANTIGEN_GARNISH_DIR/netMHC"
 
 chown "$USER" "$ANTIGEN_GARNISH_DIR/netMHC"
 chmod 700 -R "$ANTIGEN_GARNISH_DIR/netMHC"
-
 ```
 
-### Development version from master
+## Usage
 
-Follow instructions above under _Installation script_ to install dependencies, and then:
+See the [website](https://neoantigens.rech.io/reference/index.html) or [reference manual](https://get.rech.io/antigen.garnish.pdf).
 
-```r
-devtools::install_github("immune-health/antigen.garnish")
-```
-
-## Package documentation
-
-[Website](https://neoantigens.rech.io/reference/index.html), [PDF](https://get.rech.io/antigen.garnish.pdf).
-
-## Workflow overview
-
-1. Prepare input for MHC affinity prediction and quality analysis:
-   - VCF input: (see `?garnish_variants`), or
-   - transcript or peptide input (see `?garnish_affinity`)
-1. Add MHC alleles of interest (see examples below).
-1. Run prediction method (see `?garnish_affinity`)
-1. Filter output (see `?garnish_antigens`).
-
-### Running antigen.garnish via Docker
-
-```sh
-docker pull leeprichman/antigen_garnish
-
-cID=$(docker run -it -d leeprichman/antigen_garnish /bin/bash)
-```
-
-#### Install netMHC binaries (academic license)
-
-Copy netMHC tars to container, changing version names as appropriate:
-
-```sh
-netMHC="netMHC-VERSION.Linux.tar.gz"
-netMHCII="netMHCII-VERSION.Linux.tar.gz"
-netMHCpan="netMHCIIpan-VERSION.Linux.tar.gz"
-netMHCIIpan="netMHCpan-VERSION.Linux.tar.gz"
-
-docker cp $netMHC $cID:/$netMHC
-docker cp $netMHCII $cID:/$netMHCII
-docker cp $netMHCpan $cID:/$netMHCpan
-docker cp $netMHCIIpan $cID:/$netMHCIIpan
-
-docker exec $cID config_netMHC.sh
-```
+### Docker
 
 #### Interactive use
 
 ```sh
 docker exec -it $cID bash
+R
+```
+
+```r
+library("antigen.garnish")
 ```
 
 #### VCF input
 
-Input VCF file name must match the VCF tumor sample name for tumor allelic fraction to be recognized. For many VCFs, the tumor sample name is "TUMOR". In this case, the following input VCF file names would all work:
+Paired tumor-normal VCFs annotated with SnpEff against any GRCh38 or GRCm38 releases are supported. For tumor allelic fraction to be recognized, input VCF file names must match the VCF tumor sample name. For many variant callers, the tumor sample name is "TUMOR". In this case, the following input VCF file names will work:
 
 ```
 TUMOR.vcf
@@ -192,6 +166,8 @@ docker cp $INPUT $cID:/$DT
 docker exec $cID run_antigen.garnish_direct.R
 ```
 
+### Linux
+
 #### Predict neoantigens from missense mutations, insertions, and deletions
 
 ```r
@@ -221,12 +197,14 @@ library(magrittr)
 library(data.table)
 library(antigen.garnish)
 
-  # generate our character vector of sequences
-  v <- c("SIINFEKL", "ILAKFLHWL", "GILGFVFTL")
-  # calculate IEDB score
-  v %>% iedb_score(db = "human") %>% print
-	# calculate dissimilarity
-	v %>% garnish_dissimilarity(db = "human") %>% print
+# generate our character vector of sequences
+v <- c("SIINFEKL", "ILAKFLHWL", "GILGFVFTL")
+ 
+# calculate IEDB score
+v %>% iedb_score(db = "human") %>% print
+
+# calculate dissimilarity
+v %>% garnish_dissimilarity(db = "human") %>% print
 ```
 
 #### Automated testing
@@ -234,33 +212,29 @@ library(antigen.garnish)
 From ./`<Github repo>`:
 
 ```r
-  devtools::test(reporter = "summary")
+  devtools::test(reporter = "list")
 ```
 
 #### How are peptides generated?
 
 ```r
-  library(magrittr)
-  library(data.table)
-  library(antigen.garnish)
+library(magrittr)
+library(data.table)
+library(antigen.garnish)
 
-  # generate a fake peptide
-    dt <- data.table::data.table(
-       pep_base = "Y___*___THIS_IS_________*___A_CODE_TEST!______*__X",
-       mutant_index = c(5, 25, 47, 50),
-       pep_type = "test",
-       var_uuid = c(
-                    "front_truncate",
-                    "middle",
-                    "back_truncate",
-                    "end")) %>%
+# generate a fake peptide
+  dt <- data.table::data.table(
+     pep_base = "Y___*___THIS_IS_________*___A_CODE_TEST!______*__X",
+     mutant_index = c(5, 25, 47, 50),
+     pep_type = "test",
+     var_uuid = c(
+                  "front_truncate",
+                  "middle",
+                  "back_truncate",
+                  "end")) %>%
   # create nmers
     make_nmers %T>% print
 ```
-
-## Contributing
-
-We welcome contributions and feedback via [Github](https://github.com/immune-health/antigen.garnish/issues) or [email](mailto:leepr@upenn.edu).
 
 ## Acknowledgments
 
