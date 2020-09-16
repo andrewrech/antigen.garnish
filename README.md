@@ -33,7 +33,7 @@ cID=$(docker run -it -d leeprichman/antigen_garnish /bin/bash)
 
 [Download](https://services.healthtech.dtu.dk/software.php) netMHC binaries (academic license): NetMHC 4.0, NetMHCpan 4.1b, NetMHCII 2.3, NetMHCIIpan 4.0.
 
-Copy netMHC `tar.gz` to the container and run the installation script:
+Copy netMHC `tar.gz` files to the container and run the installation script:
 
 ```sh
 docker cp netMHC-4.0a.Linux.tar.gz cID:/netMHC-4.0a.Linux.tar.gz
@@ -71,7 +71,7 @@ NET_MHC_DIR=/path/to/folder/containing/netMHC/downloads
 ANTIGEN_GARNISH_DIR=/path/to/antigen.garnish/data/directory
 
 cd "$NET_MHC_DIR"
-mkdir -p "$ANTIGEN_GARNISH_DIR/netMHC" || return 1
+mkdir -p "$ANTIGEN_GARNISH_DIR/netMHC"
 
 tar xvzf netMHC-4.0a.Linux.tar.gz -C "$ANTIGEN_GARNISH_DIR/netMHC"
 tar xvzf netMHCII-2.3.Linux.tar.gz -C "$ANTIGEN_GARNISH_DIR/netMHC"
@@ -91,6 +91,8 @@ See the [website](https://neoantigens.rech.io/reference/index.html) or [referenc
 #### Interactive use
 
 ```sh
+
+cID=$(docker run -it -d leeprichman/antigen_garnish /bin/bash)
 docker exec -it $cID bash
 R
 ```
@@ -113,17 +115,22 @@ TUMOR.vcf.gz
 MHC input is a JSON file from xHLA or a 2-column tab or comma-separated file ending in "mhc.txt" with the following format:
 
 ```
-Mouse:
-       sample_id,MHC
-       mysample.vcf,H-2-Kb H-2-Db H-2-IAb
-Human:
-       sample_id,MHC
-       mysample.vcf,HLA-A*02:01 HLA-B*07:02 or H-2-Kb H-2-Db
+Example mouse .csv file:
+       
+		sample_id,MHC
+		mysample.vcf,H-2-Kb H-2-Db H-2-IAb
+
+Example human .csv file:
+
+		sample_id,MHC
+		mysample.vcf,HLA-A*02:01 HLA-B*07:02 or H-2-Kb H-2-Db
 ```
 
 ```sh
 VCFO="TUMOR.vcf"
 MHC="hla.json"
+
+cID=$(docker run -it -d leeprichman/antigen_garnish /bin/bash)
 
 docker cp $VCFO $cID:/$VCFO
 docker cp $MHC $cID:/$MHC
@@ -137,28 +144,21 @@ docker exec $cID run_antigen.garnish.R
 Start and configure the container as described above. One or more tab or comma-separated input files with the pattern "docker_input" in the file name with the following format are required:
 
 ```
-Example transcript input
+Example transcript input .csv file:
+     
+		sample_id,ensembl_transcript_id,cDNA_change,MHC
+		sample_1,ENST00000311936,c.718T>A,HLA-A*02:01 HLA-A*03:01
 
-     Column name                 Example input
+Example peptide input .csv file:
 
-     sample_id                   sample_1
-     ensembl_transcript_id       ENST00000311936
-     cDNA_change                 c.718T>A
-     MHC                         HLA-A*02:01 HLA-A*03:01
-
-
- Example peptide input
-
-     Column name                 Example input
-
-     sample_id                   sample_1
-     pep_mut                     MTEYKLVVVDAGGVGKSALTIQLIQNHFV
-     mutant_index                25
-     MHC                         HLA-A*02:01 HLA-A*03:01
+		sample_id,pep_mut,mutant_index,MHC
+		sample_1,MTEYKLVVVDAGGVGKSALTIQLIQNHFV,25,HLA-A*02:01 HLA-A*03:01                  
 ```
 
 ```sh
 INPUT="docker_input.csv"
+
+cID=$(docker run -it -d leeprichman/antigen_garnish /bin/bash)
 
 docker cp $INPUT $cID:/$DT
 
@@ -175,19 +175,23 @@ library(magrittr)
 library(data.table)
 library(antigen.garnish)
 
-  # load an example VCF
-	dir <- system.file(package = "antigen.garnish") %>%
-		file.path(., "extdata/testdata")
-	dt <- "antigen.garnish_example.vcf" %>%
-	file.path(dir, .) %>%
-  # extract variants
-    garnish_variants(.) %>%
-  # add space separated MHC types
-  # see list_mhc() for nomenclature of supported alleles
-	# MHC may also be set to "all_human" or "all_mouse" to use all supported alleles
-      .[, MHC := c("HLA-A*01:47 HLA-A*02:01 HLA-DRB1*14:67")] %>%
-  # predict neoantigens
-    garnish_affinity(.) %>%
+# load an example VCF
+dir <- system.file(package = "antigen.garnish") %>%
+       file.path(., "extdata/testdata")
+			 
+file <- file.path(dir, "antigen.garnish_example.vcf")
+
+# extract variants
+dt <-  garnish_variants(file)
+
+# add space separated MHC types
+# see list_mhc() for nomenclature of supported alleles
+# MHC may also be set to "all_human" or "all_mouse" to use all supported alleles
+
+dt[, MHC := c("HLA-A*01:47 HLA-A*02:01 HLA-DRB1*14:67")]
+
+# predict neoantigens
+result <- dt %>% garnish_affinity(.)
 ```
 
 #### Directly calculate IEDB score and dissimilarity for a list of sequences
@@ -222,18 +226,16 @@ library(magrittr)
 library(data.table)
 library(antigen.garnish)
 
-# generate a fake peptide
-  dt <- data.table::data.table(
-     pep_base = "Y___*___THIS_IS_________*___A_CODE_TEST!______*__X",
-     mutant_index = c(5, 25, 47, 50),
-     pep_type = "test",
-     var_uuid = c(
-                  "front_truncate",
-                  "middle",
-                  "back_truncate",
-                  "end")) %>%
-  # create nmers
-    make_nmers %T>% print
+data.table::data.table(
+   pep_base = "Y___*___THIS_IS_________*___A_CODE_TEST!______*__X",
+   mutant_index = c(5, 25, 47, 50),
+   pep_type = "test",
+   var_uuid = c(
+                "front_truncate",
+                "middle",
+                "back_truncate",
+                "end")) %>%
+   make_nmers %>% print
 ```
 
 ## Acknowledgments
