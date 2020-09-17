@@ -49,17 +49,27 @@ docker exec $cID config_netMHC.sh
 #### Requirements
 
 - R &ge; 3.5.0
-- python-pip
-- tcsh (required for netMHC)
-- `sudo` privileges (required for netMHC)
-- GNU Parallel
+- [Bioconductor](https://www.bioconductor.org/install/) [Biostrings package](https://www.bioconductor.org/packages/release/bioc/html/Biostrings.html)
+- [GNU Parallel](https://www.gnu.org/software/parallel/)
+- [mhcflurry](https://github.com/openvax/mhcflurry)
+- netMHC (follow instructions below)
+- tcsh (required for netMHC, install via your package manager)
 
-#### Installation script
+#### Installation
 
-The following line downloads and runs the initial [installation script](http://get.rech.io/install_antigen.garnish.sh).
+Install the dependencies listed above. Then, download and extract `antigen.garnish` data:
 
 ```sh
-$ curl -fsSL http://get.rech.io/install_antigen.garnish.sh | sudo sh
+cd "$HOME"
+curl -fsSL "http://get.rech.io/antigen.garnish.tar.gz" | tar -xvz
+chmod 700 -R ./antigen.garnish
+```
+
+Install antigen.garnish:
+
+```r
+# install.packages("devtools")
+devtools::install_github("immune-health/antigen.garnish")
 ```
 
 Next, [download](https://services.healthtech.dtu.dk/software.php) netMHC binaries (academic license): NetMHC 4.0, NetMHCpan 4.1b, NetMHCII 2.3, NetMHCIIpan 4.0.
@@ -192,6 +202,8 @@ dt[, MHC := c("HLA-A*01:47 HLA-A*02:01 HLA-DRB1*14:67")]
 
 # predict neoantigens
 result <- dt %>% garnish_affinity(.)
+
+result %>% str
 ```
 
 #### Directly calculate IEDB score and dissimilarity for a list of sequences
@@ -216,7 +228,7 @@ v %>% garnish_dissimilarity(db = "human") %>% print
 From ./`<Github repo>`:
 
 ```r
-  devtools::test(reporter = "list")
+devtools::test(reporter = "list")
 ```
 
 #### How are peptides generated?
