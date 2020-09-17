@@ -189,7 +189,7 @@ library(antigen.garnish)
 dir <- system.file(package = "antigen.garnish") %>%
        file.path(., "extdata/testdata")
 
-file <- file.path(dir, "antigen.garnish_example.vcf")
+file <- file.path(dir, "TUMOR.vcf")
 
 # extract variants
 dt <-  garnish_variants(file)
