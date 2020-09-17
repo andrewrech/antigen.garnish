@@ -239,7 +239,7 @@ library(data.table)
 library(antigen.garnish)
 
 data.table::data.table(
-   pep_base = "Y___*___THIS_IS_________*___A_CODE_TEST!______*__X",
+   pep_base = "Y___*___THIS_IS_________*___A_PEPTIDE_TEST!______*__X",
    mutant_index = c(5, 25, 47, 50),
    pep_type = "test",
    var_uuid = c(
