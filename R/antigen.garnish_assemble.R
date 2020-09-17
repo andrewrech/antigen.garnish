@@ -231,7 +231,9 @@ get_vcf_info_dt <- function(vcf) {
   v <- dt[, INFO %>% paste(collapse = ";@@@=@@@;")]
   vd <- v %>%
     stringr::str_replace_all("(?<=;)[^=;]+", "") %>%
-    stringr::str_replace_all(stringr::fixed("="), "")
+    stringr::str_replace_all(stringr::fixed(";=@"), ";@") %>%
+    stringr::str_replace_all(stringr::fixed("@;="), "@;")
+
   vn <- v %>%
     stringr::str_replace_all("(?<==)[^;]+", "") %>%
     stringr::str_replace_all(stringr::fixed("="), "")
@@ -248,7 +250,11 @@ get_vcf_info_dt <- function(vcf) {
       .[[1]]
 
     return(v %>% as.list())
-  }) %>% rbindlist(fill = TRUE, use.names = TRUE)
+  }) %>%
+    rbindlist(fill = TRUE, use.names = TRUE) %>%
+    .[, V1 := NULL] # remove extra final column created during parsing
+
+  # remove extra colum
 
   if (
     (dt %>% nrow()) !=
