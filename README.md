@@ -116,7 +116,7 @@ MHC input is a JSON file from xHLA or a 2-column tab or comma-separated file end
 
 ```
 Example mouse .csv file:
-       
+
 		sample_id,MHC
 		mysample.vcf,H-2-Kb H-2-Db H-2-IAb
 
@@ -145,14 +145,14 @@ Start and configure the container as described above. One or more tab or comma-s
 
 ```
 Example transcript input .csv file:
-     
+
 		sample_id,ensembl_transcript_id,cDNA_change,MHC
 		sample_1,ENST00000311936,c.718T>A,HLA-A*02:01 HLA-A*03:01
 
 Example peptide input .csv file:
 
 		sample_id,pep_mut,mutant_index,MHC
-		sample_1,MTEYKLVVVDAGGVGKSALTIQLIQNHFV,25,HLA-A*02:01 HLA-A*03:01                  
+		sample_1,MTEYKLVVVDAGGVGKSALTIQLIQNHFV,25,HLA-A*02:01 HLA-A*03:01
 ```
 
 ```sh
@@ -178,7 +178,7 @@ library(antigen.garnish)
 # load an example VCF
 dir <- system.file(package = "antigen.garnish") %>%
        file.path(., "extdata/testdata")
-			 
+
 file <- file.path(dir, "antigen.garnish_example.vcf")
 
 # extract variants
@@ -203,7 +203,7 @@ library(antigen.garnish)
 
 # generate our character vector of sequences
 v <- c("SIINFEKL", "ILAKFLHWL", "GILGFVFTL")
- 
+
 # calculate IEDB score
 v %>% iedb_score(db = "human") %>% print
 

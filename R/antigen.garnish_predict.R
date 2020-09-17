@@ -745,12 +745,14 @@ merge_predictions <- function(l, dt) {
   # merge netMHC output
 
   for (ptype in (progl %>% unique() %>% unlist())) {
+
     dt <- merge(dt, l[(progl == ptype) %>% which()] %>%
       data.table::rbindlist(),
     by = c("nmer", ptype), all.x = TRUE,
-    allow.cartesian = TRUE
-    )
+    allow.cartesian = TRUE)
+
   }
+
   dt %<>% unique
 
   message("Reading mhcflurry output.")
@@ -1138,8 +1140,7 @@ collate_netMHC <- function(esl) {
       }
 
       if ("Pos" %chin% dtn) {
-        dt %>%
-          data.table::setnames("Pos", "pos")
+        dt %>% data.table::setnames("Pos", "pos")
       }
 
       if ("Core" %chin% dtn) dt %>% data.table::setnames("Core", "core")
@@ -1156,11 +1157,7 @@ collate_netMHC <- function(esl) {
         paste0((dt %>% names() %exclude% "allele|nmer"), "_", ptype)
       )
 
-      # name allele column for merge
-      dt %>%
-        data.table::setnames("allele", ptype)
-
-      # file.remove(fn)
+      dt %>% data.table::setnames("allele", ptype)
 
       return(dt)
     }
