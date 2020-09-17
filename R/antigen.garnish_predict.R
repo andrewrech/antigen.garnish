@@ -13,7 +13,7 @@ iedb_score <- function(v, db) {
   if (!db %chin% c("mouse", "human")) stop("db must be \"human\" or \"mouse\"")
 
   on.exit({
-    message("Removing temporary fasta files")
+    message("Removing temporary fasta files.")
     try(
       list.files(pattern = "iedb_score|blastp") %>% file.remove()
     )
@@ -27,7 +27,7 @@ iedb_score <- function(v, db) {
 
   check_pred_tools()
 
-  message("Generating FASTA to query")
+  message("Generating FASTA to query.")
 
   names(v) <- 1:length(v) %>% as.character()
 
@@ -206,7 +206,7 @@ garnish_dissimilarity <- function(v, db, kval = 4.86936, aval = 32) {
   if (!db %chin% c("mouse", "human")) stop("db must be \"human\" or \"mouse\"")
 
   on.exit({
-    message("Removing temporary fasta files")
+    message("Removing temporary fasta files.")
     try(
       list.files(pattern = "dissimilarity|blastp|blastdt_[0-9]+\\.txt$") %>% file.remove()
     )
@@ -403,7 +403,7 @@ garnish_dissimilarity <- function(v, db, kval = 4.86936, aval = 32) {
 
 make_BLAST_uuid <- function(dti) {
   on.exit({
-    message("Removing temporary fasta files")
+    message("Removing temporary fasta files.")
     try(
       list.files(pattern = "(Ms|Hu)_nmer_fasta") %>% file.remove()
     )
@@ -734,7 +734,7 @@ make_DAI_uuid <- function(dt) {
 #' @md
 
 merge_predictions <- function(l, dt) {
-  message("Merging output")
+  message("Merging output.")
 
   # merge netMHC by program type
 
@@ -1435,7 +1435,7 @@ garnish_affinity <- function(dt = NULL,
 
 
   on.exit({
-    message("Removing temporary files")
+    message("Removing temporary files.")
     try(
       list.files(pattern = "(_nmer_fasta\\.fa)|(iedb_query.fa)|((netMHC|mhcflurry).*_[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}\\.csv)") %>% file.remove(),
       silent = TRUE

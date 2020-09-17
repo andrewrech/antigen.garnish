@@ -31,7 +31,7 @@ make_sw_alignment <- function(col1,
 #' @md
 
 run_mhcflurry <- function() {
-  message("Running mhcflurry in parallel")
+  message("Running mhcflurry in parallel.")
 
   fn <- list.files(pattern = "mhcflurry_input.*csv")
 
@@ -94,7 +94,7 @@ run_netMHC <- function(dt) {
 
   cmdlist %>% data.table::fwrite(fn, col.names = FALSE)
 
-  message("Running netMHC in parallel")
+  message("Running netMHC in parallel.")
 
   # we write to file via R base cat fxn (echo is bash only)
   # set jobs max value 90% of available CPUs, delay 0.2 on spawning jobs for safety
