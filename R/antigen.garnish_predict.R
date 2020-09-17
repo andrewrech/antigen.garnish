@@ -1344,63 +1344,7 @@ get_ss_str <- function(x, y) {
 #'
 #' @examples
 #' \dontrun{
-#'
-#' # load an example VCF
-#' dir <- system.file(package = "antigen.garnish") %>%
-#'   file.path(., "extdata/testdata")
-#'
-#' dt <- "antigen.garnish_example.vcf" %>%
-#'   file.path(dir, .) %>%
-#'
-#'   # extract variants
-#'   garnish_variants() %>%
-#'
-#'   # add space separated MHC types
-#'   # see list_mhc() for nomenclature of supported alleles
-#'
-#'   .[, MHC := c("HLA-A*01:47 HLA-A*02:01 HLA-DRB1*14:67")] %>%
-#'
-#'   # predict neoantigens
-#'   garnish_affinity()
-#' }
-#'
-#' \dontrun{
-#' # input a data table of transcripts
-#'
-#' dt <- data.table::data.table(
-#'   sample_id = "test",
-#'   ensembl_transcript_id =
-#'     c(
-#'       "ENSMUST00000128119",
-#'       "ENSMUST00000044250",
-#'       "ENSMUST00000018743"
-#'     ),
-#'   cDNA_change = c(
-#'     "c.4988C>T",
-#'     "c.1114T>G",
-#'     "c.718T>A"
-#'   ),
-#'   MHC = c(
-#'     "HLA-A*02:01 HLA-DRB1*14:67",
-#'     "H-2-Kb H-2-IAd",
-#'     "HLA-A*01:47 HLA-DRB1*03:08"
-#'   )
-#' ) %>%
-#'   garnish_affinity() %T>%
-#'   str
-#' }
-#'
-#' \dontrun{
-#' # input a data table of peptides for all human MHC types
-#'
-#' dt <- data.table::data.table(
-#'   sample_id = "test",
-#'   pep_mut = "MTEYKLVVVGAGDVGKSALTIQLIQNHFVDEYDP",
-#'   mutant_index = "12",
-#'   MHC = "HLA-A*02:01 HLA-A*68:01 HLA-B*07:02"
-#' ) %>%
-#'   garnish_affinity() %T>%
-#'   str
+#' see https://github.com/immune-health/antigen.garnish
 #' }
 #'
 #' @references

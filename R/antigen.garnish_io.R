@@ -36,17 +36,7 @@
 #'
 #' @examples
 #' \dontrun{
-#'
-#' # load an example VCF
-#' dir <- system.file(package = "antigen.garnish") %>%
-#'   file.path(., "extdata/testdata")
-#'
-#' dt <- "antigen.garnish_example.vcf" %>%
-#'   file.path(dir, .) %>%
-#'
-#'   # extract variants
-#'   garnish_variants() %T>%
-#'   str
+#' # see https://github.com/immune-health/antigen.garnish
 #' }
 #'
 #' @references
