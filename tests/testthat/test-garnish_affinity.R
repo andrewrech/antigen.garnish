@@ -144,33 +144,6 @@ peptides_wt <- function() {
   })
 }
 
-cellular_fraction <- function() {
-  testthat::test_that("garnish_affinity with cellular_fraction", {
-    skip_pred_tools()
-
-    d <- test_data_dir()
-
-    # load test data
-    dt <- file.path(d, "antigen.garnish_test.vcf") %>%
-
-      # run test
-      garnish_variants(.) %>%
-      .[, MHC := c("HLA-A*02:01")] %>%
-      # keep the test small
-      .[1:2] %>%
-      garnish_affinity(save = FALSE)
-
-    testthat::expect_true(dt %>% nrow() == 426)
-    testthat::expect_true(dt[
-      pep_type %like% "mut",
-      cl_proportion %>%
-        unique() %>% signif(digits = 3)
-    ] == 0.272)
-    testthat::expect_true(dt[pep_type %like% "mut", nmer %>%
-      unique() %>% length()] == 154)
-  })
-}
-
 RNA_test <- function() {
   testthat::test_that("garnish_affinity from transcripts, with RNA", {
     skip_pred_tools()
@@ -223,7 +196,6 @@ README()
 transcripts()
 peptides()
 peptides_wt()
-cellular_fraction()
 RNA_test()
 
 list.dirs(path = ".") %>%

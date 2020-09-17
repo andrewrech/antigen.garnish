@@ -6,7 +6,7 @@
 #' Process paired tumor-normal VCF variants annotated with [SnpEff](http://snpeff.sourceforge.net/) for neoantigen prediction using `garnish_affinity`. All versioned Ensembl transcript IDs (e.g. ENST00000311936.8) from any GRCh38 or GRCm38 release are supported.
 #'
 #' @param vcfs Paths to one or more VFC files to import. See details below.
-#' @param tumor_sample_name Character, name of column in vcf of tumor sample, used to determine mutant allelic fraction of neoantigens.
+#' @param tumor_sample_name Character, name of column in vcf of tumor sample.
 #'
 #' @return A data table with one unique SnpEff variant annotation per row, including:
 #' * **sample_id**: sample identifier constructed from input \code{.vcf} file names
@@ -16,37 +16,14 @@
 #' * **ensembl_gene_id**: gene effected
 #' * **protein_change**: protein change in [HGVS](http://varnomen.hgvs.org/recommendations/DNA/) format
 #' * **cDNA_change**: cDNA change in [HGVS](http://varnomen.hgvs.org/recommendations/protein/) format
-#' * **protein_coding**: is the variant protein coding?
-#'
-#' if CF or AF fields in provided in input VCFs, either:
-#' * **cellular_fraction**: cell fraction taken from input, such as from clonality estimates from [PureCN](http://www.github.com/lima1/PureCN)
-#' * **allelic_fraction**: allelic fraction taken from input
 #'
 #' @seealso \code{\link{garnish_affinity}}
 #' @seealso \code{\link{garnish_antigens}}
-#'
-#' @details `vcf`s must be annotated with [SnpEff](http://snpeff.sourceforge.net/). `vcf`s can optionally contain an `AF` or `CF` *INFO* field, in which case cellular fraction or allelic fraction is considered when ranking neoantigens. See [example vcf](http://get.rech.io/antigen.garnish_example.vcf). Single samples are required. Multi-sample `vcf`s are not supported.
-#'
-#' Recommended workflow:
-#'
-#' 1. Call variants using [MuTect2](https://github.com/broadinstitute/gatk) and [Strelka2](https://github.com/Illumina/strelka), [intersecting variants](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5394620/).
-#' 3. Variant filtering according to experimental specifications.
-#' 4. Classification by somatic status and clonality using [PureCN](http://www.github.com/lima1/PureCN).
-#' 5. Annotate variants using [SnpEff](http://snpeff.sourceforge.net/) (**required**).
 #'
 #' @examples
 #' \dontrun{
 #' # see https://github.com/immune-health/antigen.garnish
 #' }
-#'
-#' @references
-#' Krøigård AB, Thomassen M, Lænkholm A-V, Kruse TA, Larsen MJ. 2016. Evaluation of Nine Somatic Variant Callers for Detection of Somatic Mutations in Exome and Targeted Deep Sequencing Data. PLoS ONE. 11(3):e0151664
-#'
-#' Cingolani P, Platts A, Wang LL, Coon M, Nguyen T, et al. 2012. A program for annotating and predicting the effects of single nucleotide polymorphisms, SnpEff: SNPs in the genome of Drosophila melanogaster strain w1118; iso-2; iso-3. Fly (Austin). 6(2):80–92
-#'
-#' Riester M, Singh AP, Brannon AR, Yu K, Campbell CD, et al. 2016. PureCN: copy number calling and SNV classification using targeted short read sequencing. Source Code Biol Med. 11(1):13
-#'
-#' Callari M, Sammut SJ, De Mattos-Arruda L, Bruna A, Rueda OM, Chin SF, and Caldas C. 2017. Intersect-then-combine approach: improving the performance of somatic variant calling in whole exome sequencing data using multiple aligners and callers. Genome Medicine. 9:35.
 #'
 #' @export garnish_variants
 #' @md
@@ -168,10 +145,6 @@ garnish_variants <- function(vcfs, tumor_sample_name = "TUMOR") {
       return(data.table::data.table(sample_id = sample_id))
     }
 
-    if ("CF" %chin% (vdt %>% names())) {
-      vdt %>% data.table::setnames("CF", "cellular_fraction")
-    }
-
     # check tumor_sample_name is in vcf
     # AF is a GT field not an INFO field, and account for multiple alt alleles in this scenario
     if (length(tumor_sample_name) != 1 | class(tumor_sample_name)[1] != "character") {
@@ -182,20 +155,12 @@ garnish_variants <- function(vcfs, tumor_sample_name = "TUMOR") {
 
     if (!afield %chin% (vdt %>% names())) {
       pns <- names(vdt) %include% "_AF" %>% stringr::str_replace("_AF", "")
-
-
-      # if sample names exist, report mismatches
-      if (!(pns == "") %>% all()) {
-        message("Unable to match tumor sample name, allelic_fraction will not be considered in downstream analysis.")
-        message(paste("Possible sample names from the VCF are:", paste(pns, collapse = "\n"), sep = "\n"))
-        message("To include allelic_fraction in downstream analysis, rerun garnish_variants with the correct tumor_sample_name argument.")
-      }
     }
 
-    if (afield %chin% (vdt %>% names())) {
-      vdt %>% data.table::setnames(afield, "allelic_fraction")
+    if (afield %chin% (vdt %>% names()))
+      vdt %<>% tidyr::separate_rows(tidyr::allof(afield), sep = ",")
 
-      vdt %<>% tidyr::separate_rows(c("ALT", "allelic_fraction"), sep = ",")
+      vdt %<>% tidyr::separate_rows("ALT", sep = ",")
 
       vdt %<>% data.table::as.data.table(.)
 
@@ -221,24 +186,17 @@ garnish_variants <- function(vcfs, tumor_sample_name = "TUMOR") {
 
   # select protein coding variants without NA
   sdt %<>%
-    .[protein_coding == TRUE &
+    .[
       !protein_change %>% is.na() &
-      !effect_type %>% is.na() &
-      effect_type %like% "insertion|deletion|missense|frameshift"]
+        !effect_type %>% is.na() &
+        effect_type %like% "insertion|deletion|missense|frameshift"
+    ]
+
 
   if (nrow(sdt) == 0) {
     warning("No samples returned protein coding variants.")
     return(NULL)
   }
-
-  if ("cellular_fraction" %chin% names(sdt)) {
-    sdt[, cellular_fraction := cellular_fraction %>% as.numeric()]
-  }
-
-  if ("allelic_fraction" %chin% names(sdt)) {
-    sdt[, allelic_fraction := allelic_fraction %>% as.numeric()]
-  }
-
 
   message("\nDone loading variants.")
   return(sdt)

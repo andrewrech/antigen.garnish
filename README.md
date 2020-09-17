@@ -113,7 +113,7 @@ library("antigen.garnish")
 
 #### VCF input
 
-Paired tumor-normal VCFs annotated with SnpEff against any GRCh38 or GRCm38 releases are supported. For tumor allelic fraction to be recognized, input VCF file names must match the VCF tumor sample name. For many variant callers, the tumor sample name is "TUMOR". In this case, the following input VCF file names will work:
+Paired tumor-normal VCFs annotated with SnpEff against any GRCh38 or GRCm38 releases are supported. For many variant callers, the tumor sample name is "TUMOR". In this case, the following input VCF file names will work:
 
 ```
 TUMOR.vcf

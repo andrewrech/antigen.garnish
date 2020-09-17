@@ -1313,10 +1313,6 @@ get_ss_str <- function(x, y) {
 #' * **DAI**: Differential agretopicty index of missense and corresponding wild-type peptide.
 #' * **BLAST_A**: Ratio of consensus binding affinity of mutant peptide / closest single AA mismatch from blastp results. Returned only if `blast = TRUE`.
 #'
-#' clonality info:
-#' * **clone_id**: rank of the clone containing the variant (highest equals larger tumor fraction).
-#' * **cl_proportion**: The estimated mean tumor fraction containing the clone. If allele fraction and not clonality is used, this is estimated.
-#'
 #' antigen.garnish quality analysis metric results
 #' * **Ensemble_score**: average value of MHC binding affinity from all prediction tools that contributed output.
 #' * **iedb_score**: R implementation of TCR recognition probability for peptide through summing of alignments in IEDB for corresponding organism. See references herein.
@@ -1337,7 +1333,6 @@ get_ss_str <- function(x, y) {
 #' * see `list_mhc` for compatible MHC allele syntax, you may also use "all_human" or "all_mouse" in the MHC column to use all supported alleles
 #' * multiple MHC alleles for a single `sample_id` must be space separated. Murine and human alleles must be in separate rows. See [`README` example](http://neoantigens.rech.io.s3-website-us-east-1.amazonaws.com/index.html#predict-neoantigens-from-missense-mutations-insertions-and-deletions).
 #' * For species specific proteome-wide DAI to be calculated, run human and murine samples separately
-#' * `garnish_score` is calculated if allelic fraction or tumor cellular fraction were provided
 #'
 #' @seealso \code{\link{garnish_variants}}
 #' @seealso \code{\link{list_mhc}}
@@ -1986,10 +1981,6 @@ dt with peptide:
     }
   }
 
-  if (any(c("cellular_fraction", "allelic_fraction") %chin% names(dt))) {
-    dt %<>% garnish_clonality
-  }
-
   gplot_fn <- format(Sys.time(), "%d/%m/%y %H:%M:%OS") %>%
     stringr::str_replace_all("[^A-Za-z0-9]", "_") %>%
     stringr::str_replace_all("[_]+", "_")
@@ -2131,167 +2122,4 @@ make_nmers <- function(dt, plen = 8:15) {
 
   nmer_dt <- data.table::rbindlist(nmer_list)
   return(nmer_dt)
-}
-
-
-
-#' Internal function to integrate clonality data into output.
-#'
-#' Integrates clonality input to help prioritize neoantigens downstream.
-#'
-#' @param dt Data table. Passed internally from garnish_affinity, requires allelic_fraction or cellular_fraction columns.
-#'
-#' @return A data table with added clonality columns:
-#' * **clone_id**: rank of the clone containing the variant (highest equals larger tumor fraction).
-#' * **cl_proportion**: estimated mean tumor fraction containing the clone.
-#'
-#' @md
-
-garnish_clonality <- function(dt) {
-  if (!"cellular_fraction" %chin% names(dt) & !"allelic_fraction" %chin% names(dt)) {
-    warnings("No cellular_fraction or allelic_fraction column found. Returning dt without computing garnish_score from clonality.")
-    return(dt)
-  }
-
-  if ("allelic_fraction" %chin% names(dt)) {
-    col <- "allelic_fraction"
-  }
-
-  # prefer cellular_fraction if available
-
-  if ("cellular_fraction" %chin% names(dt)) {
-    col <- "cellular_fraction"
-  }
-
-
-  b <- data.table::copy(dt)
-
-  b %>% setnames(col, "cf")
-
-  b[, cf := as.numeric(cf)]
-
-  match_clone <- function(cf, v) {
-    dt <- lapply(cf, function(x) {
-      abs <- abs(x - v)
-
-      a <- v[which(abs == min(abs))]
-
-      b <- names(v)[which(abs == min(abs))]
-
-      return(data.table(cl_proportion = a, clone_id = b))
-    }) %>% data.table::rbindlist()
-
-    return(dt)
-  }
-
-  cdt <- lapply(b[, sample_id %>% unique()], function(s) {
-    dt <- b[!is.na(cf) & sample_id == s, cf, by = "var_uuid"] %>% unique()
-
-    if (nrow(dt) == 0) {
-      return(NULL)
-    }
-
-    if (dt[, cf %>% unique() %>% length()] == 1) {
-      return(dt[, clone_id := 1] %>% .[, cl_proportion := cf])
-    }
-
-    x <- mclust::Mclust(dt[, cf %>% as.numeric()], verbose = FALSE)
-
-    vect <- x$parameters$mean
-
-    vect %<>% sort(decreasing = TRUE)
-
-    names(vect) <- 1:length(vect) %>% as.character()
-
-    dt[, c("cl_proportion", "clone_id") := match_clone(cf, v = vect)]
-  }) %>% data.table::rbindlist(use.names = TRUE)
-
-  cdt %>% data.table::setnames("cf", col)
-
-  dt <- merge(dt, cdt, all.x = TRUE, by = c("var_uuid", col))
-
-  # remove cl_proportion from wt peptide rows because its meaningless and refers to matched mutant nmer
-
-  dt[pep_type == "wt", cl_proportion := as.numeric(NA)]
-
-  # return *exclusive* clone frequency (independent of subclones)
-  exclude_v <- function(v) {
-    vu <- v %>%
-      stats::na.omit() %>%
-      as.numeric()
-
-    vu <- vu %>%
-      unique() %>%
-      sort(decreasing = TRUE)
-
-    dt <- v %>% data.table::as.data.table()
-
-    mu <- lapply(vu %>% seq_along(), function(i) {
-      if (i == length(vu)) {
-        return(vu[i])
-      }
-
-      m <- vu[i] - sum(vu[i + 1], na.rm = TRUE)
-    }) %>% unlist()
-
-    b <- data.table::data.table(vu, mu)
-
-    # because not means clustered and ecdf, account for values < 1
-    b[mu < 0, mu := 0]
-
-    return(b[, mu][match(v, b[, vu])])
-  }
-
-  read_cols <- dt %>% names() %include% "_AD_(ref|alt)$"
-
-  # if using allelic_fraction as surrogate clonality, recalculate allele fractions into cell population proportions
-
-  if (col == "allelic_fraction") {
-    a <- dt[!is.na(cl_proportion) &
-      !is.na(allelic_fraction) &
-      pep_type != "wt", cl_proportion %>%
-      unique(), by = c("sample_id", "var_uuid", "pep_type", read_cols)]
-
-    # filter by supporting reads
-    for (c in read_cols) {
-      a %<>% .[get(c) >= 10]
-    }
-
-    if (nrow(a) == 0) {
-      warning("No variants met allelic depth of 10.  Returning table without clonality calculations.")
-      return(dt)
-    }
-
-    # too many NA checks never hurt anyone
-    calculate_ecdf <- function(x) {
-      if ((x %>% stats::na.omit() %>% length()) > 0) {
-        v <- stats::ecdf(x)(x)
-
-        m <- x[which(v > 0.9)] %>% mean(na.rm = TRUE)
-
-        return(m)
-      } else {
-        return(NA %>% as.numeric())
-      }
-    }
-
-    a[, ecdf := calculate_ecdf(V1), by = "sample_id"]
-
-    a[, cl_proportion := V1 / ecdf, by = "sample_id"]
-
-    a[, cl_proportion := cl_proportion %>% exclude_v(), by = "sample_id"]
-
-    # clear column derived from allele fractions in dt
-    dt[, cl_proportion := NULL]
-
-    dt <- merge(dt, a[, .SD %>% unique(), .SDcol = c("sample_id", "var_uuid", "cl_proportion", "pep_type", read_cols)],
-      all.x = TRUE, by = c("sample_id", "var_uuid", "pep_type", read_cols)
-    )
-  }
-
-  if (col == "cellular_fraction") {
-    dt[!is.na(cl_proportion), cl_proportion := cl_proportion %>% exclude_v(), by = "sample_id"]
-  }
-
-  return(dt)
 }
