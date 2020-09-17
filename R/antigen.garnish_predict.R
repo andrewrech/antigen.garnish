@@ -1131,8 +1131,8 @@ collate_netMHC <- function(esl) {
         data.table::setnames(dt, dtn %include% "Aff.*nM.*", "affinity(nM)")
       }
 
-      if (dtn %include% "HLA|Allele" %>% length() > 0) {
-        data.table::setnames(dt, dtn %include% "HLA|Allele", "allele")
+      if (dtn %include% "^MHC$|HLA|Allele" %>% length() > 0) {
+        data.table::setnames(dt, dtn %include% "^MHC$|HLA|Allele", "allele")
       }
 
       if (dtn %include% "Icore|iCore" %>% length() > 0) {
