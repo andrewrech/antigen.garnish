@@ -206,29 +206,27 @@ configure_netMHC_tools <- function(dir) {
 
   # netMHC parent dir in ag data dir
   npd <- file.path(dir, "netMHC")
+  setwd(npd)
 
   if (!dir.exists(npd)) {
     stop("netMHC parent directory in antigen.garnish data directory not found.")
   }
 
-  # get path to scripts
-  setwd(npd)
-
-  tool_paths <- list.files()
-
-  f <- lapply(tool_paths, function(i) {
-
-    # pattern to find netMHC scripts
-    list.files(i,
-      pattern = "netMHC(II)?(pan)?-?([0-9]\\.[0-9])?$",
-      full.names = TRUE, ignore.case = TRUE
-    )
-  }) %>% unlist()
+  # netMHC package versions are pinned here, in parsing functions for results,
+  # in Docker, and in installation instructions due to differences
+  # across versions that breaks parsing
+  f <- c(
+    "netMHC-4.0/netMHC",
+    "netMHCII-2.3/netMHCII",
+    "netMHCIIpan-4.0/netMHCIIpan",
+    "netMHCpan-4.0/netMHCpan"
+  )
 
   message("Checking netMHC scripts in antigen.garnish data directory.")
   # sed scripts to correct paths
   # install data from DTU
   io <- lapply(f, function(i) {
+    print(basename(i))
 
     # rename to take off version, necessary because commands are built into table
     # in get_pred_commands and check_pred_tools hasn't run at that point
@@ -237,57 +235,44 @@ configure_netMHC_tools <- function(dir) {
       basename(i) %>% stringr::str_replace("-.*$", "")
     )
 
-    line <- file.path(dir, "netMHC", dirname(i))
-
-    # downloading the data takes a long time, must check if loop already ran
-    catfile <- system(paste("cat", i), intern = TRUE) %>%
-      stringr::str_replace_all("/", "")
-
-    # adjust patterns to have no slashes
-    p1 <- line %>% stringr::str_replace_all("/", "")
-
-    # if correct directory is already in the script, skip
-    if (any(grepl(catfile, pattern = p1))) {
+    #  check if data has already been extracted
+    dataFiles <- list.files(recursive = TRUE, path = paste0("./", dirname(i), "/data")) %>% length()
+    # check that configuration script modification has already run
+    bkFile <- list.files(pattern = paste0(basename(i), ".bk"), recursive = TRUE) %>% length()
+    if (dataFiles > 100 & bkFile == 1) {
       return(io)
     }
 
-    # properly escape for sed call
-    line <- paste("setenv NMHOME ", line %>% stringr::str_replace_all("/", "\\\\/"), sep = "")
-    line2 <- paste("setenv TMPDIR ", "$HOME", sep = "")
+    if (i == "netMHC-4.0/netMHC") {
+      link <- "http://www.cbs.dtu.dk/services/NetMHC-4.0/data.tar.gz"
+    }
 
-    # formatting for these links is  not consistent,  try no uname first
-    # netMHC is always capitalized in the links it seems
-    # dirname(i) will always have version number
-    link_to_data <- paste0(
-      "http://www.cbs.dtu.dk/services/",
-      dirname(i) %>% stringr::str_replace("net", "Net"),
-      "/data.tar.gz"
-    )
+    if (i == "netMHCII-2.3/netMHCII") {
+      link <- "http://www.cbs.dtu.dk/services/NetMHCII-2.3/data.Linux.tar.gz"
+    }
 
-    cmd <- paste("curl -fsSL", link_to_data, ">", "dtu.tar.gz")
+    if (i == "netMHCIIpan-4.0/netMHCIIpan") {
+      link <- "http://www.cbs.dtu.dk/services/NetMHCIIpan/data.tar.gz"
+    }
+
+    if (i == "netMHCpan-4.0/netMHCpan") {
+      link <- "http://www.cbs.dtu.dk/services/NetMHCpan-4.1/data.tar.gz"
+    }
+
+    cmd <- paste("curl -fsSL", link, ">", "dtu.tar.gz")
+
+    message(paste("Downloading data for", dirname(i)))
 
     suppressWarnings({
       curl_status <- system(cmd, intern = TRUE, ignore.stderr = TRUE)
     })
 
-    if (!is.null(attr(curl_status, "status")) &&
-      attr(curl_status, "status") == 22) {
-      un <- system("uname -s", intern = TRUE)
-
-      if (!un %chin% c("Linux")) stop("Linux only.")
-
-      cmd <- cmd %>%
-        stringr::str_replace("data\\.tar\\.gz", paste0("data.", un, ".tar.gz"))
-
-      message(paste("Downloading data for", dirname(i), "on", un))
-
-      suppressWarnings({
-        curl_status <- system(cmd, intern = TRUE, ignore.stderr = TRUE)
-      })
-    }
-
-    if (!file.exists("dtu.tar.gz") || file.info("dtu.tar.gz")$size == 0) {
-      stop(paste("Unable to download data tar from DTU. See ReadMe in", file.path(dir, "netMHC", dirname(i))))
+    if (
+      !file.exists("dtu.tar.gz") ||
+        file.info("dtu.tar.gz")$size == 0 ||
+        !(curl_status %>% length()) == 0
+    ) {
+      stop(paste("Unable to download netMHC data tar from DTU."))
     }
 
     # move it into the right folder and untar
@@ -299,13 +284,22 @@ configure_netMHC_tools <- function(dir) {
 
     system(paste("tar -xzvf", basename(dtar)))
 
-    setwd(npd)
+    line <- file.path(dir, "netMHC", dirname(i))
+
+    # properly escape for sed call
+    line <- paste("setenv NMHOME ", line %>% stringr::str_replace_all("/", "\\\\/"), sep = "")
+    line2 <- paste("setenv TMPDIR ", "$HOME", sep = "")
 
     # versionless backup file
-    bk <- paste0(io, ".bk")
 
-    if (!file.exists(bk)) file.rename(i, bk)
+    file <- basename(io)
+    bk <- paste0(file, ".bk")
 
+    if (!file.exists(bk)) {
+      file.rename(file, bk)
+    }
+
+    # configure netMHC scripts
     cmd <- paste("cat ", bk, " | ",
       # place holders for variable references
       "sed 's/\\$NMHOME/placeholderxxx/' | ",
@@ -315,13 +309,15 @@ configure_netMHC_tools <- function(dir) {
       "sed 's/placeholderxxx/$NMHOME/' | ",
       "sed 's/setenv.*TMPDIR.*$/", line2, "/' | ",
       # reset placeholder
-      "sed 's/placeholderyyy/$TMPDIR/' > ", io,
+      "sed 's/placeholderyyy/$TMPDIR/' > ", file,
       sep = ""
     )
 
     system(cmd)
 
-    system(paste("chmod u+x", io))
+    system(paste("chmod u+x", file))
+
+    setwd(npd)
 
     return(io)
   }) %>% unlist()
