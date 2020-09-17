@@ -59,9 +59,11 @@ docker exec $cID config_netMHC.sh
 Install the dependencies listed above. Then, download and extract `antigen.garnish` data:
 
 ```sh
-cd "$HOME"
+ANTIGEN_GARNISH_DIR="~/antigen.garnish"
+
+cd "~"
 curl -fsSL "http://get.rech.io/antigen.garnish.tar.gz" | tar -xvz
-chmod 700 -R ./antigen.garnish
+chmod 700 -R "$ANTIGEN_GARNISH_DIR"
 ```
 
 Install antigen.garnish:
@@ -77,7 +79,6 @@ Move the binaries into the `antigen.garnish` data directory, first setting the `
 
 ```sh
 NET_MHC_DIR=/path/to/folder/containing/netMHC/downloads
-ANTIGEN_GARNISH_DIR=/path/to/antigen.garnish/data/directory
 
 cd "$NET_MHC_DIR"
 mkdir -p "$ANTIGEN_GARNISH_DIR/netMHC"
