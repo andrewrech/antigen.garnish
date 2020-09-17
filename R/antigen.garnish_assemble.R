@@ -397,14 +397,18 @@ get_vcf_snpeff_dt <- function(dt) {
   # transform to data frame intermediate to avoid
   # data.table invalid .internal.selfref
   dt %<>%
-    tidyr::separate_rows("ANN", sep = ",[ACTNG]*\\|") %>%
+    tidyr::separate_rows("ANN", sep = "\\|,") %>%
     data.table::as.data.table(.)
 
   dt[, ensembl_transcript_id := ANN %>%
     stringr::str_extract("(?<=\\|)(ENSMUST|ENST)[0-9]+(\\.[0-9]+)?")]
 
 
-  dt[, ANN := ANN %>% stringr::str_replace("^[ACTNG]*\\|", "")]
+  # the nucleotide header must be removed from the ANN field to parse correctly
+  # because some ANN fields do not have a header, resulting in the wrong
+  # number of columns
+
+  dt[, ANNtoParse := ANN %>% stringr::str_replace("(ANN=)?[ACTNG]*\\|", "")]
 
   annSpecNames <- c(
     "effect_type",
@@ -422,12 +426,13 @@ get_vcf_snpeff_dt <- function(dt) {
     "Protein_position_Protein_len",
     "Distance_to_feature"
   )
-  dt[, eval(annSpecNames) := ANN %>% data.table::tstrsplit("\\|")]
+  dt[, eval(annSpecNames) := ANNtoParse %>% data.table::tstrsplit("\\|")]
+  dt[, ANNtoParse := NULL]
 
   dt[, protein_coding := FALSE]
   dt[protein_change != "", protein_coding := TRUE]
 
-  ## this is only for hg19
+  # stop if RefSeq
   dt[, refseq_id := ANN %>%
     stringr::str_extract("(?<=\\|)NM_[0-9]+")]
 
