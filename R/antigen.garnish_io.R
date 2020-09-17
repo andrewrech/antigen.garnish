@@ -128,9 +128,6 @@ garnish_variants <- function(vcfs, tumor_sample_name = "TUMOR") {
 
     vdt %<>% .[!ANN %like% "ERROR_.*CHROMOSOME"]
     vdt %<>% .[!ANN %likef% "WARNING_SEQUENCE_NOT_AVAILABLE"]
-    vdt %<>% .[!ANN %likef% "WARNING_TRANSCRIPT_INCOMPLETE"]
-    vdt %<>% .[!ANN %likef% "WARNING_TRANSCRIPT_MULTIPLE_STOP_CODONS"]
-    vdt %<>% .[!ANN %likef% "WARNING_TRANSCRIPT_NO_START_CODON"]
 
     if (vdt %>% nrow() < 1) {
       warning("No variants are present in the input file after filtering.")
