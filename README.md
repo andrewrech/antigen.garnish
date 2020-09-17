@@ -46,13 +46,12 @@ docker exec $cID config_netMHC.sh
 
 ### Linux
 
-#### Requirements
+#### Dependencies
 
 - R &ge; 3.5.0
 - [Bioconductor](https://www.bioconductor.org/install/) [Biostrings package](https://www.bioconductor.org/packages/release/bioc/html/Biostrings.html)
 - [GNU Parallel](https://www.gnu.org/software/parallel/)
 - [mhcflurry](https://github.com/openvax/mhcflurry)
-- netMHC (follow instructions below)
 - tcsh (required for netMHC, install via your package manager)
 
 #### Installation
