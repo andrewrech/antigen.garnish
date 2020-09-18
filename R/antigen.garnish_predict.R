@@ -787,27 +787,38 @@ merge_predictions <- function(l, dt) {
   # get vector of netMHC scores
   cols <- dt %>% names() %include% c("affinity\\(nM\\)")
 
-  message("Calculating overall consensus score.")
-  dtm <- dt[, .SD, .SDcols = c("nmer", "MHC", cols)] %>%
-    melt(id.vars = c("nmer", "MHC")) %>%
-    # order affinity predictions by program preference
-    .[, variable := variable %>% factor(levels = cols)] %>%
-    # key table so first non-NA value is the preferred program
-    data.table::setkey(nmer, MHC, variable) %>%
-    .[, .(
-      best_netMHC =
-        # define Consensus_score
-      value %>%
-        na.omit() %>%
-        .[1]
-    ), by = c("nmer", "MHC")] %>%
-    .[!best_netMHC %>% is.na()]
+  # only calculate best_netMHC if 2 or more scores exist
+
+  if (length(cols) < 2)
+      dt[, best_netMHC := as.numeric(NA)]
+
+  if (length(cols) >= 2){
+
+    dtm <- dt[, .SD, .SDcols = c("nmer", "MHC", cols)] %>%
+      melt(id.vars = c("nmer", "MHC")) %>%
+      # order affinity predictions by program preference
+      .[, variable := variable %>% factor(levels = cols)] %>%
+      # key table so first non-NA value is the preferred program
+      data.table::setkey(nmer, MHC, variable) %>%
+      .[, .(
+        best_netMHC =
+          # define Consensus_score
+        value %>%
+          na.omit() %>%
+          .[1]
+      ), by = c("nmer", "MHC")] %>%
+      .[!best_netMHC %>% is.na()]
+
+    dt %<>% merge(dtm, by = c("nmer", "MHC"), all = TRUE)
+
+    }
 
   # merge back
-  dt %<>% merge(dtm, by = c("nmer", "MHC"))
 
   # take average of mhcflurry best available netMHC tool
+
   cols  <- dt %>% names() %include% "(best_netMHC)|(mhcflurry_prediction$)|(mhcflurry_affinity$)"
+
   dt[, Ensemble_score := mean(as.numeric(.SD), na.rm = TRUE),
     by = 1:nrow(dt), .SDcols = cols
   ]
