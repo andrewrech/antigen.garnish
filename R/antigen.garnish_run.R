@@ -226,7 +226,6 @@ configure_netMHC_tools <- function(dir) {
   # sed scripts to correct paths
   # install data from DTU
   io <- lapply(f, function(i) {
-    print(basename(i))
 
     # rename to take off version, necessary because commands are built into table
     # in get_pred_commands and check_pred_tools hasn't run at that point
@@ -236,10 +235,8 @@ configure_netMHC_tools <- function(dir) {
     )
 
     #  check if data has already been extracted
-    dataFiles <- list.files(recursive = TRUE, path = paste0("./", dirname(i), "/data")) %>% length()
-    # check that configuration script modification has already run
     bkFile <- list.files(pattern = paste0(basename(i), ".bk"), recursive = TRUE) %>% length()
-    if (dataFiles > 100 & bkFile == 1) {
+    if (bkFile == 1) {
       return(io)
     }
 
