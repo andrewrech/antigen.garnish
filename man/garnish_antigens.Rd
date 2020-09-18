@@ -2,18 +2,41 @@
 % Please edit documentation in R/antigen.garnish_io.R
 \name{garnish_antigens}
 \alias{garnish_antigens}
-\title{List top neoantigens for each sample and/or by clones within each sample using TESLA criteria for recognition features of immunogenic peptides.}
+\title{List top peptides using TESLA criteria for recognition features of immunogenic peptides.}
 \usage{
-garnish_antigens(dt)
+garnish_antigens(
+  dt,
+  affinity_threshold = 34,
+  differential_agretopcity_threshold = 10,
+  dissimilarity_threshold = 0,
+  foreignness_threshold = 1e-15
+)
 }
 \arguments{
 \item{dt}{An output data table from \code{garnish_affinity}, either a data table object or path to a file.}
+
+\item{affinity_threshold}{Numeric. Neoantigen affinity threshold, nanomolar (nM) scale.}
+
+\item{differential_agretopcity_threshold}{Numeric. Neoantigen differential agretopcity threshold. Differential agretopicty is the proteome-wide ratio of MHC binding afinity between mutant and closest normal peptide, with higher values indicating greater relative binding of the mutant peptide.}
+
+\item{dissimilarity_threshold}{Numeric. Neoantigen dissimilarity threshold. Value of 0 to 1 indicating alignment to the self-proteome, calculated in an analogous manner to neoanigen foreignness, with 1 indicating greater dissimilarity.}
+
+\item{foreignness_threshold}{Numeric. Neoantigen foreignness threshold. Value of 0 to 1 indicating the TCR recognition probability, calculated by summing alignments in IEDB immunogenic peptides, with 1 indicating greater homology to immunogenic peptides.}
 }
 \value{
-A data table with all neoantigens from the input table that meet at least one of the recognition features of immunogenic peptides from the \href{https://www.parkerici.org/research-project/tumor-neoantigen-selection-alliance-tesla/}{TESLA consortium}.
+A data table with ranked and annotated peptides.
 }
 \description{
-The \href{https://www.parkerici.org/research-project/tumor-neoantigen-selection-alliance-tesla/}{TESLA consortium} identified recognition features of immunogenic peptides. This function applies each of those criteria and returns any neoantigen that meets MHC binding affinity (< 34nM) and annotates in the Recognition_Features column with: agretopicity (DAI > 10), foreignness (iedb_score > 10e-16), and dissimilarity > 0.
+The \href{https://www.parkerici.org/research-project/tumor-neoantigen-selection-alliance-tesla/}{TESLA consortium} identified recognition features of immunogenic peptides. This function filters peptides meeting any of these criteria.
+}
+\references{
+Richman LP, Vonderheide RH, and Rech AJ. Neoantigen dissimilarity to the self-proteome predicts immunogenicity and response to immune checkpoint blockade. Cell Systems. 2019.
+Duan, F., Duitama, J., Seesi, S.A., Ayres, C.M., Corcelli, S.A., Pawashe, A.P., Blanchard, T., McMahon, D., Sidney, J., Sette, A., et al. Genomic and bioinformatic profiling of mutational neoepitopes reveals new rules to predict anticancer immunogenicity. J Exp Med. 2014.
+
+Luksza, M, Riaz, N, Makarov, V, Balachandran VP, et al. A neoepitope fitness model predicts tumour response to checkpoint blockade immunotherapy. Nature. 2017.
+Rech AJ, Balli D, Mantero A, Ishwaran H, Nathanson KL, Stanger BZ, Vonderheide RH. Tumor immunity and survival as a function of alternative neopeptides in human cancer. Clinical Cancer Research, 2018.
+
+Wells DK, van Buuren MM, Dang KK, Hubbard-Lucey VM, Sheehan KCF, Campbell KM, Lamb A, Ward JP, Sidney J, Blazquez AB, Rech AJ, Zaretsky JM, Comin-Anduix B, Ng AHC, Chour W, Yu TV, Rizvi1 H, Chen JM, Manning P, Steiner GM, Doan XC, The TESLA Consortium, Merghoub T, Guinney J, Kolom A, Selinsky C, Ribas A, Hellmann MD, Hacohen N, Sette A, Heath JR, Bhardwaj N, Ramsdell F, Schreiber RD, Schumacher TN, Kvistborg P, Defranoux N. Key Parameters of Tumor Epitope Immunogenicity Revealed Through a Consortium Approach Improve Neoantigen Prediction. Cell. 2020.
 }
 \seealso{
 \code{\link{garnish_variants}}

@@ -23,22 +23,25 @@ README <- function() {
     dt[, MHC := c("HLA-A*01:47 HLA-A*02:01 HLA-DRB1*14:67")]
 
     # predict neoantigens
-    result <- dt %>% garnish_affinity(.)
+    dt %<>% garnish_affinity(.)
 
     # check overall peptide creation
     testthat::expect_equal(
-      result[, .N, by = pep_type],
-      list(pep_type = c("wt", "mutnfs", "mut_other"), N = c(
-        327L,
-        182L, 602L
+      dt[, .N, by = pep_type],
+      structure(list(pep_type = c("wt", "mutnfs", "mut_other"), N = c(
+        924L,
+        660L, 2079L
+      )), row.names = c(NA, -3L), class = c(
+        "data.table",
+        "data.frame"
       )) %>% data.table::as.data.table(.)
     )
 
     # check unique nmers
-    testthat::expect_true(dt[, nmer %>% unique() %>% length()] == 184)
+    testthat::expect_true(dt[, nmer %>% unique() %>% length()] == 401)
 
     # check that peptides are created correctly
-    pep_check <- result[, .SD,
+    pep_check <- dt[, .SD,
       .SDcols = c("cDNA_change", "pep_wt", "pep_mut")
     ] %>% unique()
 
@@ -62,7 +65,7 @@ README <- function() {
     testthat::expect_equal(dif, 1730)
 
     # check deletion
-    pep_check <- result[, .SD, .SDcols = c("cDNA_change", "pep_wt", "pep_mut")] %>% unique()
+    pep_check <- dt[, .SD, .SDcols = c("cDNA_change", "pep_wt", "pep_mut")] %>% unique()
 
     check_del_wt <- pep_check[
       cDNA_change == "c.3327_3347delTGCTGCAGCTGCAGCTGCAGC",
@@ -101,20 +104,19 @@ README <- function() {
 
     testthat::expect_equal(dif, c(
       1910, 1911, 1912, 1913, 1914, 1915, 1916, 1917, 1918, 1919,
-      1920, 1921, 1922, 1910, 1911, 1912, 1913, 1914, 1915, 1916, 1917,
-      1918, 1919, 1920, 1921, 1922
+      1920, 1921, 1922
     ))
   })
 
   v <- c("SIINFEKL", "ILAKFLHWL", "GILGFVFTL")
 
-  # calculate IEDB score
-  iedb <- v %>% iedb_score(db = "human")
+  # calculate foreignness score
+  iedb <- v %>% foreignness_score(db = "human")
 
-  testthat::expect_equal(iedb$iedb_score, 1)
+  testthat::expect_equal(iedb$foreignness_score, 1)
 
   # calculate dissimilarity
-  dis <- v %>% garnish_dissimilarity(db = "human")
+  dis <- v %>% dissimilarity_score(db = "human")
 
   testthat::expect_equivalent(dis$dissimilarity, c(0.16455097200822866, 0, 2.6688207199754288e-11))
 }
@@ -137,9 +139,8 @@ transcripts <- function() {
         save = FALSE
       )
 
-    testthat::expect_equal(
-      dt$MHC %>% unique(),
-      c("HLA-A*02:01", "HLA-E*01:03", "HLA-DQA10402-DQB10511")
+    testthat::expect_true(
+      (dt$MHC %chin% c("HLA-A*02:01", "HLA-E*01:03", "HLA-DQA10402-DQB10511")) %>% all()
     )
   })
 }
@@ -156,7 +157,6 @@ peptides <- function() {
     )
     # run test data
     dto <- garnish_affinity(dt,
-      predict = FALSE,
       blast = FALSE
     )
 
@@ -180,31 +180,31 @@ peptides_wt <- function() {
       data.table::fread()
 
     w <- try(dt[sample_id %like% "err.*consecutive"] %>%
-      garnish_affinity(blast = FALSE, predict = FALSE))
+      garnish_affinity(blast = FALSE))
 
     testthat::expect_equal(class(w), "try-error")
 
     w <- try(dt[sample_id == "err_pep_mut"] %>%
-      garnish_affinity(blast = FALSE, predict = FALSE))
+      garnish_affinity(blast = FALSE))
 
     testthat::expect_equal(class(w), "try-error")
 
     w <- try(dt[sample_id == "err_pep_wt"] %>%
-      garnish_affinity(blast = FALSE, predict = FALSE))
+      garnish_affinity(blast = FALSE))
 
     testthat::expect_equal(class(w), "try-error")
 
     # dropping stop gained on dual peptide input throws warning, suppress
     w <- suppressWarnings(
       try(dt[sample_id %like% "stop_gained"] %>%
-        garnish_affinity(blast = FALSE, predict = FALSE))
+        garnish_affinity(blast = FALSE))
     )
 
     # expect "no variants for peptide generation" character here
     testthat::expect_equal(class(w), "character")
 
     # run test data
-    dto <- garnish_affinity(dt[!sample_id %like% "^err|^stop"], blast = FALSE, predict = FALSE)
+    dto <- garnish_affinity(dt[!sample_id %like% "^err|^stop"], blast = FALSE)
 
     a <- dto[!is.na(dai_uuid) & pep_type == "wt",
       nmer %>% unique() %>% length(),
@@ -259,15 +259,14 @@ RNA_test <- function() {
       )
 
     # run test
-    dt <- garnish_affinity(dt,
+    dt <- try(garnish_affinity(dt,
       counts = "antigen.garnish_rna_temp.txt",
-      min_counts = 10,
+      min_counts = 1000,
       blast = FALSE,
       save = FALSE
-    )
+    ), silent = TRUE)
 
-    testthat::expect_true(dt$ensembl_transcript_id %>%
-      unique() == "ENSMUST00000128119.1")
+    testthat::expect_equal(dt %>% class(), "try-error")
   })
 }
 

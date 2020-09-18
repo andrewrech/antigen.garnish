@@ -1,4 +1,4 @@
-#' Return a data table of available MHC types.
+#' Return a data table of available MHC types for all prediction tools.
 #'
 #' @export list_mhc
 #' @md
@@ -24,7 +24,7 @@ list_mhc <- function() {
 #' @param x Vector of HLA types named for program to convert to.
 #' @param alleles Data table of 2 columns, 1. formatted allele names 2. prediction tool name (e.g. mhcflurry, netMHC).
 #'
-#' @md
+#' @noRd
 
 detect_mhc <- function(x, alleles) {
   prog <- deparse(substitute(x))
@@ -54,7 +54,7 @@ detect_mhc <- function(x, alleles) {
 #'
 #' @param dt Data table with `INFO` column.
 #'
-#' @md
+#' @noRd
 
 get_metadata <- function(dt) {
   if (!"ensembl_transcript_id" %chin%
@@ -88,7 +88,7 @@ get_metadata <- function(dt) {
 #'
 #' @param dt Data table with INFO column.
 #'
-#' @md
+#' @noRd
 
 make_cDNA <- function(dt) {
   if (!c(
@@ -203,7 +203,7 @@ make_cDNA <- function(dt) {
 #'
 #' @return Data table of variants with `INFO` fields in columns.
 #'
-#' @md
+#' @noRd
 
 get_vcf_info_dt <- function(vcf) {
   if (vcf %>% class() %>% .[1] != "vcfR") {
@@ -265,7 +265,7 @@ get_vcf_info_dt <- function(vcf) {
 #'
 #' @return Data table of variants with sample level fields in columns.
 #'
-#' @md
+#' @noRd
 
 get_vcf_sample_dt <- function(vcf) {
   if (vcf %>% class() %>% .[1] != "vcfR") {
@@ -365,7 +365,7 @@ get_vcf_sample_dt <- function(vcf) {
 #'
 #' @return Data table with the `ANN` column parsed into additional rows.
 #'
-#' @md
+#' @noRd
 
 get_vcf_snpeff_dt <- function(dt) {
   if (!"ANN" %chin% (dt %>% names())) {
@@ -434,7 +434,7 @@ get_vcf_snpeff_dt <- function(dt) {
 #'
 #' @param dt Data table with INFO column.
 #'
-#' @md
+#' @noRd
 
 extract_cDNA <- function(dt) {
 
@@ -483,7 +483,7 @@ extract_cDNA <- function(dt) {
 #'
 #' @param v cDNA character vector without ambiguous bases.
 #'
-#' @md
+#' @noRd
 
 translate_cDNA <- function(v) {
   lapply(v, function(p) {

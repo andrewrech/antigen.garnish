@@ -7,7 +7,8 @@ testthat::test_that("merge_predictions", {
   # load test data
   output <- file.path(d, c(
     "a.g_ex_mhcflurry_output_42c5.csv",
-    "a.g_ex_mhcflurry_output_47f2.csv" ))
+    "a.g_ex_mhcflurry_output_47f2.csv"
+  ))
 
   # put these in home dir for testing
   file.copy(output, basename(output))
@@ -22,5 +23,5 @@ testthat::test_that("merge_predictions", {
   )
 
   testthat::expect_gt(dto %>% nrow(), 250)
-  testthat::expect_equal(dto %>% length(), 109)
+  testthat::expect_equal(dto %>% length(), 106)
 })

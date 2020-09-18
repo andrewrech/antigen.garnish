@@ -22,7 +22,7 @@ Additional updates:
 
 # antigen.garnish 1.1.0
 
-- added garnish_dissimilarity
+- added dissimilarity_score
 - updated readme citation, link to manuscript repository
 - externalized smith-waterman alignment function
 - appropriate test updates
@@ -33,9 +33,9 @@ Additional updates:
 
 - prepare for the release of the antigen.garnish manuscript
 - multiple metrics of antigen quality are now computed
-- garnish_dissimilarity dummy function present
+- dissimilarity_score dummy function present
 - pulled most unnecessary mclapply loops to prevent parallelization failures
-- functionalized iedb_score code into external function
+- functionalized foreignness_score code into external function
 - garnish_plot, garnish_summary now incorporate antigen quality metrics
 - garnish_antigens now returns ranked antigens by quality metrics
 - numerous edge case, efficiency updates and bug fixes

@@ -8,6 +8,7 @@
 #' @param gap_open Numeric. Cost to open gapped alignment. Default is -11.
 #' @param gap_extend Numeric. Cost to extend a gap. Default is -1.
 #'
+#' @noRd
 #' @md
 make_sw_alignment <- function(col1,
                               col2,
@@ -28,6 +29,7 @@ make_sw_alignment <- function(col1,
 
 #' Internal function to run run_mhcflurry commands.
 #'
+#' @noRd
 #' @md
 
 run_mhcflurry <- function() {
@@ -50,6 +52,7 @@ run_mhcflurry <- function() {
 #'
 #' @param dt Data table of prediction commands to run.
 #'
+#' @noRd
 #' @md
 
 run_netMHC <- function(dt) {
@@ -162,6 +165,7 @@ run_netMHC <- function(dt) {
 
 #' Print data directory error
 #'
+#' @noRd
 #' @md
 
 
@@ -195,6 +199,7 @@ run_netMHC <- function(dt) {
 #'
 #' @param dir Character vector. Path to `antigen.garnish` data directory.
 #'
+#' @noRd
 #' @md
 
 configure_netMHC_tools <- function(dir) {
@@ -328,6 +333,7 @@ configure_netMHC_tools <- function(dir) {
 #'
 #' @param ag_dirs Character vector. Directories to check for `antigen.garnish` data directory.
 #'
+#' @noRd
 #' @md
 
 check_pred_tools <- function(ag_dirs = c(
@@ -433,7 +439,7 @@ check_pred_tools <- function(ag_dirs = c(
 #'
 #' @return A vector of elements in \code{vector} matching \code{pattern}.
 #'
-#' @export %include%
+#' @noRd
 #' @md
 
 `%include%` <- function(vector, pattern) {
@@ -448,8 +454,8 @@ check_pred_tools <- function(ag_dirs = c(
 #' @param pattern Pattern.
 #'
 #' @return A vector of elements in \code{vector} not matching \code{pattern}.
-#'
-#' @export %exclude%
+#' @noRd
+#' @md
 
 `%exclude%` <- function(vector, pattern) {
   lv <- stringr::str_detect(vector, pattern)

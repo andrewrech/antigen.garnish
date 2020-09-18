@@ -15,22 +15,14 @@ garnish_variants(vcfs, tumor_sample_name = "TUMOR")
 A data table with one unique SnpEff variant annotation per row, including:
 \itemize{
 \item \strong{sample_id}: sample identifier constructed from input \code{.vcf} file names
-\item \strong{se}: SnpEff annotation
+\item \strong{ANN}: SnpEff annotation
 \item \strong{effect_type}: SnpEff effect type
 \item \strong{ensembl_transcript_id}: transcript effected
-\item \strong{ensembl_gene_id}: gene effected
-\item \strong{protein_change}: protein change in \href{http://varnomen.hgvs.org/recommendations/DNA/}{HGVS} format
 \item \strong{cDNA_change}: cDNA change in \href{http://varnomen.hgvs.org/recommendations/protein/}{HGVS} format
 }
 }
 \description{
 Process paired tumor-normal VCF variants annotated with \href{http://snpeff.sourceforge.net/}{SnpEff} for neoantigen prediction using \code{garnish_affinity}. All versioned Ensembl transcript IDs (e.g. ENST00000311936.8) from any GRCh38 or GRCm38 release are supported.
-}
-\examples{
-\dontrun{
-# see https://github.com/immune-health/antigen.garnish
-}
-
 }
 \seealso{
 \code{\link{garnish_affinity}}

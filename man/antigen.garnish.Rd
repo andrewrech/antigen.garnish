@@ -3,10 +3,10 @@
 \docType{package}
 \name{antigen.garnish}
 \alias{antigen.garnish}
-\title{\pkg{antigen.garnish}: ensemble neoantigen prediction from DNA variants in R.}
+\title{\pkg{antigen.garnish}: tumor neoantigen prediction}
 \description{
-Github: https://github.com/immune-health/antigen.garnish
-Documentation: https://neoantigens.rech.io/
+\href{https://github.com/immune-health/antigen.garnish}{Github}
+\href{https://neoantigens.rech.io/}{Documentation}
 }
 \seealso{
 \code{\link{garnish_variants}}

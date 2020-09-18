@@ -1,7 +1,7 @@
-#' \pkg{antigen.garnish}: ensemble neoantigen prediction from DNA variants in R.
+#' \pkg{antigen.garnish}: tumor neoantigen prediction
 #'
-#' Github: https://github.com/immune-health/antigen.garnish
-#' Documentation: https://neoantigens.rech.io/
+#' [Github](https://github.com/immune-health/antigen.garnish)
+#' [Documentation](https://neoantigens.rech.io/)
 #'
 #' @seealso \code{\link{garnish_variants}}
 #' @seealso \code{\link{garnish_affinity}}
