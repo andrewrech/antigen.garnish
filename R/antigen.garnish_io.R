@@ -249,7 +249,7 @@ garnish_antigens <- function(dt) {
   if (length(ml) != 0) dt[, as.character(ml) := as.numeric(NA)]
 
   n <- names(dt)[which(names(dt) %chin%
-    c("cDNA_change", "protein_change", "ensembl_transcript_id", "clone_id"))]
+    c("cDNA_change", "protein_change", "ensembl_transcript_id"))]
 
   if (length(n) < 1) n <- NULL
 
@@ -281,10 +281,6 @@ garnish_antigens <- function(dt) {
     min_DAI,
     dissimilarity
   )]
-
-  if (!"clone_id" %chin% names(dt)) dt <- dt %>% .[order(sample_id)]
-
-  if ("clone_id" %chin% names(dt)) dt <- dt %>% .[order(sample_id, clone_id)]
 
   return(dt)
 }
