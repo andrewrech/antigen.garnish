@@ -440,6 +440,8 @@ get_vcf_snpeff_dt <- function(dt) {
     stop("Detected RefSeq identifiers. Refseq identifers are not supported. Please annotate variants with Ensembl transcript IDs (e.g. ENST00000311936).")
   }
 
+  dt[, refseq_id := NULL]
+
   return(dt)
 }
 
