@@ -781,6 +781,9 @@ merge_predictions <- function(l, dt) {
     })
   }
 
+
+  message("Calculating overall consensus affinity score.")
+
   # get vector of netMHC scores
   cols <- dt %>% names() %include% c("affinity\\(nM\\)")
 
@@ -809,7 +812,7 @@ merge_predictions <- function(l, dt) {
     by = 1:nrow(dt), .SDcols = cols
   ]
 
-  message("Calculating DAI.")
+  message("Calculating differential agretopicity.")
 
   dt[, DAI := NA %>% as.numeric()]
 
