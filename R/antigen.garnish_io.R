@@ -146,15 +146,16 @@ garnish_variants <- function(vcfs, tumor_sample_name = "TUMOR") {
       pns <- names(vdt) %include% "_AF" %>% stringr::str_replace("_AF", "")
     }
 
-    if (afield %chin% (vdt %>% names()))
-      vdt %<>% tidyr::separate_rows(tidyr::allof(afield), sep = ",")
+    if (afield %chin% (vdt %>% names())) {
+      vdt %<>% tidyr::separate_rows(eval(afield), sep = ",")
+    }
 
-      vdt %<>% tidyr::separate_rows("ALT", sep = ",")
+    vdt %<>% tidyr::separate_rows("ALT", sep = ",")
 
-      vdt %<>% data.table::as.data.table(.)
+    vdt %<>% data.table::as.data.table(.)
 
-      # now keep only rows that match the previously split ANN field
-      vdt %<>% .[ALT == stringr::str_extract(ANN, pattern = "(<?=ANN=)?[AGCT]+(?=\\|)")]
+    # now keep only rows that match the previously split ANN field
+    vdt %<>% .[ALT == stringr::str_extract(ANN, pattern = "(<?=ANN=)?[AGCT]+(?=\\|)")]
 
     return(vdt)
   })
