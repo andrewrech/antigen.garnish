@@ -1,37 +1,122 @@
 
 README <- function() {
-  testthat::test_that("garnish_affinity strict README example", {
+  testthat::test_that("garnish_affinity README examples", {
     skip_pred_tools()
 
-    # extact copy of README
+    library(magrittr)
+    library(data.table)
+    library(antigen.garnish)
 
     # load an example VCF
     dir <- system.file(package = "antigen.garnish") %>%
       file.path(., "extdata/testdata")
 
-    dt <- "antigen.garnish_example.vcf" %>%
-      file.path(dir, .) %>%
+    file <- file.path(dir, "TUMOR.vcf")
 
-      # extract variants
-      garnish_variants(.) %>%
+    # extract variants
+    dt <- garnish_variants(file)
 
-      # add space separated MHC types
-      # see list_mhc() for nomenclature of supported alleles
+    # add space separated MHC types
+    # see list_mhc() for nomenclature of supported alleles
+    # MHC may also be set to "all_human" or "all_mouse" to use all supported alleles
 
-      .[, MHC := c("HLA-A*01:47 HLA-A*02:01 HLA-DRB1*14:67")] %>%
+    dt[, MHC := c("HLA-A*01:47 HLA-A*02:01 HLA-DRB1*14:67")]
 
-      # predict neoantigens
-      garnish_affinity(.)
+    # predict neoantigens
+    result <- dt %>% garnish_affinity(.)
 
-    # this length can vary if prediction tool versions drop allele coverage
-    # eg newest netMHC drops A01:47, so don't check row numbers of table or
-    # number of unique MHC types
-    testthat::expect_true(dt[
-      pep_type == "mutnfs",
-      nmer %>% unique() %>% length()
-    ] == 91)
+    # check overall peptide creation
+    testthat::expect_equal(
+      result[, .N, by = pep_type],
+      list(pep_type = c("wt", "mutnfs", "mut_other"), N = c(
+        327L,
+        182L, 602L
+      )) %>% data.table::as.data.table(.)
+    )
+
+    # check unique nmers
     testthat::expect_true(dt[, nmer %>% unique() %>% length()] == 184)
+
+    # check that peptides are created correctly
+    pep_check <- result[, .SD,
+      .SDcols = c("cDNA_change", "pep_wt", "pep_mut")
+    ] %>% unique()
+
+    # check missense
+    check_mis_wt <- pep_check[
+      cDNA_change == "c.5188C>T",
+      strsplit(pep_wt, split = "")
+    ]$V1
+    check_mis_mut <- pep_check[
+      cDNA_change == "c.5188C>T",
+      strsplit(pep_mut, split = "")
+    ]$V1
+
+    dif <- vector() %>% as.numeric(.)
+    for (n in 1:length(check_mis_mut)) {
+      if (check_mis_mut[n] != check_mis_wt[n]) {
+        dif %<>% c(n)
+      }
+    }
+
+    testthat::expect_equal(dif, 1730)
+
+    # check deletion
+    pep_check <- result[, .SD, .SDcols = c("cDNA_change", "pep_wt", "pep_mut")] %>% unique()
+
+    check_del_wt <- pep_check[
+      cDNA_change == "c.3327_3347delTGCTGCAGCTGCAGCTGCAGC",
+      strsplit(pep_wt, split = "")
+    ]$V1
+    check_del_mut <- pep_check[
+      cDNA_change == "c.3327_3347delTGCTGCAGCTGCAGCTGCAGC",
+      strsplit(pep_mut, split = "")
+    ]$V1
+
+    dif <- vector() %>% as.numeric(.)
+    for (n in 1:length(check_del_mut)) {
+      if (check_del_mut[n] != check_del_wt[n]) {
+        dif %<>% c(n)
+      }
+    }
+
+    testthat::expect_equal(dif %>% .[1], 1113)
+
+    # check fs
+    check_fs_wt <- pep_check[
+      cDNA_change == "c.5728_5729insAC",
+      strsplit(pep_wt, split = "")
+    ]$V1
+    check_fs_mut <- pep_check[
+      cDNA_change == "c.5728_5729insAC",
+      strsplit(pep_mut, split = "")
+    ]$V1
+
+    dif <- vector() %>% as.numeric(.)
+    for (n in 1:length(check_fs_mut)) {
+      if (check_fs_mut[n] != check_fs_wt[n]) {
+        dif %<>% c(n)
+      }
+    }
+
+    testthat::expect_equal(dif, c(
+      1910, 1911, 1912, 1913, 1914, 1915, 1916, 1917, 1918, 1919,
+      1920, 1921, 1922, 1910, 1911, 1912, 1913, 1914, 1915, 1916, 1917,
+      1918, 1919, 1920, 1921, 1922
+    ))
   })
+
+  v <- c("SIINFEKL", "ILAKFLHWL", "GILGFVFTL")
+
+  # calculate IEDB score
+  iedb <- v %>% iedb_score(db = "human")
+
+  testthat::expect_equal(iedb$iedb_score, 1)
+
+  # calculate dissimilarity
+  dis <- v %>% garnish_dissimilarity(db = "human")
+
+  testthat::expect_equivalent(dis$dissimilarity, c(0.16455097200822866, 0, 2.6688207199754288e-11))
 }
 
 transcripts <- function() {
