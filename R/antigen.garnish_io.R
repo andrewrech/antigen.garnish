@@ -62,18 +62,10 @@ garnish_variants <- function(vcfs, tumor_sample_name = "TUMOR") {
       vcf_type <- "unknown"
     }
 
-    # return a data table of variants
-
-    vdt <- vcf %>% get_vcf_info_dt()
-
     # rename generic columns to prevent downstream errors
 
-    if (names(vdt) %like% "^V[0-9]+$" %>% any()) {
-      vdt %>% data.table::setnames(
-        names(vdt) %include% "^V[0-9]+$",
-        paste(names(vdt) %include% "^V[0-9]+$", ".x", sep = "")
-      )
-    }
+    # return a data table of variants
+    vdt <- vcf %>% get_vcf_info_dt()
 
     # check that VCF is SnpEff-annotated
 
@@ -162,9 +154,7 @@ garnish_variants <- function(vcfs, tumor_sample_name = "TUMOR") {
       vdt %<>% data.table::as.data.table(.)
 
       # now keep only rows that match the previously split ANN field
-
-      vdt <- vdt[ALT == stringr::str_extract(ANN, pattern = "^[AGCT]+(?=\\|)")]
-    }
+      vdt %<>% .[ALT == stringr::str_extract(ANN, pattern = "(<?=ANN=)?[AGCT]+(?=\\|)")]
 
     return(vdt)
   })
