@@ -1,18 +1,18 @@
 # antigen.garnish 2.0.0
 
-This update includes major breaking changes that reduce the scope of the package:
+Breaking changes:
 
-- new filtering criteria based on TESLA https://www.parkerici.org/research-project/tumor-neoantigen-selection-alliance-tesla/
-- update Ensembl transcript CDS database to release 101 (any prior VERSIONED transcript release is acceptable)
-- remove support for mitochondrial CDS
-- remove support for Refseq CDS
-- remove support for non-versioned Ensembl transcript identifiers
-- remove functions: plotting, JAFFA support, xlsx support
+- new filtering criteria based on TESLA: https://www.parkerici.org/research-project/tumor-neoantigen-selection-alliance-tesla/, see ?garnish_antigens
+- update Ensembl transcript CDS database to release 101 (any prior versioned transcript release is acceptable)
+- remove support for mitochondrial CDS, Refseq, xlsx input, JAFFA input, PureCN input to focus on peptide/transcript tables and VCFs
+- improve SnpEff annotation parsing
 
 Additional updates:
 
-- improve SnpEff annotation parsing
-- reduce package dependencies
+- include percentile rank filtering at default netMHC thresholds
+- simplify installation instructions
+- remove 7 dependencies
+- additional integration tests
 - do not export internal functions
 
 # antigen.garnish 1.1.1
