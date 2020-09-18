@@ -129,7 +129,7 @@ transcripts <- function() {
       ensembl_transcript_id =
         c("ENSMUST00000128119.1"),
       cDNA_change = c("c.4988C>T"),
-      MHC = c("HLA-A*02:01 HLA-DRB1*14:67")
+      MHC = c("HLA-A*02:01 HLA-E*01:03", "HLA-DQA10402-DQB10511")
     ) %>%
       # run test
       garnish_affinity(
@@ -138,14 +138,8 @@ transcripts <- function() {
       )
 
     testthat::expect_equal(
-      dt[, .N, by = "MHC"] %>% .[order(MHC)],
-      structure(list(
-        MHC = c("HLA-A*02:01", "HLA-DRB1*14:67"),
-        N = c(153L, 30L)
-      ),
-      row.names = c(NA, -2L),
-      class = c("data.table", "data.frame")
-      )
+      dt$MHC %>% unique(),
+      c("HLA-A*02:01", "HLA-E*01:03", "HLA-DQA10402-DQB10511")
     )
   })
 }
