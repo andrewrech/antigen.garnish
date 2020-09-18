@@ -89,12 +89,6 @@ A data table of binding predictions including:
 \item \strong{BLAST_A}: Ratio of consensus binding affinity of mutant peptide / closest single AA mismatch from blastp results. Returned only if \code{blast = TRUE}.
 }
 
-clonality info:
-\itemize{
-\item \strong{clone_id}: rank of the clone containing the variant (highest equals larger tumor fraction).
-\item \strong{cl_proportion}: The estimated mean tumor fraction containing the clone. If allele fraction and not clonality is used, this is estimated.
-}
-
 antigen.garnish quality analysis metric results
 \itemize{
 \item \strong{Ensemble_score}: average value of MHC binding affinity from all prediction tools that contributed output.
@@ -123,68 +117,11 @@ Perform ensemble neoantigen prediction on a data table of missense mutations, in
 \item see \code{list_mhc} for compatible MHC allele syntax, you may also use "all_human" or "all_mouse" in the MHC column to use all supported alleles
 \item multiple MHC alleles for a single \code{sample_id} must be space separated. Murine and human alleles must be in separate rows. See \href{http://neoantigens.rech.io.s3-website-us-east-1.amazonaws.com/index.html#predict-neoantigens-from-missense-mutations-insertions-and-deletions}{\code{README} example}.
 \item For species specific proteome-wide DAI to be calculated, run human and murine samples separately
-\item \code{garnish_score} is calculated if allelic fraction or tumor cellular fraction were provided
 }
 }
 \examples{
 \dontrun{
-
-# load an example VCF
-dir <- system.file(package = "antigen.garnish") \%>\%
-  file.path(., "extdata/testdata")
-
-dt <- "antigen.garnish_example.vcf" \%>\%
-  file.path(dir, .) \%>\%
-
-  # extract variants
-  garnish_variants() \%>\%
-
-  # add space separated MHC types
-  # see list_mhc() for nomenclature of supported alleles
-
-  .[, MHC := c("HLA-A*01:47 HLA-A*02:01 HLA-DRB1*14:67")] \%>\%
-
-  # predict neoantigens
-  garnish_affinity()
-}
-
-\dontrun{
-# input a data table of transcripts
-
-dt <- data.table::data.table(
-  sample_id = "test",
-  ensembl_transcript_id =
-    c(
-      "ENSMUST00000128119",
-      "ENSMUST00000044250",
-      "ENSMUST00000018743"
-    ),
-  cDNA_change = c(
-    "c.4988C>T",
-    "c.1114T>G",
-    "c.718T>A"
-  ),
-  MHC = c(
-    "HLA-A*02:01 HLA-DRB1*14:67",
-    "H-2-Kb H-2-IAd",
-    "HLA-A*01:47 HLA-DRB1*03:08"
-  )
-) \%>\%
-  garnish_affinity() \%T>\%
-  str
-}
-
-\dontrun{
-# input a data table of peptides for all human MHC types
-
-dt <- data.table::data.table(
-  sample_id = "test",
-  pep_mut = "MTEYKLVVVGAGDVGKSALTIQLIQNHFVDEYDP",
-  mutant_index = "12",
-  MHC = "HLA-A*02:01 HLA-A*68:01 HLA-B*07:02"
-) \%>\%
-  garnish_affinity() \%T>\%
-  str
+see https://github.com/immune-health/antigen.garnish
 }
 
 }

@@ -5,44 +5,8 @@
 \alias{antigen.garnish}
 \title{\pkg{antigen.garnish}: ensemble neoantigen prediction from DNA variants in R.}
 \description{
-Ensemble tumor neoantigen prediction from complex variants. Immunogenicity filtering based on the Tumor Neoantigen Selection Alliance (TESLA).
-}
-\details{
-Advantages
-\enumerate{
-\item \strong{Thoroughness}:
-}
-\itemize{
-\item missense mutations, insertions, or deletions
-\item human and mouse
-\item ensemble MHC class I/II binding prediction using \href{https://github.com/hammerlab/mhcflurry}{mhcflurry}, \href{http://www.cbs.dtu.dk/services/NetMHC/}{netMHC}, \href{http://www.cbs.dtu.dk/services/NetMHCII/}{netMHCII}, \href{http://www.cbs.dtu.dk/services/NetMHCpan/}{netMHCpan} and \href{http://www.cbs.dtu.dk/services/NetMHCIIpan/i}{netMHCIIpan}
-\item ranked by
-\itemize{
-\item MHC I/II binding affinity
-\item clonality
-\item RNA expression
-\item similarity to known immunogenic antigens
-\item dissimilarity to the normal peptidome
-}
-}
-\enumerate{
-\item \strong{Speed and simplicity}:
-}
-\itemize{
-\item 1000 variants are ranked in a single step in less than five minutes
-\item parallelized using \href{https://stat.ethz.ch/R-manual/R-devel/library/parallel/html/mclapply.html}{\code{parallel::mclapply}}, \href{https://github.com/Rdatatable/data.table/wiki}{\code{data.table::setDTthreads}}, and \href{https://www.gnu.org/software/parallel/}{GNU parallel}
-}
-\enumerate{
-\item \strong{Integration with R/Bioconductor}
-}
-\itemize{
-\item upstream/VCF processing
-\item exploratory data analysis, visualization
-}
-
-\href{https://neoantigens.rech.io/reference/index.html}{Package documentation} (\href{https://get.rech.io/antigen.garnish.pdf}{pdf})
-
-We welcome contributions and feedback via \href{https://github.com/immune-health/antigen.garnish/issues}{Github} or \href{mailto:leepr@upenn.edu}{email}.
+Github: https://github.com/immune-health/antigen.garnish
+Documentation: https://neoantigens.rech.io/
 }
 \seealso{
 \code{\link{garnish_variants}}
