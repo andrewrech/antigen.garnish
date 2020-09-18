@@ -2,10 +2,10 @@
 % Please edit documentation in R/antigen.garnish_assemble.R
 \name{list_mhc}
 \alias{list_mhc}
-\title{Return a data table of available MHC types.}
+\title{Return a data table of available MHC types for all prediction tools.}
 \usage{
 list_mhc()
 }
 \description{
-Return a data table of available MHC types.
+Return a data table of available MHC types for all prediction tools.
 }

@@ -2,6 +2,7 @@
 #'
 #' Internal function to create the antigen.garnish data directory Ensembl transcript database file `GRChm38_meta.RDS` from [GRCh38.cds.all.fa](ftp://ftp.ensembl.org/pub/current_fasta/homo_sapiens/cds/) Ensembl files.
 #'
+#' @noRd
 #' @md
 
 make_ensembl_db <- function() {

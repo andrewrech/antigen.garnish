@@ -40,7 +40,7 @@
     <loc>https://neoantigens.rech.io, https://neoantigens.rech.io/reference/garnish_clonality.html</loc>
   </url>
   <url>
-    <loc>https://neoantigens.rech.io, https://neoantigens.rech.io/reference/garnish_dissimilarity.html</loc>
+    <loc>https://neoantigens.rech.io, https://neoantigens.rech.io/reference/dissimilarity_score.html</loc>
   </url>
   <url>
     <loc>https://neoantigens.rech.io, https://neoantigens.rech.io/reference/garnish_jaffa.html</loc>
@@ -73,7 +73,7 @@
     <loc>https://neoantigens.rech.io, https://neoantigens.rech.io/reference/get_vcf_snpeff_dt.html</loc>
   </url>
   <url>
-    <loc>https://neoantigens.rech.io, https://neoantigens.rech.io/reference/iedb_score.html</loc>
+    <loc>https://neoantigens.rech.io, https://neoantigens.rech.io/reference/foreignness_score.html</loc>
   </url>
   <url>
     <loc>https://neoantigens.rech.io, https://neoantigens.rech.io/reference/list_mhc.html</loc>

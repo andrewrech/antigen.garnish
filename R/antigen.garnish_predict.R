@@ -1,21 +1,21 @@
 
-#' Return iedb_scores for a vector of nmers.
+#' Return foreignness_scores for a vector of peptides.
 #'
 #' @param v Character. Vector of nmers.
 #' @param db Character. One of c("mouse", "human")
 #'
-#' @return Data table of nmers and corresponding iedb_score values.
+#' @return Data table of nmers and corresponding foreignness_score values.
 #'
-#' @export iedb_score
+#' @export foreignness_score
 #' @md
 
-iedb_score <- function(v, db) {
+foreignness_score <- function(v, db) {
   if (!db %chin% c("mouse", "human")) stop("db must be \"human\" or \"mouse\"")
 
   on.exit({
     message("Removing temporary fasta files.")
     try(
-      list.files(pattern = "iedb_score|blastp") %>% file.remove()
+      list.files(pattern = "foreignness_score|blastp") %>% file.remove()
     )
   })
 
@@ -36,7 +36,7 @@ iedb_score <- function(v, db) {
     .[, nmer_id := names(v)]
 
   AA <- Biostrings::AAStringSet(v, use.names = TRUE)
-  Biostrings::writeXStringSet(AA, file = "iedb_score_fasta.fa", format = "fasta")
+  Biostrings::writeXStringSet(AA, file = "foreignness_score_fasta.fa", format = "fasta")
 
   # run blastp-short for iedb matches
   # https://www.ncbi.nlm.nih.gov/books/NBK279684/
@@ -58,7 +58,7 @@ iedb_score <- function(v, db) {
 
   if (!file.exists(db)) {
     warn <- paste(
-      "Skipping IEDB_score because BLAST database cannot be found.",
+      "Skipping foreignness_score because BLAST database cannot be found.",
       "To set a custom path to the antigen.garnish data folder",
       "set environomental variable AG_DATA_DIR from the shell",
       "or from R using Sys.setenv",
@@ -77,7 +77,7 @@ iedb_score <- function(v, db) {
   db <- paste("-db", db %>% stringr::str_replace("\\.pin", ""), sep = " ")
 
   system(paste0(
-    "blastp -query iedb_score_fasta.fa ", db, " -evalue 100000000 -matrix BLOSUM62 -gapopen 11 -gapextend 1 -out blastp_iedbout.csv -num_threads ", parallel::detectCores(),
+    "blastp -query foreignness_score_fasta.fa ", db, " -evalue 100000000 -matrix BLOSUM62 -gapopen 11 -gapextend 1 -out blastp_iedbout.csv -num_threads ", parallel::detectCores(),
     " -outfmt '10 qseqid sseqid qseq qstart qend sseq sstart send length mismatch pident evalue bitscore'"
   ))
 
@@ -90,7 +90,7 @@ iedb_score <- function(v, db) {
 
   if (all(file.info(blastdt)$size == 0)) {
     message("No IEDB matches found by blast.")
-    return(data.table::data.table(nmer = v, iedb_score = 0))
+    return(data.table::data.table(nmer = v, foreignness_score = 0))
   }
 
   blastdt <- blastdt %>% data.table::fread()
@@ -121,7 +121,7 @@ iedb_score <- function(v, db) {
   blastdt <- blastdt[nmer %like% "^[ARNDCQEGHILKMFPSTWYV]+$" & WT.peptide %like% "^[ARNDCQEGHILKMFPSTWYV]+$"]
 
   if (nrow(blastdt) == 0) {
-    message(paste("No IEDB matches found with cannonical AAs, can't compute IEDB score...."))
+    message(paste("No IEDB matches found with cannonical AAs, can't compute foreignness score...."))
     return(data.table::data.table(nmer = v))
   }
 
@@ -140,7 +140,7 @@ iedb_score <- function(v, db) {
     return(R)
   }
 
-  blastdt[, iedb_score := SW %>% modeleR(), by = "nmer_id"]
+  blastdt[, foreignness_score := SW %>% modeleR(), by = "nmer_id"]
 
   # get full IEDB ref here
   fa <- Biostrings::readAAStringSet(db %>%
@@ -159,11 +159,11 @@ iedb_score <- function(v, db) {
     "nmer_id",
     "nmer",
     "IEDB_anno",
-    "iedb_score",
+    "foreignness_score",
     "SW"
   )]
 
-  blastdt <- blastdt[, .SD %>% unique(), .SDcols = c("nmer_id", "iedb_score")]
+  blastdt <- blastdt[, .SD %>% unique(), .SDcols = c("nmer_id", "foreignness_score")]
 
   sdt[, nmer_id := as.character(nmer_id)]
   blastdt[, nmer_id := as.character(nmer_id)]
@@ -185,12 +185,12 @@ iedb_score <- function(v, db) {
 
   sdt <- merge(sdt, anndt, by = "nmer_id", all.x = TRUE)
 
-  sdt <- sdt[, .SD %>% unique(), .SDcols = c("nmer", "iedb_score", "IEDB_anno")]
+  sdt <- sdt[, .SD %>% unique(), .SDcols = c("nmer", "foreignness_score", "IEDB_anno")]
 
   return(sdt)
 }
 
-#' Return dissimilarity (to reference proteome) values for a vector of nmers.
+#' Return dissimilarity (to reference proteome) values for a vector of peptides.
 #'
 #' @param v Character. Vector of nmers.
 #' @param db Character. One of c("mouse", "human").
@@ -199,10 +199,10 @@ iedb_score <- function(v, db) {
 #'
 #' @return Data table of nmers and corresponding dissimilarity values (to the non-mutated proteome).
 #'
-#' @export garnish_dissimilarity
+#' @export dissimilarity_score
 #' @md
 
-garnish_dissimilarity <- function(v, db, kval = 4.86936, aval = 32) {
+dissimilarity_score <- function(v, db, kval = 4.86936, aval = 32) {
   if (!db %chin% c("mouse", "human")) stop("db must be \"human\" or \"mouse\"")
 
   on.exit({
@@ -399,7 +399,7 @@ garnish_dissimilarity <- function(v, db, kval = 4.86936, aval = 32) {
 #'
 #' @param dti Data table of nmers.
 #'
-#' @md
+#' @noRd
 
 make_BLAST_uuid <- function(dti) {
   on.exit({
@@ -649,6 +649,7 @@ make_BLAST_uuid <- function(dti) {
 #'
 #' @param dt Data table of nmers.
 #'
+#' @noRd
 #' @md
 
 make_DAI_uuid <- function(dt) {
@@ -727,6 +728,7 @@ make_DAI_uuid <- function(dt) {
 #'
 #' @param l Output list from run_netMHC
 #' @param dt Input data table.
+#' @noRd
 #' @md
 
 merge_predictions <- function(l, dt) {
@@ -863,13 +865,13 @@ merge_predictions <- function(l, dt) {
     ]
   }
 
-  if ("iedb_uuid" %chin% names(dt)) {
+  if ("forn_uuid" %chin% names(dt)) {
 
     # keep blast match that will give most conservative IEDB_A value
 
-    dt[!is.na(iedb_uuid) & effect_type == "IEDB_source",
+    dt[!is.na(forn_uuid) & effect_type == "IEDB_source",
       match := Ensemble_score %>% as.numeric() %>% min(na.rm = TRUE),
-      by = c("iedb_uuid", "MHC")
+      by = c("forn_uuid", "MHC")
     ] %>%
       .[Ensemble_score == match, match := 0]
 
@@ -877,13 +879,13 @@ merge_predictions <- function(l, dt) {
 
     dt[, match := NULL]
 
-    data.table::setkey(dt, pep_type, iedb_uuid)
+    data.table::setkey(dt, pep_type, forn_uuid)
 
-    dt[!iedb_uuid %>% is.na(),
+    dt[!forn_uuid %>% is.na(),
       IEDB_A := (Ensemble_score[2] /
         Ensemble_score[1]) *
         (1 / (1 + (0.0003 * Ensemble_score[2]))),
-      by = c("iedb_uuid", "MHC")
+      by = c("forn_uuid", "MHC")
     ]
   }
 
@@ -894,7 +896,7 @@ merge_predictions <- function(l, dt) {
 #' Internal function to create commands for neoantigen prediction.
 #'
 #' @param dt Data.table of predictions to run.
-#' @md
+#' @noRd
 
 get_pred_commands <- function(dt) {
   if (!c("nmer", "MHC", "nmer_l") %chin%
@@ -1077,6 +1079,7 @@ get_pred_commands <- function(dt) {
 #' Internal function to collate results from netMHC prediction
 #'
 #' @param esl List of outputs from netMHC.
+#' @noRd
 #' @md
 
 collate_netMHC <- function(esl) {
@@ -1176,6 +1179,7 @@ collate_netMHC <- function(esl) {
 #' @param dt Data table of nmers.
 #' @param type Character vector. Name of program to format for.
 #'
+#' @noRd
 #' @md
 
 write_netmhc_nmers <- function(dt, type) {
@@ -1240,7 +1244,7 @@ write_netmhc_nmers <- function(dt, type) {
 #' @param y Integer. Ending integer.
 #'
 #' @export get_ss_str
-#' @md
+#' @noRd
 
 get_ss_str <- function(x, y) {
   parallel::mcMap(function(x, y) {
@@ -1254,41 +1258,12 @@ get_ss_str <- function(x, y) {
 #'
 #' Perform ensemble neoantigen prediction on a data table of missense mutations, insertions, or deletions using netMHC and mhcflurry.
 #'
-#' @param path Path to input table ([acceptable formats](https://cran.r-project.org/web/packages/rio/vignettes/rio.html#supported_file_formats)).
-#' @param dt Data table. Input data table from `garnish_variants` or `garnish_jaffa`, or a data table in one of these forms:
-#'
-#' dt with transcript id:
-#'
-#'
-#'     Column name                 Example input
-#'
-#'     sample_id                   sample_1
-#'     ensembl_transcript_id       ENST00000311936
-#'     cDNA_change                 c.718T>A
-#'     MHC                         HLA-A*02:01 HLA-A*03:01
-#'                                 H-2-Kb H-2-Kb
-#'                                 HLA-DRB1*11:07 [second type]
-#'
-#'
-#' dt with peptide (standard amino-acid one-letter codes only):
-#'
-#'     Column name                 Example input
-#'
-#'     sample_id                   <same as above>
-#'     pep_mut                     MTEYKLVVVDAGGVGKSALTIQLIQNHFV
-#'     pep_wt                      <optional, required for local DAI calculation>
-#'     mutant_index                all
-#'                                 7
-#'                                 7 13 14
-#'     MHC                         <same as above>
-#'
-#' @param binding_cutoff Numeric. Maximum consensus MHC-binding affinity that will be passed for IEDB and dissimilarity analysis. Default is 500 (nM). Note: If a peptide binds to any MHC allele in the table below this threshold, IEDB score and dissimilarity will be returned for all rows with that peptide.
-#' @param counts Optional. A file path to an RNA count matrix. The first column must contain Ensembl transcript ids. All samples in the input table must be present in the count matrix.
+#' @param path Path to input `csv` or `tsv` file.
+#' @param dt Data table. Input data table from `garnish_variants`, or a data table in the correct form (see [Github README](https://github.com/immune-health/antigen.garnish).
+#' @param binding_cutoff Numeric. Maximum consensus MHC-binding affinity that will be passed for IEDB and dissimilarity analysis. Default is 500 (nM). Note: If a peptide binds to any MHC allele in the table below this threshold, foreignness score and dissimilarity will be returned for all rows with that peptide.
+#' @param counts Optional. A file path to a `csv` or `tsv` RNA count matrix. The first column must contain Ensembl transcript ids. All samples in the input table must be present in the count matrix.
 #' @param min_counts Integer. The minimum number of estimated read counts for a transcript to be considered for neoantigen prediction. Default is 1.
-#' @param assemble Logical. Assemble data table?
-#' @param generate Logical. Generate peptides?
 #' @param peptide_length Numeric vector. Length(s) of peptides to create.
-#' @param predict Logical. Predict binding affinities?
 #' @param blast Logical. Run `BLASTp` to find wild-type peptide and known IEDB matches?
 #' @param save Logical. Save a copy of garnish_affinity output to the working directory as "ag_output.txt"? Default is `TRUE`.
 #' @param remove_wt Logical. Check all `nmer`s generated against wt peptidome and remove matches? Default is `TRUE`. If investigating wild-type sequences, set this to `FALSE`.
@@ -1310,41 +1285,32 @@ get_ss_str <- function(x, y) {
 #' * **nmer_i**: index of nmer in sliding window
 #' * **_net**: netMHC prediction tool output
 #' * **mhcflurry_**: mhcflurry_ prediction tool output
-#' * **DAI**: Differential agretopicty index of missense and corresponding wild-type peptide.
+#' * **DAI**: Differential agretopicity index of missense and corresponding wild-type peptide. Differential agretopicty is the ratio of MHC binding afinity between mutant and corresponding normal peptide, with higher values indicating greater relative binding of the mutant peptide.
 #' * **BLAST_A**: Ratio of consensus binding affinity of mutant peptide / closest single AA mismatch from blastp results. Returned only if `blast = TRUE`.
 #'
-#' antigen.garnish quality analysis metric results
-#' * **Ensemble_score**: average value of MHC binding affinity from all prediction tools that contributed output.
-#' * **iedb_score**: R implementation of TCR recognition probability for peptide through summing of alignments in IEDB for corresponding organism. See references herein.
+#' antigen.garnish quality analysis metric results:
+#' * **Ensemble_score**: average value of MHC binding affinity from all prediction tools.
+#' * **foreignness_score**: Neoantigen foreignness threshold. Value of 0 to 1 indicating the TCR recognition probability, calculated by summing alignments in IEDB immunogenic peptides, with 1 indicating greater homology to immunogenic peptides.
 #' * **IEDB_anno**: The best alignment from the IEDB database queried for the sample if applicable.
 #' * **min_DAI**: Minimum of value of BLAST_A or DAI values, to provide the most conservative proteome-wide estimate of differential binding between input and wildtype matches.
-#' * **dissimilarity**: Calculation from 0 to 1 derived from alignment to the self-proteome, with 1 indicating greater dissimilarity and up to 34-fold odds ratio of immunogenicity (see Citation).
-#'
-#'
-#' transcript description:
-#' * description
-#' * start_position
-#' * end_position
-#' * transcript_end
-#' * transcript_length
-#' * transcript_start
-#' * peptide
+#' * **dissimilarity**: Value of 0 to 1 indicating alignment to the self-proteome, calculated in an analogous manner to neoanigen foreignness, with 1 indicating greater dissimilarity.
 #' @details
 #' * see `list_mhc` for compatible MHC allele syntax, you may also use "all_human" or "all_mouse" in the MHC column to use all supported alleles
-#' * multiple MHC alleles for a single `sample_id` must be space separated. Murine and human alleles must be in separate rows. See [`README` example](http://neoantigens.rech.io.s3-website-us-east-1.amazonaws.com/index.html#predict-neoantigens-from-missense-mutations-insertions-and-deletions).
-#' * For species specific proteome-wide DAI to be calculated, run human and murine samples separately
 #'
-#' @seealso \code{\link{garnish_variants}}
 #' @seealso \code{\link{list_mhc}}
-#'
-#' @examples
-#' \dontrun{
-#' see https://github.com/immune-health/antigen.garnish
-#' }
+#' @seealso \code{\link{garnish_variants}}
+#' @seealso \code{\link{garnish_antigens}}
 #'
 #' @references
-#' Luksza, M, Riaz, N, Makarov, V, Balachandran VP, et al. 2017. A neoepitope fitness model predicts tumour response to checkpoint blockade immunotherapy. Nature. 23;551(7681):512-516
 #'
+#' Richman LP, Vonderheide RH, and Rech AJ. Neoantigen dissimilarity to the self-proteome predicts immunogenicity and response to immune checkpoint blockade. Cell Systems. 2019.
+
+#' Duan, F., Duitama, J., Seesi, S.A., Ayres, C.M., Corcelli, S.A., Pawashe, A.P., Blanchard, T., McMahon, D., Sidney, J., Sette, A., et al. Genomic and bioinformatic profiling of mutational neoepitopes reveals new rules to predict anticancer immunogenicity. J Exp Med. 2014.
+#'
+#' Luksza, M, Riaz, N, Makarov, V, Balachandran VP, et al. A neoepitope fitness model predicts tumour response to checkpoint blockade immunotherapy. Nature. 2017.
+#' Rech AJ, Balli D, Mantero A, Ishwaran H, Nathanson KL, Stanger BZ, Vonderheide RH. Tumor immunity and survival as a function of alternative neopeptides in human cancer. Clinical Cancer Research, 2018.
+#'
+#' Wells DK, van Buuren MM, Dang KK, Hubbard-Lucey VM, Sheehan KCF, Campbell KM, Lamb A, Ward JP, Sidney J, Blazquez AB, Rech AJ, Zaretsky JM, Comin-Anduix B, Ng AHC, Chour W, Yu TV, Rizvi1 H, Chen JM, Manning P, Steiner GM, Doan XC, The TESLA Consortium, Merghoub T, Guinney J, Kolom A, Selinsky C, Ribas A, Hellmann MD, Hacohen N, Sette A, Heath JR, Bhardwaj N, Ramsdell F, Schreiber RD, Schumacher TN, Kvistborg P, Defranoux N. Key Parameters of Tumor Epitope Immunogenicity Revealed Through a Consortium Approach Improve Neoantigen Prediction. Cell. 2020.
 #' @export garnish_affinity
 #' @md
 
@@ -1353,10 +1319,7 @@ garnish_affinity <- function(dt = NULL,
                              binding_cutoff = 500,
                              counts = NULL,
                              min_counts = 1,
-                             assemble = TRUE,
-                             generate = TRUE,
                              peptide_length = 15:8,
-                             predict = TRUE,
                              blast = TRUE,
                              save = TRUE,
                              remove_wt = TRUE) {
@@ -1424,38 +1387,10 @@ garnish_affinity <- function(dt = NULL,
   (input_type == "transcript" ||
     input_type == "peptide")
   ) {
-    stop("
-Input data table must be from
-garnish.variants or in
-one of these forms:
-
-dt with transcript id:
-
-
-     Column name                 Example input
-
-     sample_id                   sample_1
-     ensembl_transcript_id       ENST00000311936
-     cDNA_change                 c.718T>A
-     MHC                         HLA-A*02:01 HLA-A*03:01
-                                 H-2-Kb H-2-Kb
-                                 HLA-DRB1*11:07 [second type]
-
-
-dt with peptide:
-
-     Column name                 Example input
-     sample_id                   <same as above>
-     pep_mut                     MTEYKLVVVDAGGVGKSALTIQLIQNHFV
-     pep_wt                      <optional, required for local DAI calculation>
-     mutant_index                all
-                                 7
-                                 7 13 14
-     MHC                         <same as above>
-      ")
+    stop("Incorrect input data format, see ?garnish_antigens")
   }
 
-  if (assemble & input_type == "transcript") {
+  if (input_type == "transcript") {
     message("Generating metadata.")
 
     dt %<>% get_metadata
@@ -1620,7 +1555,7 @@ dt with peptide:
       get_ss_str(mismatch_s, mismatch_l)]
   }
 
-  if (assemble & input_type == "peptide") {
+  if (input_type == "peptide") {
     message("Checking peptides.")
 
     if (any(dt[, !pep_mut %like% "^[ARNDCQEGHILKMFPSTWYV]+$"])) {
@@ -1663,7 +1598,6 @@ dt with peptide:
       get_ss_str(1, pep_mut %>% nchar())]
   }
 
-  if (generate) {
     message("Generating variants")
 
     # generation a uuid for each unique variant
@@ -1882,9 +1816,7 @@ dt with peptide:
     if (blast) {
       dt %<>% make_BLAST_uuid
     }
-  }
 
-  if (predict) {
     dir.create(ndir)
 
     setwd(ndir)
@@ -1904,7 +1836,7 @@ dt with peptide:
 
     message("Setting up dissimilarity calculating.")
 
-    # now  that we know binders, get our iedb_score and dissimilarity values
+    # now  that we know binders, get our foreignness_score and dissimilarity values
     # iterate over multiple species
     dt[MHC %like% "HLA", spc := "human"]
     dt[MHC %like% "H-2", spc := "mouse"]
@@ -1914,11 +1846,11 @@ dt with peptide:
 
     if (length(mns) != 0 & blast) {
       idt <- mns %>%
-        iedb_score(db = "mouse") %>%
+        foreignness_score(db = "mouse") %>%
         .[, spc := "mouse"]
 
       sdt <- mns %>%
-        garnish_dissimilarity(db = "mouse") %>%
+        dissimilarity_score(db = "mouse") %>%
         .[, spc := "mouse"]
 
       dt <- merge(dt, idt, all.x = TRUE, by = c("nmer", "spc"))
@@ -1928,11 +1860,11 @@ dt with peptide:
 
     if (length(hns) != 0 & blast) {
       idt <- hns %>%
-        iedb_score(db = "human") %>%
+        foreignness_score(db = "human") %>%
         .[, spc := "human"]
 
       sdt <- hns %>%
-        garnish_dissimilarity(db = "human") %>%
+        dissimilarity_score(db = "human") %>%
         .[, spc := "human"]
 
       dt <- merge(dt, idt, all.x = TRUE, by = c("nmer", "spc"))
@@ -1942,18 +1874,17 @@ dt with peptide:
 
     dt[, spc := NULL]
 
-    # set NA to 0 for iedb_score to match original implementation
+    # set NA to 0 for foreignness_score to match original implementation
     # set NA to 0 for dissimilarity, no alignments is truly dissimilar
-    if ("iedb_score" %chin% names(dt)) {
-      dt[is.na(iedb_score) & pep_type != "wt" & Ensemble_score < binding_cutoff, iedb_score := 0]
+    if ("foreignness_score" %chin% names(dt)) {
+      dt[is.na(foreignness_score) & pep_type != "wt" & Ensemble_score < binding_cutoff, foreignness_score := 0]
     }
 
     if ("dissimilarity" %chin% names(dt)) {
       dt[is.na(dissimilarity) & pep_type != "wt" & Ensemble_score < binding_cutoff, dissimilarity := 0]
     }
-  }
 
-  if (predict & blast) {
+  if (blast) {
 
     # calculate minimum proteome-wide DAI
     if ("blast_uuid" %chin% names(dt)) {
@@ -2016,6 +1947,7 @@ dt with peptide:
 #' @param dt Data table. Input data table from `garnish_affinity`.
 #' @param plen Numeric vector. Length(s) of peptides to create.
 #'
+#' @noRd
 #' @md
 
 make_nmers <- function(dt, plen = 8:15) {
