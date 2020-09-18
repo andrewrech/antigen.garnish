@@ -16,9 +16,7 @@ skip_pred_tools <- function() {
         }
 
 test_data_dir <- function(){
-
   dir <- system.file(package = "antigen.garnish") %>% file.path(., "extdata/testdata")
-
   return(dir)
 
 }

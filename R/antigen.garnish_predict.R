@@ -645,8 +645,6 @@ make_BLAST_uuid <- function(dti) {
 }
 
 
-
-
 #' Internal function to pair peptides from missense sites by a common UUID for DAI calculations
 #'
 #' @param dt Data table of nmers.
@@ -723,8 +721,6 @@ make_DAI_uuid <- function(dt) {
   )
   return(dt)
 }
-
-
 
 
 #' Internal function to merge input data table and prediction results
@@ -893,8 +889,6 @@ merge_predictions <- function(l, dt) {
 
   return(dt)
 }
-
-
 
 
 #' Internal function to create commands for neoantigen prediction.
@@ -1080,8 +1074,6 @@ get_pred_commands <- function(dt) {
 }
 
 
-
-
 #' Internal function to collate results from netMHC prediction
 #'
 #' @param esl List of outputs from netMHC.
@@ -1179,8 +1171,6 @@ collate_netMHC <- function(esl) {
   return(dtl)
 }
 
-
-
 #' Internal function to output nmers for netMHC prediction to disk
 #'
 #' @param dt Data table of nmers.
@@ -1244,8 +1234,6 @@ write_netmhc_nmers <- function(dt, type) {
 }
 
 
-
-
 #' Parallelized function to create a space-separated character string between two integers
 #'
 #' @param x Integer. Starting integer.
@@ -1260,8 +1248,6 @@ get_ss_str <- function(x, y) {
       paste(collapse = " ")
   }, x, y) %>% unlist()
 }
-
-
 
 
 #' Perform neoantigen prediction.
@@ -1568,8 +1554,6 @@ dt with peptide:
         unlist()])
     }
 
-
-
     ## ---- create mutant peptide index
 
     message("Generating mutant peptide index.")
@@ -1666,8 +1650,6 @@ dt with peptide:
             sep = "\n"
           )
         )
-
-
 
         dt <- dt[!stringr::str_detect(pattern = stringr::fixed(pep_mut), stringr::fixed(pep_wt))]
 
@@ -2027,8 +2009,6 @@ dt with peptide:
 
   return(dt)
 }
-
-
 
 
 #' Internal function for parallelized `nmer` creation.

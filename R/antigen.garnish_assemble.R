@@ -19,8 +19,6 @@ list_mhc <- function() {
 }
 
 
-
-
 #' Internal function to replace MHC with matching prediction tool MHC syntax
 #'
 #' @param x Vector of HLA types named for program to convert to.
@@ -50,8 +48,6 @@ detect_mhc <- function(x, alleles) {
 
   return(x)
 }
-
-
 
 
 #' Internal function to add metadata by `ensembl_transcript_id`
@@ -86,8 +82,6 @@ get_metadata <- function(dt) {
 
   return(dt)
 }
-
-
 
 
 #' Internal function to create cDNA from HGVS notation
@@ -125,8 +119,6 @@ make_cDNA <- function(dt) {
       !cDNA_locl > coding_nchar]
 
   dt[, coding_nchar := NULL]
-
-
 
   # paste substr around changed bases
   # substr is vectorized C, fast
@@ -205,8 +197,6 @@ make_cDNA <- function(dt) {
 }
 
 
-
-
 #' Internal function to extract a data table of variants with `INFO` fields in columns.
 #'
 #' @param vcf vcfR object to extract data from.
@@ -269,8 +259,6 @@ get_vcf_info_dt <- function(vcf) {
 }
 
 
-
-
 #' Internal function to extract a data table from vcfR `vcf` object fields.
 #'
 #' @param vcf vcfR object to extract data from.
@@ -318,8 +306,6 @@ get_vcf_sample_dt <- function(vcf) {
         .[[1]]
 
       names(l) <- nl[1:length(l)]
-
-
 
       return(l %>% as.list())
     }) %>% rbindlist(fill = TRUE, use.names = TRUE)
@@ -371,8 +357,6 @@ get_vcf_sample_dt <- function(vcf) {
 
   return(dt)
 }
-
-
 
 
 #' Internal function to extract SnpEff annotation information to a data table.
@@ -446,8 +430,6 @@ get_vcf_snpeff_dt <- function(dt) {
 }
 
 
-
-
 #' Internal function to extract cDNA changes from HGVS notation
 #'
 #' @param dt Data table with INFO column.
@@ -495,8 +477,6 @@ extract_cDNA <- function(dt) {
     !cDNA_locl %>% is.na() &
     !cDNA_type %>% is.na()]
 }
-
-
 
 
 #' Internal function to translate cDNA to peptides
