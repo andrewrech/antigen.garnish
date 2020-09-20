@@ -227,14 +227,6 @@ v %>% foreignness_score(db = "human") %>% print
 v %>% dissimilarity_score(db = "human") %>% print
 ```
 
-#### Automated testing
-
-From ./`<Github repo>`:
-
-```r
-devtools::test(reporter = "list")
-```
-
 #### How are peptides generated?
 
 ```r
