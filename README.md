@@ -40,10 +40,10 @@ cID=$(docker run -it -d leeprichman/antigen_garnish_2 /bin/bash)
 Copy netMHC `tar.gz` files to the container and run the installation script:
 
 ```sh
-docker cp netMHC-4.0a.Linux.tar.gz cID:/netMHC-4.0a.Linux.tar.gz
-docker cp netMHCII-2.3.Linux.tar.gz cID:/netMHCII-2.3.Linux.tar.gz
-docker cp netMHCpan-4.1b.Linux.tar.gz cID:netMHCpan-4.1b.Linux.tar.gz
-docker cp netMHCIIpan-4.0.Linux.tar.gz cID:netMHCIIpan-4.0.Linux.tar.gz
+docker cp netMHC-4.0a.Linux.tar.gz $cID:/netMHC-4.0a.Linux.tar.gz
+docker cp netMHCII-2.3.Linux.tar.gz $cID:/netMHCII-2.3.Linux.tar.gz
+docker cp netMHCpan-4.1b.Linux.tar.gz $cID:netMHCpan-4.1b.Linux.tar.gz
+docker cp netMHCIIpan-4.0.Linux.tar.gz $cID:netMHCIIpan-4.0.Linux.tar.gz
 
 docker exec $cID config_netMHC.sh
 ```

@@ -236,7 +236,10 @@ configure_netMHC_tools <- function(dir) {
     # in get_pred_commands and check_pred_tools hasn't run at that point
     io <- file.path(
       dirname(i),
-      basename(i) %>% stringr::str_replace("-.*$", "")
+      basename(i)
+      # %>% stringr::str_replace("-.*$", "")
+      # this line is now hashed because netMHCII uses version number in its
+      # script name and we are now hard coding versions
     )
 
     #  check if data has already been extracted
