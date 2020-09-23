@@ -1412,8 +1412,8 @@ garnish_affinity <- function(dt = NULL,
 
       col <- ct[, .SD, .SDcols = 1] %>% unlist()
 
-      if (!all(col %>% stringr::str_detect(pattern = "ENS(MUS)?T"))) {
-        stop("Transcript expression matrix file first column must contain Ensembl transcript ids.")
+      if (!all(col %>% stringr::str_detect(pattern = "ENS|NM_"))) {
+        stop("Transcript expression matrix file first column must contain transcript ids.")
       }
 
       if (any(is.na(col)) |

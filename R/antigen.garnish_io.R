@@ -3,7 +3,7 @@
 
 #' Process VCF variants and return a data table for epitope prediction.
 #'
-#' Process paired tumor-normal VCF variants annotated with [SnpEff](http://snpeff.sourceforge.net/) for neoantigen prediction using `garnish_affinity`. All versioned Ensembl transcript IDs (e.g. ENST00000311936.8) from any GRCh38 or GRCm38 release are supported.
+#' Process paired tumor-normal VCF variants annotated with [SnpEff](http://snpeff.sourceforge.net/) for neoantigen prediction using `garnish_affinity`. All versioned Ensembl transcript IDs (e.g. ENST00000311936.8) from any GRCh38 or GRCm38 release are supported. Parsing will fall back to using RefSeq IDs, but RefSeq IDs are not preferred.
 #'
 #' @param vcfs Paths to one or more VFC files to import. See details below.
 #' @param tumor_sample_name Character, name of column in vcf of tumor sample.

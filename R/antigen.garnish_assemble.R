@@ -387,6 +387,9 @@ get_vcf_snpeff_dt <- function(dt) {
   dt[, transcript_id := ANN %>%
     stringr::str_extract("(?<=\\|)(ENSMUST|ENST)[0-9]+(\\.[0-9]+)?")]
 
+  # fall back to RefSeq
+  dt[transcript_id %>% is.na(), transcript_id := ANN %>%
+    stringr::str_extract("(?<=\\|)NM_[0-9]+\\.[0-9]+")]
 
   # the nucleotide header must be removed from the ANN field to parse correctly
   # because some ANN fields do not have a header, resulting in the wrong
@@ -398,7 +401,7 @@ get_vcf_snpeff_dt <- function(dt) {
     "effect_type",
     "putative_impact",
     "gene",
-    "ensembl_gene_id",
+    "gene_id",
     "feature_type",
     "feature_id",
     "transcript_bioptype",
@@ -415,16 +418,6 @@ get_vcf_snpeff_dt <- function(dt) {
 
   dt[, protein_coding := FALSE]
   dt[protein_change != "", protein_coding := TRUE]
-
-  # stop if RefSeq
-  dt[, refseq_id := ANN %>%
-    stringr::str_extract("(?<=\\|)NM_[0-9]+")]
-
-  if (nrow(dt[!is.na(refseq_id)]) > 0) {
-    stop("Detected RefSeq identifiers. Refseq identifers are not supported. Please annotate variants with Ensembl transcript IDs (e.g. ENST00000311936).")
-  }
-
-  dt[, refseq_id := NULL]
 
   return(dt)
 }
