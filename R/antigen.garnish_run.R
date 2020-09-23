@@ -222,9 +222,9 @@ configure_netMHC_tools <- function(dir) {
   # across versions that breaks parsing
   f <- c(
     "netMHC-4.0/netMHC",
-    "netMHCII-2.3/netMHCII",
+    "netMHCII-2.3/netMHCII-2.3",
     "netMHCIIpan-4.0/netMHCIIpan",
-    "netMHCpan-4.0/netMHCpan"
+    "netMHCpan-4.1/netMHCpan"
   )
 
   message("Checking netMHC scripts in antigen.garnish data directory.")
@@ -236,7 +236,10 @@ configure_netMHC_tools <- function(dir) {
     # in get_pred_commands and check_pred_tools hasn't run at that point
     io <- file.path(
       dirname(i),
-      basename(i) %>% stringr::str_replace("-.*$", "")
+      basename(i)
+      # %>% stringr::str_replace("-.*$", "")
+      # this line is now hashed because netMHCII uses version number in its
+      # script name and we are now hard coding versions
     )
 
     #  check if data has already been extracted
@@ -249,7 +252,7 @@ configure_netMHC_tools <- function(dir) {
       link <- "http://www.cbs.dtu.dk/services/NetMHC-4.0/data.tar.gz"
     }
 
-    if (i == "netMHCII-2.3/netMHCII") {
+    if (i == "netMHCII-2.3/netMHCII-2.3") {
       link <- "http://www.cbs.dtu.dk/services/NetMHCII-2.3/data.Linux.tar.gz"
     }
 
@@ -257,7 +260,7 @@ configure_netMHC_tools <- function(dir) {
       link <- "http://www.cbs.dtu.dk/services/NetMHCIIpan/data.tar.gz"
     }
 
-    if (i == "netMHCpan-4.0/netMHCpan") {
+    if (i == "netMHCpan-4.1/netMHCpan") {
       link <- "http://www.cbs.dtu.dk/services/NetMHCpan-4.1/data.tar.gz"
     }
 
@@ -322,11 +325,13 @@ configure_netMHC_tools <- function(dir) {
     setwd(npd)
 
     return(io)
+
   }) %>% unlist()
 
   setwd(owd)
 
   return(io)
+
 }
 
 #' Internal function to check for netMHC tools and mhcflurry
@@ -352,7 +357,7 @@ check_pred_tools <- function(ag_dirs = c(
 
   # vector of directories to look in for data
 
-  if (!Sys.getenv("AG_DATA_DIR") == "") {
+  if (Sys.getenv("AG_DATA_DIR") == "") {
     message("Environmental variable AG_DATA_DIR for the antigen.garnish data directory is unset. Checking standard directories.")
   }
 

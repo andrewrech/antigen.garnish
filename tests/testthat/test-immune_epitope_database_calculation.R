@@ -1,6 +1,8 @@
 testthat::test_that("immune epitope database calculation", {
   v <- c("SIINFEKL", "ILAKFLHWL", "ILRGSVAHK")
 
+  skip_pred_tools()
+
   ie <- v %>% foreignness_score(db = "mouse")
 
   testthat::expect_equal(
