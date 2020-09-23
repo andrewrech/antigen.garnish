@@ -22,7 +22,7 @@ testthat::test_that("garnish_antigens", {
       ), MHC = c(
         "HLA-A*02:01", "HLA-A*02:01", "HLA-A*02:01",
         "HLA-A*02:01", "HLA-A*02:01"
-      ), ensembl_transcript_id = c(
+      ), transcript_id = c(
         "ENST00000361445",
         "ENST00000361445", "ENST00000361445", "ENST00000361445", "ENST00000361445"
       ), protein_change = c(

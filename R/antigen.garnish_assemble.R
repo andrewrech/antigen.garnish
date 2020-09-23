@@ -50,16 +50,16 @@ detect_mhc <- function(x, alleles) {
 }
 
 
-#' Internal function to add metadata by `ensembl_transcript_id`
+#' Internal function to add metadata by `transcript_id`
 #'
 #' @param dt Data table with `INFO` column.
 #'
 #' @noRd
 
 get_metadata <- function(dt) {
-  if (!"ensembl_transcript_id" %chin%
+  if (!"transcript_id" %chin%
     (dt %>% names())) {
-    stop("ensembl_transcript_id column missing")
+    stop("transcript_id column missing")
   }
 
   message("Reading local transcript metadata.")
@@ -76,7 +76,7 @@ get_metadata <- function(dt) {
 
   var_dt <- readRDS(metafile)
 
-  dt <- merge(dt, var_dt, by = "ensembl_transcript_id")
+  dt <- merge(dt, var_dt, by = "transcript_id")
 
   rm(var_dt)
 
@@ -384,7 +384,7 @@ get_vcf_snpeff_dt <- function(dt) {
     tidyr::separate_rows("ANN", sep = "\\|,") %>%
     data.table::as.data.table(.)
 
-  dt[, ensembl_transcript_id := ANN %>%
+  dt[, transcript_id := ANN %>%
     stringr::str_extract("(?<=\\|)(ENSMUST|ENST)[0-9]+(\\.[0-9]+)?")]
 
 

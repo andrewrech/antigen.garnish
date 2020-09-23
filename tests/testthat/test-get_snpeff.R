@@ -22,7 +22,7 @@ testthat::test_that("get_vcf_snpeff_dt", {
         "A|missense_variant|MODERATE|Thnsl2|ENSMUSG00000054474.1|transcript|ENSMUST00000074241.8|protein_coding|4/10|c.332C>T|p.Ala111Val|469/1821|332/1452|111/483|",
         "A|missense_variant|MODERATE|Thnsl2|ENSMUSG00000054474.1|transcript|ENSMUST00000160918.7|protein_coding|3/9|c.332C>T|p.Ala111Val|493/2077|332/1452|111/483|",
         "A|non_coding_transcript_exon_variant|MODIFIER|Thnsl2|ENSMUSG00000054474|transcript|ENSMUST00000170455.1|processed_transcript|2/6|n.150C>T||||||"
-      ), ensembl_transcript_id = c(
+      ), transcript_id = c(
         "ENSMUST00000055688.9", "ENSMUST00000036680.7",
         "ENSMUST00000105665.2", "ENSMUST00000146471.1", "ENSMUST00000074241.8",
         "ENSMUST00000160918.7", "ENSMUST00000170455.1"

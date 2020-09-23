@@ -160,7 +160,7 @@ Start and configure the container as described above. One or more tab or comma-s
 ```
 Example transcript input .csv file:
 
-		sample_id,ensembl_transcript_id,cDNA_change,MHC
+		sample_id,transcript_id,cDNA_change,MHC
 		sample_1,ENST00000311936,c.718T>A,HLA-A*02:01 HLA-A*03:01
 
 Example peptide input .csv file:

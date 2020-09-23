@@ -1371,7 +1371,7 @@ garnish_affinity <- function(dt = NULL,
   input_type <- vector()
 
   # specify transcript vs. direct cDNA / mutant index input
-  if (c("sample_id", "ensembl_transcript_id", "cDNA_change", "MHC") %chin%
+  if (c("sample_id", "transcript_id", "cDNA_change", "MHC") %chin%
     (dt %>% names()) %>% all()) {
     input_type <- "transcript"
   }
@@ -1421,10 +1421,10 @@ garnish_affinity <- function(dt = NULL,
         stop("Transcript expression matrix has non-unique or NA values.")
       }
 
-      ct %>% setnames(names(ct)[1], "ensembl_transcript_id")
+      ct %>% setnames(names(ct)[1], "transcript_id")
 
       ct %<>% melt(
-        id.vars = "ensembl_transcript_id",
+        id.vars = "transcript_id",
         variable.name = "sample_id",
         value.name = "counts",
         variable.factor = FALSE
@@ -1438,8 +1438,8 @@ garnish_affinity <- function(dt = NULL,
 
       ct <- ct[counts == TRUE]
 
-      dt <- merge(dt, ct[, .SD %>% unique(), .SDcols = c("sample_id", "ensembl_transcript_id")],
-        by = c("sample_id", "ensembl_transcript_id")
+      dt <- merge(dt, ct[, .SD %>% unique(), .SDcols = c("sample_id", "transcript_id")],
+        by = c("sample_id", "transcript_id")
       )
 
       if (nrow(dt) == 0) {

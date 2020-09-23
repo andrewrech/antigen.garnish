@@ -128,7 +128,7 @@ transcripts <- function() {
     # load test data
     dt <- data.table::data.table(
       sample_id = "test",
-      ensembl_transcript_id =
+      transcript_id =
         c("ENSMUST00000128119.1"),
       cDNA_change = c("c.4988C>T"),
       MHC = c("HLA-A*02:01 HLA-E*01:03", "HLA-DQA10402-DQB10511")
@@ -230,7 +230,7 @@ RNA_test <- function() {
     # load test data
     dt <- data.table::data.table(
       sample_id = "test",
-      ensembl_transcript_id =
+      transcript_id =
         c(
           "ENSMUST00000128119.1",
           "ENSMUST00000044250.1",

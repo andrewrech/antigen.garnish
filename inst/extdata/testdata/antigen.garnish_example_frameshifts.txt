@@ -1,4 +1,4 @@
-sample_id	ensembl_transcript_id	cDNA_change	MHC	expected_mutant_index
+sample_id	transcript_id	cDNA_change	MHC	expected_mutant_index
 stop_lost_missense	ENSMUST00000128119.1	c.8369A>T	HLA-A*02:01	2790
 terminal_change_missense	ENSMUST00000128119.1	c.8365C>T	HLA-A*02:01	2789
 stop_lost_fs	ENSMUST00000128119.1	c.8369_8370insT	HLA-A*02:01	2790

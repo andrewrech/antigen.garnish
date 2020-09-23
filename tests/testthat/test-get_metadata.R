@@ -2,7 +2,7 @@ testthat::test_that("get_metadata", {
 
   # load test data
   dto <- data.table::data.table(
-    ensembl_transcript_id = c(
+    transcript_id = c(
       "ENST00000256078.10",
       "ENSMUST00000109987.1"
     )
@@ -13,7 +13,7 @@ testthat::test_that("get_metadata", {
   testthat::expect_equal(
     dto %>% names(),
     c(
-      "ensembl_transcript_id",
+      "transcript_id",
       "coding",
       "description",
       "chromosome_name",
@@ -22,5 +22,5 @@ testthat::test_that("get_metadata", {
     )
   )
 
-  testthat::expect_equal(dto[ensembl_transcript_id == "ENST00000256078.10", peptide], "MTEYKLVVVGAGGVGKSALTIQLIQNHFVDEYDPTIEDSYRKQVVIDGETCLLDILDTAGQEEYSAMRDQYMRTGEGFLCVFAINNTKSFEDIHHYREQIKRVKDSEDVPMVLVGNKCDLPSRTVDTKQAQDLARSYGIPFIETSAKTRQRVEDAFYTLVREIRQYRLKKISKEEKTPGCVKIKKCIIM*")
+  testthat::expect_equal(dto[transcript_id == "ENST00000256078.10", peptide], "MTEYKLVVVGAGGVGKSALTIQLIQNHFVDEYDPTIEDSYRKQVVIDGETCLLDILDTAGQEEYSAMRDQYMRTGEGFLCVFAINNTKSFEDIHHYREQIKRVKDSEDVPMVLVGNKCDLPSRTVDTKQAQDLARSYGIPFIETSAKTRQRVEDAFYTLVREIRQYRLKKISKEEKTPGCVKIKKCIIM*")
 })

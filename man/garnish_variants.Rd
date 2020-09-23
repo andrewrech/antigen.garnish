@@ -17,7 +17,7 @@ A data table with one unique SnpEff variant annotation per row, including:
 \item \strong{sample_id}: sample identifier constructed from input \code{.vcf} file names
 \item \strong{ANN}: SnpEff annotation
 \item \strong{effect_type}: SnpEff effect type
-\item \strong{ensembl_transcript_id}: transcript effected
+\item \strong{transcript_id}: transcript effected
 \item \strong{cDNA_change}: cDNA change in \href{http://varnomen.hgvs.org/recommendations/protein/}{HGVS} format
 }
 }

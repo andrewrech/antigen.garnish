@@ -39,19 +39,19 @@ make_ensembl_db <- function() {
   # parse additional columns
   ret[, chromosome_name := description %>% stringr::str_extract("(?<=chromosome:)[^ ]+")]
   ret[, ensembl_gene_id := description %>% stringr::str_extract("(ENSMUSG|ENSG)[0-9]+(\\.[0-9]+)?")]
-  ret[, ensembl_transcript_id := description %>% stringr::str_extract("(ENSMUST|ENST)[0-9]+(\\.[0-9]+)?")]
+  ret[, transcript_id := description %>% stringr::str_extract("(ENSMUST|ENST)[0-9]+(\\.[0-9]+)?")]
 
   # take only unique older transcripts
-  ret %<>% unique(by = "ensembl_transcript_id")
+  ret %<>% unique(by = "transcript_id")
 
   # do not use non-versioned transcripts because they are not reliable
-  ret[ensembl_transcript_id %likef% "."] %>% nrow()
-  ret[!ensembl_transcript_id %likef% "."] %>% nrow()
-  ret %<>% .[ensembl_transcript_id %likef% "."]
+  ret[transcript_id %likef% "."] %>% nrow()
+  ret[!transcript_id %likef% "."] %>% nrow()
+  ret %<>% .[transcript_id %likef% "."]
 
   # check integrity of parsing
   ret[!ensembl_gene_id %likef% "ENS"] %>% nrow() == 0
-  ret[!ensembl_transcript_id %likef% "ENS"] %>% nrow() == 0
+  ret[!transcript_id %likef% "ENS"] %>% nrow() == 0
   ret[coding %likef% "ENS"] %>% nrow() == 0
 
   # remove MT

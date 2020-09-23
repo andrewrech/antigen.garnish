@@ -12,7 +12,7 @@
 #' * **sample_id**: sample identifier constructed from input \code{.vcf} file names
 #' * **ANN**: SnpEff annotation
 #' * **effect_type**: SnpEff effect type
-#' * **ensembl_transcript_id**: transcript effected
+#' * **transcript_id**: transcript effected
 #' * **cDNA_change**: cDNA change in [HGVS](http://varnomen.hgvs.org/recommendations/protein/) format
 #'
 #' @seealso \code{\link{garnish_affinity}}
@@ -120,7 +120,7 @@ garnish_variants <- function(vcfs, tumor_sample_name = "TUMOR") {
     }
 
     # filter out NA
-    vdt %<>% .[!cDNA_change %>% is.na() & !is.na(ensembl_transcript_id)]
+    vdt %<>% .[!cDNA_change %>% is.na() & !is.na(transcript_id)]
 
     if (vdt %>% nrow() < 1) {
       warning("No variants are present in the input file after filtering.")
@@ -260,7 +260,7 @@ garnish_antigens <- function(dt,
   if (length(ml) != 0) dt[, as.character(ml) := as.numeric(NA)]
 
   n <- names(dt)[which(names(dt) %chin%
-    c("cDNA_change", "protein_change", "ensembl_transcript_id"))]
+    c("cDNA_change", "protein_change", "transcript_id"))]
 
   if (length(n) < 1) n <- NULL
 
