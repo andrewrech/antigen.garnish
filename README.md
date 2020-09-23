@@ -30,9 +30,9 @@ Two methods exist to run `antigen.garnish`:
 ### Docker
 
 ```sh
-docker pull leeprichman/antigen_garnish
+docker pull leeprichman/antigen_garnish_2
 
-cID=$(docker run -it -d leeprichman/antigen_garnish /bin/bash)
+cID=$(docker run -it -d leeprichman/antigen_garnish_2 /bin/bash)
 ```
 
 [Download](https://services.healthtech.dtu.dk/software.php) netMHC binaries (academic license): NetMHC 4.0, NetMHCpan 4.1b, NetMHCII 2.3, NetMHCIIpan 4.0.
@@ -42,7 +42,7 @@ Copy netMHC `tar.gz` files to the container and run the installation script:
 ```sh
 docker cp netMHC-4.0a.Linux.tar.gz cID:/netMHC-4.0a.Linux.tar.gz
 docker cp netMHCII-2.3.Linux.tar.gz cID:/netMHCII-2.3.Linux.tar.gz
-docker cp netMHCIIpan-4.0.Linux.tar.gz cID:netMHCIIpan-4.0.Linux.tar.gz
+docker cp netMHCpan-4.1b.Linux.tar.gz cID:netMHCpan-4.1b.Linux.tar.gz
 docker cp netMHCIIpan-4.0.Linux.tar.gz cID:netMHCIIpan-4.0.Linux.tar.gz
 
 docker exec $cID config_netMHC.sh
@@ -89,7 +89,7 @@ mkdir -p "$ANTIGEN_GARNISH_DIR/netMHC"
 
 tar xvzf netMHC-4.0a.Linux.tar.gz -C "$ANTIGEN_GARNISH_DIR/netMHC"
 tar xvzf netMHCII-2.3.Linux.tar.gz -C "$ANTIGEN_GARNISH_DIR/netMHC"
-tar xvzf netMHCIIpan-4.0.Linux.tar.gz -C "$ANTIGEN_GARNISH_DIR/netMHC"
+tar xvzf netMHCpan-4.1b.Linux.tar.gz -C "$ANTIGEN_GARNISH_DIR/netMHC"
 tar xvzf netMHCIIpan-4.0.Linux.tar.gz -C "$ANTIGEN_GARNISH_DIR/netMHC"
 
 chown "$USER" "$ANTIGEN_GARNISH_DIR/netMHC"
