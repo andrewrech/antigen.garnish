@@ -779,7 +779,6 @@ merge_predictions <- function(l, dt) {
     })
   }
 
-
   message("Calculating overall consensus affinity score.")
 
   # get vector of netMHC scores
@@ -788,7 +787,7 @@ merge_predictions <- function(l, dt) {
   # only calculate best_netMHC if 2 or more scores exist
 
   if (length(cols) < 2)
-      dt[, best_netMHC := as.numeric(NA)]
+      dt[, best_netMHC := get(col)]
 
   if (length(cols) >= 2){
 
@@ -817,9 +816,14 @@ merge_predictions <- function(l, dt) {
 
   cols  <- dt %>% names() %include% "(best_netMHC)|(mhcflurry_prediction$)|(mhcflurry_affinity$)"
 
+  if (length(cols) < 2)
+      dt[, Ensemble_score := get(col)]
+
+  if (length(cols) >= 2){
   dt[, Ensemble_score := mean(as.numeric(.SD), na.rm = TRUE),
     by = 1:nrow(dt), .SDcols = cols
   ]
+  }
 
   message("Calculating differential agretopicity.")
 
@@ -1476,6 +1480,7 @@ garnish_affinity <- function(dt = NULL,
     dt[cDNA_delta %% 3L != 0L, frameshift := TRUE]
 
     # remove variants with translated sequence-ensembl mismatch
+    dt %<>% .[peptide == pep_wt]
     dt %<>% .[peptide == pep_wt]
 
     # remove stop codons
