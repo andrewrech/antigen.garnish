@@ -325,13 +325,11 @@ configure_netMHC_tools <- function(dir) {
     setwd(npd)
 
     return(io)
-
   }) %>% unlist()
 
   setwd(owd)
 
   return(io)
-
 }
 
 #' Internal function to check for netMHC tools and mhcflurry
