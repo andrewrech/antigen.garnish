@@ -29,6 +29,8 @@ Two methods exist to run `antigen.garnish`:
 
 ### Docker
 
+_Note: Docker container for version 2.0 will be available on 10/12_
+
 ```sh
 docker pull leeprichman/antigen_garnish_2
 
