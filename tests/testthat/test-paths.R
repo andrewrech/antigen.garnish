@@ -9,7 +9,7 @@ run_path_error <- function(){
 
   dt <- data.table::data.table(
        sample_id = "test",
-       ensembl_transcript_id =
+       transcript_id =
        c("ENSMUST00000128119"),
        cDNA_change = c("c.4988C>T"),
        MHC = c("HLA-A*02:01 HLA-DRB1*14:67")) %>%
@@ -32,7 +32,7 @@ error_function <- function(){
 
   err <- try({
 
-    ag_data_err()
+    .ag_data_err()
 
     }, silent = TRUE)
 

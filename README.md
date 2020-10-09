@@ -1,124 +1,186 @@
-[![rech.io](https://s3.amazonaws.com/get.rech.io/antigen.garnish_build_status.svg)](https://s3.amazonaws.com/get.rech.io/antigen.garnish.test.txt) | [![rech.io](https://img.shields.io/badge/endpoint.svg?url=https://s3.amazonaws.com/get.rech.io/antigen.garnish_coverage.json)](https://s3.amazonaws.com/get.rech.io/antigen.garnish_coverage.html) | ![](https://img.shields.io/badge/version-1.1.1-blue.svg) | ![](https://img.shields.io/docker/pulls/leeprichman/antigen_garnish.svg)
+[![rech.io](https://s3.amazonaws.com/get.rech.io/antigen.garnish_build_status.svg)](https://s3.amazonaws.com/get.rech.io/antigen.garnish.test.txt) | [![rech.io](https://img.shields.io/badge/endpoint.svg?url=https://s3.amazonaws.com/get.rech.io/antigen.garnish_coverage.json)](https://s3.amazonaws.com/get.rech.io/antigen.garnish_coverage.html) | ![](https://img.shields.io/badge/version-2.0.0-blue.svg) | ![](https://img.shields.io/docker/pulls/leeprichman/antigen_garnish.svg)
 
-# antigen.garnish
+# antigen.garnish 2.0
 
-Ensemble tumor neoantigen prediction and multi-parameter quality analysis from direct input, SNVs, indels, or gene fusion variants.
+Human and mouse ensemble tumor neoantigen prediction from SNVs and complex variants. Immunogenicity filtering based on the [Tumor Neoantigen Selection Alliance (TESLA)](https://www.parkerici.org/research-project/tumor-neoantigen-selection-alliance-tesla/).
 
 ![](https://get.rech.io/antigen.garnish_flowchart.svg)
 
-[Detailed flowchart.](https://get.rech.io/antigen.garnish_flowchart_detailed.svg)
+## Citation
 
-## Description
+> Richman LP, Vonderheide RH, and Rech AJ. Neoantigen dissimilarity to the self-proteome predicts immunogenicity and response to immune checkpoint blockade. Cell Systems. 2019.
 
-An R package for [neoantigen](http://science.sciencemag.org/content/348/6230/69) analysis that takes human or murine DNA missense mutations, insertions, deletions, or RNASeq-derived gene fusions and performs ensemble neoantigen prediction using 7 algorithms. Input is a VCF file, [JAFFA](https://github.com/Oshlack/JAFFA) output, or table of peptides or transcripts. Outputs are ranked and summarized by sample. Neoantigens are ranked by MHC I/II binding affinity, clonality, RNA expression, similarity to known immunogenic antigens, and dissimilarity to the normal peptidome.
+## Selected references
 
-### Advantages
+> Duan, F., Duitama, J., Seesi, S.A., Ayres, C.M., Corcelli, S.A., Pawashe, A.P., Blanchard, T., McMahon, D., Sidney, J., Sette, A., et al. Genomic and bioinformatic profiling of mutational neoepitopes reveals new rules to predict anticancer immunogenicity. J Exp Med. 2014.
 
-1. **Thoroughness**:
-	* missense mutations, insertions, deletions, and gene fusions
-	* human and mouse
-	* ensemble MHC class I/II binding prediction using [mhcflurry](https://github.com/hammerlab/mhcflurry), [mhcnuggets](https://github.com/KarchinLab/mhcnuggets-2.0), [netMHC](http://www.cbs.dtu.dk/services/NetMHC/), [netMHCII](http://www.cbs.dtu.dk/services/NetMHCII/), [netMHCpan](http://www.cbs.dtu.dk/services/NetMHCpan/) and [netMHCIIpan](http://www.cbs.dtu.dk/services/NetMHCIIpan/i)
-	* ranked by
-		* MHC I/II binding affinity
-		* clonality
-		* RNA expression
-		* similarity to known immunogenic antigens
-		* dissimilarity to the normal peptidome
-2. **Speed and simplicity**:
-	* 1000 variants are ranked in a single step in less than five minutes
-	* parallelized using [`parallel::mclapply`](https://stat.ethz.ch/R-manual/R-devel/library/parallel/html/mclapply.html), [`data.table::setDTthreads`](https://github.com/Rdatatable/data.table/wiki), and [GNU parallel](https://www.gnu.org/software/parallel/) see respective links for information on setting multicore usage
-3. **Integration with R/Bioconductor**
-	* upstream/VCF processing
-	* exploratory data analysis, visualization
+> Luksza, M, Riaz, N, Makarov, V, Balachandran VP, et al. A neoepitope fitness model predicts tumour response to checkpoint blockade immunotherapy. Nature. 2017.
+
+> Rech AJ, Balli D, Mantero A, Ishwaran H, Nathanson KL, Stanger BZ, Vonderheide RH. Tumor immunity and survival as a function of alternative neopeptides in human cancer. Clinical Cancer Research, 2018.
+
+> Wells DK, van Buuren MM, Dang KK, Hubbard-Lucey VM, Sheehan KCF, Campbell KM, Lamb A, Ward JP, Sidney J, Blazquez AB, Rech AJ, Zaretsky JM, Comin-Anduix B, Ng AHC, Chour W, Yu TV, Rizvi1 H, Chen JM, Manning P, Steiner GM, Doan XC, The TESLA Consortium, Merghoub T, Guinney J, Kolom A, Selinsky C, Ribas A, Hellmann MD, Hacohen N, Sette A, Heath JR, Bhardwaj N, Ramsdell F, Schreiber RD, Schumacher TN, Kvistborg P, Defranoux N. Key Parameters of Tumor Epitope Immunogenicity Revealed Through a Consortium Approach Improve Neoantigen Prediction. Cell. 2020.
 
 ## Installation
 
-Three methods exist to run `antigen.garnish`:
+Two methods exist to run `antigen.garnish`:
 
 1. Docker
 2. Linux
-3. Amazon Web Services
 
 ### Docker
 
 ```sh
-docker pull leeprichman/antigen_garnish
+docker pull leeprichman/antigen_garnish_2
+
+cID=$(docker run -it -d leeprichman/antigen_garnish_2 /bin/bash)
 ```
 
-See the [wiki](https://github.com/immune-health/antigen.garnish/wiki/Docker) for instructions to run the Docker container.
+[Download](https://services.healthtech.dtu.dk/software.php) netMHC binaries (academic license): NetMHC 4.0, NetMHCpan 4.1b, NetMHCII 2.3, NetMHCIIpan 4.0.
+
+Copy netMHC `tar.gz` files to the container and run the installation script:
+
+```sh
+docker cp netMHC-4.0a.Linux.tar.gz $cID:/netMHC-4.0a.Linux.tar.gz
+docker cp netMHCII-2.3.Linux.tar.gz $cID:/netMHCII-2.3.Linux.tar.gz
+docker cp netMHCpan-4.1b.Linux.tar.gz $cID:netMHCpan-4.1b.Linux.tar.gz
+docker cp netMHCIIpan-4.0.Linux.tar.gz $cID:netMHCIIpan-4.0.Linux.tar.gz
+
+docker exec $cID config_netMHC.sh
+```
 
 ### Linux
 
-#### Requirements
+#### Dependencies
 
-- R &ge; 3.4
-- python-pip
-- tcsh (required for netMHC)
-- `sudo` privileges (required for netMHC)
-- GNU Parallel (required for master branch development version only)
+- R &ge; 3.5.0
+- [Bioconductor](https://www.bioconductor.org/install/) [Biostrings package](https://www.bioconductor.org/packages/release/bioc/html/Biostrings.html)
+- [GNU Parallel](https://www.gnu.org/software/parallel/)
+- [mhcflurry](https://github.com/openvax/mhcflurry)
+- tcsh (required for netMHC, install via your package manager)
 
-#### Installation script
+#### Installation
 
-The following line downloads and runs the initial [installation script](http://get.rech.io/install_antigen.garnish.sh).
-
-```sh
-$ curl -fsSL http://get.rech.io/install_antigen.garnish.sh | sudo sh
-```
-
-Next, download the netMHC suite of tools for Linux, available under an academic license:
-
-* [netMHC](http://www.cbs.dtu.dk/cgi-bin/nph-sw_request?netMHC)
-* [netMHCpan](http://www.cbs.dtu.dk/cgi-bin/nph-sw_request?netMHCpan)
-* [netMHCII](http://www.cbs.dtu.dk/cgi-bin/nph-sw_request?netMHCII)
-* [netMHCIIpan](http://www.cbs.dtu.dk/cgi-bin/nph-sw_request?netMHCIIpan)
-
-After downloading the files above, move the binaries into the `antigen.garnish` data directory, first setting the `NET_MHC_DIR` and `ANTIGEN_GARNISH_DIR` environmental variables, as shown here:
+Install the dependencies listed above. Then, download and extract `antigen.garnish` data:
 
 ```sh
+ANTIGEN_GARNISH_DIR="~/antigen.garnish"
 
-NET_MHC_DIR=/path/to/folder/containing/netMHC/downloads
-ANTIGEN_GARNISH_DIR=/path/to/antigen.garnish/data/directory
-
-cd "$NET_MHC_DIR" || return 1
-
-mkdir -p "$ANTIGEN_GARNISH_DIR/netMHC" || return 1
-
-find . -name "netMHC*.tar.gz" -exec tar xvzf {} -C "$ANTIGEN_GARNISH_DIR/netMHC" \;
-
-chown "$USER" "$ANTIGEN_GARNISH_DIR/netMHC"
-chmod 700 -R "$ANTIGEN_GARNISH_DIR/netMHC"
-
+cd ~
+curl -fsSL "http://get.rech.io/antigen.garnish.tar.gz" | tar -xvz
+chmod 700 -R "$ANTIGEN_GARNISH_DIR"
 ```
 
-### Amazon Web Services
-
-See the [wiki](https://github.com/immune-health/antigen.garnish/wiki/antigen.garnish-on-AWS) for instructions to create an Amazon Web Services instance.
-
-### Development version from master
-
-Follow instructions above under _Installation script_ to install dependencies, and then:
+Install antigen.garnish:
 
 ```r
+# install.packages("devtools")
 devtools::install_github("immune-health/antigen.garnish")
 ```
 
-## Package documentation
+Next, [download](https://services.healthtech.dtu.dk/software.php) netMHC binaries (academic license): NetMHC 4.0, NetMHCpan 4.1b, NetMHCII 2.3, NetMHCIIpan 4.0.
 
-Package documentation can be found: [website](https://neoantigens.rech.io/reference/index.html), [pdf](https://get.rech.io/antigen.garnish.pdf).
+Move the binaries into the `antigen.garnish` data directory, first setting the `NET_MHC_DIR` and `ANTIGEN_GARNISH_DIR` environment variables:
 
-### Workflow example
+```sh
+NET_MHC_DIR=/path/to/folder/containing/netMHC/downloads
 
-  1. Prepare input for MHC affinity prediction and quality analysis:
+cd "$NET_MHC_DIR"
+mkdir -p "$ANTIGEN_GARNISH_DIR/netMHC"
 
-		* VCF input - `garnish_variants`
-		* Fusions from RNASeq via [JAFFA](https://github.com/Oshlack/JAFFA)- `garnish_jaffa`
-		* Prepare table of direct transcript or peptide input - see manual page in R (`?garnish_affinity`)
+tar xvzf netMHC-4.0a.Linux.tar.gz -C "$ANTIGEN_GARNISH_DIR/netMHC"
+tar xvzf netMHCII-2.3.Linux.tar.gz -C "$ANTIGEN_GARNISH_DIR/netMHC"
+tar xvzf netMHCpan-4.1b.Linux.tar.gz -C "$ANTIGEN_GARNISH_DIR/netMHC"
+tar xvzf netMHCIIpan-4.0.Linux.tar.gz -C "$ANTIGEN_GARNISH_DIR/netMHC"
 
-  1. Add MHC alleles of interest - see examples below.
-  1. Run ensemble prediction method and perform antigen quality analysis including proteome-wide differential agretopicity, IEDB alignment score, and dissimilarity: `garnish_affinity`.
-  1. Summarize output by sample level with `garnish_summary` and `garnish_plot`, and prioritize the highest quality neoantigens per clone and sample with `garnish_antigens`.
+chown "$USER" "$ANTIGEN_GARNISH_DIR/netMHC"
+chmod 700 -R "$ANTIGEN_GARNISH_DIR/netMHC"
+```
 
-### Function examples
+## Usage
+
+See the [website](https://neoantigens.rech.io/reference/index.html) or [reference manual](https://get.rech.io/antigen.garnish.pdf).
+
+### Docker
+
+#### Interactive use
+
+```sh
+
+cID=$(docker run -it -d leeprichman/antigen_garnish /bin/bash)
+docker exec -it $cID bash
+R
+```
+
+```r
+library("antigen.garnish")
+```
+
+#### VCF input
+
+Paired tumor-normal VCFs annotated with SnpEff against any GRCh38 or GRCm38 releases are supported. For many variant callers, the tumor sample name is "TUMOR". In this case, the following input VCF file names will work:
+
+```
+TUMOR.vcf
+TUMOR_se.vcf
+TUMOR.ann.vcf
+TUMOR.vcf.gz
+```
+
+MHC input is a JSON file from xHLA or a 2-column tab or comma-separated file ending in "mhc.txt" with the following format:
+
+```
+Example mouse .csv file:
+
+		sample_id,MHC
+		mysample.vcf,H-2-Kb H-2-Db H-2-IAb
+
+Example human .csv file:
+
+		sample_id,MHC
+		mysample.vcf,HLA-A*02:01 HLA-B*07:02 or H-2-Kb H-2-Db
+```
+
+```sh
+VCFO="TUMOR.vcf"
+MHC="hla.json"
+
+cID=$(docker run -it -d leeprichman/antigen_garnish /bin/bash)
+
+docker cp $VCFO $cID:/$VCFO
+docker cp $MHC $cID:/$MHC
+
+# run antigen.garnish
+docker exec $cID run_antigen.garnish.R
+```
+
+#### Peptide or transcript input
+
+Start and configure the container as described above. One or more tab or comma-separated input files with the pattern "docker_input" in the file name with the following format are required:
+
+```
+Example transcript input .csv file:
+
+		sample_id,transcript_id,cDNA_change,MHC
+		sample_1,ENST00000311936,c.718T>A,HLA-A*02:01 HLA-A*03:01
+
+Example peptide input .csv file:
+
+		sample_id,pep_mut,mutant_index,MHC
+		sample_1,MTEYKLVVVDAGGVGKSALTIQLIQNHFV,25,HLA-A*02:01 HLA-A*03:01
+```
+
+```sh
+INPUT="docker_input.csv"
+
+cID=$(docker run -it -d leeprichman/antigen_garnish /bin/bash)
+
+docker cp $INPUT $cID:/$DT
+
+# run antigen.garnish
+docker exec $cID run_antigen.garnish_direct.R
+```
+
+### Linux
 
 #### Predict neoantigens from missense mutations, insertions, and deletions
 
@@ -127,148 +189,62 @@ library(magrittr)
 library(data.table)
 library(antigen.garnish)
 
-  # load an example VCF
-	dir <- system.file(package = "antigen.garnish") %>%
-		file.path(., "extdata/testdata")
+# load an example VCF
+dir <- system.file(package = "antigen.garnish") %>%
+       file.path(., "extdata/testdata")
 
-	dt <- "antigen.garnish_example.vcf" %>%
-	file.path(dir, .) %>%
+file <- file.path(dir, "TUMOR.vcf")
 
-  # extract variants
-    garnish_variants %>%
+# extract variants
+dt <-  garnish_variants(file)
 
-  # add space separated MHC types
+# add space separated MHC types
+# see list_mhc() for nomenclature of supported alleles
+# MHC may also be set to "all_human" or "all_mouse" to use all supported alleles
 
-  # see list_mhc() for nomenclature of supported alleles
+dt[, MHC := c("HLA-A*01:47 HLA-A*02:01 HLA-DRB1*14:67")]
 
-	# MHC may also be set to "all_human" or "all_mouse" to use all supported alleles
+# predict neoantigens
+result <- dt %>% garnish_affinity(.)
 
-      .[, MHC := c("HLA-A*01:47 HLA-A*02:01 HLA-DRB1*14:67")] %>%
-
-  # predict neoantigens
-    garnish_affinity
-
-  # summarize predictions
-    dt %>%
-      garnish_summary %T>%
-        print
-
-  # generate summary graphs
-    dt %>% garnish_plot
+result %>% str
 ```
 
-#### Predict neoantigens from gene fusions
+#### Directly calculate foreignness score and dissimilarity for a list of sequences
 
 ```r
 library(magrittr)
 library(data.table)
 library(antigen.garnish)
 
-  # load example jaffa output
-	dir <- system.file(package = "antigen.garnish") %>%
-		file.path(., "extdata/testdata")
+# generate our character vector of sequences
+v <- c("SIINFEKL", "ILAKFLHWL", "GILGFVFTL")
 
-	path <- "antigen.garnish_jaffa_results.csv" %>%
-			file.path(dir, .)
-	fasta_path <- "antigen.garnish_jaffa_results.fasta" %>%
-			file.path(dir, .)
+# calculate foreignness score
+v %>% foreignness_score(db = "human") %>% print
 
-  # get predictions
-    dt <- garnish_jaffa(path, db = "GRCm38", fasta_path) %>%
-
-  # add MHC info with list_mhc() compatible names
-    .[, MHC := "H-2-Kb"] %>%
-
-  # get predictions
-    garnish_affinity %>%
-
-  # summarize predictions
-    garnish_summary %T>%
-    print
-```
-
-#### Get full MHC affinity output from a Microsoft Excel file of variants
-
-```r
-library(magrittr)
-library(data.table)
-library(antigen.garnish)
-
-  # load example Microsoft Excel file
-  dir <- system.file(package = "antigen.garnish") %>%
-    file.path(., "extdata/testdata")
-
-  path <- "antigen.garnish_test_input.xlsx" %>%
-    file.path(dir, .)
-
-  # predict neoantigens
-    dt <- garnish_affinity(path = path) %T>%
-      str
-```
-
-#### Directly calculate IEDB score and dissimilarity for a list of sequences
-
-```r
-library(magrittr)
-library(data.table)
-library(antigen.garnish)
-
-  # generate our character vector of sequences
-  v <- c("SIINFEKL", "ILAKFLHWL", "GILGFVFTL")
-
-  # calculate IEDB score
-  v %>% iedb_score(db = "human") %>% print
-
-	# calculate dissimilarity
-	v %>% garnish_dissimilarity(db = "human") %>% print
-```
-
-#### Automated testing
-
-From ./`<Github repo>`:
-
-```r
-  devtools::test(reporter = "summary")
+# calculate dissimilarity
+v %>% dissimilarity_score(db = "human") %>% print
 ```
 
 #### How are peptides generated?
 
 ```r
-  library(magrittr)
-  library(data.table)
-  library(antigen.garnish)
+library(magrittr)
+library(data.table)
+library(antigen.garnish)
 
-  # generate a fake peptide
-    dt <- data.table::data.table(
-       pep_base = "Y___*___THIS_IS_________*___A_CODE_TEST!______*__X",
-       mutant_index = c(5, 25, 47, 50),
-       pep_type = "test",
-       var_uuid = c(
-                    "front_truncate",
-                    "middle",
-                    "back_truncate",
-                    "end")) %>%
-  # create nmers
-    make_nmers %T>% print
+data.table::data.table(
+   pep_base = "Y___*___THIS_IS_________*___A_PEPTIDE_TEST!______*__X",
+   mutant_index = c(5, 25, 47, 50),
+   pep_type = "test",
+   var_uuid = c(
+                "front_truncate",
+                "middle",
+                "back_truncate",
+                "end")) %>%
+   make_nmers %>% print
 ```
-
-## Plots and summary tables
-
-* `garnish_plot` output:
-
-![](https://get.rech.io/antigen.garnish_example_plot.png)
-
-* `garnish_antigens` output:
-
-![](https://get.rech.io/antigen.garnish_summary_table.png)
-
-## Citation
-
-> Richman LP, Vonderheide RH, and Rech AJ. "Neoantigen dissimilarity to the self-proteome predicts immunogenicity and response to immune checkpoint blockade." *Cell Systems* **9**, 375-382.E4, (2019).
-
-## Contributing
-
-We welcome contributions and feedback via [Github](https://github.com/immune-health/antigen.garnish/issues) or [email](mailto:leepr@upenn.edu).
 
 ## Acknowledgments
 

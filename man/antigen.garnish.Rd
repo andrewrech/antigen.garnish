@@ -3,51 +3,15 @@
 \docType{package}
 \name{antigen.garnish}
 \alias{antigen.garnish}
-\title{\pkg{antigen.garnish}: ensemble neoantigen prediction from DNA variants in R.}
+\title{\pkg{antigen.garnish}: tumor neoantigen prediction}
 \description{
-An R package for \href{http://science.sciencemag.org/content/348/6230/69}{neoantigen} analysis that takes human or murine DNA missense mutations, insertions, deletions, or RNASeq-derived gene fusions and performs ensemble neoantigen prediction using 7 algorithms. Input is a VCF file, \href{https://github.com/Oshlack/JAFFA}{JAFFA} output, or table of peptides or transcripts. Outputs are ranked and summarized by sample. Neoantigens are ranked by MHC I/II binding affinity, clonality, RNA expression, similarity to known immunogenic antigens, and dissimilarity to the normal peptidome.
-}
-\details{
-Advantages
-\enumerate{
-\item \strong{Thoroughness}:
-}
-\itemize{
-\item missense mutations, insertions, deletions, and gene fusions
-\item human and mouse
-\item ensemble MHC class I/II binding prediction using \href{https://github.com/hammerlab/mhcflurry}{mhcflurry}, \href{https://github.com/KarchinLab/mhcnuggets}{mhcnuggets}, \href{http://www.cbs.dtu.dk/services/NetMHC/}{netMHC}, \href{http://www.cbs.dtu.dk/services/NetMHCII/}{netMHCII}, \href{http://www.cbs.dtu.dk/services/NetMHCpan/}{netMHCpan} and \href{http://www.cbs.dtu.dk/services/NetMHCIIpan/i}{netMHCIIpan}
-\item ranked by
-\itemize{
-\item MHC I/II binding affinity
-\item clonality
-\item RNA expression
-\item similarity to known immunogenic antigens
-\item dissimilarity to the normal peptidome
-}
-}
-\enumerate{
-\item \strong{Speed and simplicity}:
-}
-\itemize{
-\item 1000 variants are ranked in a single step in less than five minutes
-\item parallelized using \href{https://stat.ethz.ch/R-manual/R-devel/library/parallel/html/mclapply.html}{\code{parallel::mclapply}} and \href{https://github.com/Rdatatable/data.table/wiki}{data.table::setDTthreads}, see respective links for information on setting multicore usage
-}
-\enumerate{
-\item \strong{Integration with R/Bioconductor}
-}
-\itemize{
-\item upstream/VCF processing
-\item exploratory data analysis, visualization
-}
-
-\href{https://neoantigens.rech.io/reference/index.html}{Package documentation} (\href{https://get.rech.io/antigen.garnish.pdf}{pdf})
-
-We welcome contributions and feedback via \href{https://github.com/immune-health/antigen.garnish/issues}{Github} or \href{mailto:leepr@upenn.edu}{email}.
+\href{https://github.com/immune-health/antigen.garnish}{Github}
+\href{https://neoantigens.rech.io/}{Documentation}
 }
 \seealso{
 \code{\link{garnish_variants}}
 
 \code{\link{garnish_affinity}}
 
-\code{\link{garnish_summary}}
+\code{\link{garnish_antigens}}
 }

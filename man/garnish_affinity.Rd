@@ -10,54 +10,24 @@ garnish_affinity(
   binding_cutoff = 500,
   counts = NULL,
   min_counts = 1,
-  assemble = TRUE,
-  generate = TRUE,
   peptide_length = 15:8,
-  predict = TRUE,
   blast = TRUE,
   save = TRUE,
   remove_wt = TRUE
 )
 }
 \arguments{
-\item{dt}{Data table. Input data table from \code{garnish_variants} or \code{garnish_jaffa}, or a data table in one of these forms:
+\item{dt}{Data table. Input data table from \code{garnish_variants}, or a data table in the correct form (see \href{https://github.com/immune-health/antigen.garnish}{Github README}.}
 
-dt with transcript id:\preformatted{Column name                 Example input
+\item{path}{Path to input \code{csv} or \code{tsv} file.}
 
-sample_id                   sample_1
-ensembl_transcript_id       ENST00000311936
-cDNA_change                 c.718T>A
-MHC                         HLA-A*02:01 HLA-A*03:01
-                            H-2-Kb H-2-Kb
-                            HLA-DRB1*11:07 [second type]
-}
+\item{binding_cutoff}{Numeric. Maximum consensus MHC-binding affinity that will be passed for IEDB and dissimilarity analysis. Default is 500 (nM). Note: If a peptide binds to any MHC allele in the table below this threshold, foreignness score and dissimilarity will be returned for all rows with that peptide.}
 
-dt with peptide (standard amino-acid one-letter codes only):\preformatted{Column name                 Example input
-
-sample_id                   <same as above>
-pep_mut                     MTEYKLVVVDAGGVGKSALTIQLIQNHFV
-pep_wt                      <optional, required for local DAI calculation>
-mutant_index                all
-                            7
-                            7 13 14
-MHC                         <same as above>
-}}
-
-\item{path}{Path to input table (\href{https://cran.r-project.org/web/packages/rio/vignettes/rio.html#supported_file_formats}{acceptable formats}).}
-
-\item{binding_cutoff}{Numeric. Maximum consensus MHC-binding affinity that will be passed for IEDB and dissimilarity analysis. Default is 500 (nM). Note: If a peptide binds to any MHC allele in the table below this threshold, IEDB score and dissimilarity will be returned for all rows with that peptide.}
-
-\item{counts}{Optional. A file path to an RNA count matrix. The first column must contain ENSEMBL transcript ids. All samples in the input table must be present in the count matrix.}
+\item{counts}{Optional. A file path to a \code{csv} or \code{tsv} RNA count matrix. The first column must contain Ensembl transcript ids. All samples in the input table must be present in the count matrix.}
 
 \item{min_counts}{Integer. The minimum number of estimated read counts for a transcript to be considered for neoantigen prediction. Default is 1.}
 
-\item{assemble}{Logical. Assemble data table?}
-
-\item{generate}{Logical. Generate peptides?}
-
 \item{peptide_length}{Numeric vector. Length(s) of peptides to create.}
-
-\item{predict}{Logical. Predict binding affinities?}
 
 \item{blast}{Logical. Run \code{BLASTp} to find wild-type peptide and known IEDB matches?}
 
@@ -85,140 +55,40 @@ A data table of binding predictions including:
 \item \strong{nmer_i}: index of nmer in sliding window
 \item \strong{_net}: netMHC prediction tool output
 \item \strong{mhcflurry_}: mhcflurry_ prediction tool output
-\item \strong{mhcnuggets_}: mhcnuggets_ prediction tool output
-\item \strong{DAI}: Differential agretopicty index of missense and corresponding wild-type peptide, see \code{garnish_summary} for an explanation of DAI.
+\item \strong{DAI}: Differential agretopicity index of missense and corresponding wild-type peptide. Differential agretopicty is the ratio of MHC binding afinity between mutant and corresponding normal peptide, with higher values indicating greater relative binding of the mutant peptide.
 \item \strong{BLAST_A}: Ratio of consensus binding affinity of mutant peptide / closest single AA mismatch from blastp results. Returned only if \code{blast = TRUE}.
 }
 
-clonality info:
+antigen.garnish quality analysis metric results:
 \itemize{
-\item \strong{clone_id}: rank of the clone containing the variant (highest equals larger tumor fraction).
-\item \strong{cl_proportion}: The estimated mean tumor fraction containing the clone. If allele fraction and not clonality is used, this is estimated.
-}
-
-antigen.garnish quality analysis metric results
-\itemize{
-\item \strong{Ensemble_score}: average value of MHC binding affinity from all prediction tools that contributed output.
-\item \strong{iedb_score}: R implementation of TCR recognition probability for peptide through summing of alignments in IEDB for corresponding organism. See references herein.
+\item \strong{Ensemble_score}: average value of MHC binding affinity from all prediction tools.
+\item \strong{foreignness_score}: Neoantigen foreignness threshold. Value of 0 to 1 indicating the TCR recognition probability, calculated by summing alignments in IEDB immunogenic peptides, with 1 indicating greater homology to immunogenic peptides.
 \item \strong{IEDB_anno}: The best alignment from the IEDB database queried for the sample if applicable.
 \item \strong{min_DAI}: Minimum of value of BLAST_A or DAI values, to provide the most conservative proteome-wide estimate of differential binding between input and wildtype matches.
-\item \strong{dissimilarity}: Calculation from 0 to 1 derived from alignment to the self-proteome, with 1 indicating greater dissimilarity and up to 34-fold odds ratio of immunogenicity (see Citation).
-}
-
-transcript description:
-\itemize{
-\item description
-\item start_position
-\item end_position
-\item transcript_end
-\item transcript_length
-\item transcript_start
-\item peptide
+\item \strong{dissimilarity}: Value of 0 to 1 indicating alignment to the self-proteome, calculated in an analogous manner to neoanigen foreignness, with 1 indicating greater dissimilarity.
 }
 }
 \description{
-Perform ensemble neoantigen prediction on a data table of missense mutations, insertions, deletions or gene fusions using netMHC, mhcflurry, and mhcnuggets.
+Perform ensemble neoantigen prediction on a data table of missense mutations, insertions, or deletions using netMHC and mhcflurry.
 }
 \details{
 \itemize{
 \item see \code{list_mhc} for compatible MHC allele syntax, you may also use "all_human" or "all_mouse" in the MHC column to use all supported alleles
-\item multiple MHC alleles for a single \code{sample_id} must be space separated. Murine and human alleles must be in separate rows. See \href{http://neoantigens.rech.io.s3-website-us-east-1.amazonaws.com/index.html#predict-neoantigens-from-missense-mutations-insertions-and-deletions}{\code{README} example}.
-\item For species specific proteome-wide DAI to be calculated, run human and murine samples separately
-\item \code{garnish_score} is calculated if allelic fraction or tumor cellular fraction were provided
 }
-}
-\examples{
-\dontrun{
-
-# load an example VCF
-dir <- system.file(package = "antigen.garnish") \%>\%
-  file.path(., "extdata/testdata")
-
-dt <- "antigen.garnish_example.vcf" \%>\%
-  file.path(dir, .) \%>\%
-
-  # extract variants
-  garnish_variants() \%>\%
-
-  # add space separated MHC types
-  # see list_mhc() for nomenclature of supported alleles
-
-  .[, MHC := c("HLA-A*01:47 HLA-A*02:01 HLA-DRB1*14:67")] \%>\%
-
-  # predict neoantigens
-  garnish_affinity()
-
-# summarize predictions
-dt \%>\%
-  garnish_summary() \%T>\%
-  print
-
-# generate summary graphs
-dt \%>\% garnish_plot()
-}
-
-\dontrun{
-# input a data table of transcripts
-
-dt <- data.table::data.table(
-  sample_id = "test",
-  ensembl_transcript_id =
-    c(
-      "ENSMUST00000128119",
-      "ENSMUST00000044250",
-      "ENSMUST00000018743"
-    ),
-  cDNA_change = c(
-    "c.4988C>T",
-    "c.1114T>G",
-    "c.718T>A"
-  ),
-  MHC = c(
-    "HLA-A*02:01 HLA-DRB1*14:67",
-    "H-2-Kb H-2-IAd",
-    "HLA-A*01:47 HLA-DRB1*03:08"
-  )
-) \%>\%
-  garnish_affinity() \%T>\%
-  str
-}
-
-\dontrun{
-# input a data table of peptides for all human MHC types
-
-dt <- data.table::data.table(
-  sample_id = "test",
-  pep_mut = "MTEYKLVVVGAGDVGKSALTIQLIQNHFVDEYDP",
-  mutant_index = "12",
-  MHC = "HLA-A*02:01 HLA-A*68:01 HLA-B*07:02"
-) \%>\%
-  garnish_affinity() \%T>\%
-  str
-}
-
-\dontrun{
-# input from Microsoft excel
-
-# load an example excel file
-dir <- system.file(package = "antigen.garnish") \%>\%
-  file.path(., "extdata/testdata")
-
-path <- "antigen.garnish_test_input.xlsx" \%>\%
-  file.path(dir, .)
-
-# predict neoantigens
-dt <- garnish_affinity(path = path) \%T>\%
-  str
-}
-
 }
 \references{
-Luksza, M, Riaz, N, Makarov, V, Balachandran VP, et al. 2017. A neoepitope fitness model predicts tumour response to checkpoint blockade immunotherapy. Nature. 23;551(7681):512-516
+Richman LP, Vonderheide RH, and Rech AJ. Neoantigen dissimilarity to the self-proteome predicts immunogenicity and response to immune checkpoint blockade. Cell Systems. 2019.
+Duan, F., Duitama, J., Seesi, S.A., Ayres, C.M., Corcelli, S.A., Pawashe, A.P., Blanchard, T., McMahon, D., Sidney, J., Sette, A., et al. Genomic and bioinformatic profiling of mutational neoepitopes reveals new rules to predict anticancer immunogenicity. J Exp Med. 2014.
+
+Luksza, M, Riaz, N, Makarov, V, Balachandran VP, et al. A neoepitope fitness model predicts tumour response to checkpoint blockade immunotherapy. Nature. 2017.
+Rech AJ, Balli D, Mantero A, Ishwaran H, Nathanson KL, Stanger BZ, Vonderheide RH. Tumor immunity and survival as a function of alternative neopeptides in human cancer. Clinical Cancer Research, 2018.
+
+Wells DK, van Buuren MM, Dang KK, Hubbard-Lucey VM, Sheehan KCF, Campbell KM, Lamb A, Ward JP, Sidney J, Blazquez AB, Rech AJ, Zaretsky JM, Comin-Anduix B, Ng AHC, Chour W, Yu TV, Rizvi1 H, Chen JM, Manning P, Steiner GM, Doan XC, The TESLA Consortium, Merghoub T, Guinney J, Kolom A, Selinsky C, Ribas A, Hellmann MD, Hacohen N, Sette A, Heath JR, Bhardwaj N, Ramsdell F, Schreiber RD, Schumacher TN, Kvistborg P, Defranoux N. Key Parameters of Tumor Epitope Immunogenicity Revealed Through a Consortium Approach Improve Neoantigen Prediction. Cell. 2020.
 }
 \seealso{
-\code{\link{garnish_variants}}
-
 \code{\link{list_mhc}}
 
-\code{\link{garnish_summary}}
+\code{\link{garnish_variants}}
+
+\code{\link{garnish_antigens}}
 }

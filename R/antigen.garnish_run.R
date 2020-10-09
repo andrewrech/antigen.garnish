@@ -8,12 +8,12 @@
 #' @param gap_open Numeric. Cost to open gapped alignment. Default is -11.
 #' @param gap_extend Numeric. Cost to extend a gap. Default is -1.
 #'
-#' @export SW_align
+#' @noRd
 #' @md
-SW_align <- function(col1,
-                     col2,
-                     gap_open = -11,
-                     gap_extend = -1) {
+make_sw_alignment <- function(col1,
+                              col2,
+                              gap_open = -11,
+                              gap_extend = -1) {
   al <- Biostrings::pairwiseAlignment(col1, col2,
     substitutionMatrix = "BLOSUM62",
     gapOpening = gap_open,
@@ -29,11 +29,11 @@ SW_align <- function(col1,
 
 #' Internal function to run run_mhcflurry commands.
 #'
-#' @export run_mhcflurry
+#' @noRd
 #' @md
 
 run_mhcflurry <- function() {
-  message("Running mhcflurry in parallel")
+  message("Running mhcflurry in parallel.")
 
   fn <- list.files(pattern = "mhcflurry_input.*csv")
 
@@ -48,74 +48,11 @@ run_mhcflurry <- function() {
     })
 }
 
-
-
-
-#' Internal function to run run_mhcnuggets commands.
-#'
-#' @export run_mhcnuggets
-#' @md
-
-run_mhcnuggets <- function() {
-  gruf <- list.files(pattern = "mhcnuggets_input_gru.*csv")
-
-  if (gruf %>% length() > 1) {
-    message("Running mhcnuggets with -m gru")
-  }
-
-  pypath <- system("which predict.py", intern = TRUE)
-
-  gruf %>%
-    seq_along() %>%
-    parallel::mclapply(function(x) {
-      print(paste0("Input file ", x, " of ", length(gruf)))
-
-      paste0(
-        "python ", pypath, " -m gru -w ", dirname(pypath), "/../saves/production/mhcnuggets/",
-        stringr::str_extract(string = gruf[x], pattern = "(?<=_)H.*(?=_)"), ".h5 -p ", gruf[x],
-        " > ",
-        gruf[x] %>% stringr::str_replace("input", "output"), " 2>>mhcnuggets.log"
-      ) %>%
-        system()
-
-      return(NULL)
-    })
-
-
-
-  lf <- list.files(pattern = "mhcnuggets_input_lstm.*csv")
-
-  if (lf %>% length() > 1) {
-    message("Running mhcnuggets with -m lstm")
-  }
-
-  pypath <- system("which predict.py", intern = TRUE)
-
-  lf %>%
-    seq_along() %>%
-    parallel::mclapply(function(x) {
-      print(paste0("Input file ", x, " of ", length(lf)))
-
-      paste0(
-        "python ", pypath, " -m lstm -w ", dirname(pypath), "/../saves/production/mhcnuggets_beta/",
-        stringr::str_extract(string = lf[x], pattern = "(?<=_)H.*(?=_)"), ".h5 -p ", lf[x],
-        " > ",
-        lf[x] %>% stringr::str_replace("input", "output"), " 2>>mhcnuggets.log"
-      ) %>%
-        system()
-
-      return(NULL)
-    })
-}
-
-
-
-
 #' Internal function to run netMHC commands.
 #'
 #' @param dt Data table of prediction commands to run.
 #'
-#' @export run_netMHC
+#' @noRd
 #' @md
 
 run_netMHC <- function(dt) {
@@ -160,7 +97,7 @@ run_netMHC <- function(dt) {
 
   cmdlist %>% data.table::fwrite(fn, col.names = FALSE)
 
-  message("Running netMHC in parallel")
+  message("Running netMHC in parallel.")
 
   # we write to file via R base cat fxn (echo is bash only)
   # set jobs max value 90% of available CPUs, delay 0.2 on spawning jobs for safety
@@ -226,13 +163,13 @@ run_netMHC <- function(dt) {
   return(dtl)
 }
 
-
 #' Print data directory error
 #'
-#' @export ag_data_err
+#' @noRd
 #' @md
 
-ag_data_err <- function() {
+
+.ag_data_err <- function() {
   err <- paste(
     "",
     "Unable to locate antigen.garnish data directory,",
@@ -249,7 +186,9 @@ ag_data_err <- function() {
     '$ curl -fsSL "http://get.rech.io/antigen.garnish.tar.gz" | tar -xvz',
     "",
     "Documentation:",
-    "https://neoantigens.io",
+    "https://neoantigens.rech.io",
+    "Github:",
+    "https://github.com/immune-health/antigen.garnish",
     sep = "\n"
   )
 
@@ -260,7 +199,7 @@ ag_data_err <- function() {
 #'
 #' @param dir Character vector. Path to `antigen.garnish` data directory.
 #'
-#' @export configure_netMHC_tools
+#' @noRd
 #' @md
 
 configure_netMHC_tools <- function(dir) {
@@ -272,24 +211,21 @@ configure_netMHC_tools <- function(dir) {
 
   # netMHC parent dir in ag data dir
   npd <- file.path(dir, "netMHC")
+  setwd(npd)
 
   if (!dir.exists(npd)) {
     stop("netMHC parent directory in antigen.garnish data directory not found.")
   }
 
-  # get path to scripts
-  setwd(npd)
-
-  tool_paths <- list.files()
-
-  f <- lapply(tool_paths, function(i) {
-
-    # pattern to find netMHC scripts
-    list.files(i,
-      pattern = "netMHC(II)?(pan)?-?([0-9]\\.[0-9])?$",
-      full.names = TRUE, ignore.case = TRUE
-    )
-  }) %>% unlist()
+  # netMHC package versions are pinned here, in parsing functions for results,
+  # in Docker, and in installation instructions due to differences
+  # across versions that breaks parsing
+  f <- c(
+    "netMHC-4.0/netMHC",
+    "netMHCII-2.3/netMHCII-2.3",
+    "netMHCIIpan-4.0/netMHCIIpan",
+    "netMHCpan-4.1/netMHCpan"
+  )
 
   message("Checking netMHC scripts in antigen.garnish data directory.")
   # sed scripts to correct paths
@@ -300,60 +236,48 @@ configure_netMHC_tools <- function(dir) {
     # in get_pred_commands and check_pred_tools hasn't run at that point
     io <- file.path(
       dirname(i),
-      basename(i) %>% stringr::str_replace("-.*$", "")
+      basename(i)
+      # %>% stringr::str_replace("-.*$", "")
+      # this line is now hashed because netMHCII uses version number in its
+      # script name and we are now hard coding versions
     )
 
-    line <- file.path(dir, "netMHC", dirname(i))
-
-    # downloading the data takes a long time, must check if loop already ran
-    catfile <- system(paste("cat", i), intern = TRUE) %>%
-      stringr::str_replace_all("/", "")
-
-    # adjust patterns to have no slashes
-    p1 <- line %>% stringr::str_replace_all("/", "")
-
-    # if correct directory is already in the script, skip
-    if (any(grepl(catfile, pattern = p1))) {
+    #  check if data has already been extracted
+    bkFile <- list.files(pattern = paste0(basename(i), ".bk"), recursive = TRUE) %>% length()
+    if (bkFile == 1) {
       return(io)
     }
 
-    # properly escape for sed call
-    line <- paste("setenv NMHOME ", line %>% stringr::str_replace_all("/", "\\\\/"), sep = "")
-    line2 <- paste("setenv TMPDIR ", "$HOME", sep = "")
+    if (i == "netMHC-4.0/netMHC") {
+      link <- "http://www.cbs.dtu.dk/services/NetMHC-4.0/data.tar.gz"
+    }
 
-    # formatting for these links is  not consistent,  try no uname first
-    # netMHC is always capitalized in the links it seems
-    # dirname(i) will always have version number
-    link_to_data <- paste0(
-      "http://www.cbs.dtu.dk/services/",
-      dirname(i) %>% stringr::str_replace("net", "Net"),
-      "/data.tar.gz"
-    )
+    if (i == "netMHCII-2.3/netMHCII-2.3") {
+      link <- "http://www.cbs.dtu.dk/services/NetMHCII-2.3/data.Linux.tar.gz"
+    }
 
-    cmd <- paste("curl -fsSL", link_to_data, ">", "dtu.tar.gz")
+    if (i == "netMHCIIpan-4.0/netMHCIIpan") {
+      link <- "http://www.cbs.dtu.dk/services/NetMHCIIpan/data.tar.gz"
+    }
+
+    if (i == "netMHCpan-4.1/netMHCpan") {
+      link <- "http://www.cbs.dtu.dk/services/NetMHCpan-4.1/data.tar.gz"
+    }
+
+    cmd <- paste("curl -fsSL", link, ">", "dtu.tar.gz")
+
+    message(paste("Downloading data for", dirname(i)))
 
     suppressWarnings({
       curl_status <- system(cmd, intern = TRUE, ignore.stderr = TRUE)
     })
 
-    if (!is.null(attr(curl_status, "status")) &&
-      attr(curl_status, "status") == 22) {
-      un <- system("uname -s", intern = TRUE)
-
-      if (!un %chin% c("Linux")) stop("Linux only.")
-
-      cmd <- cmd %>%
-        stringr::str_replace("data\\.tar\\.gz", paste0("data.", un, ".tar.gz"))
-
-      message(paste("Downloading data for", dirname(i), "on", un))
-
-      suppressWarnings({
-        curl_status <- system(cmd, intern = TRUE, ignore.stderr = TRUE)
-      })
-    }
-
-    if (!file.exists("dtu.tar.gz") || file.info("dtu.tar.gz")$size == 0) {
-      stop(paste("Unable to download data tar from DTU. See ReadMe in", file.path(dir, "netMHC", dirname(i))))
+    if (
+      !file.exists("dtu.tar.gz") ||
+        file.info("dtu.tar.gz")$size == 0 ||
+        !(curl_status %>% length()) == 0
+    ) {
+      stop(paste("Unable to download netMHC data tar from DTU."))
     }
 
     # move it into the right folder and untar
@@ -365,13 +289,22 @@ configure_netMHC_tools <- function(dir) {
 
     system(paste("tar -xzvf", basename(dtar)))
 
-    setwd(npd)
+    line <- file.path(dir, "netMHC", dirname(i))
+
+    # properly escape for sed call
+    line <- paste("setenv NMHOME ", line %>% stringr::str_replace_all("/", "\\\\/"), sep = "")
+    line2 <- paste("setenv TMPDIR ", "$HOME", sep = "")
 
     # versionless backup file
-    bk <- paste0(io, ".bk")
 
-    if (!file.exists(bk)) file.rename(i, bk)
+    file <- basename(io)
+    bk <- paste0(file, ".bk")
 
+    if (!file.exists(bk)) {
+      file.rename(file, bk)
+    }
+
+    # configure netMHC scripts
     cmd <- paste("cat ", bk, " | ",
       # place holders for variable references
       "sed 's/\\$NMHOME/placeholderxxx/' | ",
@@ -381,13 +314,15 @@ configure_netMHC_tools <- function(dir) {
       "sed 's/placeholderxxx/$NMHOME/' | ",
       "sed 's/setenv.*TMPDIR.*$/", line2, "/' | ",
       # reset placeholder
-      "sed 's/placeholderyyy/$TMPDIR/' > ", io,
+      "sed 's/placeholderyyy/$TMPDIR/' > ", file,
       sep = ""
     )
 
     system(cmd)
 
-    system(paste("chmod u+x", io))
+    system(paste("chmod u+x", file))
+
+    setwd(npd)
 
     return(io)
   }) %>% unlist()
@@ -397,11 +332,11 @@ configure_netMHC_tools <- function(dir) {
   return(io)
 }
 
-#' Internal function to check for netMHC tools, mhcflurry and mhcnuggets
+#' Internal function to check for netMHC tools and mhcflurry
 #'
 #' @param ag_dirs Character vector. Directories to check for `antigen.garnish` data directory.
 #'
-#' @export check_pred_tools
+#' @noRd
 #' @md
 
 check_pred_tools <- function(ag_dirs = c(
@@ -420,17 +355,20 @@ check_pred_tools <- function(ag_dirs = c(
 
   # vector of directories to look in for data
 
+  if (Sys.getenv("AG_DATA_DIR") == "") {
+    message("Environmental variable AG_DATA_DIR for the antigen.garnish data directory is unset. Checking standard directories.")
+  }
+
   if (!Sys.getenv("AG_DATA_DIR") == "") {
     if (!Sys.getenv("AG_DATA_DIR") %>% dir.exists()) {
-      message("$AG_DATA_DIR does not exist")
-      ag_data_err()
+      message(Sys.getenv("AG_DATA_DIR"), " does not exist.")
+      .ag_data_err()
     }
   }
 
   if (Sys.getenv("AG_DATA_DIR") %>% dir.exists()) {
     ag_dir <- Sys.getenv("AG_DATA_DIR")
   }
-
 
   if (Sys.getenv("AG_DATA_DIR") == "") {
     for (i in ag_dirs) {
@@ -452,7 +390,7 @@ check_pred_tools <- function(ag_dirs = c(
         "/netMHC",
         list.files(file.path(ag_dir, "netMHC"))
       ),
-      "/mhcnuggets/scripts"
+      file.path("/ncbi-blast-2.10.1+-src/c++/ReleaseMT/bin")
     )
   ) %>%
     normalizePath() %>%
@@ -464,7 +402,7 @@ check_pred_tools <- function(ag_dirs = c(
     netMHCpan   = TRUE,
     netMHCII    = TRUE,
     netMHCIIpan = TRUE,
-    mhcnuggets  = TRUE
+    blastp      = TRUE
   )
 
   # conditional to prevent infinitely growing path when running in long loops
@@ -478,6 +416,12 @@ check_pred_tools <- function(ag_dirs = c(
     tool_status$mhcflurry <- FALSE
   }
 
+  if (suppressWarnings(system("which blastp 2> /dev/null", intern = TRUE)) %>%
+    length() == 0) {
+    message("blastp is not in PATH\n       Download: https://blast.ncbi.nlm.nih.gov/Blast.cgi")
+    tool_status$blastp <- FALSE
+  }
+
   lapply(scripts, function(i) {
     f <- basename(i)
 
@@ -488,11 +432,35 @@ check_pred_tools <- function(ag_dirs = c(
     }
   })
 
-  if (suppressWarnings(system("which predict.py 2> /dev/null", intern = TRUE)) %>%
-    length() == 0) {
-    message("mhcnuggets predict.py is not in PATH\n       Download: https://github.com/KarchinLab/mhcnuggets")
-    tool_status$mhcnuggets <- FALSE
-  }
-
   return(tool_status)
+}
+
+#' Convenience inflix operator to return vector elements matching a regular expression.
+#'
+#' @param vector Vector.
+#' @param pattern Pattern.
+#'
+#' @return A vector of elements in \code{vector} matching \code{pattern}.
+#'
+#' @noRd
+#' @md
+
+`%include%` <- function(vector, pattern) {
+  lv <- stringr::str_detect(vector, pattern)
+  return(vector[lv])
+}
+
+
+#' Convenience inflix operator to return vector elements excluding those matching a regular expression.
+#'
+#' @param vector Vector.
+#' @param pattern Pattern.
+#'
+#' @return A vector of elements in \code{vector} not matching \code{pattern}.
+#' @noRd
+#' @md
+
+`%exclude%` <- function(vector, pattern) {
+  lv <- stringr::str_detect(vector, pattern)
+  return(vector[!lv])
 }

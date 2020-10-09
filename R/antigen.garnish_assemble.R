@@ -1,35 +1,4 @@
-
-
-
-#' Internal function to check for dev version of magrittr.
-#'
-#' @export check_dep_versions
-#' @md
-
-check_dep_versions <- function() {
-
-  # require here so if bad version of magrittr this will return the stop error
-  # otherwise will bug prior to returning error message
-  require("data.table")
-  require("stringr")
-
-  if (!utils::installed.packages() %>%
-    as.data.table() %>%
-    .[Package == "magrittr", Version %>%
-      str_replace_all("\\.", "") %>%
-      as.numeric() >= 150]) {
-    stop("magrittr version >= 1.5.0 is required and can be installed with:
-
-       devtools::install_github(\"tidyverse/magrittr\")")
-  }
-
-  return(NULL)
-}
-
-
-
-
-#' Return a data table of available MHC types.
+#' Return a data table of available MHC types for all prediction tools.
 #'
 #' @export list_mhc
 #' @md
@@ -50,15 +19,12 @@ list_mhc <- function() {
 }
 
 
-
-
 #' Internal function to replace MHC with matching prediction tool MHC syntax
 #'
 #' @param x Vector of HLA types named for program to convert to.
-#' @param alleles Data table of 2 columns, 1. formatted allele names 2. prediction tool name (e.g. mhcflurry, mhcnuggets, netMHC).
+#' @param alleles Data table of 2 columns, 1. formatted allele names 2. prediction tool name (e.g. mhcflurry, netMHC).
 #'
-#' @export detect_mhc
-#' @md
+#' @noRd
 
 detect_mhc <- function(x, alleles) {
   prog <- deparse(substitute(x))
@@ -70,7 +36,7 @@ detect_mhc <- function(x, alleles) {
     hla_re <- paste0(hla, "($|[^0-9])")
 
     allele <- alleles[type == prog, allele %>%
-      .[stringi::stri_detect_regex(., hla_re) %>% which()]] %>%
+      .[stringr::str_detect(., hla_re) %>% which()]] %>%
       # match to first in case of multiple matches
       # e.g. netMHCII
       .[1]
@@ -84,26 +50,17 @@ detect_mhc <- function(x, alleles) {
 }
 
 
-
-
-#' Internal function to add metadata by `ensembl_transcript_id`
+#' Internal function to add metadata by `transcript_id`
 #'
 #' @param dt Data table with `INFO` column.
 #'
-#' @export get_metadata
-#' @md
+#' @noRd
 
 get_metadata <- function(dt) {
-  if (!"ensembl_transcript_id" %chin%
+  if (!"transcript_id" %chin%
     (dt %>% names())) {
-    stop("ensembl_transcript_id column missing")
+    stop("transcript_id column missing")
   }
-
-
-  # remove version suffix
-  dt[, ensembl_transcript_id :=
-    ensembl_transcript_id %>%
-    stringr::str_replace("\\.[0-9]$", "")]
 
   message("Reading local transcript metadata.")
 
@@ -114,12 +71,12 @@ get_metadata <- function(dt) {
   metafile <- file.path(Sys.getenv("AG_DATA_DIR"), "/GRChm38_meta.RDS")
 
   if (!file.exists(metafile)) {
-    ag_data_err()
+    .ag_data_err()
   }
 
   var_dt <- readRDS(metafile)
 
-  dt <- merge(dt, var_dt, by = "ensembl_transcript_id")
+  dt <- merge(dt, var_dt, by = "transcript_id")
 
   rm(var_dt)
 
@@ -127,14 +84,11 @@ get_metadata <- function(dt) {
 }
 
 
-
-
 #' Internal function to create cDNA from HGVS notation
 #'
 #' @param dt Data table with INFO column.
 #'
-#' @export make_cDNA
-#' @md
+#' @noRd
 
 make_cDNA <- function(dt) {
   if (!c(
@@ -165,8 +119,6 @@ make_cDNA <- function(dt) {
       !cDNA_locl > coding_nchar]
 
   dt[, coding_nchar := NULL]
-
-
 
   # paste substr around changed bases
   # substr is vectorized C, fast
@@ -245,16 +197,13 @@ make_cDNA <- function(dt) {
 }
 
 
-
-
 #' Internal function to extract a data table of variants with `INFO` fields in columns.
 #'
 #' @param vcf vcfR object to extract data from.
 #'
 #' @return Data table of variants with `INFO` fields in columns.
 #'
-#' @export get_vcf_info_dt
-#' @md
+#' @noRd
 
 get_vcf_info_dt <- function(vcf) {
   if (vcf %>% class() %>% .[1] != "vcfR") {
@@ -272,7 +221,9 @@ get_vcf_info_dt <- function(vcf) {
   v <- dt[, INFO %>% paste(collapse = ";@@@=@@@;")]
   vd <- v %>%
     stringr::str_replace_all("(?<=;)[^=;]+", "") %>%
-    stringr::str_replace_all(stringr::fixed("="), "")
+    stringr::str_replace_all(stringr::fixed(";=@"), ";@") %>%
+    stringr::str_replace_all(stringr::fixed("@;="), "@;")
+
   vn <- v %>%
     stringr::str_replace_all("(?<==)[^;]+", "") %>%
     stringr::str_replace_all(stringr::fixed("="), "")
@@ -289,7 +240,11 @@ get_vcf_info_dt <- function(vcf) {
       .[[1]]
 
     return(v %>% as.list())
-  }) %>% rbindlist(fill = TRUE, use.names = TRUE)
+  }) %>%
+    rbindlist(fill = TRUE, use.names = TRUE) %>%
+    .[, V1 := NULL] # remove extra final column created during parsing
+
+  # remove extra colum
 
   if (
     (dt %>% nrow()) !=
@@ -304,16 +259,13 @@ get_vcf_info_dt <- function(vcf) {
 }
 
 
-
-
-#' Internal function to extract a data table from sample `vcf` fields.
+#' Internal function to extract a data table from vcfR `vcf` object fields.
 #'
 #' @param vcf vcfR object to extract data from.
 #'
 #' @return Data table of variants with sample level fields in columns.
 #'
-#' @export get_vcf_sample_dt
-#' @md
+#' @noRd
 
 get_vcf_sample_dt <- function(vcf) {
   if (vcf %>% class() %>% .[1] != "vcfR") {
@@ -329,7 +281,7 @@ get_vcf_sample_dt <- function(vcf) {
   names <- vcf@gt %>%
     attributes() %>%
     .$dimnames %>%
-    unlist() %excludef%
+    unlist() %exclude%
     "FORMAT"
 
   # loop over sample level data
@@ -354,8 +306,6 @@ get_vcf_sample_dt <- function(vcf) {
         .[[1]]
 
       names(l) <- nl[1:length(l)]
-
-
 
       return(l %>% as.list())
     }) %>% rbindlist(fill = TRUE, use.names = TRUE)
@@ -409,16 +359,13 @@ get_vcf_sample_dt <- function(vcf) {
 }
 
 
-
-
 #' Internal function to extract SnpEff annotation information to a data table.
 #'
 #' @param dt Data table with character vector `ANN` column, from `vcf` file.
 #'
 #' @return Data table with the `ANN` column parsed into additional rows.
 #'
-#' @export get_vcf_snpeff_dt
-#' @md
+#' @noRd
 
 get_vcf_snpeff_dt <- function(dt) {
   if (!"ANN" %chin% (dt %>% names())) {
@@ -432,50 +379,55 @@ get_vcf_snpeff_dt <- function(dt) {
 
   # spread SnpEff annotation over rows
   # transform to data frame intermediate to avoid
-  # data.taable invalid .internal.selfref
-  df <- dt %>%
-    as.data.frame() %>%
-    tidyr::separate_rows("ANN", sep = ",")
-  dt <- df %>% data.table::as.data.table()
+  # data.table invalid .internal.selfref
+  dt %<>%
+    tidyr::separate_rows("ANN", sep = "\\|,") %>%
+    data.table::as.data.table(.)
 
-  # extract info from snpeff annotation
-  dt[, effect_type := ANN %>%
-    stringr::str_extract("^[^\\|]+\\|[^|]+") %>%
-    stringr::str_replace("^[^\\|]+\\|", "")]
-  dt[, ensembl_transcript_id := ANN %>%
-    stringr::str_extract("(?<=\\|)(ENSMUST|ENST)[0-9]+")]
-  dt[, ensembl_gene_id := ANN %>%
-    stringr::str_extract("(?<=\\|)(ENSMUSG|ENSG)[0-9.]+(?=\\|)")]
-  dt[, protein_change := ANN %>%
-    stringr::str_extract("p\\.[^\\|]+")]
-  dt[, cDNA_change := ANN %>%
-    stringr::str_extract("c\\.[^\\|]+")]
-  dt[, protein_coding := ANN %>%
-    stringr::str_detect("protein_coding")]
+  dt[, transcript_id := ANN %>%
+    stringr::str_extract("(?<=\\|)(ENSMUST|ENST)[0-9]+(\\.[0-9]+)?")]
 
-  ## this is only for hg19
-  dt[, refseq_id := ANN %>%
-    stringr::str_extract("(?<=\\|)NM_[0-9]+")]
+  # fall back to RefSeq
+  dt[transcript_id %>% is.na(), transcript_id := ANN %>%
+    stringr::str_extract("(?<=\\|)NM_[0-9]+\\.[0-9]+")]
 
-  if (nrow(dt[!is.na(refseq_id)]) > 0) {
-    message("Annotations detected RefSeq identifiers, these will be converted to Ensembl transcript IDs, some data may be lost.
-        Please annotate vcfs with Ensembl transcript IDs.")
-  }
+  # the nucleotide header must be removed from the ANN field to parse correctly
+  # because some ANN fields do not have a header, resulting in the wrong
+  # number of columns
 
-  if (nrow(dt[!is.na(refseq_id)]) == 0) dt[, refseq_id := NULL]
+  dt[, ANNtoParse := ANN %>% stringr::str_replace("(ANN=)?[ACTNG]*\\|", "")]
+
+  annSpecNames <- c(
+    "effect_type",
+    "putative_impact",
+    "gene",
+    "gene_id",
+    "feature_type",
+    "feature_id",
+    "transcript_bioptype",
+    "exon_intron_rank",
+    "cDNA_change",
+    "protein_change",
+    "cDNA_position_cDNA_len",
+    "CDS_position_CDS_len",
+    "Protein_position_Protein_len",
+    "Distance_to_feature"
+  )
+  dt[, eval(annSpecNames) := ANNtoParse %>% data.table::tstrsplit("\\|")]
+  dt[, ANNtoParse := NULL]
+
+  dt[, protein_coding := FALSE]
+  dt[protein_change != "", protein_coding := TRUE]
 
   return(dt)
 }
-
-
 
 
 #' Internal function to extract cDNA changes from HGVS notation
 #'
 #' @param dt Data table with INFO column.
 #'
-#' @export extract_cDNA
-#' @md
+#' @noRd
 
 extract_cDNA <- function(dt) {
 
@@ -520,14 +472,11 @@ extract_cDNA <- function(dt) {
 }
 
 
-
-
 #' Internal function to translate cDNA to peptides
 #'
 #' @param v cDNA character vector without ambiguous bases.
 #'
-#' @export translate_cDNA
-#' @md
+#' @noRd
 
 translate_cDNA <- function(v) {
   lapply(v, function(p) {
@@ -537,7 +486,7 @@ translate_cDNA <- function(v) {
       {
         p %>%
           Biostrings::DNAString() %>%
-          Biostrings::translate() %>%
+          Biostrings::translate(no.init.codon = TRUE) %>%
           as.character()
       },
       error = function(e) {

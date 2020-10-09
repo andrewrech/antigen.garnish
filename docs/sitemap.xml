@@ -1,117 +1,117 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://neoantigens.io, https://neoantigens.rech.io/index.html</loc>
+    <loc>https://neoantigens.rech.io, https://neoantigens.rech.io/index.html</loc>
   </url>
   <url>
-    <loc>https://neoantigens.io, https://neoantigens.rech.io/reference/SW_align.html</loc>
+    <loc>https://neoantigens.rech.io, https://neoantigens.rech.io/reference/make_sw_alignment.html</loc>
   </url>
   <url>
-    <loc>https://neoantigens.io, https://neoantigens.rech.io/reference/ag_data_err.html</loc>
+    <loc>https://neoantigens.rech.io, https://neoantigens.rech.io/reference/.ag_data_err.html</loc>
   </url>
   <url>
-    <loc>https://neoantigens.io, https://neoantigens.rech.io/reference/antigen.garnish.html</loc>
+    <loc>https://neoantigens.rech.io, https://neoantigens.rech.io/reference/antigen.garnish.html</loc>
   </url>
   <url>
-    <loc>https://neoantigens.io, https://neoantigens.rech.io/reference/check_dep_versions.html</loc>
+    <loc>https://neoantigens.rech.io, https://neoantigens.rech.io/reference/check_dep_versions.html</loc>
   </url>
   <url>
-    <loc>https://neoantigens.io, https://neoantigens.rech.io/reference/check_pred_tools.html</loc>
+    <loc>https://neoantigens.rech.io, https://neoantigens.rech.io/reference/check_pred_tools.html</loc>
   </url>
   <url>
-    <loc>https://neoantigens.io, https://neoantigens.rech.io/reference/collate_netMHC.html</loc>
+    <loc>https://neoantigens.rech.io, https://neoantigens.rech.io/reference/collate_netMHC.html</loc>
   </url>
   <url>
-    <loc>https://neoantigens.io, https://neoantigens.rech.io/reference/configure_netMHC_tools.html</loc>
+    <loc>https://neoantigens.rech.io, https://neoantigens.rech.io/reference/configure_netMHC_tools.html</loc>
   </url>
   <url>
-    <loc>https://neoantigens.io, https://neoantigens.rech.io/reference/detect_mhc.html</loc>
+    <loc>https://neoantigens.rech.io, https://neoantigens.rech.io/reference/detect_mhc.html</loc>
   </url>
   <url>
-    <loc>https://neoantigens.io, https://neoantigens.rech.io/reference/extract_cDNA.html</loc>
+    <loc>https://neoantigens.rech.io, https://neoantigens.rech.io/reference/extract_cDNA.html</loc>
   </url>
   <url>
-    <loc>https://neoantigens.io, https://neoantigens.rech.io/reference/garnish_affinity.html</loc>
+    <loc>https://neoantigens.rech.io, https://neoantigens.rech.io/reference/garnish_affinity.html</loc>
   </url>
   <url>
-    <loc>https://neoantigens.io, https://neoantigens.rech.io/reference/garnish_antigens.html</loc>
+    <loc>https://neoantigens.rech.io, https://neoantigens.rech.io/reference/garnish_antigens.html</loc>
   </url>
   <url>
-    <loc>https://neoantigens.io, https://neoantigens.rech.io/reference/garnish_clonality.html</loc>
+    <loc>https://neoantigens.rech.io, https://neoantigens.rech.io/reference/garnish_clonality.html</loc>
   </url>
   <url>
-    <loc>https://neoantigens.io, https://neoantigens.rech.io/reference/garnish_dissimilarity.html</loc>
+    <loc>https://neoantigens.rech.io, https://neoantigens.rech.io/reference/dissimilarity_score.html</loc>
   </url>
   <url>
-    <loc>https://neoantigens.io, https://neoantigens.rech.io/reference/garnish_jaffa.html</loc>
+    <loc>https://neoantigens.rech.io, https://neoantigens.rech.io/reference/garnish_jaffa.html</loc>
   </url>
   <url>
-    <loc>https://neoantigens.io, https://neoantigens.rech.io/reference/garnish_plot.html</loc>
+    <loc>https://neoantigens.rech.io, https://neoantigens.rech.io/reference/garnish_plot.html</loc>
   </url>
   <url>
-    <loc>https://neoantigens.io, https://neoantigens.rech.io/reference/garnish_slim.html</loc>
+    <loc>https://neoantigens.rech.io, https://neoantigens.rech.io/reference/garnish_summary.html</loc>
   </url>
   <url>
-    <loc>https://neoantigens.io, https://neoantigens.rech.io/reference/garnish_summary.html</loc>
+    <loc>https://neoantigens.rech.io, https://neoantigens.rech.io/reference/garnish_variants.html</loc>
   </url>
   <url>
-    <loc>https://neoantigens.io, https://neoantigens.rech.io/reference/garnish_variants.html</loc>
+    <loc>https://neoantigens.rech.io, https://neoantigens.rech.io/reference/get_metadata.html</loc>
   </url>
   <url>
-    <loc>https://neoantigens.io, https://neoantigens.rech.io/reference/get_metadata.html</loc>
+    <loc>https://neoantigens.rech.io, https://neoantigens.rech.io/reference/get_pred_commands.html</loc>
   </url>
   <url>
-    <loc>https://neoantigens.io, https://neoantigens.rech.io/reference/get_pred_commands.html</loc>
+    <loc>https://neoantigens.rech.io, https://neoantigens.rech.io/reference/get_ss_str.html</loc>
   </url>
   <url>
-    <loc>https://neoantigens.io, https://neoantigens.rech.io/reference/get_ss_str.html</loc>
+    <loc>https://neoantigens.rech.io, https://neoantigens.rech.io/reference/get_vcf_info_dt.html</loc>
   </url>
   <url>
-    <loc>https://neoantigens.io, https://neoantigens.rech.io/reference/get_vcf_info_dt.html</loc>
+    <loc>https://neoantigens.rech.io, https://neoantigens.rech.io/reference/get_vcf_sample_dt.html</loc>
   </url>
   <url>
-    <loc>https://neoantigens.io, https://neoantigens.rech.io/reference/get_vcf_sample_dt.html</loc>
+    <loc>https://neoantigens.rech.io, https://neoantigens.rech.io/reference/get_vcf_snpeff_dt.html</loc>
   </url>
   <url>
-    <loc>https://neoantigens.io, https://neoantigens.rech.io/reference/get_vcf_snpeff_dt.html</loc>
+    <loc>https://neoantigens.rech.io, https://neoantigens.rech.io/reference/foreignness_score.html</loc>
   </url>
   <url>
-    <loc>https://neoantigens.io, https://neoantigens.rech.io/reference/iedb_score.html</loc>
+    <loc>https://neoantigens.rech.io, https://neoantigens.rech.io/reference/list_mhc.html</loc>
   </url>
   <url>
-    <loc>https://neoantigens.io, https://neoantigens.rech.io/reference/list_mhc.html</loc>
+    <loc>https://neoantigens.rech.io, https://neoantigens.rech.io/reference/make_BLAST_uuid.html</loc>
   </url>
   <url>
-    <loc>https://neoantigens.io, https://neoantigens.rech.io/reference/make_BLAST_uuid.html</loc>
+    <loc>https://neoantigens.rech.io, https://neoantigens.rech.io/reference/make_DAI_uuid.html</loc>
   </url>
   <url>
-    <loc>https://neoantigens.io, https://neoantigens.rech.io/reference/make_DAI_uuid.html</loc>
+    <loc>https://neoantigens.rech.io, https://neoantigens.rech.io/reference/make_cDNA.html</loc>
   </url>
   <url>
-    <loc>https://neoantigens.io, https://neoantigens.rech.io/reference/make_cDNA.html</loc>
+    <loc>https://neoantigens.rech.io, https://neoantigens.rech.io/reference/make_ensembl_db.html</loc>
   </url>
   <url>
-    <loc>https://neoantigens.io, https://neoantigens.rech.io/reference/make_nmers.html</loc>
+    <loc>https://neoantigens.rech.io, https://neoantigens.rech.io/reference/make_nmers.html</loc>
   </url>
   <url>
-    <loc>https://neoantigens.io, https://neoantigens.rech.io/reference/merge_predictions.html</loc>
+    <loc>https://neoantigens.rech.io, https://neoantigens.rech.io/reference/merge_predictions.html</loc>
   </url>
   <url>
-    <loc>https://neoantigens.io, https://neoantigens.rech.io/reference/run_mhcflurry.html</loc>
+    <loc>https://neoantigens.rech.io, https://neoantigens.rech.io/reference/run_mhcflurry.html</loc>
   </url>
   <url>
-    <loc>https://neoantigens.io, https://neoantigens.rech.io/reference/run_mhcnuggets.html</loc>
+    <loc>https://neoantigens.rech.io, https://neoantigens.rech.io/reference/run_mhcnuggets.html</loc>
   </url>
   <url>
-    <loc>https://neoantigens.io, https://neoantigens.rech.io/reference/run_netMHC.html</loc>
+    <loc>https://neoantigens.rech.io, https://neoantigens.rech.io/reference/run_netMHC.html</loc>
   </url>
   <url>
-    <loc>https://neoantigens.io, https://neoantigens.rech.io/reference/translate_cDNA.html</loc>
+    <loc>https://neoantigens.rech.io, https://neoantigens.rech.io/reference/translate_cDNA.html</loc>
   </url>
   <url>
-    <loc>https://neoantigens.io, https://neoantigens.rech.io/reference/write_mhcnuggets_nmers.html</loc>
+    <loc>https://neoantigens.rech.io, https://neoantigens.rech.io/reference/write_mhcnuggets_nmers.html</loc>
   </url>
   <url>
-    <loc>https://neoantigens.io, https://neoantigens.rech.io/reference/write_netmhc_nmers.html</loc>
+    <loc>https://neoantigens.rech.io, https://neoantigens.rech.io/reference/write_netmhc_nmers.html</loc>
   </url>
 </urlset>
