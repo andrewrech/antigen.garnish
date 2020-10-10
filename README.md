@@ -1,4 +1,4 @@
-[![rech.io](https://s3.amazonaws.com/get.rech.io/antigen.garnish_build_status.svg)](https://s3.amazonaws.com/get.rech.io/antigen.garnish.test.txt) | [![rech.io](https://img.shields.io/badge/endpoint.svg?url=https://s3.amazonaws.com/get.rech.io/antigen.garnish_coverage.json)](https://s3.amazonaws.com/get.rech.io/antigen.garnish_coverage.html) | ![](https://img.shields.io/badge/version-2.0.0-blue.svg) | v1.0: ![](https://img.shields.io/docker/pulls/leeprichman/antigen_garnish.svg) | v2.0: (https://img.shields.io/docker/pulls/leeprichman/antigen_garnish_2.svg)
+[![rech.io](https://s3.amazonaws.com/get.rech.io/antigen.garnish_build_status.svg)](https://s3.amazonaws.com/get.rech.io/antigen.garnish.test.txt) | [![rech.io](https://img.shields.io/badge/endpoint.svg?url=https://s3.amazonaws.com/get.rech.io/antigen.garnish_coverage.json)](https://s3.amazonaws.com/get.rech.io/antigen.garnish_coverage.html) | ![](https://img.shields.io/badge/version-2.0.0-blue.svg) | v1.0: ![](https://img.shields.io/docker/pulls/leeprichman/antigen_garnish.svg) | v2.0: ![](https://img.shields.io/docker/pulls/leeprichman/antigen_garnish_2.svg)
 
 # antigen.garnish 2.0
 
