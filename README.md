@@ -66,7 +66,7 @@ Install the dependencies listed above. Then, download and extract `antigen.garni
 ANTIGEN_GARNISH_DIR="~/antigen.garnish"
 
 cd ~
-curl -fsSL "http://get.rech.io/antigen.garnish.tar.gz" | tar -xvz
+curl -fsSL "http://get.rech.io/antigen.garnish-2.0.0.tar.gz" | tar -xvz
 chmod 700 -R "$ANTIGEN_GARNISH_DIR"
 ```
 
