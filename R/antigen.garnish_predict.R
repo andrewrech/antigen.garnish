@@ -76,8 +76,15 @@ foreignness_score <- function(v, db) {
 
   db <- paste("-db", db %>% stringr::str_replace("\\.pin", ""), sep = " ")
 
+  threads <- Sys.getenv("AG_THREADS") %>% as.numeric(.)
+  if (threads == "") {
+    threads <- parallel::detectCores()
+  }
+  if ((threads %>% as.numeric) %>% is.na)
+    stop("Error reading environment variable AG_THREADS as numeric.")
+
   system(paste0(
-    "blastp -query foreignness_score_fasta.fa ", db, " -evalue 100000000 -matrix BLOSUM62 -gapopen 11 -gapextend 1 -out blastp_iedbout.csv -num_threads ", parallel::detectCores(),
+    "blastp -query foreignness_score_fasta.fa ", db, " -evalue 100000000 -matrix BLOSUM62 -gapopen 11 -gapextend 1 -out blastp_iedbout.csv -num_threads ", threads,
     " -outfmt '10 qseqid sseqid qseq qstart qend sseq sstart send length mismatch pident evalue bitscore'"
   ))
 
@@ -279,8 +286,15 @@ dissimilarity_score <- function(v, db, kval = 4.86936, aval = 32) {
 
   db <- paste("-db", db %>% stringr::str_replace("\\.pin", ""), sep = " ")
 
+  threads <- Sys.getenv("AG_THREADS") %>% as.numeric(.)
+  if (threads == "") {
+    threads <- parallel::detectCores()
+  }
+  if ((threads %>% as.numeric) %>% is.na)
+    stop("Error reading environment variable AG_THREADS as numeric.")
+
   system(paste0(
-    "blastp -query dissimilarity_fasta.fa ", db, " -evalue 100000000 -matrix BLOSUM62 -gapopen 11 -gapextend 1 -out blastp_self.csv -num_threads ", parallel::detectCores(),
+    "blastp -query dissimilarity_fasta.fa ", db, " -evalue 100000000 -matrix BLOSUM62 -gapopen 11 -gapextend 1 -out blastp_self.csv -num_threads ", threads,
     " -outfmt '10 qseqid sseqid qseq qstart qend sseq sstart send length mismatch pident evalue bitscore'"
   ))
 
@@ -463,13 +477,21 @@ make_BLAST_uuid <- function(dti) {
     sep = ""
   )
 
+  threads <- Sys.getenv("AG_THREADS") %>% as.numeric(.)
+  if (threads == "") {
+    threads <- parallel::detectCores()
+  }
+  if ((threads %>% as.numeric) %>% is.na)
+    stop("Error reading environment variable AG_THREADS as numeric.")
+
+
   if (file.exists("Ms_ag_nmer_fasta.fa")) {
     cmd <- paste0(
       "blastp -query Ms_ag_nmer_fasta.fa -task blastp-short -db ",
       Sys.getenv("AG_DATA_DIR"),
       "/mouse.bdb -out ",
       blast_out[blast_out %like% "Ms"],
-      " -num_threads ", parallel::detectCores(),
+      " -num_threads ", threads,
       " -outfmt '10 qseqid sseqid qseq qstart qend sseq sstart send length mismatch pident evalue bitscore'"
     )
 
@@ -483,12 +505,13 @@ make_BLAST_uuid <- function(dti) {
   }
 
   if (file.exists("Hu_ag_nmer_fasta.fa")) {
+
     cmd <- paste0(
       "blastp -query Hu_ag_nmer_fasta.fa -task blastp-short -db ",
       Sys.getenv("AG_DATA_DIR"),
       "/human.bdb -out ",
       blast_out[blast_out %like% "Hu"],
-      " -num_threads ", parallel::detectCores(),
+      " -num_threads ", threads,
       " -outfmt '10 qseqid sseqid qseq qstart qend sseq sstart send length mismatch pident evalue bitscore'"
     )
 
@@ -577,7 +600,7 @@ make_BLAST_uuid <- function(dti) {
     return(fn)
   }) %>% unlist()
 
-  parallel::mclapply(blastdt %>% seq_along(), function(i) {
+  lapply(blastdt %>% seq_along(), function(i) {
     print(paste("Alignment subset", i, "of", length(blastdt)))
 
     b <- blastdt[i] %>% data.table::fread()
@@ -1089,7 +1112,7 @@ get_pred_commands <- function(dt) {
 collate_netMHC <- function(esl) {
   message("Collating netMHC output...")
 
-  dtl <- parallel::mclapply(
+  dtl <- lapply(
     esl, function(es) {
       command <- es[[1]]
       fn <- es[[2]]
@@ -1767,7 +1790,7 @@ garnish_affinity <- function(dt = NULL,
 
       # return vector of matched nmers to drop
 
-      mv <- parallel::mclapply(nmv %>% seq_along(), function(x) {
+      mv <- lapply(nmv %>% seq_along(), function(x) {
         ifelse(
           stringr::str_detect(pepv, stringr::fixed(nmv[x])) %>% any(),
           return(nmv[x]),
@@ -1839,7 +1862,7 @@ garnish_affinity <- function(dt = NULL,
       warning("Missing prediction tools in PATH, returning without predictions.")
     }
 
-    message("Setting up dissimilarity calculating.")
+    message("Setting up dissimilarity calculation.")
 
     # now  that we know binders, get our foreignness_score and dissimilarity values
     # iterate over multiple species
@@ -1989,7 +2012,7 @@ make_nmers <- function(dt, plen = 8:15) {
 
   .fn <- purrr::partial(paste, collapse = "")
 
-  nmer_list <- parallel::mclapply(
+  nmer_list <- lapply(
     1:nrow(dt),
 
     function(n) {
