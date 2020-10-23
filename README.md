@@ -148,6 +148,7 @@ docker rm $cID
 ```r
 library(magrittr)
 library(data.table)
+library(dt.inflix)
 library(antigen.garnish)
 
 # load an example VCF
