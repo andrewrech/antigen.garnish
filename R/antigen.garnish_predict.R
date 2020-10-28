@@ -810,11 +810,11 @@ merge_predictions <- function(l, dt) {
 
   # only calculate best_netMHC if 2 or more scores exist
 
-  if (length(cols) < 2)
-      dt[, best_netMHC := get(col)]
+  if (length(cols) < 2) {
+    dt[, best_netMHC := get(cols)]
+  }
 
-  if (length(cols) >= 2){
-
+  if (length(cols) >= 2) {
     dtm <- dt[, .SD, .SDcols = c("nmer", "MHC", cols)] %>%
       melt(id.vars = c("nmer", "MHC")) %>%
       # order affinity predictions by program preference
@@ -831,22 +831,22 @@ merge_predictions <- function(l, dt) {
       .[!best_netMHC %>% is.na()]
 
     dt %<>% merge(dtm, by = c("nmer", "MHC"), all = TRUE)
-
-    }
+  }
 
   # merge back
 
   # take average of mhcflurry best available netMHC tool
 
-  cols  <- dt %>% names() %include% "(best_netMHC)|(mhcflurry_prediction$)|(mhcflurry_affinity$)"
+  cols <- dt %>% names() %include% "(best_netMHC)|(mhcflurry_prediction$)|(mhcflurry_affinity$)"
 
-  if (length(cols) < 2)
-      dt[, Ensemble_score := get(col)]
+  if (length(cols) < 2) {
+    dt[, Ensemble_score := get(cols)]
+  }
 
-  if (length(cols) >= 2){
-  dt[, Ensemble_score := mean(as.numeric(.SD), na.rm = TRUE),
-    by = 1:nrow(dt), .SDcols = cols
-  ]
+  if (length(cols) >= 2) {
+    dt[, Ensemble_score := mean(as.numeric(.SD), na.rm = TRUE),
+      by = 1:nrow(dt), .SDcols = cols
+    ]
   }
 
   message("Calculating differential agretopicity.")
