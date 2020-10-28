@@ -272,8 +272,6 @@ checkRefSeqVersion <- function(ids) {
         version + 1
       )
 
-      browser()
-
       codingOld <- db[transcript_id %chin% c(id, oldId), coding]
       codingNew <- db[transcript_id %chin% c(id, newId), coding]
 
