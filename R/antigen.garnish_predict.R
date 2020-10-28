@@ -77,11 +77,12 @@ foreignness_score <- function(v, db) {
   db <- paste("-db", db %>% stringr::str_replace("\\.pin", ""), sep = " ")
 
   threads <- Sys.getenv("AG_THREADS") %>% as.numeric(.)
-  if (threads == "") {
+  if (threads == "" || threads %>% is.na) {
     threads <- parallel::detectCores()
   }
-  if ((threads %>% as.numeric) %>% is.na)
+  if ((threads %>% as.numeric()) %>% is.na()) {
     stop("Error reading environment variable AG_THREADS as numeric.")
+  }
 
   system(paste0(
     "blastp -query foreignness_score_fasta.fa ", db, " -evalue 100000000 -matrix BLOSUM62 -gapopen 11 -gapextend 1 -out blastp_iedbout.csv -num_threads ", threads,
@@ -287,11 +288,12 @@ dissimilarity_score <- function(v, db, kval = 4.86936, aval = 32) {
   db <- paste("-db", db %>% stringr::str_replace("\\.pin", ""), sep = " ")
 
   threads <- Sys.getenv("AG_THREADS") %>% as.numeric(.)
-  if (threads == "") {
+  if (threads == "" || threads %>% is.na) {
     threads <- parallel::detectCores()
   }
-  if ((threads %>% as.numeric) %>% is.na)
+  if ((threads %>% as.numeric()) %>% is.na()) {
     stop("Error reading environment variable AG_THREADS as numeric.")
+  }
 
   system(paste0(
     "blastp -query dissimilarity_fasta.fa ", db, " -evalue 100000000 -matrix BLOSUM62 -gapopen 11 -gapextend 1 -out blastp_self.csv -num_threads ", threads,
@@ -478,11 +480,12 @@ make_BLAST_uuid <- function(dti) {
   )
 
   threads <- Sys.getenv("AG_THREADS") %>% as.numeric(.)
-  if (threads == "") {
+  if (threads == "" || threads %>% is.na) {
     threads <- parallel::detectCores()
   }
-  if ((threads %>% as.numeric) %>% is.na)
+  if ((threads %>% as.numeric()) %>% is.na()) {
     stop("Error reading environment variable AG_THREADS as numeric.")
+  }
 
 
   if (file.exists("Ms_ag_nmer_fasta.fa")) {
