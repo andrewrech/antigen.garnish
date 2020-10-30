@@ -76,8 +76,16 @@ foreignness_score <- function(v, db) {
 
   db <- paste("-db", db %>% stringr::str_replace("\\.pin", ""), sep = " ")
 
+  threads <- Sys.getenv("AG_THREADS") %>% as.numeric(.)
+  if (threads == "" || threads %>% is.na) {
+    threads <- parallel::detectCores()
+  }
+  if ((threads %>% as.numeric()) %>% is.na()) {
+    stop("Error reading environment variable AG_THREADS as numeric.")
+  }
+
   system(paste0(
-    "blastp -query foreignness_score_fasta.fa ", db, " -evalue 100000000 -matrix BLOSUM62 -gapopen 11 -gapextend 1 -out blastp_iedbout.csv -num_threads ", parallel::detectCores(),
+    "blastp -query foreignness_score_fasta.fa ", db, " -evalue 100000000 -matrix BLOSUM62 -gapopen 11 -gapextend 1 -out blastp_iedbout.csv -num_threads ", threads,
     " -outfmt '10 qseqid sseqid qseq qstart qend sseq sstart send length mismatch pident evalue bitscore'"
   ))
 
@@ -279,8 +287,16 @@ dissimilarity_score <- function(v, db, kval = 4.86936, aval = 32) {
 
   db <- paste("-db", db %>% stringr::str_replace("\\.pin", ""), sep = " ")
 
+  threads <- Sys.getenv("AG_THREADS") %>% as.numeric(.)
+  if (threads == "" || threads %>% is.na) {
+    threads <- parallel::detectCores()
+  }
+  if ((threads %>% as.numeric()) %>% is.na()) {
+    stop("Error reading environment variable AG_THREADS as numeric.")
+  }
+
   system(paste0(
-    "blastp -query dissimilarity_fasta.fa ", db, " -evalue 100000000 -matrix BLOSUM62 -gapopen 11 -gapextend 1 -out blastp_self.csv -num_threads ", parallel::detectCores(),
+    "blastp -query dissimilarity_fasta.fa ", db, " -evalue 100000000 -matrix BLOSUM62 -gapopen 11 -gapextend 1 -out blastp_self.csv -num_threads ", threads,
     " -outfmt '10 qseqid sseqid qseq qstart qend sseq sstart send length mismatch pident evalue bitscore'"
   ))
 
@@ -463,13 +479,22 @@ make_BLAST_uuid <- function(dti) {
     sep = ""
   )
 
+  threads <- Sys.getenv("AG_THREADS") %>% as.numeric(.)
+  if (threads == "" || threads %>% is.na) {
+    threads <- parallel::detectCores()
+  }
+  if ((threads %>% as.numeric()) %>% is.na()) {
+    stop("Error reading environment variable AG_THREADS as numeric.")
+  }
+
+
   if (file.exists("Ms_ag_nmer_fasta.fa")) {
     cmd <- paste0(
       "blastp -query Ms_ag_nmer_fasta.fa -task blastp-short -db ",
       Sys.getenv("AG_DATA_DIR"),
       "/mouse.bdb -out ",
       blast_out[blast_out %like% "Ms"],
-      " -num_threads ", parallel::detectCores(),
+      " -num_threads ", threads,
       " -outfmt '10 qseqid sseqid qseq qstart qend sseq sstart send length mismatch pident evalue bitscore'"
     )
 
@@ -488,7 +513,7 @@ make_BLAST_uuid <- function(dti) {
       Sys.getenv("AG_DATA_DIR"),
       "/human.bdb -out ",
       blast_out[blast_out %like% "Hu"],
-      " -num_threads ", parallel::detectCores(),
+      " -num_threads ", threads,
       " -outfmt '10 qseqid sseqid qseq qstart qend sseq sstart send length mismatch pident evalue bitscore'"
     )
 
@@ -577,7 +602,7 @@ make_BLAST_uuid <- function(dti) {
     return(fn)
   }) %>% unlist()
 
-  parallel::mclapply(blastdt %>% seq_along(), function(i) {
+  lapply(blastdt %>% seq_along(), function(i) {
     print(paste("Alignment subset", i, "of", length(blastdt)))
 
     b <- blastdt[i] %>% data.table::fread()
@@ -743,12 +768,11 @@ merge_predictions <- function(l, dt) {
   # merge netMHC output
 
   for (ptype in (progl %>% unique() %>% unlist())) {
-
     dt <- merge(dt, l[(progl == ptype) %>% which()] %>%
       data.table::rbindlist(),
     by = c("nmer", ptype), all.x = TRUE,
-    allow.cartesian = TRUE)
-
+    allow.cartesian = TRUE
+    )
   }
 
   dt %<>% unique
@@ -786,11 +810,11 @@ merge_predictions <- function(l, dt) {
 
   # only calculate best_netMHC if 2 or more scores exist
 
-  if (length(cols) < 2)
-      dt[, best_netMHC := get(col)]
+  if (length(cols) < 2) {
+    dt[, best_netMHC := get(cols)]
+  }
 
-  if (length(cols) >= 2){
-
+  if (length(cols) >= 2) {
     dtm <- dt[, .SD, .SDcols = c("nmer", "MHC", cols)] %>%
       melt(id.vars = c("nmer", "MHC")) %>%
       # order affinity predictions by program preference
@@ -807,22 +831,22 @@ merge_predictions <- function(l, dt) {
       .[!best_netMHC %>% is.na()]
 
     dt %<>% merge(dtm, by = c("nmer", "MHC"), all = TRUE)
-
-    }
+  }
 
   # merge back
 
   # take average of mhcflurry best available netMHC tool
 
-  cols  <- dt %>% names() %include% "(best_netMHC)|(mhcflurry_prediction$)|(mhcflurry_affinity$)"
+  cols <- dt %>% names() %include% "(best_netMHC)|(mhcflurry_prediction$)|(mhcflurry_affinity$)"
 
-  if (length(cols) < 2)
-      dt[, Ensemble_score := get(col)]
+  if (length(cols) < 2) {
+    dt[, Ensemble_score := get(cols)]
+  }
 
-  if (length(cols) >= 2){
-  dt[, Ensemble_score := mean(as.numeric(.SD), na.rm = TRUE),
-    by = 1:nrow(dt), .SDcols = cols
-  ]
+  if (length(cols) >= 2) {
+    dt[, Ensemble_score := mean(as.numeric(.SD), na.rm = TRUE),
+      by = 1:nrow(dt), .SDcols = cols
+    ]
   }
 
   message("Calculating differential agretopicity.")
@@ -1089,7 +1113,7 @@ get_pred_commands <- function(dt) {
 collate_netMHC <- function(esl) {
   message("Collating netMHC output...")
 
-  dtl <- parallel::mclapply(
+  dtl <- lapply(
     esl, function(es) {
       command <- es[[1]]
       fn <- es[[2]]
@@ -1399,17 +1423,16 @@ garnish_affinity <- function(dt = NULL,
 
     dt %<>% get_metadata
 
-    if ("chromosome_name" %chin% (dt %>% names)){
+    if ("chromosome_name" %chin% (dt %>% names())) {
       if (
-          (
-           dt[chromosome_name %>% stringr::str_detect(stringr::fixed(":MT"))] %>% nrow
-           ) > 0
-          ){
-
+        (
+          dt[chromosome_name %>% stringr::str_detect(stringr::fixed(":MT"))] %>% nrow()
+        ) > 0
+      ) {
         warning("Removing MT transcripts.")
         dt %<>% .[!chromosome_name %>% stringr::str_detect(stringr::fixed(":MT"))]
       }
-  }
+    }
 
     if (!missing(counts)) {
       ct <- data.table::fread(counts)
@@ -1603,80 +1626,44 @@ garnish_affinity <- function(dt = NULL,
       get_ss_str(1, pep_mut %>% nchar())]
   }
 
-    message("Generating variants")
+  message("Generating variants")
 
-    # generation a uuid for each unique variant
+  # generation a uuid for each unique variant
 
-    suppressWarnings(dt[, var_uuid := uuid::UUIDgenerate(n = .N)])
+  suppressWarnings(dt[, var_uuid := uuid::UUIDgenerate(n = .N)])
 
-    # separate over mutant indices
+  # separate over mutant indices
 
-    if (dt[, mutant_index %>% unique()] %>%
-      stringr::str_detect(" ") %>% any()) {
-      dts <- dt %>% tidyr::separate_rows("mutant_index", sep = " ")
-    } else {
-      dts <- dt
-    }
+  if (dt[, mutant_index %>% unique()] %>%
+    stringr::str_detect(" ") %>% any()) {
+    dts <- dt %>% tidyr::separate_rows("mutant_index", sep = " ")
+  } else {
+    dts <- dt
+  }
 
-    dts %<>% data.table::as.data.table(.)
+  dts %<>% data.table::as.data.table(.)
 
-    # convert back to numeric
+  # convert back to numeric
 
-    dts[, mutant_index := mutant_index %>% as.numeric()]
+  dts[, mutant_index := mutant_index %>% as.numeric()]
 
-    # generate a data table of unique variants for peptide generation
-    # this gives index error with frameshift inputs, only occurs when separate_rows is used above
-    # open issue on data.table repo, name exists but column index is invalid:
-    # Error in getindex(x, names(x)[xcols]) :
-    # Internal error: index 'frameshift' exists but is invalid
-    # I randomly fixed by setting key to another column, at some point key was set
-    # to frameshift, this produces error on dtfs and dtnfs creation
-    # data.table::copy() at dts creation did not solve this
-    setkey(dts, "sample_id")
+  # generate a data table of unique variants for peptide generation
+  # this gives index error with frameshift inputs, only occurs when separate_rows is used above
+  # open issue on data.table repo, name exists but column index is invalid:
+  # Error in getindex(x, names(x)[xcols]) :
+  # Internal error: index 'frameshift' exists but is invalid
+  # I randomly fixed by setting key to another column, at some point key was set
+  # to frameshift, this produces error on dtfs and dtnfs creation
+  # data.table::copy() at dts creation did not solve this
+  setkey(dts, "sample_id")
 
-    dtnfs <- dts[frameshift == FALSE]
-    dtfs <- dts[frameshift == TRUE]
+  dtnfs <- dts[frameshift == FALSE]
+  dtfs <- dts[frameshift == TRUE]
 
-    if (input_type == "transcript") {
-      basepep_dt <- data.table::rbindlist(list(
-        # take pep_wt for non-fs for DAI calculation
-        data.table::rbindlist(list(
-          dtnfs %>%
-            data.table::copy() %>%
-            .[, pep_base := pep_wt] %>%
-            .[, pep_type := "wt"],
-          dtnfs %>%
-            data.table::copy() %>%
-            .[, pep_base := pep_mut] %>%
-            .[, pep_type := "mutnfs"]
-        )),
-        # take only pep_mut for fs
-        dtfs %>%
-          data.table::copy() %>%
-          .[, pep_base := pep_mut] %>%
-          .[, pep_type := "mut_other"]
-      )) %>%
-
-        # take unique peptides
-        .[, .SD, .SDcols = c(
-          "var_uuid",
-          "pep_type",
-          "pep_base",
-          "mutant_index"
-        )] %>%
-        unique()
-    }
-
-    if (input_type == "peptide" & !"pep_wt" %chin% names(dtnfs)) {
-      basepep_dt <- dtnfs %>%
-        data.table::copy() %>%
-        .[, pep_base := pep_mut] %>%
-        .[, pep_type := "mut_other"]
-    }
-
-    if (input_type == "peptide" & "pep_wt" %chin% names(dtnfs)) {
-      basepep_dt <- data.table::rbindlist(list(
-        # take pep_wt for non-fs for DAI calculation
+  if (input_type == "transcript") {
+    basepep_dt <- data.table::rbindlist(list(
+      # take pep_wt for non-fs for DAI calculation
+      data.table::rbindlist(list(
         dtnfs %>%
           data.table::copy() %>%
           .[, pep_base := pep_wt] %>%
@@ -1685,209 +1672,244 @@ garnish_affinity <- function(dt = NULL,
           data.table::copy() %>%
           .[, pep_base := pep_mut] %>%
           .[, pep_type := "mutnfs"]
-      ))
-    }
+      )),
+      # take only pep_mut for fs
+      dtfs %>%
+        data.table::copy() %>%
+        .[, pep_base := pep_mut] %>%
+        .[, pep_type := "mut_other"]
+    )) %>%
 
-    # filter mutant_index
-    basepep_dt <- basepep_dt[(nchar(pep_base) - mutant_index) >= 0]
+      # take unique peptides
+      .[, .SD, .SDcols = c(
+        "var_uuid",
+        "pep_type",
+        "pep_base",
+        "mutant_index"
+      )] %>%
+      unique()
+  }
 
-    if (basepep_dt %>% nrow() == 0) {
-      return("no variants for peptide generation")
-    }
+  if (input_type == "peptide" & !"pep_wt" %chin% names(dtnfs)) {
+    basepep_dt <- dtnfs %>%
+      data.table::copy() %>%
+      .[, pep_base := pep_mut] %>%
+      .[, pep_type := "mut_other"]
+  }
 
-    nmer_dt <- make_nmers(basepep_dt, peptide_length)
+  if (input_type == "peptide" & "pep_wt" %chin% names(dtnfs)) {
+    basepep_dt <- data.table::rbindlist(list(
+      # take pep_wt for non-fs for DAI calculation
+      dtnfs %>%
+        data.table::copy() %>%
+        .[, pep_base := pep_wt] %>%
+        .[, pep_type := "wt"],
+      dtnfs %>%
+        data.table::copy() %>%
+        .[, pep_base := pep_mut] %>%
+        .[, pep_type := "mutnfs"]
+    ))
+  }
 
-    nmer_dt %<>% .[, nmer_l := nmer %>% nchar()]
+  # filter mutant_index
+  basepep_dt <- basepep_dt[(nchar(pep_base) - mutant_index) >= 0]
 
-    dt <- merge(dt, nmer_dt,
-      by = intersect(names(dt), names(nmer_dt)),
-      all.x = TRUE
-    )
+  if (basepep_dt %>% nrow() == 0) {
+    return("no variants for peptide generation")
+  }
 
-    # remove peptides present in global normal protein database
+  nmer_dt <- make_nmers(basepep_dt, peptide_length)
 
-    # load global peptide database
-    if (remove_wt) {
-      message("Filtering WT peptide matches.")
+  nmer_dt %<>% .[, nmer_l := nmer %>% nchar()]
 
-      d <- system.file(package = "antigen.garnish") %>% file.path(., "extdata")
+  dt <- merge(dt, nmer_dt,
+    by = intersect(names(dt), names(nmer_dt)),
+    all.x = TRUE
+  )
 
-      if (
-        (!dt$MHC %likef% "HLA" %>% any()) &
-          (!dt$MHC %likef% "H-2" %>% any()) &
-          !all(dt$MHC %chin% c("all_human", "all_mouse"))
-      ) {
-        stop("MHC do not contain \"HLA-\" or \"H-2\" as a pattern.
-              Alleles must be correctly formatted, see list_mhc().")
-      }
+  # remove peptides present in global normal protein database
 
-      if (
-        (dt$MHC %likef% "HLA" %>% any() &
-          !dt$MHC %likef% "H-2" %>% any()) ||
-          (dt$MHC == "all_human") %>% any()
-      ) {
-        pepv <-
-          file.path(
-            d,
-            "antigen.garnish_GRCh38_pep.RDS"
-          ) %>%
-          readRDS(.)
-      }
-      if (
-        (dt$MHC %likef% "H-2" %>% any() &
-          !dt$MHC %likef% "HLA" %>% any()) ||
-          (dt$MHC == "all_mouse") %>% any()
-      ) {
-        pepv <-
-          file.path(
-            d,
-            "antigen.garnish_GRCm38_pep.RDS"
-          ) %>%
-          readRDS(.)
-      }
+  # load global peptide database
+  if (remove_wt) {
+    message("Filtering WT peptide matches.")
 
-      if (
-        (dt$MHC %likef% "HLA" %>% any() &
-          dt$MHC %likef% "H-2" %>% any()) ||
-          (any(dt$MHC == "all_human") & any(dt$MHC == "all_mouse"))
-      ) {
-        pepv <- c(
-          file.path(d, "antigen.garnish_GRCh38_pep.RDS") %>%
-            readRDS(.),
-          file.path(d, "antigen.garnish_GRCm38_pep.RDS") %>%
-            readRDS(.)
-        )
-      }
+    d <- system.file(package = "antigen.garnish") %>% file.path(., "extdata")
 
-      # get unique normal proteins and unique non-wt nmers to match
-
-      pepv %<>% unique
-
-      nmv <- dt[pep_type != "wt", nmer %>% unique()]
-
-      # return vector of matched nmers to drop
-
-      mv <- parallel::mclapply(nmv %>% seq_along(), function(x) {
-        ifelse(
-          stringr::str_detect(pepv, stringr::fixed(nmv[x])) %>% any(),
-          return(nmv[x]),
-          return(NULL)
-        )
-      }) %>% unlist()
-
-      # drop matched nmers
-      dt %<>% .[!(nmer %chin% mv & pep_type != "wt")]
-
-    }
-
-    # generation a uuid for each unique nmer
-
-    nmer_uuid_dt <- dt[, .SD, .SDcols = "nmer"] %>% unique()
-
-    nmer_uuid_dt[, nmer_uuid :=
-      uuid::UUIDgenerate(use.time = FALSE, n = .N)]
-
-    dt %<>% merge(nmer_uuid_dt, by = "nmer", all.x = TRUE)
-
-
-    if (input_type == "transcript" ||
-      (input_type == "peptide" & "pep_wt" %chin% names(dt))
+    if (
+      (!dt$MHC %likef% "HLA" %>% any()) &
+        (!dt$MHC %likef% "H-2" %>% any()) &
+        !all(dt$MHC %chin% c("all_human", "all_mouse"))
     ) {
-      dt %<>% make_DAI_uuid
-
-      # remove mut == wt by sample_id
-      for (id in dt[, sample_id %>% unique()]) {
-
-        # get wt nmers for fast !chmatch
-        id_wt_nmers <- dt[
-          sample_id == id &
-            pep_type == "wt",
-          nmer %>% unique()
-        ]
-
-        dt %<>% .[pep_type == "wt" |
-          sample_id != id |
-          (sample_id == id &
-            pep_type != "wt" &
-            !nmer %chin% id_wt_nmers)]
-      }
+      stop("MHC do not contain \"HLA-\" or \"H-2\" as a pattern.
+              Alleles must be correctly formatted, see list_mhc().")
     }
 
-    # DAI cannot be calculated with peptide input
-    if (input_type == "peptide" & !"pep_wt" %chin% names(dt)) {
-      dt[, dai_uuid := NA %>% as.character()]
+    if (
+      (dt$MHC %likef% "HLA" %>% any() &
+        !dt$MHC %likef% "H-2" %>% any()) ||
+        (dt$MHC == "all_human") %>% any()
+    ) {
+      pepv <-
+        file.path(
+          d,
+          "antigen.garnish_GRCh38_pep.RDS"
+        ) %>%
+        readRDS(.)
+    }
+    if (
+      (dt$MHC %likef% "H-2" %>% any() &
+        !dt$MHC %likef% "HLA" %>% any()) ||
+        (dt$MHC == "all_mouse") %>% any()
+    ) {
+      pepv <-
+        file.path(
+          d,
+          "antigen.garnish_GRCm38_pep.RDS"
+        ) %>%
+        readRDS(.)
     }
 
-    if (blast) {
-      dt %<>% make_BLAST_uuid
+    if (
+      (dt$MHC %likef% "HLA" %>% any() &
+        dt$MHC %likef% "H-2" %>% any()) ||
+        (any(dt$MHC == "all_human") & any(dt$MHC == "all_mouse"))
+    ) {
+      pepv <- c(
+        file.path(d, "antigen.garnish_GRCh38_pep.RDS") %>%
+          readRDS(.),
+        file.path(d, "antigen.garnish_GRCm38_pep.RDS") %>%
+          readRDS(.)
+      )
     }
 
-    dir.create(ndir)
+    # get unique normal proteins and unique non-wt nmers to match
 
-    setwd(ndir)
+    pepv %<>% unique
 
-    message("Generating prediction commands.")
-    dtl <- dt %>% get_pred_commands()
+    nmv <- dt[pep_type != "wt", nmer %>% unique()]
 
-    # run commands
+    # return vector of matched nmers to drop
 
-    if (check_pred_tools() %>% unlist() %>% all()) {
-      dto <- run_netMHC(dtl[[2]])
-      run_mhcflurry()
-      dt <- merge_predictions(dto, dtl[[1]])
-    } else {
-      warning("Missing prediction tools in PATH, returning without predictions.")
+    mv <- lapply(nmv %>% seq_along(), function(x) {
+      ifelse(
+        stringr::str_detect(pepv, stringr::fixed(nmv[x])) %>% any(),
+        return(nmv[x]),
+        return(NULL)
+      )
+    }) %>% unlist()
+
+    # drop matched nmers
+    dt %<>% .[!(nmer %chin% mv & pep_type != "wt")]
+  }
+
+  # generation a uuid for each unique nmer
+
+  nmer_uuid_dt <- dt[, .SD, .SDcols = "nmer"] %>% unique()
+
+  nmer_uuid_dt[, nmer_uuid :=
+    uuid::UUIDgenerate(use.time = FALSE, n = .N)]
+
+  dt %<>% merge(nmer_uuid_dt, by = "nmer", all.x = TRUE)
+
+
+  if (input_type == "transcript" ||
+    (input_type == "peptide" & "pep_wt" %chin% names(dt))
+  ) {
+    dt %<>% make_DAI_uuid
+
+    # remove mut == wt by sample_id
+    for (id in dt[, sample_id %>% unique()]) {
+
+      # get wt nmers for fast !chmatch
+      id_wt_nmers <- dt[
+        sample_id == id &
+          pep_type == "wt",
+        nmer %>% unique()
+      ]
+
+      dt %<>% .[pep_type == "wt" |
+        sample_id != id |
+        (sample_id == id &
+          pep_type != "wt" &
+          !nmer %chin% id_wt_nmers)]
     }
+  }
 
-    message("Setting up dissimilarity calculating.")
+  # DAI cannot be calculated with peptide input
+  if (input_type == "peptide" & !"pep_wt" %chin% names(dt)) {
+    dt[, dai_uuid := NA %>% as.character()]
+  }
 
-    # now  that we know binders, get our foreignness_score and dissimilarity values
-    # iterate over multiple species
-    dt[MHC %like% "HLA", spc := "human"]
-    dt[MHC %like% "H-2", spc := "mouse"]
+  if (blast) {
+    dt %<>% make_BLAST_uuid
+  }
 
-    mns <- dt[pep_type != "wt" & Ensemble_score < binding_cutoff & spc == "mouse", nmer %>% unique()]
-    hns <- dt[pep_type != "wt" & Ensemble_score < binding_cutoff & spc == "human", nmer %>% unique()]
+  dir.create(ndir)
 
-    if (length(mns) != 0 & blast) {
-      idt <- mns %>%
-        foreignness_score(db = "mouse") %>%
-        .[, spc := "mouse"]
+  setwd(ndir)
 
-      sdt <- mns %>%
-        dissimilarity_score(db = "mouse") %>%
-        .[, spc := "mouse"]
+  message("Generating prediction commands.")
+  dtl <- dt %>% get_pred_commands()
 
-      dt <- merge(dt, idt, all.x = TRUE, by = c("nmer", "spc"))
+  # run commands
 
-      dt <- merge(dt, sdt, all.x = TRUE, by = c("nmer", "spc"))
-    }
+  if (check_pred_tools() %>% unlist() %>% all()) {
+    dto <- run_netMHC(dtl[[2]])
+    run_mhcflurry()
+    dt <- merge_predictions(dto, dtl[[1]])
+  } else {
+    warning("Missing prediction tools in PATH, returning without predictions.")
+  }
 
-    if (length(hns) != 0 & blast) {
-      idt <- hns %>%
-        foreignness_score(db = "human") %>%
-        .[, spc := "human"]
+  message("Setting up dissimilarity calculation.")
 
-      sdt <- hns %>%
-        dissimilarity_score(db = "human") %>%
-        .[, spc := "human"]
+  # now  that we know binders, get our foreignness_score and dissimilarity values
+  # iterate over multiple species
+  dt[MHC %like% "HLA", spc := "human"]
+  dt[MHC %like% "H-2", spc := "mouse"]
 
-      dt <- merge(dt, idt, all.x = TRUE, by = c("nmer", "spc"))
+  mns <- dt[pep_type != "wt" & Ensemble_score < binding_cutoff & spc == "mouse", nmer %>% unique()]
+  hns <- dt[pep_type != "wt" & Ensemble_score < binding_cutoff & spc == "human", nmer %>% unique()]
 
-      dt <- merge(dt, sdt, all.x = TRUE, by = c("nmer", "spc"))
-    }
+  if (length(mns) != 0 & blast) {
+    idt <- mns %>%
+      foreignness_score(db = "mouse") %>%
+      .[, spc := "mouse"]
 
-    dt[, spc := NULL]
+    sdt <- mns %>%
+      dissimilarity_score(db = "mouse") %>%
+      .[, spc := "mouse"]
 
-    # set NA to 0 for foreignness_score to match original implementation
-    # set NA to 0 for dissimilarity, no alignments is truly dissimilar
-    if ("foreignness_score" %chin% names(dt)) {
-      dt[is.na(foreignness_score) & pep_type != "wt" & Ensemble_score < binding_cutoff, foreignness_score := 0]
-    }
+    dt <- merge(dt, idt, all.x = TRUE, by = c("nmer", "spc"))
 
-    if ("dissimilarity" %chin% names(dt)) {
-      dt[is.na(dissimilarity) & pep_type != "wt" & Ensemble_score < binding_cutoff, dissimilarity := 0]
-    }
+    dt <- merge(dt, sdt, all.x = TRUE, by = c("nmer", "spc"))
+  }
+
+  if (length(hns) != 0 & blast) {
+    idt <- hns %>%
+      foreignness_score(db = "human") %>%
+      .[, spc := "human"]
+
+    sdt <- hns %>%
+      dissimilarity_score(db = "human") %>%
+      .[, spc := "human"]
+
+    dt <- merge(dt, idt, all.x = TRUE, by = c("nmer", "spc"))
+
+    dt <- merge(dt, sdt, all.x = TRUE, by = c("nmer", "spc"))
+  }
+
+  dt[, spc := NULL]
+
+  # set NA to 0 for foreignness_score to match original implementation
+  # set NA to 0 for dissimilarity, no alignments is truly dissimilar
+  if ("foreignness_score" %chin% names(dt)) {
+    dt[is.na(foreignness_score) & pep_type != "wt" & Ensemble_score < binding_cutoff, foreignness_score := 0]
+  }
+
+  if ("dissimilarity" %chin% names(dt)) {
+    dt[is.na(dissimilarity) & pep_type != "wt" & Ensemble_score < binding_cutoff, dissimilarity := 0]
+  }
 
   if (blast) {
 
@@ -1989,7 +2011,7 @@ make_nmers <- function(dt, plen = 8:15) {
 
   .fn <- purrr::partial(paste, collapse = "")
 
-  nmer_list <- parallel::mclapply(
+  nmer_list <- lapply(
     1:nrow(dt),
 
     function(n) {

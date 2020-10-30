@@ -14,11 +14,15 @@ testthat::test_that("get_metadata", {
     dto %>% names(),
     c(
       "transcript_id",
+      "peptide",
+      "codingTo",
+      "codingFrom",
+      "cDNA",
       "coding",
+      "pepFromCoding",
       "description",
       "chromosome_name",
-      "ensembl_gene_id",
-      "peptide"
+      "ensembl_gene_id"
     )
   )
 

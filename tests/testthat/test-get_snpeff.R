@@ -36,7 +36,7 @@ testthat::test_that("get_vcf_snpeff_dt", {
       ), gene = c(
         "Phf13", "Thap3",
         "Thap3", "Thap3", "Thnsl2", "Thnsl2", "Thnsl2"
-      ), ensembl_gene_id = c(
+      ), gene_id = c(
         "ENSMUSG00000047777.1",
         "ENSMUSG00000039759.1", "ENSMUSG00000039759.1", "ENSMUSG00000039759.1",
         "ENSMUSG00000054474.1", "ENSMUSG00000054474.1", "ENSMUSG00000054474"
@@ -78,6 +78,6 @@ testthat::test_that("get_vcf_snpeff_dt", {
       )), row.names = c(
         NA,
         -7L
-      ), class = c("data.table", "data.frame")) %>% data.table::as.data.table(.)
+      ), class = c("data.table", "data.frame"))
     )
 })
