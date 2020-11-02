@@ -22,7 +22,7 @@ A data table with one unique SnpEff variant annotation per row, including:
 }
 }
 \description{
-Process paired tumor-normal VCF variants annotated with \href{http://snpeff.sourceforge.net/}{SnpEff} for neoantigen prediction using \code{garnish_affinity}. All versioned Ensembl transcript IDs (e.g. ENST00000311936.8) from any GRCh38 or GRCm38 release are supported.
+Process paired tumor-normal VCF variants annotated with \href{http://snpeff.sourceforge.net/}{SnpEff} for neoantigen prediction using \code{garnish_affinity}. All versioned Ensembl transcript IDs (e.g. ENST00000311936.8) from any GRCh38 or GRCm38 release are supported. Parsing will fall back to using RefSeq IDs, but RefSeq IDs are not preferred.
 }
 \seealso{
 \code{\link{garnish_affinity}}

@@ -1325,6 +1325,7 @@ get_ss_str <- function(x, y) {
 #' @details
 #' * see `list_mhc` for compatible MHC allele syntax, you may also use "all_human" or "all_mouse" in the MHC column to use all supported alleles
 #'
+#' Parallel cores used can be set via environment variable AG_THREADS (default: all available).
 #' @seealso \code{\link{list_mhc}}
 #' @seealso \code{\link{garnish_variants}}
 #' @seealso \code{\link{garnish_antigens}}
