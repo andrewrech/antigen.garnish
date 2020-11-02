@@ -143,6 +143,8 @@ docker rm $cID
 
 ### Linux
 
+Parallel cores used can be set via environment variable AG_THREADS (default: all available).
+
 #### Predict neoantigens from missense mutations, insertions, and deletions
 
 ```r
