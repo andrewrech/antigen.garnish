@@ -4,11 +4,12 @@ Breaking changes:
 
 - new filtering criteria based on TESLA: https://www.parkerici.org/research-project/tumor-neoantigen-selection-alliance-tesla/, see ?garnish_antigens
 - update Ensembl transcript CDS database to release 101 (any prior versioned transcript release is acceptable)
-- remove support for mitochondrial CDS, Refseq, xlsx input, JAFFA input, PureCN input to focus on peptide/transcript tables and VCFs
+- remove support for mitochondrial CDS, xlsx input, JAFFA input, PureCN input to focus on peptide/transcript tables and VCFs
 - improve SnpEff annotation parsing
 
 Additional updates:
 
+- allow setting thread use via environment variable AG_THREADS
 - include percentile rank filtering at default netMHC thresholds
 - simplify installation instructions
 - remove 7 dependencies
