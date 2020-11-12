@@ -75,6 +75,8 @@ Perform ensemble neoantigen prediction on a data table of missense mutations, in
 \itemize{
 \item see \code{list_mhc} for compatible MHC allele syntax, you may also use "all_human" or "all_mouse" in the MHC column to use all supported alleles
 }
+
+Parallel cores used can be set via environment variable AG_THREADS (default: all available).
 }
 \references{
 Richman LP, Vonderheide RH, and Rech AJ. Neoantigen dissimilarity to the self-proteome predicts immunogenicity and response to immune checkpoint blockade. Cell Systems. 2019.

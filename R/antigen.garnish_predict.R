@@ -1271,7 +1271,6 @@ write_netmhc_nmers <- function(dt, type) {
 #' @param x Integer. Starting integer.
 #' @param y Integer. Ending integer.
 #'
-#' @export get_ss_str
 #' @noRd
 
 get_ss_str <- function(x, y) {
