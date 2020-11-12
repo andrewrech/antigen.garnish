@@ -1,3 +1,10 @@
-^\.travis\.yml$
-^cran-comments\.md$
+# development and git
+.*\.editorconfig
+.*\Dockerfile
+.*\dockerignore
+.*\dockerfile
+.*\.gitignore/
+.*\.git/
+.*\.github
+.*\.tar\.gz
 ^docs$
