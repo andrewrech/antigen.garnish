@@ -98,7 +98,7 @@ chmod 700 -R "$ANTIGEN_GARNISH_DIR/netMHC"
 
 ## Usage
 
-See the [website](https://neoantigens.rech.io/reference/index.html) or [reference manual](https://get.rech.io/antigen.garnish.pdf).
+See the [reference manual](https://get.rech.io/antigen.garnish.pdf).
 
 ### Docker
 
