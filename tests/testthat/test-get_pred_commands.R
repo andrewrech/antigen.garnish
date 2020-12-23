@@ -1,4 +1,4 @@
-testthat::test_that("get_pred_commands", {
+testthat::test_that("antigen.garnish:::get_pred_commands", {
   list.files(pattern = "(netMHC|flurry).*-.*-.*\\.csv") %>% file.remove()
   on.exit(list.files(pattern = "(netMHC|flurry).*-.*-.*\\.csv") %>% file.remove())
 
@@ -23,7 +23,7 @@ testthat::test_that("get_pred_commands", {
   # run test
 
   dto <- dt %>%
-    get_pred_commands() %>%
+    antigen.garnish:::get_pred_commands() %>%
     .[[2]]
 
   testthat::expect_equal(dto %>% nrow(), 12)

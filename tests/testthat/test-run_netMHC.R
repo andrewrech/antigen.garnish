@@ -1,4 +1,4 @@
-testthat::test_that("run_netMHC", {
+testthat::test_that("antigen.garnish:::run_netMHC", {
   list.files(pattern = "ex_netMHC.*csv") %>% file.remove()
   on.exit(list.files(pattern = "netMHC_.*csv") %>% file.remove())
 
@@ -42,7 +42,7 @@ testthat::test_that("run_netMHC", {
   file.copy(input, basename(input))
 
   # run test
-  dto <- run_netMHC(dt) %>% data.table::rbindlist(fill = TRUE)
+  dto <- antigen.garnish:::run_netMHC(dt) %>% data.table::rbindlist(fill = TRUE)
 
   # this test should fail if any column names change
   # to alert to netMHC dependency changes across versions

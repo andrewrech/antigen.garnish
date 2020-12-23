@@ -1,4 +1,4 @@
-testthat::test_that("make_DAI_uuid", {
+testthat::test_that("antigen.garnish:::make_DAI_uuid", {
 
   # load test data
     dt <- structure(list(pep_mut = c("MAAASGYTDLREKLKSMTSRDNYKAGSREAAAAAAAAVAAAAAAAAAAEPYPASGTTKRKYQEDSDPERSDYEEHQLQKEEEARKVKSGIRQIRLFSQDECSKIEARIDEVVSRAEKGLYNEHTVDRAPLRNKYFFGEGYTYGAQLQKRGPGQERLYPPGDVDEIPDWVHQLVIQKLVEHRVIPEGFVNSAVINDYQPGGCIVSHVDPIHIFERPIVSVSFFSDSALCFGCKFQFKPIRVSEPVLSLPVRRGSVTVLSGYAADEITHCIRPQDIKERRAVIILRKTRLDAPRLETKSLSSSTLPPSYASDRLSGNTRDPALKPKRSHRKADPDAAHRPRILEMDKEENRRSVLLPTHRRRGSFSSENYWRKAYESSEDCPEAASSPTRKVKMRRH",
@@ -57,7 +57,7 @@ testthat::test_that("make_DAI_uuid", {
     "data.frame"), row.names = c(NA, -16L))
 
   # run test
-    dto <- make_DAI_uuid(dt) %>% .[order(nmer)]
+    dto <- antigen.garnish:::make_DAI_uuid(dt) %>% .[order(nmer)]
 
    testthat::expect_equal(dto[, nmer],
                         c("AYESSEDC",

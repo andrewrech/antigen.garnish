@@ -2,9 +2,8 @@ library(testthat)
 library(antigen.garnish)
 library(data.table)
 library(magrittr)
-library(dt.inflix)
 
-testthat::test_that("detect_mhc", {
+testthat::test_that("antigen.garnish:::detect_mhc", {
 
   # load test data
   alleles <- data.table::rbindlist(
@@ -53,7 +52,7 @@ testthat::test_that("detect_mhc", {
   )
 
   # run test
-  dt[, netMHCIIpan := detect_mhc(netMHCIIpan, alleles)]$netMHCIIpan %>%
+  dt[, netMHCIIpan := antigen.garnish:::detect_mhc(netMHCIIpan, alleles)]$netMHCIIpan %>%
 
     testthat::expect_equal(c(NA, NA, "DRB1_0301", "DRB1_1467"))
 })
