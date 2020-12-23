@@ -1,4 +1,4 @@
-testthat::test_that("get_vcf_info_dt", {
+testthat::test_that("antigen.garnish:::get_vcf_info_dt", {
 
   # load test data
 
@@ -6,7 +6,7 @@ testthat::test_that("get_vcf_info_dt", {
 
   dt <- file.path(d, "antigen.garnish_test.vcf") %>%
     vcfR::read.vcfR(verbose = TRUE) %>%
-    get_vcf_info_dt()
+    antigen.garnish:::get_vcf_info_dt()
 
   testthat::expect_true((dt %>% names()) %chin%
     c(

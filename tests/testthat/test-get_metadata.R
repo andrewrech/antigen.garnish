@@ -1,4 +1,4 @@
-testthat::test_that("get_metadata", {
+testthat::test_that("antigen.garnish:::get_metadata", {
 
   # load test data
   dto <- data.table::data.table(
@@ -8,7 +8,7 @@ testthat::test_that("get_metadata", {
     )
   ) %>%
     # run tets
-    get_metadata()
+    antigen.garnish:::get_metadata()
 
   testthat::expect_equal(
     dto %>% names(),

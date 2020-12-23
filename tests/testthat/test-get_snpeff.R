@@ -1,4 +1,4 @@
-testthat::test_that("get_vcf_snpeff_dt", {
+testthat::test_that("antigen.garnish:::get_vcf_snpeff_dt", {
 
   # load test data
 
@@ -8,10 +8,13 @@ testthat::test_that("get_vcf_snpeff_dt", {
   )) %>%
 
     # run test
-    get_vcf_snpeff_dt()
+    antigen.garnish:::get_vcf_snpeff_dt()
+
+  dtNames <- dt %>% names()
+  dtNames %<>% .[!names %like% "uuid"]
 
   dt %>%
-    .[, .SD, .SDcols = (dt %>% names()) %exclude% "uuid"] %>%
+    .[, .SD, .SDcols = dtNames] %>%
     testthat::expect_equal(
       .,
       structure(list(ANN = c(

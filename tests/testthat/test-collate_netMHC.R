@@ -1,4 +1,4 @@
-testthat::test_that("collate_netMHC", {
+testthat::test_that("antigen.garnish:::collate_netMHC", {
 
   # load test data
   file.copy(file.path(test_data_dir(), "antigen.garnish_collate_example.txt"),
@@ -12,7 +12,7 @@ testthat::test_that("collate_netMHC", {
     )
 
     # run test
-      dt <- esl %>% collate_netMHC
+      dt <- esl %>% antigen.garnish:::collate_netMHC
 
    testthat::expect_equal(dt[[1]] %>% nrow, 48)
    testthat::expect_equal(dt[[1]] %>% length, 15)

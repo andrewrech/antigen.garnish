@@ -2,9 +2,8 @@ library(testthat)
 library(antigen.garnish)
 library(data.table)
 library(magrittr)
-library(dt.inflix)
 
-testthat::test_that("write_netmhc_nmers", {
+testthat::test_that("antigen.garnish:::write_netmhc_nmers", {
 
   list.files(pattern = "netMHC.*csv") %>% file.remove
   on.exit(list.files(pattern = "netMHC_.*csv") %>% file.remove)
@@ -18,7 +17,7 @@ testthat::test_that("write_netmhc_nmers", {
     ))
 
   # run test
-    dto <-  write_netmhc_nmers(dt, "netMHC")
+    dto <-  antigen.garnish:::write_netmhc_nmers(dt, "netMHC")
 
     testthat::expect_true(
       data.table::fread(dto$filename,

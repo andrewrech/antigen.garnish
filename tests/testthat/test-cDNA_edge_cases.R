@@ -1,4 +1,4 @@
-testthat::test_that("make_cDNA edge cases", {
+testthat::test_that("antigen.garnish:::make_cDNA edge cases", {
 
   # load test data
 
@@ -10,7 +10,7 @@ testthat::test_that("make_cDNA edge cases", {
       cDNA_seq = c("*", "*", "_____", "", "*", "", "**"))
 
   # run test
-  dto <- make_cDNA(dt)
+  dto <- antigen.garnish:::make_cDNA(dt)
 
   # visually inspect
   dto[, .(coding_mut, coding_l = coding %>% nchar,

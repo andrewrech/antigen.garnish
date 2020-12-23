@@ -1,4 +1,4 @@
-testthat::test_that("merge_predictions", {
+testthat::test_that("antigen.garnish:::merge_predictions", {
   list.files(pattern = "antigen.garnish.*_output.*csv") %>% file.remove()
   on.exit(list.files(pattern = "antigen.garnish.*_output.*csv") %>% file.remove())
 
@@ -15,7 +15,7 @@ testthat::test_that("merge_predictions", {
 
   # run test
 
-  dto <- merge_predictions(
+  dto <- antigen.garnish:::merge_predictions(
     file.path(d, "antigen.garnish_netMHC_test_output.RDS") %>%
       readRDS(),
     file.path(d, "antigen.garnish_merge_predictions_input_dt.RDS") %>%
