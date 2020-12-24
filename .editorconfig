@@ -1,12 +1,12 @@
 # EditorConfig is awesome: http://EditorConfig.org
+
 [*]
 insert_final_newline = true
 charset = utf-8
-indent_style = tab
+indent_style = space
 indent_size = 2
 tab_width = 2
 trim_trailing_whitespace = true
-charset = utf-8
 
-[*{R,r,Rmd,rmd,Md,md,MD,RMD,zsh,Zsh,sh,bash,vim,docker,Dockerfile,Dockerfile}]
-indent_style = space
+[*go]
+indent_style = tab
