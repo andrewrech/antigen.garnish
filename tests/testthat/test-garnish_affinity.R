@@ -3,10 +3,6 @@ README <- function() {
   testthat::test_that("garnish_affinity README examples", {
     skip_pred_tools()
 
-    library(magrittr)
-    library(data.table)
-    library(antigen.garnish)
-
     # load an example VCF
     dir <- system.file(package = "antigen.garnish") %>%
       file.path(., "extdata/testdata")

@@ -1,8 +1,3 @@
-library(testthat)
-library(antigen.garnish)
-library(data.table)
-library(magrittr)
-
 testthat::test_that("antigen.garnish:::detect_mhc", {
 
   # load test data
