@@ -18,7 +18,7 @@ testthat::test_that("antigen.garnish neoantigen prediction", {
                     "back_truncate",
                     "end")) %>%
   # create nmers
-    make_nmers %T>% print
+    antigen.garnish:::make_nmers %T>% print
 
     testthat::succeed()
     })
