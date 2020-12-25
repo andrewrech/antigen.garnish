@@ -390,7 +390,7 @@ check_pred_tools <- function(ag_dirs = c(
         "/netMHC",
         list.files(file.path(ag_dir, "netMHC"))
       ),
-      file.path("/c++/ncbi-blast-2.10.1+-src/c++/ReleaseMT/bin")
+      file.path("/ncbi-blast-2.10.1+-src/c++/ReleaseMT/bin")
     )
   ) %>%
     normalizePath() %>%
