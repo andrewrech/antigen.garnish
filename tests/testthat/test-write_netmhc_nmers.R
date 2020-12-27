@@ -1,4 +1,4 @@
-testthat::test_that("antigen.garnish:::write_netmhc_nmers", {
+testthat::test_that("write_netmhc_nmers", {
   list.files(pattern = "netMHC.*csv") %>% file.remove()
   on.exit(list.files(pattern = "netMHC_.*csv") %>% file.remove())
 

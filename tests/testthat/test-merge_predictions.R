@@ -1,4 +1,4 @@
-testthat::test_that("antigen.garnish:::merge_predictions", {
+testthat::test_that("merge_predictions", {
   list.files(pattern = "antigen.garnish.*_output.*csv") %>% file.remove()
   on.exit(list.files(pattern = "antigen.garnish.*_output.*csv") %>% file.remove())
 

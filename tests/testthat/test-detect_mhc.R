@@ -1,4 +1,4 @@
-testthat::test_that("antigen.garnish:::detect_mhc", {
+testthat::test_that("detect_mhc", {
 
   # load test data
   alleles <- data.table::rbindlist(
