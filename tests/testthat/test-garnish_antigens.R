@@ -3,7 +3,7 @@ testthat::test_that("garnish_antigens", {
   d <- test_data_dir()
 
   # load test data
-  dt <- file.path(d, "antigen.garnish_example_output2.txt") %>%
+  dt <- file.path(d, "antigen.garnish_example_output.txt") %>%
     data.table::fread() %>%
     garnish_antigens()
 
