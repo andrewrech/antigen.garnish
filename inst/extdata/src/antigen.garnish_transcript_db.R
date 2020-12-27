@@ -15,7 +15,7 @@ make_ensembl_db <- function() {
       dt <- data.table::fread(fn, header = FALSE, sep = "\t")
 
       # index of FASTA entries
-      nameIdx <- dt[, (V1 %likef% "ENS") %>% which()] # header lines
+      nameIdx <- dt[, (V1 %like% "ENS") %>% which()] # header lines
       # add final index for EOF
       nameIdx %<>% c(nrow(dt) + 1)
 
@@ -46,17 +46,17 @@ make_ensembl_db <- function() {
   ret %<>% unique(by = "transcript_id")
 
   # do not use non-versioned transcripts because they are not reliable
-  ret[transcript_id %likef% "."] %>% nrow()
-  ret[!transcript_id %likef% "."] %>% nrow()
-  ret %<>% .[transcript_id %likef% "."]
+  ret[transcript_id %like% "."] %>% nrow()
+  ret[!transcript_id %like% "."] %>% nrow()
+  ret %<>% .[transcript_id %like% "."]
 
   # check integrity of parsing
-  ret[!ensembl_gene_id %likef% "ENS"] %>% nrow() == 0
-  ret[!transcript_id %likef% "ENS"] %>% nrow() == 0
-  ret[coding %likef% "ENS"] %>% nrow() == 0
+  ret[!ensembl_gene_id %like% "ENS"] %>% nrow() == 0
+  ret[!transcript_id %like% "ENS"] %>% nrow() == 0
+  ret[coding %like% "ENS"] %>% nrow() == 0
 
   # remove MT
-  ret %<>% .[!chromosome_name %likef% ":MT"]
+  ret %<>% .[!chromosome_name %like% ":MT"]
 
   # predict peptides from mRNA
   uniqCoding <- ret[, .SD, .SDcols = "coding"] %>% unique()

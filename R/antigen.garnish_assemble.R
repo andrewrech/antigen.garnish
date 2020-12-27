@@ -11,7 +11,7 @@ list_mhc <- function() {
     data.table::fread(header = FALSE, sep = "\t") %>%
     data.table::setnames("V1", "MHC") %>%
     .[, species := "human"] %>%
-    .[MHC %likef% "H-2", species := "mouse"] %>%
+    .[MHC %like% "H-2", species := "mouse"] %>%
     .[, class := "II"] %>%
     .[MHC %like% "(H-2-[A-Z][a-z])|(HLA-[ABCE]\\*)", class := "I"]
 

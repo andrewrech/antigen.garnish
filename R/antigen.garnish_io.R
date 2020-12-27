@@ -112,7 +112,7 @@ garnish_variants <- function(vcfs, tumor_sample_name = "TUMOR") {
     # filter SnpEff warnings
 
     vdt %<>% .[!ANN %like% "ERROR_.*CHROMOSOME"]
-    vdt %<>% .[!ANN %likef% "WARNING_SEQUENCE_NOT_AVAILABLE"]
+    vdt %<>% .[!ANN %like% "WARNING_SEQUENCE_NOT_AVAILABLE"]
 
     if (vdt %>% nrow() < 1) {
       warning("No variants are present in the input file after filtering.")

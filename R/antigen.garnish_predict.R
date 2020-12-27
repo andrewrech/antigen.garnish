@@ -1736,8 +1736,8 @@ garnish_affinity <- function(dt = NULL,
     d <- system.file(package = "antigen.garnish") %>% file.path(., "extdata")
 
     if (
-      (!dt$MHC %likef% "HLA" %>% any()) &
-        (!dt$MHC %likef% "H-2" %>% any()) &
+      (!dt$MHC %like% "HLA" %>% any()) &
+        (!dt$MHC %like% "H-2" %>% any()) &
         !all(dt$MHC %chin% c("all_human", "all_mouse"))
     ) {
       stop("MHC do not contain \"HLA-\" or \"H-2\" as a pattern.
@@ -1745,8 +1745,8 @@ garnish_affinity <- function(dt = NULL,
     }
 
     if (
-      (dt$MHC %likef% "HLA" %>% any() &
-        !dt$MHC %likef% "H-2" %>% any()) ||
+      (dt$MHC %like% "HLA" %>% any() &
+        !dt$MHC %like% "H-2" %>% any()) ||
         (dt$MHC == "all_human") %>% any()
     ) {
       pepv <-
@@ -1757,8 +1757,8 @@ garnish_affinity <- function(dt = NULL,
         readRDS(.)
     }
     if (
-      (dt$MHC %likef% "H-2" %>% any() &
-        !dt$MHC %likef% "HLA" %>% any()) ||
+      (dt$MHC %like% "H-2" %>% any() &
+        !dt$MHC %like% "HLA" %>% any()) ||
         (dt$MHC == "all_mouse") %>% any()
     ) {
       pepv <-
@@ -1770,8 +1770,8 @@ garnish_affinity <- function(dt = NULL,
     }
 
     if (
-      (dt$MHC %likef% "HLA" %>% any() &
-        dt$MHC %likef% "H-2" %>% any()) ||
+      (dt$MHC %like% "HLA" %>% any() &
+        dt$MHC %like% "H-2" %>% any()) ||
         (any(dt$MHC == "all_human") & any(dt$MHC == "all_mouse"))
     ) {
       pepv <- c(
