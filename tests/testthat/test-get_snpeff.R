@@ -11,7 +11,7 @@ testthat::test_that("antigen.garnish:::get_vcf_snpeff_dt", {
     antigen.garnish:::get_vcf_snpeff_dt()
 
   dtNames <- dt %>% names()
-  dtNames %<>% .[!names %like% "uuid"]
+  dtNames %<>% .[!dtNames %like% "uuid"]
 
   dt %>%
     .[, .SD, .SDcols = dtNames] %>%
