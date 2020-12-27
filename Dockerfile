@@ -58,7 +58,7 @@ RUN pip3 --disable-pip-version-check \
 ## copy needed files to prevent errors
 RUN mkdir /.local/ &&  \
       mkdir /.local/share && \
-      cp -r /root/.local/share/mhcflurry /.local/share/
+      mv /root/.local/share/mhcflurry /.local/share/
 
 RUN Rscript --vanilla -e \
     'install.packages(c("BiocManager", "testthat", "rcmdcheck", "data.table", "mclust", "Rdpack", "tidyr", "uuid", "vcfR", "zoo"), repos = "http://cran.us.r-project.org"); BiocManager::install("Biostrings")'
