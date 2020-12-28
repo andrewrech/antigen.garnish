@@ -93,7 +93,6 @@ garnish_variants <- function(vcfs, tumor_sample_name = "TUMOR") {
       return(data.table::data.table(sample_id = sample_id))
     }
 
-
     if (vdt %>% class() %>%
       .[1] == "try-error") {
       warning("Error parsing input file INFO field.")

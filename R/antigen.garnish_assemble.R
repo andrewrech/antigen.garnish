@@ -381,7 +381,10 @@ get_vcf_snpeff_dt <- function(dt) {
   # transform to data frame intermediate to avoid
   # data.table invalid .internal.selfref
   dt %<>%
-    tidyr::separate_rows("ANN", sep = "\\|,") %>%
+    # first, remove ALT allele annotation to standardize form across SnpEff annotations in each row
+    .[, ANN := ANN %>% stringr::str_replace("^(ANN)?(=)?[ACTNG]*\\|", "")] %>%
+    # second, separate SnpEff annotations into one per row
+    tidyr::separate_rows("ANN", sep = ",([ACTG]+)?\\|") %>%
     data.table::as.data.table(.)
 
   dt[, transcript_id := ANN %>%
@@ -394,8 +397,6 @@ get_vcf_snpeff_dt <- function(dt) {
   # the nucleotide header must be removed from the ANN field to parse correctly
   # because some ANN fields do not have a header, resulting in the wrong
   # number of columns
-
-  dt[, ANNtoParse := ANN %>% stringr::str_replace("(ANN=)?[ACTNG]*\\|", "")]
 
   annSpecNames <- c(
     "effect_type",
@@ -413,9 +414,22 @@ get_vcf_snpeff_dt <- function(dt) {
     "Protein_position_Protein_len",
     "Distance_to_feature"
   )
-  dt[, eval(annSpecNames) := ANNtoParse %>% data.table::tstrsplit("\\|")]
-  dt[, ANNtoParse := NULL]
 
+  snpEff <- dt[, ANN %>% data.table::tstrsplit("\\|")]
+
+  # also parse error column if it exists
+  if (snpEff %>% length() == 15) {
+    annSpecNames %<>% c("ERRORS_WARNINGS_INFO")
+  }
+
+  snpEff %>% data.table::setnames(annSpecNames)
+
+  dt <- try(cbind(dt, snpEff))
+
+  if (any(class(dt) %like% "error")) {
+    print(str(dt))
+    stop("error parsing VCF SnpEff annotations")
+ }
   dt[, protein_coding := FALSE]
   dt[protein_change != "", protein_coding := TRUE]
 

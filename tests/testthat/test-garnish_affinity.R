@@ -166,7 +166,6 @@ peptides <- function() {
 
 peptides_wt <- function() {
   testthat::test_that("garnish_affinity assemble from peptides with wild-type", {
-
     skip_pred_tools()
 
     # load test data

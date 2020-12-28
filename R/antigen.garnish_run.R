@@ -213,7 +213,7 @@ configure_netMHC_tools <- function(dir) {
   npd <- file.path(dir, "netMHC")
   setwd(npd)
 
-  if (!dir.exists(npd)) {
+  if (!file.exists(npd)) {
     stop(npd, " does not exist; cannot find netMHC tools; see README: https://github.com/andrewrech/antigen.garnish")
   }
 
@@ -221,10 +221,10 @@ configure_netMHC_tools <- function(dir) {
   # in Docker, and in installation instructions due to differences
   # across versions that breaks parsing
   f <- c(
-    "netMHC-4.0/netMHC",
-    "netMHCII-2.3/netMHCII-2.3",
-    "netMHCIIpan-4.0/netMHCIIpan",
-    "netMHCpan-4.1/netMHCpan"
+    "netMHC/netMHC-4.0/netMHC",
+    "netMHC/netMHCII-2.3/netMHCII-2.3",
+    "netMHC/netMHCIIpan-4.0/netMHCIIpan",
+    "netMHC/netMHCpan-4.1/netMHCpan"
   )
 
   message("Checking netMHC scripts in antigen.garnish data directory.")
@@ -237,9 +237,7 @@ configure_netMHC_tools <- function(dir) {
     # return early and do not attempt to download data
     # assume user has configured netMHC tools
 
-    if (!dir.exists(i)) {
-      file.path(dir, "/", i)
-
+    if (!file.exists(file.path(dir, "/", i))) {
       message(dir, "/", i, " does not exist; cannot configure netMHC tools; see README: https://github.com/andrewrech/antigen.garnish")
       return(NULL)
     }
