@@ -150,7 +150,6 @@ Parallel cores used can be set via environment variable AG_THREADS (default: all
 ```r
 library(magrittr)
 library(data.table)
-library(dt.inflix)
 library(antigen.garnish)
 
 # load an example VCF
@@ -170,6 +169,46 @@ dt[, MHC := c("HLA-A*01:47 HLA-A*02:01 HLA-DRB1*14:67")]
 
 # predict neoantigens
 result <- dt %>% garnish_affinity(.)
+
+result %>% str
+```
+
+#### Predict neoantigens from Microsoft Excel or other table input
+
+Transcript ID level input table format:
+```
+# sample_id ensembl_transcript_id cDNA_change MHC
+# sample_1  ENST00000311936       c.718T>A    HLA-A*02:01 HLA-A*03:01
+# sample_1  ENST00000311936       c.718T>A    H-2-Kb H-2-Kb
+```
+
+Protein level input (with optional WT paired input) table format:
+```
+# sample_id pep_mut           pep_wt            mutant_index MHC
+# sample_1  MTEYKLVVVDADGVGK  MTEYKLVVVDAGGVGK  12           HLA-A*02:01
+# sample_1  MTEYKLVVVDDDGVGK  MTEYKLVVVDAGGVGK  12 13        HLA-A*02:01
+# sample_1  MTEYKLVVVDAGGAAA  MTEYKLVVVDAGGVGK  14 15 16     HLA-A*02:01
+# sample_1  SIINFEKLMILKATFI  MTEYKLVVVDAGGVGK  all          HLA-A*02:01
+```
+
+```r
+library(magrittr)
+library(data.table)
+library(antigen.garnish)
+library(rio) # package to import Excel and other tables
+
+# load an example table
+dir <- system.file(package = "antigen.garnish") %>%
+       file.path(., "extdata/testdata")
+
+file <- file.path(dir, "antigen.garnish_example_peptide_with_WT_input.txt")
+
+# read in excel or other format file with rio::import and convert to data table
+# or substitute the path to your file here
+mytable <- rio::import(file) %>% data.table::as.data.table()
+
+# predict neoantigens from data table object
+result <- garnish_affinity(mytable)
 
 result %>% str
 ```
