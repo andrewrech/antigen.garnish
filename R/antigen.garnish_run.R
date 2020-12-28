@@ -240,7 +240,7 @@ configure_netMHC_tools <- function(dir) {
     if (!dir.exists(i)) {
       file.path(dir, "/", i)
 
-      warning(dir, "/", i, " does not exist; cannot configure netMHC tools; see README: https://github.com/andrewrech/antigen.garnish")
+      message(dir, "/", i, " does not exist; cannot configure netMHC tools; see README: https://github.com/andrewrech/antigen.garnish")
       return(NULL)
     }
 
