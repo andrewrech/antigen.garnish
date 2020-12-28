@@ -214,7 +214,7 @@ configure_netMHC_tools <- function(dir) {
   setwd(npd)
 
   if (!dir.exists(npd)) {
-    stop("netMHC parent directory in antigen.garnish data directory not found.")
+    stop(npd, " does not exist; cannot find netMHC tools; see README: https://github.com/andrewrech/antigen.garnish")
   }
 
   # netMHC package versions are pinned here, in parsing functions for results,
@@ -230,22 +230,24 @@ configure_netMHC_tools <- function(dir) {
   message("Checking netMHC scripts in antigen.garnish data directory.")
   # sed scripts to correct paths
   # install data from DTU
-  io <- lapply(f, function(i) {
+  lapply(f, function(i) {
 
-    # rename to take off version, necessary because commands are built into table
-    # in get_pred_commands and check_pred_tools hasn't run at that point
-    io <- file.path(
-      dirname(i),
-      basename(i)
-      # %>% stringr::str_replace("-.*$", "")
-      # this line is now hashed because netMHCII uses version number in its
-      # script name and we are now hard coding versions
-    )
+    # first check of subdirectory exists
+    # if subdirectory does not exist, binary netMHC files have not been downloaded
+    # return early and do not attempt to download data
+    # assume user has configured netMHC tools
+
+    if (!dir.exists(i)) {
+      file.path(dir, "/", i)
+
+      warning(dir, "/", i, " does not exist; cannot configure netMHC tools; see README: https://github.com/andrewrech/antigen.garnish")
+      return(NULL)
+    }
 
     #  check if data has already been extracted
     bkFile <- list.files(pattern = paste0(basename(i), ".bk"), recursive = TRUE) %>% length()
     if (bkFile == 1) {
-      return(io)
+      return(NULL)
     }
 
     if (i == "netMHC-4.0/netMHC") {
@@ -297,7 +299,7 @@ configure_netMHC_tools <- function(dir) {
 
     # versionless backup file
 
-    file <- basename(io)
+    file <- basename(i)
     bk <- paste0(file, ".bk")
 
     if (!file.exists(bk)) {
@@ -324,12 +326,10 @@ configure_netMHC_tools <- function(dir) {
 
     setwd(npd)
 
-    return(io)
+    return(NULL)
   }) %>% unlist()
 
   setwd(owd)
-
-  return(io)
 }
 
 #' Internal function to check for netMHC tools and mhcflurry
@@ -338,7 +338,6 @@ configure_netMHC_tools <- function(dir) {
 #'
 #' @noRd
 #' @md
-
 check_pred_tools <- function(ag_dirs = c(
                                paste0(
                                  getwd(),
@@ -381,7 +380,7 @@ check_pred_tools <- function(ag_dirs = c(
     Sys.setenv(AG_DATA_DIR = ag_dir)
   }
 
-  scripts <- configure_netMHC_tools(ag_dir)
+  configure_netMHC_tools(ag_dir)
 
   default_path <- paste0(
     ag_dir,
@@ -397,12 +396,12 @@ check_pred_tools <- function(ag_dirs = c(
     paste(collapse = ":")
 
   tool_status <- list(
-    mhcflurry   = TRUE,
-    netMHC      = TRUE,
-    netMHCpan   = TRUE,
-    netMHCII    = TRUE,
-    netMHCIIpan = TRUE,
-    blastp      = TRUE
+    mhcflurry      = TRUE,
+    netMHC         = TRUE,
+    "netMHCII-2.3" = TRUE,
+    netMHCIIpan    = TRUE,
+    netMHCpan      = TRUE,
+    blastp         = TRUE
   )
 
   # conditional to prevent infinitely growing path when running in long loops
@@ -422,15 +421,15 @@ check_pred_tools <- function(ag_dirs = c(
     tool_status$blastp <- FALSE
   }
 
-  lapply(scripts, function(i) {
-    f <- basename(i)
+  netMHCTools <- c("netMHC", "netMHCII-2.3", "netMHCIIpan", "netMHCpan")
 
-    if (suppressWarnings(system(paste("which", f, "2> /dev/null"), intern = TRUE)) %>%
+  for (i in netMHCTools) {
+    if (suppressWarnings(system(paste("which", i, "2> /dev/null"), intern = TRUE)) %>%
       length() == 0) {
-      message(paste(f, " is not in PATH\n       Download: http://www.cbs.dtu.dk/services/"), sep = "")
-      tool_status[[f]] <- FALSE
+      message(paste(i, " is not in PATH\n       Download: http://www.cbs.dtu.dk/services/"), sep = "")
+      tool_status[[i]] <- FALSE
     }
-  })
+  }
 
   return(tool_status)
 }
