@@ -102,6 +102,7 @@ garnish_variants <- function(vcfs, tumor_sample_name = "TUMOR") {
     # parse ANN column
     vdt %<>% get_vcf_snpeff_dt
 
+
     if (vdt %>% class() %>%
       .[1] == "try-error") {
       warning("Error parsing input file SnpEff ANN annotation.")
@@ -145,9 +146,6 @@ garnish_variants <- function(vcfs, tumor_sample_name = "TUMOR") {
     vdt %<>% tidyr::separate_rows("ALT", sep = ",")
 
     vdt %<>% data.table::as.data.table(.)
-
-    # now keep only rows that match the previously split ANN field
-    vdt %<>% .[ALT == stringr::str_extract(ANN, pattern = "(<?=ANN=)?[AGCT]+(?=\\|)")]
 
     return(vdt)
   })
