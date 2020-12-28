@@ -1,5 +1,8 @@
 FROM ubuntu:20.04 as dependencies
 
+# to run tests
+# export DOCKER_BUILDKIT=1 BUILDKIT_PROGRESS=plain; docker build --build-arg CACHEBUST="$(date +%s)" --target test -t andrewrech/antigen.garnish -f Dockerfile .
+
 ENV DEBIAN_FRONTEND=noninteractive
 ENV TERM linux
 RUN apt-get update \
@@ -64,8 +67,8 @@ RUN Rscript --vanilla -e \
     'install.packages(c("BiocManager", "testthat", "rcmdcheck", "data.table", "mclust", "Rdpack", "tidyr", "uuid", "vcfR", "zoo"), repos = "http://cran.us.r-project.org"); BiocManager::install("Biostrings")'
 
 FROM dependencies as data
-# ARG ANTIGEN_GARNISH_DATA_LINK=https://get.rech.io/antigen.garnish-2.0.0.tar.gz
-ARG ANTIGEN_GARNISH_DATA_LINK=https://get.rech.io/antigen.garnish-dev-no-distrib.tar.gz
+ARG ANTIGEN_GARNISH_DATA_LINK=https://get.rech.io/antigen.garnish-2.1.0.tar.gz
+# ARG ANTIGEN_GARNISH_DATA_LINK=https://get.rech.io/antigen.garnish-dev-no-distrib.tar.gz
 ARG CACHEBUST_DATA
 WORKDIR /root
 RUN mkdir -p ./antigen.garnish \
@@ -88,6 +91,6 @@ FROM install as test
 WORKDIR /root/src
 RUN Rscript --vanilla -e 'source("/root/src/tests/testthat/setup.R"); testthat::test_dir("/root/src/tests/testthat", stop_on_failure = TRUE)'
 
-FROM test as release
+FROM install as release
 WORKDIR /root
 CMD ["bash"]
