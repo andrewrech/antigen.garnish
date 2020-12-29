@@ -248,19 +248,19 @@ configure_netMHC_tools <- function(dir) {
       return(NULL)
     }
 
-    if (i == "netMHC-4.0/netMHC") {
+    if (i == "netMHC/netMHC-4.0/netMHC") {
       link <- "http://www.cbs.dtu.dk/services/NetMHC-4.0/data.tar.gz"
     }
 
-    if (i == "netMHCII-2.3/netMHCII-2.3") {
+    if (i == "netMHC/netMHCII-2.3/netMHCII-2.3") {
       link <- "http://www.cbs.dtu.dk/services/NetMHCII-2.3/data.Linux.tar.gz"
     }
 
-    if (i == "netMHCIIpan-4.0/netMHCIIpan") {
+    if (i == "netMHC/netMHCIIpan-4.0/netMHCIIpan") {
       link <- "http://www.cbs.dtu.dk/services/NetMHCIIpan/data.tar.gz"
     }
 
-    if (i == "netMHCpan-4.1/netMHCpan") {
+    if (i == "netMHC/netMHCpan-4.1/netMHCpan") {
       link <- "http://www.cbs.dtu.dk/services/NetMHCpan-4.1/data.tar.gz"
     }
 
@@ -281,15 +281,15 @@ configure_netMHC_tools <- function(dir) {
     }
 
     # move it into the right folder and untar
-    dtar <- file.path(dirname(i), "dtu.tar.gz")
+    dtar <- file.path(dirname(i) %>% basename(), "dtu.tar.gz")
 
     file.rename("dtu.tar.gz", dtar)
 
-    setwd(dirname(i))
+    setwd(dirname(i) %>% basename())
 
     system(paste("tar -xzvf", basename(dtar)))
 
-    line <- file.path(dir, "netMHC", dirname(i))
+    line <- file.path(dir, "netMHC", dirname(i)%>% basename())
 
     # properly escape for sed call
     line <- paste("setenv NMHOME ", line %>% stringr::str_replace_all("/", "\\\\/"), sep = "")

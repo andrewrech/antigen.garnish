@@ -872,12 +872,14 @@ merge_predictions <- function(l, dt) {
   if ("blast_uuid" %chin% names(dt)) {
 
     # keep blast match that will give most conservative BLAST_A value
-
-    dt[!is.na(blast_uuid) & pep_type == "wt",
-      match := Ensemble_score %>% as.numeric() %>% min(na.rm = TRUE),
-      by = c("blast_uuid", "MHC")
-    ] %>%
-      .[Ensemble_score == match, match := 0]
+    # suppress empty vector warning returning Inf
+    suppressWarnings({
+      dt[!is.na(blast_uuid) & pep_type == "wt",
+        match := Ensemble_score %>% as.numeric() %>% min(na.rm = TRUE),
+        by = c("blast_uuid", "MHC")
+      ] %>%
+        .[Ensemble_score == match, match := 0]
+    })
 
     dt <- dt[is.na(match) | match == 0]
 
@@ -896,12 +898,14 @@ merge_predictions <- function(l, dt) {
   if ("forn_uuid" %chin% names(dt)) {
 
     # keep blast match that will give most conservative IEDB_A value
-
-    dt[!is.na(forn_uuid) & effect_type == "IEDB_source",
-      match := Ensemble_score %>% as.numeric() %>% min(na.rm = TRUE),
-      by = c("forn_uuid", "MHC")
-    ] %>%
-      .[Ensemble_score == match, match := 0]
+    # suppress empty vector warning returning Inf
+    suppressWarnings({
+      dt[!is.na(forn_uuid) & effect_type == "IEDB_source",
+        match := Ensemble_score %>% as.numeric() %>% min(na.rm = TRUE),
+        by = c("forn_uuid", "MHC")
+      ] %>%
+        .[Ensemble_score == match, match := 0]
+    })
 
     dt <- dt[is.na(match) | match == 0]
 

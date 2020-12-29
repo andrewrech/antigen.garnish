@@ -4,7 +4,7 @@
 # data directory (downloaded from the one-line installation script)
 # copy the tarballs into the antigen.garnish directory
 NET_MHC_DIR=/
-ANTIGEN_GARNISH_DIR=/antigen.garnish
+ANTIGEN_GARNISH_DIR=/root/antigen.garnish
 
 cd "$NET_MHC_DIR" || return 1
 

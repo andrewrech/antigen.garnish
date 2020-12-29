@@ -30,7 +30,7 @@ RUN apt-get update \
         software-properties-common \
         subversion \
         tcsh \
-    && rm -rf /var/lib/apt/lists/* \
+    && rm -rf /var/lib/apt/lists/*
 
 ## https://github.com/rocker-org/rocker/issues/19
 RUN echo "en_US.UTF-8 UTF-8" >> /etc/locale.gen \

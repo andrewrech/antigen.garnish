@@ -207,6 +207,9 @@ file <- file.path(dir, "antigen.garnish_example_peptide_with_WT_input.txt")
 # or substitute the path to your file here
 mytable <- rio::import(file) %>% data.table::as.data.table()
 
+# only use first two rows of table for example
+mytable <- mytable[1:2]
+
 # predict neoantigens from data table object
 result <- garnish_affinity(mytable)
 
