@@ -1290,7 +1290,7 @@ get_ss_str <- function(x, y) {
 #' Perform ensemble neoantigen prediction on a data table of missense mutations, insertions, or deletions using netMHC and mhcflurry.
 #'
 #' @param path Path to input `csv` or `tsv` file.
-#' @param dt Data table. Input data table from `garnish_variants`, or a data table in the correct form (see [Github README](https://github.com/immune-health/antigen.garnish).
+#' @param dt Data table. Input data table from `garnish_variants`, or a data table in the correct form (see [Github README](https://github.com/immune-health/antigen.garnish)).
 #' @param binding_cutoff Numeric. Maximum consensus MHC-binding affinity that will be passed for IEDB and dissimilarity analysis. Default is 500 (nM). Note: If a peptide binds to any MHC allele in the table below this threshold, foreignness score and dissimilarity will be returned for all rows with that peptide.
 #' @param counts Optional. A file path to a `csv` or `tsv` RNA count matrix. The first column must contain Ensembl transcript ids. All samples in the input table must be present in the count matrix.
 #' @param min_counts Integer. The minimum number of estimated read counts for a transcript to be considered for neoantigen prediction. Default is 1.
