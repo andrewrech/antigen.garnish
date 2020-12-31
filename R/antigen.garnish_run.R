@@ -183,7 +183,7 @@ run_netMHC <- function(dt) {
     "or from R using Sys.setenv",
     "",
     "Re-download installation data:",
-    '$ curl -fsSL "http://get.rech.io/antigen.garnish-2.0.0.tar.gz" | tar -xvz',
+    '$ curl -fsSL "http://get.rech.io/antigen.garnish-2.1.0.tar.gz" | tar -xvz',
     "",
     "Documentation:",
     "https://neoantigens.rech.io",
