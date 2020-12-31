@@ -3,6 +3,9 @@ FROM ubuntu:20.04 as dependencies
 # to run tests
 # export DOCKER_BUILDKIT=1 BUILDKIT_PROGRESS=plain; docker build --build-arg CACHEBUST="$(date +%s)" --target test -t andrewrech/antigen.garnish -f Dockerfile .
 
+# build documentation
+# export DOCKER_BUILDKIT=1 BUILDKIT_PROGRESS=plain; docker build --build-arg CACHEBUST="$(date +%s)" --target docs -t andrewrech/antigen.garnish -f Dockerfile .
+
 ENV DEBIAN_FRONTEND=noninteractive
 ENV TERM linux
 RUN apt-get update \
@@ -87,9 +90,23 @@ RUN cp ./inst/extdata/src/config_netMHC.sh \
        && echo 'export AG_DATA_DIR="/root/antigen.garnish"' >> /root/.bashrc \
     && echo 'export PATH=/root/antigen.garnish/netMHC/netMHC-4.0:/root/antigen.garnish/netMHC/netMHCII-2.3:/root/antigen.garnish/netMHC/netMHCIIpan-4.0/:/root/antigen.garnish/netMHC/netMHCpan-4.1:/root/antigen.garnish/ncbi-blast-2.10.1+-src/c++/ReleaseMT/bin:"$PATH"' >> /root/.bashrc
 
+# stage for testing, skipped in production image
 FROM install as test
 WORKDIR /root/src
 RUN Rscript --vanilla -e 'source("/root/src/tests/testthat/setup.R"); testthat::test_dir("/root/src/tests/testthat", stop_on_failure = TRUE)'
+WORKDIR /root/src
+RUN apt-get install -y --no-install-recommends \
+      textinfo \
+    && 
+
+# stage for documentation, skipped in production image
+FROM install as docs
+WORKDIR /root/src
+RUN apt-get install -y --no-install-recommends \
+      texinfo \
+      && Rscript --vanilla -e 'install.packages(c("tinytex", "roxygen2"), repos = "http://cran.us.r-project.org"); tinytex::install_tinytex(); roxygen2::roxygenize(clean = TRUE)' \
+      && export PATH=/root/bin:"$PATH" \
+      && R CMD Rd2pdf --no-preview -o antigen.garnish.pdf .
 
 FROM install as release
 WORKDIR /root
