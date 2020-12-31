@@ -6,6 +6,7 @@ testthat::test_that("get_vcf_sample_dt", {
   dt <- file.path(d, "antigen.garnish_test.vcf") %>%
     vcfR::read.vcfR(verbose = TRUE) %>%
     antigen.garnish:::get_vcf_sample_dt()
+
   # run test
 
   testthat::expect_equal(

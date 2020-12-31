@@ -1,4 +1,4 @@
-testthat::test_that("antigen.garnish:::get_pred_commands", {
+testthat::test_that("get_pred_commands", {
   list.files(pattern = "(netMHC|flurry).*-.*-.*\\.csv") %>% file.remove()
   on.exit(list.files(pattern = "(netMHC|flurry).*-.*-.*\\.csv") %>% file.remove())
 

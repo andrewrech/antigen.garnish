@@ -1,4 +1,4 @@
-testthat::test_that("antigen.garnish:::get_vcf_info_dt", {
+testthat::test_that("get_vcf_info_dt", {
 
   # load test data
 

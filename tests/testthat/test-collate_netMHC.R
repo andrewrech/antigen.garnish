@@ -1,4 +1,4 @@
-testthat::test_that("antigen.garnish:::collate_netMHC", {
+testthat::test_that("collate_netMHC", {
 
   # load test data
   file.copy(

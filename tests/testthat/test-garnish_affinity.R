@@ -26,7 +26,8 @@ README <- function() {
       dt[, .N, by = pep_type],
       structure(list(pep_type = c("wt", "mutnfs", "mut_other"), N = c(
         924L,
-        660L, 2079L
+        660L,
+        2079L
       )), row.names = c(NA, -3L), class = c(
         "data.table",
         "data.frame"
@@ -143,6 +144,7 @@ transcripts <- function() {
 
 peptides <- function() {
   testthat::test_that("garnish_affinity assemble from peptides", {
+    skip_pred_tools()
 
     # load test data
     dt <- data.table::data.table(
@@ -165,10 +167,9 @@ peptides <- function() {
 
 peptides_wt <- function() {
   testthat::test_that("garnish_affinity assemble from peptides with wild-type", {
-
-    # load test data
     skip_pred_tools()
 
+    # load test data
     d <- test_data_dir()
 
     # load test data

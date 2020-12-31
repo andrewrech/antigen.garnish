@@ -1,6 +1,6 @@
-[![rech.io](https://s3.amazonaws.com/get.rech.io/antigen.garnish_build_status.svg)](https://s3.amazonaws.com/get.rech.io/antigen.garnish.test.txt) | [![rech.io](https://img.shields.io/badge/endpoint.svg?url=https://s3.amazonaws.com/get.rech.io/antigen.garnish_coverage.json)](https://s3.amazonaws.com/get.rech.io/antigen.garnish_coverage.html) | ![](https://img.shields.io/badge/version-2.0.0-blue.svg) | v1.0: ![](https://img.shields.io/docker/pulls/leeprichman/antigen_garnish.svg) | v2.0: ![](https://img.shields.io/docker/pulls/leeprichman/antigen_garnish_2.svg)
+![](https://s3.amazonaws.com/get.rech.io/antigen.garnish_build_status.svg) | [![rech.io](https://img.shields.io/badge/endpoint.svg?url=https://s3.amazonaws.com/get.rech.io/antigen.garnish_coverage.json)](https://s3.amazonaws.com/get.rech.io/antigen.garnish_coverage.html) | ![](https://img.shields.io/badge/version-2.1.0-blue.svg)
 
-# antigen.garnish 2.0
+# antigen.garnish 2
 
 Human and mouse ensemble tumor neoantigen prediction from SNVs and complex variants. Immunogenicity filtering based on the [Tumor Neoantigen Selection Alliance (TESLA)](https://www.parkerici.org/research-project/tumor-neoantigen-selection-alliance-tesla/).
 
@@ -30,9 +30,9 @@ Two methods exist to run `antigen.garnish`:
 ### Docker
 
 ```sh
-docker pull leeprichman/antigen_garnish_2
+docker pull andrewrech/antigen_garnish
 
-cID=$(docker run -it -d leeprichman/antigen_garnish_2 /bin/bash)
+cID=$(docker run -it -d andrewrech/antigen_garnish /bin/bash)
 ```
 
 [Download](https://services.healthtech.dtu.dk/software.php) netMHC binaries (academic license): NetMHC 4.0, NetMHCpan 4.1b, NetMHCII 2.3, NetMHCIIpan 4.0.
@@ -56,6 +56,7 @@ docker exec $cID config_netMHC.sh
 - [Bioconductor](https://www.bioconductor.org/install/) [Biostrings package](https://www.bioconductor.org/packages/release/bioc/html/Biostrings.html)
 - [GNU Parallel](https://www.gnu.org/software/parallel/)
 - [mhcflurry](https://github.com/openvax/mhcflurry)
+- netMHC tools (see below)
 - tcsh (required for netMHC, install via your package manager)
 
 #### Installation
@@ -66,15 +67,15 @@ Install the dependencies listed above. Then, download and extract `antigen.garni
 ANTIGEN_GARNISH_DIR="~/antigen.garnish"
 
 cd ~
-curl -fsSL "http://get.rech.io/antigen.garnish-2.0.0.tar.gz" | tar -xvz
+curl -fsSL "http://get.rech.io/antigen.garnish-2.1.0.tar.gz" | tar -xvz
 chmod 700 -R "$ANTIGEN_GARNISH_DIR"
 ```
 
 Install antigen.garnish:
 
 ```r
-# install.packages("devtools")
-devtools::install_github("immune-health/antigen.garnish")
+# install.packages("remotes")
+remotes::install_github("andrewrech/antigen.garnish")
 ```
 
 Next, [download](https://services.healthtech.dtu.dk/software.php) netMHC binaries (academic license): NetMHC 4.0, NetMHCpan 4.1b, NetMHCII 2.3, NetMHCIIpan 4.0.
@@ -104,7 +105,7 @@ See the [reference manual](https://get.rech.io/antigen.garnish.pdf).
 
 #### Interactive use
 
-Copy any VCF files and/or metadata including HLA alleles onto the running container using the `docker cp` [command](https://docs.docker.com/engine/reference/commandline/cp/). The container ID is still saved as `$cID` from the installation above. You will also need to use this command and container ID to copy any saved output files the docker container after you complete your analysis.
+Copy any VCF files and/or metadata including HLA alleles onto the running container using the `docker cp` [command](https://docs.docker.com/engine/reference/commandline/cp/). The container ID is still saved as `$cID` from the installation above. You will also need to use this command and container ID to copy saved output files from the docker container after you complete your analysis.
 
 Copy any needed files onto the running container, for example:
 
@@ -150,7 +151,6 @@ Parallel cores used can be set via environment variable AG_THREADS (default: all
 ```r
 library(magrittr)
 library(data.table)
-library(dt.inflix)
 library(antigen.garnish)
 
 # load an example VCF
@@ -170,6 +170,49 @@ dt[, MHC := c("HLA-A*01:47 HLA-A*02:01 HLA-DRB1*14:67")]
 
 # predict neoantigens
 result <- dt %>% garnish_affinity(.)
+
+result %>% str
+```
+
+#### Predict neoantigens from Microsoft Excel or other table input
+
+Transcript ID level input table format:
+```
+# sample_id ensembl_transcript_id cDNA_change MHC
+# sample_1  ENST00000311936       c.718T>A    HLA-A*02:01 HLA-A*03:01
+# sample_1  ENST00000311936       c.718T>A    H-2-Kb H-2-Kb
+```
+
+Protein level input (with optional WT paired input) table format:
+```
+# sample_id pep_mut           pep_wt            mutant_index MHC
+# sample_1  MTEYKLVVVDADGVGK  MTEYKLVVVDAGGVGK  12           HLA-A*02:01
+# sample_1  MTEYKLVVVDDDGVGK  MTEYKLVVVDAGGVGK  12 13        HLA-A*02:01
+# sample_1  MTEYKLVVVDAGGAAA  MTEYKLVVVDAGGVGK  14 15 16     HLA-A*02:01
+# sample_1  SIINFEKLMILKATFI  MTEYKLVVVDAGGVGK  all          HLA-A*02:01
+```
+
+```r
+library(magrittr)
+library(data.table)
+library(antigen.garnish)
+library(rio) # package to import Excel and other tables
+
+# load an example table
+dir <- system.file(package = "antigen.garnish") %>%
+       file.path(., "extdata/testdata")
+
+file <- file.path(dir, "antigen.garnish_example_peptide_with_WT_input.txt")
+
+# read in excel or other format file with rio::import and convert to data table
+# or substitute the path to your file here
+mytable <- rio::import(file) %>% data.table::as.data.table()
+
+# only use first two rows of table for example
+mytable <- mytable[1:2]
+
+# predict neoantigens from data table object
+result <- garnish_affinity(mytable)
 
 result %>% str
 ```

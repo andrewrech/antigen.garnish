@@ -1,4 +1,4 @@
-testthat::test_that("antigen.garnish:::make_DAI_uuid", {
+testthat::test_that("make_DAI_uuid", {
 
   # load test data
   dt <- structure(list(

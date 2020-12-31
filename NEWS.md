@@ -1,3 +1,12 @@
+# antigen.garnish 2.1.0
+
+Added functionality:
+
+- add Dockerfile used to build publically available Docker image (andrewrech/antigen.garnish)
+- relax parsing of SnpEff annotations to reduce errors across VCFs and/or SnpEff versions
+- simplify internal functions that configure netMHC tools
+- use Docker to run tests
+
 # antigen.garnish 2.0.0
 
 Breaking changes:

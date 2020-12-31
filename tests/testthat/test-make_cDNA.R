@@ -1,4 +1,4 @@
-testthat::test_that("antigen.garnish:::make_cDNA", {
+testthat::test_that("make_cDNA", {
 
   # load test data
   dt <- data.table::data.table(

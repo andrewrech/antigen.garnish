@@ -19,7 +19,7 @@ testthat::test_that("make_nmers", {
     "pep_type", "pep_base", "mutant_index"))
 
     # run test
-      dto <- make_nmers(dt)
+      dto <- antigen.garnish:::make_nmers(dt)
 
     testthat::expect_equal(dto %>% nrow, 552)
 

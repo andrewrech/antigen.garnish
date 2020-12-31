@@ -1,7 +1,7 @@
 Package: antigen.garnish
 Title: Tumor neoantigen prediction
-Version: 2.0.0
-Authors@R: 
+Version: 2.1.0
+Authors@R:
     c(person(given = c("Lee", "P."),
              family = "Richman",
              role = c("aut", "cre"),
@@ -18,7 +18,7 @@ Description: Ensemble tumor neoantigen prediction from complex
     variants. Immunogenicity filtering based on the Tumor Neoantigen
     Selection Alliance (TESLA).
 License: See LICENSE
-Imports: 
+Imports:
     Biostrings,
     data.table,
     magrittr,
@@ -33,11 +33,11 @@ Imports:
     uuid,
     vcfR,
     zoo
-RdMacros: 
+RdMacros:
     Rdpack
 Encoding: UTF-8
 LazyData: true
 LazyLoad: yes
-RemoteUrl: https://neoantigens.io
+RemoteUrl: https://github.com/andrewrech/antigen.garnish
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.1.1

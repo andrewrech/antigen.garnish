@@ -64,7 +64,7 @@ foreignness_score <- function(v, db) {
       "or from R using Sys.setenv",
       "",
       "Re-download installation data:",
-      '$ curl -fsSL "http://get.rech.io/antigen.garnish-2.0.0.tar.gz" | tar -xvz',
+      '$ curl -fsSL "http://get.rech.io/antigen.garnish-2.1.0.tar.gz" | tar -xvz',
       "",
       "Documentation:",
       "https://neoantigens.rech.io",
@@ -266,7 +266,7 @@ dissimilarity_score <- function(v, db, kval = 4.86936, aval = 32) {
       "or from R using Sys.setenv",
       "",
       "Re-download installation data:",
-      '$ curl -fsSL "http://get.rech.io/antigen.garnish-2.0.0.tar.gz" | tar -xvz',
+      '$ curl -fsSL "http://get.rech.io/antigen.garnish-2.1.0.tar.gz" | tar -xvz',
       "",
       "Documentation:",
       "https://neoantigens.rech.io",
@@ -872,12 +872,14 @@ merge_predictions <- function(l, dt) {
   if ("blast_uuid" %chin% names(dt)) {
 
     # keep blast match that will give most conservative BLAST_A value
-
-    dt[!is.na(blast_uuid) & pep_type == "wt",
-      match := Ensemble_score %>% as.numeric() %>% min(na.rm = TRUE),
-      by = c("blast_uuid", "MHC")
-    ] %>%
-      .[Ensemble_score == match, match := 0]
+    # suppress empty vector warning returning Inf
+    suppressWarnings({
+      dt[!is.na(blast_uuid) & pep_type == "wt",
+        match := Ensemble_score %>% as.numeric() %>% min(na.rm = TRUE),
+        by = c("blast_uuid", "MHC")
+      ] %>%
+        .[Ensemble_score == match, match := 0]
+    })
 
     dt <- dt[is.na(match) | match == 0]
 
@@ -896,12 +898,14 @@ merge_predictions <- function(l, dt) {
   if ("forn_uuid" %chin% names(dt)) {
 
     # keep blast match that will give most conservative IEDB_A value
-
-    dt[!is.na(forn_uuid) & effect_type == "IEDB_source",
-      match := Ensemble_score %>% as.numeric() %>% min(na.rm = TRUE),
-      by = c("forn_uuid", "MHC")
-    ] %>%
-      .[Ensemble_score == match, match := 0]
+    # suppress empty vector warning returning Inf
+    suppressWarnings({
+      dt[!is.na(forn_uuid) & effect_type == "IEDB_source",
+        match := Ensemble_score %>% as.numeric() %>% min(na.rm = TRUE),
+        by = c("forn_uuid", "MHC")
+      ] %>%
+        .[Ensemble_score == match, match := 0]
+    })
 
     dt <- dt[is.na(match) | match == 0]
 
@@ -1286,7 +1290,7 @@ get_ss_str <- function(x, y) {
 #' Perform ensemble neoantigen prediction on a data table of missense mutations, insertions, or deletions using netMHC and mhcflurry.
 #'
 #' @param path Path to input `csv` or `tsv` file.
-#' @param dt Data table. Input data table from `garnish_variants`, or a data table in the correct form (see [Github README](https://github.com/immune-health/antigen.garnish).
+#' @param dt Data table. Input data table from `garnish_variants`, or a data table in the correct form (see [Github README](https://github.com/immune-health/antigen.garnish)).
 #' @param binding_cutoff Numeric. Maximum consensus MHC-binding affinity that will be passed for IEDB and dissimilarity analysis. Default is 500 (nM). Note: If a peptide binds to any MHC allele in the table below this threshold, foreignness score and dissimilarity will be returned for all rows with that peptide.
 #' @param counts Optional. A file path to a `csv` or `tsv` RNA count matrix. The first column must contain Ensembl transcript ids. All samples in the input table must be present in the count matrix.
 #' @param min_counts Integer. The minimum number of estimated read counts for a transcript to be considered for neoantigen prediction. Default is 1.
@@ -1736,8 +1740,8 @@ garnish_affinity <- function(dt = NULL,
     d <- system.file(package = "antigen.garnish") %>% file.path(., "extdata")
 
     if (
-      (!dt$MHC %likef% "HLA" %>% any()) &
-        (!dt$MHC %likef% "H-2" %>% any()) &
+      (!dt$MHC %like% "HLA" %>% any()) &
+        (!dt$MHC %like% "H-2" %>% any()) &
         !all(dt$MHC %chin% c("all_human", "all_mouse"))
     ) {
       stop("MHC do not contain \"HLA-\" or \"H-2\" as a pattern.
@@ -1745,8 +1749,8 @@ garnish_affinity <- function(dt = NULL,
     }
 
     if (
-      (dt$MHC %likef% "HLA" %>% any() &
-        !dt$MHC %likef% "H-2" %>% any()) ||
+      (dt$MHC %like% "HLA" %>% any() &
+        !dt$MHC %like% "H-2" %>% any()) ||
         (dt$MHC == "all_human") %>% any()
     ) {
       pepv <-
@@ -1757,8 +1761,8 @@ garnish_affinity <- function(dt = NULL,
         readRDS(.)
     }
     if (
-      (dt$MHC %likef% "H-2" %>% any() &
-        !dt$MHC %likef% "HLA" %>% any()) ||
+      (dt$MHC %like% "H-2" %>% any() &
+        !dt$MHC %like% "HLA" %>% any()) ||
         (dt$MHC == "all_mouse") %>% any()
     ) {
       pepv <-
@@ -1770,8 +1774,8 @@ garnish_affinity <- function(dt = NULL,
     }
 
     if (
-      (dt$MHC %likef% "HLA" %>% any() &
-        dt$MHC %likef% "H-2" %>% any()) ||
+      (dt$MHC %like% "HLA" %>% any() &
+        dt$MHC %like% "H-2" %>% any()) ||
         (any(dt$MHC == "all_human") & any(dt$MHC == "all_mouse"))
     ) {
       pepv <- c(

@@ -1,4 +1,4 @@
-testthat::test_that("antigen.garnish:::make_cDNA edge cases", {
+testthat::test_that("make_cDNA edge cases", {
 
   # load test data
 

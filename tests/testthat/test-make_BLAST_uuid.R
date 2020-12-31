@@ -1,4 +1,4 @@
-testthat::test_that("antigen.garnish:::make_BLAST_uuid", {
+testthat::test_that("make_BLAST_uuid", {
   if (length(system("which blastp", intern = TRUE)) != 1) {
     testthat::skip("Skipping antigen.garnish:::make_BLAST_uuid because ncbiblast+ is not in PATH")
   }
