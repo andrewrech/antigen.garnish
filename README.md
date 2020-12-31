@@ -30,9 +30,9 @@ Two methods exist to run `antigen.garnish`:
 ### Docker
 
 ```sh
-docker pull andrewrech/antigen_garnish
+docker pull andrewrech/antigen.garnish
 
-cID=$(docker run -it -d andrewrech/antigen_garnish /bin/bash)
+cID=$(docker run -it -d andrewrech/antigen.garnish /bin/bash)
 ```
 
 [Download](https://services.healthtech.dtu.dk/software.php) netMHC binaries (academic license): NetMHC 4.0, NetMHCpan 4.1b, NetMHCII 2.3, NetMHCIIpan 4.0.

@@ -1,4 +1,4 @@
-# antigen.garnish 2.1.0
+# antigen.garnish 2.1.1
 
 Added functionality:
 
