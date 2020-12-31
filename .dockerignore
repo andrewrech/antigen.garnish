@@ -1,0 +1,11 @@
+.editorconfig
+.git
+.gitattributes
+.github
+
+docs
+Dockerfile
+*.dockerfile
+
+antigen.garnish*.tar.gz
+antigen.garnish.pdf
