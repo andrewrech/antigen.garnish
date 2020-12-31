@@ -25,8 +25,8 @@ README <- function() {
     testthat::expect_equal(
       dt[, .N, by = pep_type],
       structure(list(pep_type = c("wt", "mutnfs", "mut_other"), N = c(
-        1572L,
-        1212L,
+        924L,
+        660L,
         2079L
       )), row.names = c(NA, -3L), class = c(
         "data.table",

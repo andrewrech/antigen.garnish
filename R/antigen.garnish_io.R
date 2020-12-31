@@ -143,8 +143,6 @@ garnish_variants <- function(vcfs, tumor_sample_name = "TUMOR") {
       vdt %<>% tidyr::separate_rows(eval(afield), sep = ",")
     }
 
-    vdt %<>% tidyr::separate_rows("ALT", sep = ",")
-
     vdt %<>% data.table::as.data.table(.)
 
     return(vdt)

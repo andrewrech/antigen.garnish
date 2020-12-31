@@ -429,7 +429,7 @@ get_vcf_snpeff_dt <- function(dt) {
   if (any(class(dt) %like% "error")) {
     print(str(dt))
     stop("error parsing VCF SnpEff annotations")
- }
+  }
   dt[, protein_coding := FALSE]
   dt[protein_change != "", protein_coding := TRUE]
 
