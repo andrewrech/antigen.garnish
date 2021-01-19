@@ -94,10 +94,6 @@ RUN cp ./inst/extdata/src/config_netMHC.sh \
 FROM install as test
 WORKDIR /root/src
 RUN Rscript --vanilla -e 'source("/root/src/tests/testthat/setup.R"); testthat::test_dir("/root/src/tests/testthat", stop_on_failure = TRUE)'
-WORKDIR /root/src
-RUN apt-get install -y --no-install-recommends \
-      textinfo \
-    && 
 
 # stage for documentation, skipped in production image
 FROM install as docs
