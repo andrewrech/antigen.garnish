@@ -93,6 +93,7 @@ RUN cp ./inst/extdata/src/config_netMHC.sh \
 # stage for testing, skipped in production image
 FROM install as test
 WORKDIR /root/src
+RUN Rscript -e 'pkg <- c("BiocManager", "testthat", "rcmdcheck", "data.table", "mclust", "Rdpack", "tidyr", "uuid", "vcfR", "zoo"); installed <- pkg %in% installed.packages()[,1]; if (!all(installed)){print("Failed to install:"); print(pkg[!pkg %in% installed.packages()[,1]]); quit(save = "no", status = 1, runLast = FALSE)}'
 RUN Rscript --vanilla -e 'source("/root/src/tests/testthat/setup.R"); testthat::test_dir("/root/src/tests/testthat", stop_on_failure = TRUE)'
 
 # stage for documentation, skipped in production image
