@@ -67,7 +67,7 @@ RUN mkdir /.local/ &&  \
       mv /root/.local/share/mhcflurry /.local/share/
 
 RUN Rscript --vanilla -e \
-    'install.packages(c("BiocManager", "testthat", "rcmdcheck", "data.table", "mclust", "Rdpack", "tidyr", "uuid", "vcfR", "zoo"), repos = "http://cran.us.r-project.org"); BiocManager::install("Biostrings")'
+    'install.packages(c("BiocManager", "testthat", "rcmdcheck", "data.table", "mclust", "Rdpack", "roxygen2", "tidyr", "uuid", "vcfR", "zoo"), repos = "http://cran.us.r-project.org"); BiocManager::install("Biostrings")'
 
 FROM dependencies as data
 ARG ANTIGEN_GARNISH_DATA_LINK=https://get.rech.io/antigen.garnish-2.1.0.tar.gz
@@ -93,7 +93,7 @@ RUN cp ./inst/extdata/src/config_netMHC.sh \
 # stage for testing, skipped in production image
 FROM install as test
 WORKDIR /root/src
-RUN Rscript -e 'pkg <- c("BiocManager", "testthat", "rcmdcheck", "data.table", "mclust", "Rdpack", "tidyr", "uuid", "vcfR", "zoo"); installed <- pkg %in% installed.packages()[,1]; if (!all(installed)){print("Failed to install:"); print(pkg[!pkg %in% installed.packages()[,1]]); quit(save = "no", status = 1, runLast = FALSE)}'
+RUN Rscript -e 'pkg <- c("BiocManager", "testthat", "rcmdcheck", "data.table", "mclust", "Rdpack", "roxygen2", "tidyr", "uuid", "vcfR", "zoo"); installed <- pkg %in% installed.packages()[,1]; if (!all(installed)){print("Failed to install:"); print(pkg[!pkg %in% installed.packages()[,1]]); quit(save = "no", status = 1, runLast = FALSE)}'
 RUN Rscript --vanilla -e 'source("/root/src/tests/testthat/setup.R"); testthat::test_dir("/root/src/tests/testthat", stop_on_failure = TRUE)'
 
 # stage for documentation, skipped in production image
@@ -101,7 +101,7 @@ FROM install as docs
 WORKDIR /root/src
 RUN apt-get install -y --no-install-recommends \
       texinfo \
-      && Rscript --vanilla -e 'install.packages(c("tinytex", "roxygen2"), repos = "http://cran.us.r-project.org"); tinytex::install_tinytex(); roxygen2::roxygenize(clean = TRUE)' \
+      && Rscript --vanilla -e 'install.packages("tinytex"), repos = "http://cran.us.r-project.org"); tinytex::install_tinytex()' \
       && export PATH=/root/bin:"$PATH" \
       && R CMD Rd2pdf --no-preview -o antigen.garnish.pdf .
 
