@@ -103,6 +103,7 @@ RUN apt-get install -y --no-install-recommends \
       texinfo \
       && Rscript --vanilla -e 'install.packages("tinytex"), repos = "http://cran.us.r-project.org"); tinytex::install_tinytex()' \
       && export PATH=/root/bin:"$PATH" \
+      && Rscript -e 'roxygen2::roxygenize()' \
       && R CMD Rd2pdf --no-preview -o antigen.garnish.pdf .
 
 FROM install as release
