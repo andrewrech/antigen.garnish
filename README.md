@@ -30,7 +30,7 @@ Two methods exist to run `antigen.garnish`:
 ### Docker
 
 ```sh
-docker pull andrewrech/antigen.garnish
+docker pull andrewrech/antigen.garnish:2.1.1
 
 cID=$(docker run -it -d andrewrech/antigen.garnish /bin/bash)
 ```
