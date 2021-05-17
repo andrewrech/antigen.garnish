@@ -1,6 +1,6 @@
 Package: antigen.garnish
 Title: Tumor neoantigen prediction
-Version: 2.1.1
+Version: 2.2.0
 Authors@R:
     c(person(given = c("Lee", "P."),
              family = "Richman",

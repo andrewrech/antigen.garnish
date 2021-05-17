@@ -6,6 +6,9 @@ FROM ubuntu:20.04 as dependencies
 # build documentation
 # export DOCKER_BUILDKIT=1 BUILDKIT_PROGRESS=plain; docker build --build-arg CACHEBUST="$(date +%s)" --target docs -t andrewrech/antigen.garnish -f Dockerfile .
 
+# to build no-distrib development version
+# export DOCKER_BUILDKIT=1 BUILDKIT_PROGRESS=plain; docker build --build-arg 'ANTIGEN_GARNISH_DATA_LINK=https://get.rech.io/antigen.garnish-dev-no-distrib.tar.gz' -t andrewrech/antigen.garnish:dev
+
 ENV DEBIAN_FRONTEND=noninteractive
 ENV TERM linux
 RUN apt-get update \
@@ -69,11 +72,12 @@ RUN Rscript --vanilla -e \
     'install.packages(c("BiocManager", "testthat", "rcmdcheck", "data.table", "mclust", "Rdpack", "roxygen2", "tidyr", "uuid", "vcfR", "zoo"), repos = "http://cran.us.r-project.org"); BiocManager::install("Biostrings")'
 
 FROM dependencies as data
-ARG ANTIGEN_GARNISH_DATA_LINK=https://get.rech.io/antigen.garnish-2.1.0.tar.gz
+ARG ANTIGEN_GARNISH_DATA_LINK=https://get.rech.io/antigen.garnish-2.2.0.tar.gz
 # ARG ANTIGEN_GARNISH_DATA_LINK=https://get.rech.io/antigen.garnish-dev-no-distrib.tar.gz
 ARG CACHEBUST_DATA
 WORKDIR /root
 RUN mkdir -p ./antigen.garnish \
+       && echo "###\nANTIGEN_GARNISH_DATA_LINK: $ANTIGEN_GARNISH_DATA_LINK\n###" \
        && curl -fsSL "$ANTIGEN_GARNISH_DATA_LINK" > antigen.garnish.tar.gz \
        && tar xvf antigen.garnish.tar.gz -C ./antigen.garnish
 

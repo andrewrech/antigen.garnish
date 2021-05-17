@@ -1,4 +1,10 @@
-# antigen.garnish 2.1.1
+# antigen.garnish 2.2.0
+
+Bugfix:
+
+- remove netMHC binary check from foreignness_score function that does not require netMHC binaries
+
+# antigen.garnish 2.1.0
 
 Added functionality:
 

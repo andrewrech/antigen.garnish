@@ -1,4 +1,4 @@
-![](https://s3.amazonaws.com/get.rech.io/antigen.garnish_build_status.svg) [![rech.io](https://img.shields.io/badge/endpoint.svg?url=https://s3.amazonaws.com/get.rech.io/antigen.garnish_coverage.json)](https://s3.amazonaws.com/get.rech.io/antigen.garnish_coverage.html) ![](https://img.shields.io/badge/docker-andrewrech/antigen.garnish:2.1.1-blue?style=plastic&logo=docker)
+![](https://s3.amazonaws.com/get.rech.io/antigen.garnish_build_status.svg) [![rech.io](https://img.shields.io/badge/endpoint.svg?url=https://s3.amazonaws.com/get.rech.io/antigen.garnish_coverage.json)](https://s3.amazonaws.com/get.rech.io/antigen.garnish_coverage.html) ![](https://img.shields.io/badge/docker-andrewrech/antigen.garnish:2.2.0-blue?style=plastic&logo=docker)
 
 # antigen.garnish 2
 
@@ -67,7 +67,7 @@ Install the dependencies listed above. Then, download and extract `antigen.garni
 ANTIGEN_GARNISH_DIR="~/antigen.garnish"
 
 cd ~
-curl -fsSL "http://get.rech.io/antigen.garnish-2.1.0.tar.gz" | tar -xvz
+curl -fsSL "http://get.rech.io/antigen.garnish-2.2.0.tar.gz" | tar -xvz
 chmod 700 -R "$ANTIGEN_GARNISH_DIR"
 ```
 

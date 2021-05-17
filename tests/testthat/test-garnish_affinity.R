@@ -19,7 +19,9 @@ README <- function() {
     dt[, MHC := c("HLA-A*01:47 HLA-A*02:01 HLA-DRB1*14:67")]
 
     # predict neoantigens
-    dt %<>% garnish_affinity(.)
+    # warning is expected here
+    # "last 2 bases were ignored"
+    suppressWarnings(dt %<>% garnish_affinity(.))
 
     # check overall peptide creation
     testthat::expect_equal(

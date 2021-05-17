@@ -17,7 +17,7 @@ garnish_affinity(
 )
 }
 \arguments{
-\item{dt}{Data table. Input data table from \code{garnish_variants}, or a data table in the correct form (see \href{https://github.com/immune-health/antigen.garnish}{Github README}.}
+\item{dt}{Data table. Input data table from \code{garnish_variants}, or a data table in the correct form (see \href{https://github.com/immune-health/antigen.garnish}{Github README}).}
 
 \item{path}{Path to input \code{csv} or \code{tsv} file.}
 
