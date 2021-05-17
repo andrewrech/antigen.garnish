@@ -25,8 +25,6 @@ foreignness_score <- function(v, db) {
     return(data.table::data.table(nmer = v))
   }
 
-  check_pred_tools()
-
   message("Generating FASTA to query.")
 
   names(v) <- 1:length(v) %>% as.character()
