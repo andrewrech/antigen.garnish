@@ -65,7 +65,6 @@ RUN pip3 --disable-pip-version-check \
 RUN mkdir /.local/ &&  \
       mkdir /.local/share && \
       mv /root/.local/share/mhcflurry /.local/share/
-
 RUN Rscript --vanilla -e \
     'install.packages(c("BiocManager", "testthat", "rcmdcheck", "data.table", "mclust", "Rdpack", "roxygen2", "tidyr", "uuid", "vcfR", "zoo"), repos = "http://cran.us.r-project.org"); BiocManager::install("Biostrings")'
 
@@ -79,7 +78,6 @@ RUN mkdir -p ./antigen.garnish \
        && tar xvf antigen.garnish.tar.gz -C ./antigen.garnish
 
 FROM dependencies as install
-ARG CACHEBUST_DATA
 ARG CACHEBUST
 COPY --from=data /root/antigen.garnish/* /root/antigen.garnish/
 WORKDIR /root/src
@@ -88,24 +86,29 @@ RUN cp ./inst/extdata/src/config_netMHC.sh \
        /usr/local/bin \
        && R CMD INSTALL . \
        && echo 'export AG_DATA_DIR="/root/antigen.garnish"' >> /root/.bashrc \
-    && echo 'export PATH=/root/antigen.garnish/netMHC/netMHC-4.0:/root/antigen.garnish/netMHC/netMHCII-2.3:/root/antigen.garnish/netMHC/netMHCIIpan-4.0/:/root/antigen.garnish/netMHC/netMHCpan-4.1:/root/antigen.garnish/ncbi-blast-2.10.1+-src/c++/ReleaseMT/bin:"$PATH"' >> /root/.bashrc
+    && echo 'export PATH=/root/antigen.garnish/netMHC/netMHC-4.0:/root/antigen.garnish/netMHC/netMHCII-2.3:/root/antigen.garnish/netMHC/netMHCIIpan-4.0/:/root/antigen.garnish/netMHC/netMHCpan-4.1:/root/antigen.garnish/ncbi-blast-2.10.1+-src/c++/ReleaseMT/bin:"$PATH"' >> /root/.bashrc \
+    && rm -rf /root/src
 
-# stage for testing, skipped in production image
+# optional stage to test deployment
+# Rscript command exits non-zero on failure
 FROM install as test
 WORKDIR /root/src
+COPY . ./
 RUN Rscript -e 'pkg <- c("BiocManager", "testthat", "rcmdcheck", "data.table", "mclust", "Rdpack", "roxygen2", "tidyr", "uuid", "vcfR", "zoo"); installed <- pkg %in% installed.packages()[,1]; if (!all(installed)){print("Failed to install:"); print(pkg[!pkg %in% installed.packages()[,1]]); quit(save = "no", status = 1, runLast = FALSE)}'
-RUN Rscript --vanilla -e 'source("/root/src/tests/testthat/setup.R"); testthat::test_dir("/root/src/tests/testthat", stop_on_failure = TRUE)'
-
-# stage for documentation, skipped in production image
-FROM install as docs
-WORKDIR /root/src
-RUN apt-get install -y --no-install-recommends \
-      texinfo \
-      && Rscript --vanilla -e 'install.packages("tinytex"), repos = "http://cran.us.r-project.org"); tinytex::install_tinytex()' \
-      && export PATH=/root/bin:"$PATH" \
-      && Rscript -e 'roxygen2::roxygenize()' \
-      && R CMD Rd2pdf --no-preview -o antigen.garnish.pdf .
+RUN Rscript --vanilla -e 'source("/root/src/tests/testthat/setup.R"); testthat::test_dir("/root/src/tests/testthat", stop_on_failure = TRUE)' \
+    && rm -rf /root/src
 
 FROM install as release
 WORKDIR /root
 CMD ["bash"]
+
+# optional stage to build R package documentation
+FROM install as docs
+WORKDIR /root/src
+COPY . ./
+RUN apt-get install -y --no-install-recommends \
+      texinfo \
+      && Rscript --vanilla -e 'install.packages("tinytex", repos = "http://cran.us.r-project.org"); tinytex::install_tinytex()' \
+      && export PATH=/root/bin:"$PATH" \
+      && Rscript -e 'roxygen2::roxygenize()' \
+      && R CMD Rd2pdf --no-preview -o antigen.garnish.pdf .
