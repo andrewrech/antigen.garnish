@@ -7,7 +7,7 @@ FROM ubuntu:20.04 as dependencies
 # export DOCKER_BUILDKIT=1 BUILDKIT_PROGRESS=plain; docker build --build-arg CACHEBUST="$(date +%s)" --target docs -t andrewrech/antigen.garnish -f Dockerfile .
 
 # to build no-distrib development version
-# export DOCKER_BUILDKIT=1 BUILDKIT_PROGRESS=plain; docker build --build-arg 'ANTIGEN_GARNISH_DATA_LINK=https://get.rech.io/antigen.garnish-dev-no-distrib.tar.gz' -t andrewrech/antigen.garnish:dev
+# export DOCKER_BUILDKIT=1 BUILDKIT_PROGRESS=plain; docker build --build-arg 'ANTIGEN_GARNISH_DATA_LINK=https://get.rech.io/antigen.garnish-dev-no-distrib.tar.gz' -t andrewrech/antigen.garnish:dev -f Dockerfile .
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV TERM linux
@@ -98,7 +98,7 @@ RUN cp ./inst/extdata/src/config_netMHC.sh \
 FROM install as test
 WORKDIR /root/src
 COPY . ./
-RUN Rscript -e 'pkg <- c("BiocManager", "testthat", "rcmdcheck", "data.table", "mclust", "Rdpack", "roxygen2", "tidyr", "uuid", "vcfR", "zoo"); installed <- pkg %in% installed.packages()[,1]; if (!all(installed)){print("Failed to install:"); print(pkg[!pkg %in% installed.packages()[,1]]); quit(save = "no", status = 1, runLast = FALSE)}'
+RUN Rscript --vanilla -e 'pkg <- c("BiocManager", "testthat", "rcmdcheck", "data.table", "mclust", "Rdpack", "roxygen2", "tidyr", "uuid", "vcfR", "zoo"); installed <- pkg %in% installed.packages()[,1]; if (!all(installed)){print("Failed to install:"); print(pkg[!pkg %in% installed.packages()[,1]]); quit(save = "no", status = 1, runLast = FALSE)}'
 RUN Rscript --vanilla -e 'source("/root/src/tests/testthat/setup.R"); testthat::test_dir("/root/src/tests/testthat", stop_on_failure = TRUE)' \
     && rm -rf /root/src
 
@@ -114,5 +114,5 @@ RUN apt-get install -y --no-install-recommends \
       texinfo \
       && Rscript --vanilla -e 'install.packages("tinytex", repos = "http://cran.us.r-project.org"); tinytex::install_tinytex()' \
       && export PATH=/root/bin:"$PATH" \
-      && Rscript -e 'roxygen2::roxygenize()' \
+      && Rscript --vanilla -e 'roxygen2::roxygenize()' \
       && R CMD Rd2pdf --no-preview -o antigen.garnish.pdf .
