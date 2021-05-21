@@ -1,8 +1,8 @@
 # development and git
 .*\.editorconfig
-.*\Dockerfile
-.*\dockerignore
-.*\dockerfile
+.*Dockerfile
+.*dockerignore
+.*dockerfile
 .*\.gitignore/
 .*\.git/
 .*\.github
