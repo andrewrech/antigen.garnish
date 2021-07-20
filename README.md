@@ -105,7 +105,7 @@ See the [reference manual](https://get.rech.io/antigen.garnish.pdf).
 
 #### Interactive use
 
-Copy any VCF files and/or metadata including HLA alleles onto the running container using the `docker cp` [command](https://docs.docker.com/engine/reference/commandline/cp/). The container ID is still saved as `$cID` from the installation above. You will also need to use this command and container ID to copy saved output files from the docker container after you complete your analysis.
+Copy GRCh38-annotated VCF files and/or metadata including HLA alleles onto the running container using the `docker cp` [command](https://docs.docker.com/engine/reference/commandline/cp/). The container ID is still saved as `$cID` from the installation above. You will also need to use this command and container ID to copy saved output files from the docker container after you complete your analysis.
 
 Copy any needed files onto the running container, for example:
 
