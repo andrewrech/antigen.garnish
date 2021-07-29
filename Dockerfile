@@ -88,9 +88,10 @@ WORKDIR /root/src
 COPY . ./
 RUN cp ./inst/extdata/src/config_netMHC.sh \
        /usr/local/bin \
-       && R CMD INSTALL . \
-       && echo 'export AG_DATA_DIR="/root/antigen.garnish"' >> /root/.bashrc \
-    && echo 'export PATH=/root/antigen.garnish/netMHC/netMHC-4.0:/root/antigen.garnish/netMHC/netMHCII-2.3:/root/antigen.garnish/netMHC/netMHCIIpan-4.0/:/root/antigen.garnish/netMHC/netMHCpan-4.1:/root/antigen.garnish/ncbi-blast-2.10.1+-src/c++/ReleaseMT/bin:"$PATH"' >> /root/.bashrc
+      && chmod -u+x /usr/local/bin/config_netMHC.sh \
+      && R CMD INSTALL . \
+      && echo 'export AG_DATA_DIR="/root/antigen.garnish"' >> /root/.bashrc \
+      && echo 'export PATH=/root/antigen.garnish/netMHC/netMHC-4.0:/root/antigen.garnish/netMHC/netMHCII-2.3:/root/antigen.garnish/netMHC/netMHCIIpan-4.0/:/root/antigen.garnish/netMHC/netMHCpan-4.1:/root/antigen.garnish/ncbi-blast-2.10.1+-src/c++/ReleaseMT/bin:"$PATH"' >> /root/.bashrc
 
 # optional stage to test deployment
 # Rscript command exits non-zero on failure
