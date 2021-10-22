@@ -1,3 +1,11 @@
+# antigen.garnish 2.3.0
+
+Bugfix:
+
+- update NetMHC tool data directory paths
+- fix permissions on configuration script (was non-executable)
+- minor documentation improvements
+
 # antigen.garnish 2.2.0
 
 Bugfix:

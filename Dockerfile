@@ -72,7 +72,7 @@ RUN Rscript --vanilla -e \
     'install.packages(c("BiocManager", "testthat", "rcmdcheck", "data.table", "mclust", "Rdpack", "roxygen2", "tidyr", "uuid", "vcfR", "zoo"), repos = "http://cran.us.r-project.org"); BiocManager::install("Biostrings")'
 
 FROM dependencies as data
-ARG ANTIGEN_GARNISH_DATA_LINK=https://get.rech.io/antigen.garnish-2.2.0.tar.gz
+ARG ANTIGEN_GARNISH_DATA_LINK=https://get.rech.io/antigen.garnish-2.3.0.tar.gz
 # ARG ANTIGEN_GARNISH_DATA_LINK=https://get.rech.io/antigen.garnish-dev-no-distrib.tar.gz
 ARG CACHEBUST_DATA
 WORKDIR /root

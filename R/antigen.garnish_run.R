@@ -183,7 +183,7 @@ run_netMHC <- function(dt) {
     "or from R using Sys.setenv",
     "",
     "Re-download installation data:",
-    '$ curl -fsSL "http://get.rech.io/antigen.garnish-2.2.0.tar.gz" | tar -xvz',
+    '$ curl -fsSL "http://get.rech.io/antigen.garnish-2.3.0.tar.gz" | tar -xvz',
     "",
     "Documentation:",
     "https://neoantigens.rech.io",
@@ -249,19 +249,19 @@ configure_netMHC_tools <- function(dir) {
     }
 
     if (i == "netMHC/netMHC-4.0/netMHC") {
-      link <- "http://www.cbs.dtu.dk/services/NetMHC-4.0/data.tar.gz"
+      link <- "https://services.healthtech.dtu.dk/services/NetMHC-4.0/data.tar.gz"
     }
 
     if (i == "netMHC/netMHCII-2.3/netMHCII-2.3") {
-      link <- "http://www.cbs.dtu.dk/services/NetMHCII-2.3/data.Linux.tar.gz"
+      link <- "https://services.healthtech.dtu.dk/services/NetMHCII-2.3/data.Linux.tar.gz"
     }
 
     if (i == "netMHC/netMHCIIpan-4.0/netMHCIIpan") {
-      link <- "http://www.cbs.dtu.dk/services/NetMHCIIpan/data.tar.gz"
+      link <- "https://services.healthtech.dtu.dk/services/NetMHCIIpan-4.0/data.tar.gz"
     }
 
     if (i == "netMHC/netMHCpan-4.1/netMHCpan") {
-      link <- "http://www.cbs.dtu.dk/services/NetMHCpan-4.1/data.tar.gz"
+      link <- "https://services.healthtech.dtu.dk/services/NetMHCpan-4.1/data.tar.gz"
     }
 
     cmd <- paste("curl -fsSL", link, ">", "dtu.tar.gz")
@@ -424,7 +424,7 @@ check_pred_tools <- function(ag_dirs = c(
   for (i in netMHCTools) {
     if (suppressWarnings(system(paste("which", i, "2> /dev/null"), intern = TRUE)) %>%
       length() == 0) {
-      message(paste(i, " is not in PATH\n       Download: http://www.cbs.dtu.dk/services/"), sep = "")
+      message(paste(i, " is not in PATH\n       Download: https://services.healthtech.dtu.dk/services/"), sep = "")
       tool_status[[i]] <- FALSE
     }
   }
