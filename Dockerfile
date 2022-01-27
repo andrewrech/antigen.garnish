@@ -7,7 +7,7 @@ FROM ubuntu:20.04 as dependencies
 # export DOCKER_BUILDKIT=1 BUILDKIT_PROGRESS=plain; docker build --build-arg CACHEBUST="$(date +%s)" --target docs -t andrewrech/antigen.garnish -f Dockerfile .
 
 # to build no-distrib development version
-# export DOCKER_BUILDKIT=1 BUILDKIT_PROGRESS=plain; docker build --build-arg 'ANTIGEN_GARNISH_DATA_LINK=https://get.rech.io/antigen.garnish-dev-no-distrib.tar.gz' -t andrewrech/antigen.garnish:dev -f Dockerfile .
+# export DOCKER_BUILDKIT=1 BUILDKIT_PROGRESS=plain; docker build --build-arg 'ANTIGEN_GARNISH_DATA_LINK=https://s3.amazonaws.com/get.rech.io/antigen.garnish-dev-no-distrib.tar.gz' -t andrewrech/antigen.garnish:dev -f Dockerfile .
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV TERM linux
@@ -72,8 +72,8 @@ RUN Rscript --vanilla -e \
     'install.packages(c("BiocManager", "testthat", "rcmdcheck", "data.table", "mclust", "Rdpack", "roxygen2", "tidyr", "uuid", "vcfR", "zoo"), repos = "http://cran.us.r-project.org"); BiocManager::install("Biostrings")'
 
 FROM dependencies as data
-ARG ANTIGEN_GARNISH_DATA_LINK=https://get.rech.io/antigen.garnish-2.3.0.tar.gz
-# ARG ANTIGEN_GARNISH_DATA_LINK=https://get.rech.io/antigen.garnish-dev-no-distrib.tar.gz
+ARG ANTIGEN_GARNISH_DATA_LINK=https://s3.amazonaws.com/get.rech.io/antigen.garnish-2.3.0.tar.gz
+# ARG ANTIGEN_GARNISH_DATA_LINK=https://s3.amazonaws.com/get.rech.io/antigen.garnish-dev-no-distrib.tar.gz
 ARG CACHEBUST_DATA
 WORKDIR /root
 RUN mkdir -p ./antigen.garnish \

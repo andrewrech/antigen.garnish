@@ -4,7 +4,7 @@
 
 Human and mouse ensemble tumor neoantigen prediction from SNVs and complex variants. Immunogenicity filtering based on the [Tumor Neoantigen Selection Alliance (TESLA)](https://www.parkerici.org/research-project/tumor-neoantigen-selection-alliance-tesla/).
 
-![](https://get.rech.io/antigen.garnish_flowchart.svg)
+![](https://s3.amazonaws.com/get.rech.io/antigen.garnish_flowchart.svg)
 
 ## Citation
 
@@ -67,7 +67,7 @@ Install the dependencies listed above. Then, download and extract `antigen.garni
 ANTIGEN_GARNISH_DIR="~/antigen.garnish"
 
 cd ~
-curl -fsSL "http://get.rech.io/antigen.garnish-2.3.0.tar.gz" | tar -xvz
+curl -fsSL "https://s3.amazonaws.com/get.rech.io/antigen.garnish-2.3.0.tar.gz" | tar -xvz
 chmod 700 -R "$ANTIGEN_GARNISH_DIR"
 ```
 
@@ -99,7 +99,7 @@ chmod 700 -R "$ANTIGEN_GARNISH_DIR/netMHC"
 
 ## Usage
 
-See the [reference manual](https://get.rech.io/antigen.garnish.pdf).
+See the [reference manual](https://s3.amazonaws.com/get.rech.io/antigen.garnish.pdf).
 
 ### Docker
 
