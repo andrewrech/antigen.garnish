@@ -229,7 +229,7 @@ garnish_antigens <- function(dt,
     return(dt)
   }
 
-  dt <- dt[Ensemble_score < 34 & pep_type != "wt"]
+  dt <- dt[Ensemble_score < affinity_threshold & pep_type != "wt"]
 
   if (nrow(dt) == 0) {
     ("No qualifying neoantigens present in data.")
@@ -264,12 +264,23 @@ garnish_antigens <- function(dt,
     "Ensemble_score", "dissimilarity", "foreignness_score", "min_DAI"
   )]
 
-  annotate_antigens <- function(ie, md, diss) {
-    iedb_l <- ifelse(ie > 10e-16, "foreignness", as.character(NA))
+  annotate_antigens <- function(ie,
+                                md,
+                                diss,
+                                dat,
+                                dth,
+                                fth) {
+    iedb_l <- ifelse(ie > fth,
+      "foreignness", as.character(NA)
+    )
 
-    dai_l <- ifelse(md > 10, "agretopicity", as.character(NA))
+    dai_l <- ifelse(md > dat,
+      "agretopicity", as.character(NA)
+    )
 
-    diss_l <- ifelse(diss > 0, "dissimilarity", as.character(NA))
+    diss_l <- ifelse(diss > dth,
+      "dissimilarity", as.character(NA)
+    )
 
     anno <- paste("binding affinity", iedb_l, dai_l, diss_l, sep = "; ")
 
@@ -285,7 +296,10 @@ garnish_antigens <- function(dt,
   dt[, Recognition_Features := annotate_antigens(
     foreignness_score,
     min_DAI,
-    dissimilarity
+    dissimilarity,
+    differential_agretopcity_threshold,
+    dissimilarity_threshold,
+    foreignness_threshold
   )]
 
   return(dt)
