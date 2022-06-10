@@ -833,8 +833,15 @@ merge_predictions <- function(l, dt) {
 
   # merge back
 
+  # return early if no ensemble predictions exist
+  anyPredictions <- length(dt[, .SD, .SDcols = cols] %>% unlist() %>% stats::na.omit())
+  if (anyPredictions == 0) {
+    message("No ensemble prediction scores.")
+    dt[, Ensemble_score := as.character(NA)]
+    return(dt)
+  }
+  
   # take average of mhcflurry best available netMHC tool
-
   cols <- dt %>% names() %include% "(best_netMHC)|(mhcflurry_prediction$)|(mhcflurry_affinity$)"
 
   if (length(cols) < 2) {
@@ -1034,6 +1041,7 @@ get_pred_commands <- function(dt) {
   dt[, netMHCII := netMHCpan %>% stringr::str_replace(stringr::fixed(":"), "") %>%
     stringr::str_replace(stringr::fixed("HLA-"), "")]
   dt[, netMHCIIpan := netMHCII %>% stringr::str_replace("DRB1", "DRB1_")]
+  dt[, netMHCIIpan := netMHCII %>% stringr::str_replace("[_]+", "_")]
 
   # replace substring with netMHC allele type
   dt[, netMHCpan := detect_mhc(netMHCpan, alleles)]
@@ -1187,7 +1195,7 @@ collate_netMHC <- function(esl) {
       # fix netMHCpan allele output to match input
       if (command %like% "netMHCpan") {
         dt[, allele := allele %>%
-          stringr::str_replace(fixed("*"), "")]
+          stringr::str_replace(stringr::fixed("*"), "")]
       }
 
       # set unique column names based on program
@@ -1863,6 +1871,11 @@ garnish_affinity <- function(dt = NULL,
     warning("Missing prediction tools in PATH, returning without predictions.")
   }
 
+    if (!"BLAST_A" %in% (dt %>% names())) {
+        message("BLAST did not run.")
+        return(dt)
+          }
+  
   message("Setting up dissimilarity calculation.")
 
   # now  that we know binders, get our foreignness_score and dissimilarity values
