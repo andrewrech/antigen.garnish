@@ -1,5 +1,3 @@
-![](https://s3.amazonaws.com/get.rech.io/antigen.garnish_build_status.svg) [![rech.io](https://img.shields.io/badge/endpoint.svg?url=https://s3.amazonaws.com/get.rech.io/antigen.garnish_coverage.json)](https://s3.amazonaws.com/get.rech.io/antigen.garnish_coverage.html) ![](https://img.shields.io/badge/docker-andrewrech/antigen.garnish:2.3.0-blue?style=plastic&logo=docker)
-
 # antigen.garnish 2
 
 Human and mouse ensemble tumor neoantigen prediction from SNVs and complex variants. Immunogenicity filtering based on the [Tumor Neoantigen Selection Alliance (TESLA)](https://www.parkerici.org/research-project/tumor-neoantigen-selection-alliance-tesla/).
