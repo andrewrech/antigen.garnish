@@ -807,8 +807,10 @@ merge_predictions <- function(l, dt) {
   cols <- dt %>% names() %include% c("affinity\\(nM\\)")
 
   # only calculate best_netMHC if 2 or more scores exist
-
-  if (length(cols) < 2) {
+  if (length(cols) == 0) {
+    dt[, best_netMHC := NA]
+  }
+  if (length(cols) == 1) {
     dt[, best_netMHC := get(cols)]
   }
 
