@@ -1,3 +1,9 @@
+# antigen.garnish 2.3.1
+
+Bugfix:
+
+- errors parsing rare MHCII alleles for netMHC tools
+
 # antigen.garnish 2.3.0
 
 Bugfix:

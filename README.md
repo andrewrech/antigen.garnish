@@ -26,9 +26,9 @@ Two methods exist to run `antigen.garnish`:
 ### Docker
 
 ```sh
-docker pull andrewrech/antigen.garnish:2.3.0
+docker pull andrewrech/antigen.garnish:2.3.1
 
-cID=$(docker run -it -d andrewrech/antigen.garnish:2.3.0 /bin/bash)
+cID=$(docker run -it -d andrewrech/antigen.garnish:2.3.1 /bin/bash)
 ```
 
 [Download](https://services.healthtech.dtu.dk/software.php) netMHC binaries (academic license): NetMHC 4.0, NetMHCpan 4.1b, NetMHCII 2.3, NetMHCIIpan 4.0.

@@ -114,7 +114,7 @@ make_refseq_db <- function(txt) {
   1:length(l) %>% lapply(function(i) {
     print(i)
     ids <- l[[i]] %>% paste(collapse = ",")
-    glue::glue("http 'https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=nuccore&id={ids}&retmode=xml' > rs{i}.xml") %>% system()
+    paste0("http 'https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=nuccore&id=", ids, "&retmode=xml' > rs", i, ".xml") %>% system()
   })
 
   # extract RefSeq IDm cDNA,  and peptide sequence from .xml
@@ -140,7 +140,7 @@ make_refseq_db <- function(txt) {
 
           sub <- x %>%
             # move to sequence record ancestor corresponding to transcript ID
-            xml2::xml_find_all(glue::glue("//GBSeq_accession-version[text()='{id}']/ancestor::GBSeq"))
+            xml2::xml_find_all(paste0("//GBSeq_accession-version[text()='", id, "']/ancestor::GBSeq"))
 
           peptide <- sub %>%
             # find translation entry
