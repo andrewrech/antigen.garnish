@@ -1042,7 +1042,21 @@ get_pred_commands <- function(dt) {
   dt[, netMHCII := netMHCpan %>% stringr::str_replace(stringr::fixed(":"), "") %>%
     stringr::str_replace(stringr::fixed("HLA-"), "")]
   dt[, netMHCIIpan := netMHCII %>% stringr::str_replace("DRB1", "DRB1_")]
-  dt[, netMHCIIpan := netMHCII %>% stringr::str_replace("[_]+", "_")]
+
+  dt[, netMHCpan := netMHCpan %>% stringr::str_replace("[_]+", "_")]
+  dt[, netMHC := netMHC %>% stringr::str_replace("[_]+", "_")]
+  dt[, netMHCII := netMHCII %>% stringr::str_replace("[_]+", "_")]
+  dt[, netMHCIIpan := netMHCIIpan %>% stringr::str_replace("[_]+", "_")]
+
+  dt[, netMHCpan := detect_mhc(netMHCpan, alleles)]
+  dt[, netMHC := detect_mhc(netMHC, alleles)]
+  dt[, netMHCII := detect_mhc(netMHCII, alleles)]
+  dt[, netMHCIIpan := detect_mhc(netMHCIIpan, alleles)]
+
+  message("Allele mapping to prediction tools:")
+  dt[, .SD, .SDcols = c("MHC", "netMHCpan", "netMHC", "netMHCII", "netMHCIIpan")] %>%
+    unique() %>%
+    print()
 
   # replace substring with netMHC allele type
   dt[, netMHCpan := detect_mhc(netMHCpan, alleles)]
