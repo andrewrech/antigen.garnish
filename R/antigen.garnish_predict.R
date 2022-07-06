@@ -75,7 +75,7 @@ foreignness_score <- function(v, db) {
   db <- paste("-db", db %>% stringr::str_replace("\\.pin", ""), sep = " ")
 
   threads <- Sys.getenv("AG_THREADS") %>% as.numeric(.)
-  if (threads == "" || threads %>% is.na) {
+  if (threads == "" || threads %>% is.na()) {
     threads <- parallel::detectCores()
   }
   if ((threads %>% as.numeric()) %>% is.na()) {
@@ -286,7 +286,7 @@ dissimilarity_score <- function(v, db, kval = 4.86936, aval = 32) {
   db <- paste("-db", db %>% stringr::str_replace("\\.pin", ""), sep = " ")
 
   threads <- Sys.getenv("AG_THREADS") %>% as.numeric(.)
-  if (threads == "" || threads %>% is.na) {
+  if (threads == "" || threads %>% is.na()) {
     threads <- parallel::detectCores()
   }
   if ((threads %>% as.numeric()) %>% is.na()) {
@@ -478,7 +478,7 @@ make_BLAST_uuid <- function(dti) {
   )
 
   threads <- Sys.getenv("AG_THREADS") %>% as.numeric(.)
-  if (threads == "" || threads %>% is.na) {
+  if (threads == "" || threads %>% is.na()) {
     threads <- parallel::detectCores()
   }
   if ((threads %>% as.numeric()) %>% is.na()) {
@@ -702,7 +702,6 @@ make_DAI_uuid <- function(dt) {
           )
         ] %>%
           data.table::setnames("nmer", "wt_nmer"),
-
         .[pep_type == "mutnfs", .SD,
           .SDcols = c(
             "nmer", "nmer_i",
@@ -823,10 +822,10 @@ merge_predictions <- function(l, dt) {
       data.table::setkey(nmer, MHC, variable) %>%
       .[, .(
         best_netMHC =
-          # define Consensus_score
-        value %>%
-          na.omit() %>%
-          .[1]
+        # define Consensus_score
+          value %>%
+            na.omit() %>%
+            .[1]
       ), by = c("nmer", "MHC")] %>%
       .[!best_netMHC %>% is.na()]
 
@@ -842,7 +841,7 @@ merge_predictions <- function(l, dt) {
     dt[, Ensemble_score := as.character(NA)]
     return(dt)
   }
-  
+
   # take average of mhcflurry best available netMHC tool
   cols <- dt %>% names() %include% "(best_netMHC)|(mhcflurry_prediction$)|(mhcflurry_affinity$)"
 
@@ -1062,7 +1061,6 @@ get_pred_commands <- function(dt) {
           data.table::copy() %>%
           data.table::setkey(netMHC, nmer_l) %>%
           write_netmhc_nmers("netMHC"),
-
         dt[!netMHCpan %>% is.na() &
           nmer_l < 15,
         .SD,
@@ -1071,7 +1069,6 @@ get_pred_commands <- function(dt) {
           data.table::copy() %>%
           data.table::setkey(netMHCpan, nmer_l) %>%
           write_netmhc_nmers("netMHCpan"),
-
         dt[!netMHCII %>% is.na() &
           nmer_l == 15,
         .SD,
@@ -1080,7 +1077,6 @@ get_pred_commands <- function(dt) {
           data.table::copy() %>%
           data.table::setkey(netMHCII, nmer_l) %>%
           write_netmhc_nmers("netMHCII"),
-
         dt[!netMHCIIpan %>% is.na() &
           nmer_l == 15,
         .SD,
@@ -1691,7 +1687,6 @@ garnish_affinity <- function(dt = NULL,
         .[, pep_base := pep_mut] %>%
         .[, pep_type := "mut_other"]
     )) %>%
-
       # take unique peptides
       .[, .SD, .SDcols = c(
         "var_uuid",
@@ -1873,11 +1868,11 @@ garnish_affinity <- function(dt = NULL,
     warning("Missing prediction tools in PATH, returning without predictions.")
   }
 
-    if (!"BLAST_A" %in% (dt %>% names())) {
-        message("BLAST did not run.")
-        return(dt)
-          }
-  
+  if (!"BLAST_A" %in% (dt %>% names())) {
+    message("BLAST did not run.")
+    return(dt)
+  }
+
   message("Setting up dissimilarity calculation.")
 
   # now  that we know binders, get our foreignness_score and dissimilarity values
@@ -2030,7 +2025,6 @@ make_nmers <- function(dt, plen = 8:15) {
 
   nmer_list <- lapply(
     1:nrow(dt),
-
     function(n) {
 
       ## --- Write peptide fragments
